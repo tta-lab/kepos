@@ -83,25 +83,38 @@ npm run android:assemble
 
 ## Pear desktop peer
 
-The desktop peer is a Pear app under `desktop/`. It is a development client for
-testing the Android two-device path from a laptop.
+The desktop peer is a Pear v2 app under `desktop/`. It is a development client
+for testing the Android two-device path from a laptop. Pear Electron runtime
+dependencies live in `desktop/` so they do not leak into the Android package.
 
-Run it with the local npm Pear CLI:
+Install the desktop-only runtime packages:
+
+```bash
+npm run desktop:install
+```
+
+Run the app with the local npm Pear CLI:
 
 ```bash
 npm run desktop
 ```
 
-This script uses the npm `pear` package. Do not call bare `pear` unless your
-PATH points to Holepunch Pear; on macOS/Homebrew it may resolve to PHP PEAR
-instead. Check with:
+The desktop app uses a Pear v2 JavaScript entrypoint (`desktop/index.js`) and
+`pear-electron/pre` to open `desktop/index.html`. Do not add a top-level
+`main: "index.html"` back to `desktop/package.json`; `npm run lint` checks this.
+
+The script uses the npm `pear` package. Do not call bare `pear` unless your PATH
+points to Holepunch Pear; on macOS/Homebrew it may resolve to PHP PEAR instead.
+Check with:
 
 ```bash
 npx pear -v
 ```
 
 On first install, Pear may ask you to open the runtime app or add its bin
-directory to PATH. The npm script still avoids the PHP PEAR name collision.
+directory to PATH. If `pear run`, `pear -v`, or `pear help` hangs before the
+Kepos window opens, fix the local Pear runtime installation first; the app has
+not reached its renderer code yet.
 
 Current desktop scope:
 

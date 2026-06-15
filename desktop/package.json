@@ -2,18 +2,26 @@
   "name": "kepos-desktop",
   "private": true,
   "type": "module",
-  "main": "index.html",
+  "dependencies": {
+    "autobase": "^7.28.1",
+    "b4a": "^1.8.1",
+    "corestore": "^7.10.1",
+    "hypercore-crypto": "^3.7.0",
+    "hyperswarm": "^4.17.0",
+    "pear-bridge": "^1.2.5",
+    "pear-electron": "^1.7.28"
+  },
   "pear": {
     "name": "kepos-desktop",
+    "pre": "pear-electron/pre",
     "gui": {
       "height": 760,
+      "main": "index.html",
       "width": 1080
     },
     "stage": {
       "entrypoints": [
-        "index.html",
-        "app.js",
-        "styles.css"
+        "index.js"
       ]
     }
   }

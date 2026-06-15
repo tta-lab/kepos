@@ -3,9 +3,9 @@
 import RPC from 'bare-rpc'
 import b4a from 'b4a'
 import Hyperswarm from 'hyperswarm'
-import os from 'bare-os'
 import { createP2PRoom } from '../src/p2p-room.js'
 import { createTreeholeBase } from '../src/treehole-base.js'
+import { createTreeholeStoragePath } from '../src/treehole-storage.js'
 import {
   RPC_ERROR,
   RPC_JOIN,
@@ -29,6 +29,7 @@ let room = null
 let treehole = null
 let treeholeSwarm = null
 let roomKey = null
+let treeholeStorageBasePath = null
 let nick = 'anon'
 const addedWriters = new Set()
 
@@ -63,6 +64,7 @@ async function handleRequest(req) {
 async function joinRoom(payload) {
   await leaveRoom()
   roomKey = payload.roomKey
+  treeholeStorageBasePath = payload.storageBasePath
   nick = payload.nick?.trim() || 'anon'
 
   room = createP2PRoom({
@@ -96,6 +98,7 @@ async function leaveRoom() {
   room = null
   await closeTreehole()
   roomKey = null
+  treeholeStorageBasePath = null
   addedWriters.clear()
 }
 
@@ -107,7 +110,11 @@ async function openTreehole(bootstrapKey = null) {
   treehole = await createTreeholeBase({
     bootstrapKey,
     nick,
-    storage: treeholeStoragePath(roomKey, bootstrapKey)
+    storage: createTreeholeStoragePath({
+      basePath: treeholeStorageBasePath,
+      bootstrapKey,
+      roomKey
+    })
   })
   await startTreeholeReplication()
   sendToUI(RPC_TREEHOLE_STATUS, {
@@ -193,11 +200,6 @@ async function sendTreeholeState() {
 
   const state = await treehole.getState()
   sendToUI(RPC_TREEHOLE_STATE, { posts: state.posts })
-}
-
-function treeholeStoragePath(key, bootstrapKey) {
-  const suffix = bootstrapKey ? bootstrapKey.slice(0, 16) : 'host'
-  return `${os.homedir()}/kepos-treehole-${key.slice(0, 16)}-${suffix}`
 }
 
 function readPayload(req) {

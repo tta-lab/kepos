@@ -1,4 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react'
+import * as FileSystem from 'expo-file-system/legacy'
 import {
   FlatList,
   KeyboardAvoidingView,
@@ -48,27 +49,37 @@ export default function App() {
 
   const canJoin = ROOM_KEY_PATTERN.test(roomKey.trim())
 
-  function createRoom() {
-    const key = createMobileRoomKey()
-    setRoomKey(key)
-    setSession(createChatSession({ roomKey: key, nick }))
-    setPeerCount(0)
-    setTreeholePosts([])
-    setTreeholeStatus('starting')
-    startBackend({ roomKey: key, nick, createTreehole: true })
+  async function createRoom() {
+    try {
+      const key = createMobileRoomKey()
+      const storageBasePath = await getBackendStorageBasePath()
+      setRoomKey(key)
+      setSession(createChatSession({ roomKey: key, nick }))
+      setPeerCount(0)
+      setTreeholePosts([])
+      setTreeholeStatus('starting')
+      startBackend({ roomKey: key, nick, createTreehole: true, storageBasePath })
+    } catch (error) {
+      setNotice(`P2P backend unavailable: ${error.message}`)
+    }
   }
 
-  function joinRoom() {
+  async function joinRoom() {
     if (!canJoin) {
       setNotice('Room key must be 64 lowercase hex characters.')
       return
     }
 
-    setSession(createChatSession({ roomKey: roomKey.trim(), nick }))
-    setPeerCount(0)
-    setTreeholePosts([])
-    setTreeholeStatus('waiting')
-    startBackend({ roomKey: roomKey.trim(), nick, createTreehole: false })
+    try {
+      const storageBasePath = await getBackendStorageBasePath()
+      setSession(createChatSession({ roomKey: roomKey.trim(), nick }))
+      setPeerCount(0)
+      setTreeholePosts([])
+      setTreeholeStatus('waiting')
+      startBackend({ roomKey: roomKey.trim(), nick, createTreehole: false, storageBasePath })
+    } catch (error) {
+      setNotice(`P2P backend unavailable: ${error.message}`)
+    }
   }
 
   function leaveRoom() {
@@ -493,6 +504,17 @@ function createMessageId() {
   }
 
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`
+}
+
+async function getBackendStorageBasePath() {
+  const baseUri = FileSystem.documentDirectory || FileSystem.cacheDirectory
+  if (!baseUri) {
+    throw new Error('App storage directory is unavailable')
+  }
+
+  const storageUri = `${baseUri.replace(/\/+$/, '')}/kepos`
+  await FileSystem.makeDirectoryAsync(storageUri, { intermediates: true })
+  return storageUri
 }
 
 function formatPostTime(value) {
