@@ -57,4 +57,13 @@ describe("wire frames", () => {
   test("decodeFrame rejects non-chat frames", () => {
     assert.throws(() => decodeFrame('{"type":"join"}'), /Unsupported frame/);
   });
+
+  test("decodeFrame accepts treehole control frames", () => {
+    const frame = {
+      type: "treehole.bootstrap",
+      key: "b".repeat(64),
+    };
+
+    assert.deepEqual(decodeFrame(encodeFrame(frame).trimEnd()), frame);
+  });
 });

@@ -5,6 +5,8 @@ import { decodeFrame, deriveTopic, encodeFrame } from "./protocol.js";
 export function createP2PRoom(options = {}) {
   const createSwarm = options.createSwarm || (() => new Hyperswarm());
   const onMessage = options.onMessage || (() => {});
+  const onControl = options.onControl || (() => {});
+  const onPeer = options.onPeer || (() => {});
   const onPeerCount = options.onPeerCount || (() => {});
   const peers = new Set();
   const seenMessages = new Set();
@@ -14,6 +16,7 @@ export function createP2PRoom(options = {}) {
   function addPeer(socket) {
     peers.add(socket);
     onPeerCount(peers.size);
+    onPeer(socket);
 
     let buffer = "";
     socket.on("data", (chunk) => {
@@ -28,6 +31,11 @@ export function createP2PRoom(options = {}) {
 
         try {
           const message = decodeFrame(line);
+          if (message.type !== "chat") {
+            onControl(message);
+            continue;
+          }
+
           if (seenMessages.has(message.id)) {
             continue;
           }
@@ -63,15 +71,22 @@ export function createP2PRoom(options = {}) {
   }
 
   function send({ id, text, at }) {
-    const frame = encodeFrame({
+    broadcastFrame({
       type: "chat",
       id,
       nick,
       text,
       at,
     });
-
     seenMessages.add(id);
+  }
+
+  function broadcastControl(message) {
+    broadcastFrame(message);
+  }
+
+  function broadcastFrame(message) {
+    const frame = encodeFrame(message);
     for (const peer of peers) {
       if (!peer.destroyed) {
         peer.write(frame);
@@ -95,6 +110,7 @@ export function createP2PRoom(options = {}) {
 
   return {
     addPeer,
+    broadcastControl,
     join,
     leave,
     send,

@@ -56,6 +56,59 @@ describe("p2p room backend", () => {
     assert.equal(messages.length, 1);
     assert.equal(messages[0].nick, "Ada");
   });
+
+  test("incoming treehole frames are routed as control messages", async () => {
+    const controls = [];
+    const room = createP2PRoom({
+      createSwarm: () => new FakeSwarm(),
+      onControl: (message) => controls.push(message),
+    });
+    const socket = new FakeSocket();
+
+    await room.join({ roomKey: "a".repeat(64), nick: "Neil" });
+    room.addPeer(socket);
+    socket.emitData(`{"type":"treehole.bootstrap","key":"${"b".repeat(64)}"}\n`);
+
+    assert.deepEqual(controls, [
+      {
+        type: "treehole.bootstrap",
+        key: "b".repeat(64),
+      },
+    ]);
+  });
+
+  test("broadcastControl sends a treehole frame to connected peers", async () => {
+    const socket = new FakeSocket();
+    const room = createP2PRoom({
+      createSwarm: () => new FakeSwarm(),
+    });
+
+    await room.join({ roomKey: "a".repeat(64), nick: "Neil" });
+    room.addPeer(socket);
+    room.broadcastControl({
+      type: "treehole.writer",
+      key: "c".repeat(64),
+    });
+
+    assert.deepEqual(JSON.parse(socket.writes[0]), {
+      type: "treehole.writer",
+      key: "c".repeat(64),
+    });
+  });
+
+  test("onPeer is called for newly connected peers", async () => {
+    const peers = [];
+    const socket = new FakeSocket();
+    const room = createP2PRoom({
+      createSwarm: () => new FakeSwarm(),
+      onPeer: (peer) => peers.push(peer),
+    });
+
+    await room.join({ roomKey: "a".repeat(64), nick: "Neil" });
+    room.addPeer(socket);
+
+    assert.deepEqual(peers, [socket]);
+  });
 });
 
 class FakeSwarm {

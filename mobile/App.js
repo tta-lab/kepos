@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import {
   ArrowRight,
+  Heart,
   LogOut,
   MessageCircle,
   Plus,
@@ -36,6 +37,9 @@ import {
   RPC_PEER_COUNT,
   RPC_SEND,
   RPC_STATUS,
+  RPC_TREEHOLE_POST,
+  RPC_TREEHOLE_STATE,
+  RPC_TREEHOLE_STATUS,
 } from "../rpc-commands.mjs";
 
 const ROOM_KEY_PATTERN = /^[0-9a-f]{64}$/;
@@ -44,6 +48,10 @@ export default function App() {
   const [nick, setNick] = useState("Neil");
   const [roomKey, setRoomKey] = useState("");
   const [draft, setDraft] = useState("");
+  const [treeholeDraft, setTreeholeDraft] = useState("");
+  const [treeholePosts, setTreeholePosts] = useState([]);
+  const [treeholeStatus, setTreeholeStatus] = useState("idle");
+  const [activeTab, setActiveTab] = useState("chat");
   const [session, setSession] = useState(null);
   const [notice, setNotice] = useState("Start or join a room to bring up the P2P backend.");
   const [peerCount, setPeerCount] = useState(0);
@@ -57,7 +65,9 @@ export default function App() {
     setRoomKey(key);
     setSession(createChatSession({ roomKey: key, nick }));
     setPeerCount(0);
-    startBackend({ roomKey: key, nick });
+    setTreeholePosts([]);
+    setTreeholeStatus("starting");
+    startBackend({ roomKey: key, nick, createTreehole: true });
   }
 
   function joinRoom() {
@@ -68,13 +78,19 @@ export default function App() {
 
     setSession(createChatSession({ roomKey: roomKey.trim(), nick }));
     setPeerCount(0);
-    startBackend({ roomKey: roomKey.trim(), nick });
+    setTreeholePosts([]);
+    setTreeholeStatus("waiting");
+    startBackend({ roomKey: roomKey.trim(), nick, createTreehole: false });
   }
 
   function leaveRoom() {
     rpc?.request(RPC_LEAVE).send(JSON.stringify({}));
     setSession(null);
     setDraft("");
+    setTreeholeDraft("");
+    setTreeholePosts([]);
+    setTreeholeStatus("idle");
+    setActiveTab("chat");
     setPeerCount(0);
     setRpc(null);
     workletRef.current = null;
@@ -95,6 +111,21 @@ export default function App() {
     setSession(appendLocalMessage(session, message.text, message));
     rpc?.request(RPC_SEND).send(JSON.stringify(message));
     setDraft("");
+  }
+
+  function sendTreeholePost() {
+    if (!session || !treeholeDraft.trim()) {
+      return;
+    }
+
+    rpc?.request(RPC_TREEHOLE_POST).send(
+      JSON.stringify({
+        id: createMessageId(),
+        text: treeholeDraft,
+        createdAt: Date.now(),
+      }),
+    );
+    setTreeholeDraft("");
   }
 
   function startBackend(nextSession) {
@@ -123,6 +154,16 @@ export default function App() {
           return;
         }
 
+        if (req.command === RPC_TREEHOLE_STATUS) {
+          setTreeholeStatus(payload.status || "idle");
+          return;
+        }
+
+        if (req.command === RPC_TREEHOLE_STATE) {
+          setTreeholePosts(payload.posts || []);
+          return;
+        }
+
         if (req.command === RPC_ERROR) {
           setNotice(payload.message || "P2P backend error.");
         }
@@ -147,10 +188,17 @@ export default function App() {
         {session ? (
           <ChatRoom
             draft={draft}
+            activeTab={activeTab}
             onDraftChange={setDraft}
             onLeave={leaveRoom}
             onSend={sendMessage}
+            onTabChange={setActiveTab}
+            onTreeholeDraftChange={setTreeholeDraft}
+            onTreeholePost={sendTreeholePost}
             session={session}
+            treeholeDraft={treeholeDraft}
+            treeholePosts={treeholePosts}
+            treeholeStatus={treeholeStatus}
           />
         ) : (
           <Lobby
@@ -244,7 +292,20 @@ function Lobby({
   );
 }
 
-function ChatRoom({ draft, onDraftChange, onLeave, onSend, session }) {
+function ChatRoom({
+  activeTab,
+  draft,
+  onDraftChange,
+  onLeave,
+  onSend,
+  onTabChange,
+  onTreeholeDraftChange,
+  onTreeholePost,
+  session,
+  treeholeDraft,
+  treeholePosts,
+  treeholeStatus,
+}) {
   const roomShort = useMemo(
     () => `${session.roomKey.slice(0, 8)}...${session.roomKey.slice(-8)}`,
     [session.roomKey],
@@ -262,9 +323,52 @@ function ChatRoom({ draft, onDraftChange, onLeave, onSend, session }) {
         </Pressable>
       </View>
 
+      <View style={styles.tabs}>
+        <TabButton active={activeTab === "chat"} label="Chat" onPress={() => onTabChange("chat")} />
+        <TabButton
+          active={activeTab === "treehole"}
+          label="Treehole"
+          onPress={() => onTabChange("treehole")}
+        />
+      </View>
+
+      {activeTab === "chat" ? (
+        <ChatPane
+          draft={draft}
+          messages={session.messages}
+          onDraftChange={onDraftChange}
+          onSend={onSend}
+        />
+      ) : (
+        <TreeholePane
+          draft={treeholeDraft}
+          onDraftChange={onTreeholeDraftChange}
+          onPost={onTreeholePost}
+          posts={treeholePosts}
+          status={treeholeStatus}
+        />
+      )}
+    </View>
+  );
+}
+
+function TabButton({ active, label, onPress }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={[styles.tabButton, active && styles.activeTabButton]}
+    >
+      <Text style={[styles.tabText, active && styles.activeTabText]}>{label}</Text>
+    </Pressable>
+  );
+}
+
+function ChatPane({ draft, messages, onDraftChange, onSend }) {
+  return (
+    <>
       <FlatList
         contentContainerStyle={styles.messageList}
-        data={session.messages}
+        data={messages}
         keyExtractor={(item) => item.id}
         ListEmptyComponent={<EmptyMessages />}
         renderItem={({ item }) => <MessageBubble message={item} />}
@@ -283,6 +387,73 @@ function ChatRoom({ draft, onDraftChange, onLeave, onSend, session }) {
         <Pressable style={styles.sendButton} onPress={onSend}>
           <Send color="#fffaf0" size={18} />
         </Pressable>
+      </View>
+    </>
+  );
+}
+
+function TreeholePane({ draft, onDraftChange, onPost, posts, status }) {
+  return (
+    <>
+      <FlatList
+        contentContainerStyle={styles.treeholeList}
+        data={posts}
+        keyExtractor={(item) => item.id}
+        ListEmptyComponent={<EmptyTreehole status={status} />}
+        renderItem={({ item }) => <TreeholePost post={item} />}
+      />
+
+      <View style={styles.treeholeComposer}>
+        <TextInput
+          multiline
+          onChangeText={onDraftChange}
+          placeholder="Post to the treehole"
+          placeholderTextColor="#8b9188"
+          style={styles.treeholeInput}
+          value={draft}
+        />
+        <Pressable
+          disabled={!draft.trim() || status !== "ready"}
+          onPress={onPost}
+          style={[
+            styles.sendButton,
+            (!draft.trim() || status !== "ready") && styles.disabledSendButton,
+          ]}
+        >
+          <Send color="#fffaf0" size={18} />
+        </Pressable>
+      </View>
+    </>
+  );
+}
+
+function EmptyTreehole({ status }) {
+  return (
+    <View style={styles.empty}>
+      <MessageCircle color="#56715f" size={34} />
+      <Text style={styles.emptyTitle}>No treeholes yet</Text>
+      <Text style={styles.emptyCopy}>{treeholeStatusText(status)}</Text>
+    </View>
+  );
+}
+
+function TreeholePost({ post }) {
+  return (
+    <View style={styles.post}>
+      <View style={styles.postHeader}>
+        <Text style={styles.postAuthor}>{post.author}</Text>
+        <Text style={styles.postTime}>{formatPostTime(post.createdAt)}</Text>
+      </View>
+      <Text style={styles.postText}>{post.text}</Text>
+      <View style={styles.postStats}>
+        <View style={styles.postStat}>
+          <MessageCircle color="#5a6b54" size={14} />
+          <Text style={styles.postStatText}>{post.commentCount}</Text>
+        </View>
+        <View style={styles.postStat}>
+          <Heart color="#5a6b54" size={14} />
+          <Text style={styles.postStatText}>{post.likeCount}</Text>
+        </View>
       </View>
     </View>
   );
@@ -344,6 +515,25 @@ function createMessageId() {
   }
 
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function formatPostTime(value) {
+  return new Date(value).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function treeholeStatusText(status) {
+  if (status === "waiting" || status === "waiting-for-bootstrap") {
+    return "Waiting for a room peer to share the treehole log.";
+  }
+
+  if (status === "starting") {
+    return "Starting the treehole log.";
+  }
+
+  return "Write the first post from this phone.";
 }
 
 function readRpcPayload(req) {
@@ -522,6 +712,35 @@ const styles = StyleSheet.create({
   chat: {
     flex: 1,
   },
+  tabs: {
+    borderBottomColor: "#d9dfcf",
+    borderBottomWidth: 1,
+    flexDirection: "row",
+    gap: 8,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+  },
+  tabButton: {
+    alignItems: "center",
+    borderColor: "#c9d3bf",
+    borderRadius: 8,
+    borderWidth: 1,
+    flex: 1,
+    justifyContent: "center",
+    minHeight: 40,
+  },
+  activeTabButton: {
+    backgroundColor: "#143d2b",
+    borderColor: "#143d2b",
+  },
+  tabText: {
+    color: "#4b554c",
+    fontSize: 14,
+    fontWeight: "800",
+  },
+  activeTabText: {
+    color: "#fffaf0",
+  },
   roomBar: {
     alignItems: "center",
     borderBottomColor: "#d9dfcf",
@@ -631,5 +850,79 @@ const styles = StyleSheet.create({
     height: 48,
     justifyContent: "center",
     width: 48,
+  },
+  disabledSendButton: {
+    backgroundColor: "#b7bdae",
+  },
+  treeholeList: {
+    flexGrow: 1,
+    gap: 12,
+    padding: 18,
+  },
+  post: {
+    backgroundColor: "#fffdf7",
+    borderColor: "#d9dfcf",
+    borderRadius: 8,
+    borderWidth: 1,
+    padding: 14,
+  },
+  postHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  postAuthor: {
+    color: "#143d2b",
+    fontSize: 13,
+    fontWeight: "900",
+    textTransform: "uppercase",
+  },
+  postTime: {
+    color: "#6f766b",
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  postText: {
+    color: "#162119",
+    fontSize: 17,
+    lineHeight: 24,
+    marginTop: 10,
+  },
+  postStats: {
+    flexDirection: "row",
+    gap: 14,
+    marginTop: 12,
+  },
+  postStat: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 5,
+  },
+  postStatText: {
+    color: "#5a6b54",
+    fontSize: 13,
+    fontWeight: "800",
+  },
+  treeholeComposer: {
+    alignItems: "flex-end",
+    borderTopColor: "#d9dfcf",
+    borderTopWidth: 1,
+    flexDirection: "row",
+    gap: 10,
+    padding: 14,
+  },
+  treeholeInput: {
+    backgroundColor: "#fffdf7",
+    borderColor: "#cfd8c6",
+    borderRadius: 8,
+    borderWidth: 1,
+    color: "#162119",
+    flex: 1,
+    fontSize: 16,
+    lineHeight: 22,
+    maxHeight: 118,
+    minHeight: 64,
+    paddingHorizontal: 13,
+    paddingVertical: 10,
   },
 });

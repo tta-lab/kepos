@@ -36,7 +36,7 @@ Not in this draft:
 
 - Hypercore message history
 - member invitations or bans
-- treeholes
+- treehole comments or likes in the UI
 - games
 - mobile UI
 
@@ -70,10 +70,24 @@ Current Android scope:
 - join room UI
 - room header and peer status
 - message list and composer
+- room tabs for live chat and treehole feed
 - shared chat session state with tests
 - Bare worklet backend
 - React Native to Bare RPC
 - Hyperswarm room join/send/receive in the backend
+- Autobase-backed treehole event log
+- pure text treehole posts
+- writer-key exchange for multiwriter treehole replication
+
+Treehole data model:
+
+- `treehole.post.create`
+- `treehole.comment.create`
+- `treehole.like.add`
+
+Only text posting is exposed in the Android UI right now. Comments and likes are
+covered in the event reducer so the data model can grow without replacing the
+Autobase log.
 
 Notes:
 

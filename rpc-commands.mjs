@@ -5,3 +5,6 @@ export const RPC_MESSAGE = 3;
 export const RPC_PEER_COUNT = 4;
 export const RPC_STATUS = 5;
 export const RPC_ERROR = 6;
+export const RPC_TREEHOLE_POST = 7;
+export const RPC_TREEHOLE_STATE = 8;
+export const RPC_TREEHOLE_STATUS = 9;
