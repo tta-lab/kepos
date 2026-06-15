@@ -81,6 +81,36 @@ Build a debug APK without installing it:
 npm run android:assemble
 ```
 
+## Pear desktop peer
+
+The desktop peer is a Pear app under `desktop/`. It is a development client for
+testing the Android two-device path from a laptop.
+
+Run it with the local npm Pear CLI:
+
+```bash
+npm run desktop
+```
+
+This script uses the npm `pear` package. Do not call bare `pear` unless your
+PATH points to Holepunch Pear; on macOS/Homebrew it may resolve to PHP PEAR
+instead. Check with:
+
+```bash
+npx pear -v
+```
+
+On first install, Pear may ask you to open the runtime app or add its bin
+directory to PATH. The npm script still avoids the PHP PEAR name collision.
+
+Current desktop scope:
+
+- create or join by room key
+- live chat
+- treehole text posts
+- Autobase writer-key exchange and replication
+- peer count and backend status
+
 Current Android scope:
 
 - create room UI

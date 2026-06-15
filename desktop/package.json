@@ -1,0 +1,20 @@
+{
+  "name": "kepos-desktop",
+  "private": true,
+  "type": "module",
+  "main": "index.html",
+  "pear": {
+    "name": "kepos-desktop",
+    "gui": {
+      "height": 760,
+      "width": 1080
+    },
+    "stage": {
+      "entrypoints": [
+        "index.html",
+        "app.js",
+        "styles.css"
+      ]
+    }
+  }
+}

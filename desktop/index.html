@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kepos Desktop</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="sidebar">
+        <div class="brand">
+          <div class="mark">K</div>
+          <div>
+            <p class="kicker">private garden</p>
+            <h1>Kepos Peer</h1>
+          </div>
+        </div>
+
+        <form id="lobbyForm" class="panel">
+          <label>
+            Nick
+            <input id="nickInput" autocomplete="off" value="Desktop" />
+          </label>
+          <label>
+            Room key
+            <textarea
+              id="roomKeyInput"
+              spellcheck="false"
+              placeholder="64-character key"
+            ></textarea>
+          </label>
+          <div class="actions">
+            <button id="createButton" type="button">Create</button>
+            <button id="joinButton" type="submit">Join</button>
+          </div>
+        </form>
+
+        <section class="panel roomMeta">
+          <p class="label">Room</p>
+          <p id="roomKeyLabel" class="mono muted">not joined</p>
+          <p class="label">Peers</p>
+          <p id="peerLabel" class="metric">0</p>
+          <button id="leaveButton" type="button" disabled>Leave</button>
+        </section>
+      </section>
+
+      <section class="workspace">
+        <header class="topbar">
+          <div>
+            <p id="noticeLabel" class="notice">Create or join a room.</p>
+            <p id="treeholeStatusLabel" class="subnotice">treehole idle</p>
+          </div>
+          <div class="tabs">
+            <button id="chatTab" class="tab active" type="button">Chat</button>
+            <button id="treeholeTab" class="tab" type="button">Treehole</button>
+          </div>
+        </header>
+
+        <section id="chatPane" class="pane">
+          <ol id="messageList" class="list"></ol>
+          <form id="chatForm" class="composer">
+            <input id="chatInput" placeholder="Write to the room" autocomplete="off" />
+            <button type="submit">Send</button>
+          </form>
+        </section>
+
+        <section id="treeholePane" class="pane hidden">
+          <ol id="treeholeList" class="list posts"></ol>
+          <form id="treeholeForm" class="composer tall">
+            <textarea id="treeholeInput" placeholder="Post to the treehole"></textarea>
+            <button type="submit">Post</button>
+          </form>
+        </section>
+      </section>
+    </main>
+
+    <script src="./app.js" type="module"></script>
+  </body>
+</html>
