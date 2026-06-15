@@ -1,0 +1,14 @@
+{
+  "expo": {
+    "name": "Kepos",
+    "slug": "kepos",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "scheme": "kepos",
+    "android": {
+      "package": "io.guion.kepos",
+      "permissions": ["INTERNET"]
+    }
+  }
+}
