@@ -1,6 +1,6 @@
-const POST_CREATE = "treehole.post.create";
-const COMMENT_CREATE = "treehole.comment.create";
-const LIKE_ADD = "treehole.like.add";
+const POST_CREATE = 'treehole.post.create'
+const COMMENT_CREATE = 'treehole.comment.create'
+const LIKE_ADD = 'treehole.like.add'
 
 export function createPostEvent({ id, author, text, createdAt }) {
   return {
@@ -8,8 +8,8 @@ export function createPostEvent({ id, author, text, createdAt }) {
     id,
     author: cleanAuthor(author),
     text: cleanText(text),
-    createdAt,
-  };
+    createdAt
+  }
 }
 
 export function createCommentEvent({ id, postId, author, text, createdAt }) {
@@ -19,8 +19,8 @@ export function createCommentEvent({ id, postId, author, text, createdAt }) {
     postId,
     author: cleanAuthor(author),
     text: cleanText(text),
-    createdAt,
-  };
+    createdAt
+  }
 }
 
 export function createLikeEvent({ postId, author, createdAt }) {
@@ -28,38 +28,38 @@ export function createLikeEvent({ postId, author, createdAt }) {
     type: LIKE_ADD,
     postId,
     author: cleanAuthor(author),
-    createdAt,
-  };
+    createdAt
+  }
 }
 
 export function applyTreeholeEvents(events) {
-  const postsById = new Map();
-  const commentsByPost = new Map();
-  const likesByPost = new Map();
+  const postsById = new Map()
+  const commentsByPost = new Map()
+  const likesByPost = new Map()
 
   for (const event of events) {
     if (event.type === POST_CREATE) {
       if (!event.id || !event.text || postsById.has(event.id)) {
-        continue;
+        continue
       }
 
       postsById.set(event.id, {
         id: event.id,
         author: event.author,
         text: event.text,
-        createdAt: event.createdAt,
-      });
-      continue;
+        createdAt: event.createdAt
+      })
+      continue
     }
 
     if (event.type === COMMENT_CREATE) {
       if (!postsById.has(event.postId) || !event.id || !event.text) {
-        continue;
+        continue
       }
 
-      const comments = commentsByPost.get(event.postId) || [];
+      const comments = commentsByPost.get(event.postId) || []
       if (comments.some((comment) => comment.id === event.id)) {
-        continue;
+        continue
       }
 
       commentsByPost.set(event.postId, [
@@ -69,16 +69,16 @@ export function applyTreeholeEvents(events) {
           postId: event.postId,
           author: event.author,
           text: event.text,
-          createdAt: event.createdAt,
-        },
-      ]);
-      continue;
+          createdAt: event.createdAt
+        }
+      ])
+      continue
     }
 
     if (event.type === LIKE_ADD && postsById.has(event.postId)) {
-      const likes = likesByPost.get(event.postId) || new Set();
-      likes.add(event.author);
-      likesByPost.set(event.postId, likes);
+      const likes = likesByPost.get(event.postId) || new Set()
+      likes.add(event.author)
+      likesByPost.set(event.postId, likes)
     }
   }
 
@@ -86,25 +86,25 @@ export function applyTreeholeEvents(events) {
     .map((post) => ({
       ...post,
       commentCount: commentsByPost.get(post.id)?.length || 0,
-      likeCount: likesByPost.get(post.id)?.size || 0,
+      likeCount: likesByPost.get(post.id)?.size || 0
     }))
-    .sort((left, right) => right.createdAt - left.createdAt);
+    .sort((left, right) => right.createdAt - left.createdAt)
 
   return {
     posts,
     commentsByPost,
-    likesByPost,
-  };
+    likesByPost
+  }
 }
 
 export function isTreeholePostEvent(event) {
-  return event?.type === POST_CREATE;
+  return event?.type === POST_CREATE
 }
 
 function cleanAuthor(author) {
-  return author?.trim() || "anon";
+  return author?.trim() || 'anon'
 }
 
 function cleanText(text) {
-  return text?.trim() || "";
+  return text?.trim() || ''
 }

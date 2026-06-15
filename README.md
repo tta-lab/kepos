@@ -1,4 +1,5 @@
 # kepos
+
 A private garden for 30 friends. Write treeholes that can never be deleted, draw and guess, chat — with no servers.
 
 ## P2P chat prototype
@@ -11,6 +12,22 @@ Install dependencies:
 ```bash
 npm install
 ```
+
+Check code style:
+
+```bash
+npm run lint
+```
+
+Format code:
+
+```bash
+npm run format
+```
+
+The project uses `prettier-config-holepunch` and `lunte`, matching current
+Holepunch JavaScript projects. `lefthook` installs a pre-commit hook through the
+`prepare` script and runs `npm run lint` before commits.
 
 Create a room:
 
