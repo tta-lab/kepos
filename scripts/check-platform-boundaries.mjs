@@ -8,8 +8,10 @@ const desktopPackage = JSON.parse(
 
 const forbiddenRootPackages = new Set([
   'bare-daemon',
+  'electron',
   'pear-bridge',
   'pear-electron',
+  'pear-runtime',
   'pear-tryboot'
 ])
 
@@ -56,26 +58,22 @@ if (transitiveViolations.length > 0) {
 
 const desktopViolations = []
 
-if ('main' in desktopPackage) {
-  desktopViolations.push('desktop/package.json must not use top-level "main"')
+if (desktopPackage.main !== 'electron/main.cjs') {
+  desktopViolations.push('desktop/package.json must set main to "electron/main.cjs"')
 }
 
-if (desktopPackage.pear?.pre !== 'pear-electron/pre') {
-  desktopViolations.push('desktop/package.json must set pear.pre to "pear-electron/pre"')
+if (desktopPackage.scripts?.start !== 'electron .') {
+  desktopViolations.push('desktop/package.json must set scripts.start to "electron ."')
 }
 
-if (desktopPackage.pear?.gui?.main !== 'index.html') {
-  desktopViolations.push('desktop/package.json must set pear.gui.main to "index.html"')
+if (desktopPackage.pear) {
+  desktopViolations.push('desktop/package.json must not use legacy pear run configuration')
 }
 
-const desktopEntrypoints = desktopPackage.pear?.stage?.entrypoints
-
-if (
-  !Array.isArray(desktopEntrypoints) ||
-  desktopEntrypoints.length !== 1 ||
-  desktopEntrypoints[0] !== 'index.js'
-) {
-  desktopViolations.push('desktop/package.json pear.stage.entrypoints must be ["index.js"]')
+for (const name of ['pear-bridge', 'pear-electron']) {
+  if (desktopPackage.dependencies?.[name] || desktopPackage.devDependencies?.[name]) {
+    desktopViolations.push(`desktop/package.json must not declare ${name}`)
+  }
 }
 
 for (const name of [
@@ -84,16 +82,19 @@ for (const name of [
   'corestore',
   'hypercore-crypto',
   'hyperswarm',
-  'pear-bridge',
-  'pear-electron'
+  'pear-runtime'
 ]) {
   if (!desktopPackage.dependencies?.[name]) {
     desktopViolations.push(`desktop/package.json must declare dependencies.${name}`)
   }
 }
 
+if (!desktopPackage.devDependencies?.electron) {
+  desktopViolations.push('desktop/package.json must declare devDependencies.electron')
+}
+
 if (desktopViolations.length > 0) {
-  console.error('Pear desktop v2 configuration is incomplete:')
+  console.error('Electron desktop runtime configuration is incomplete:')
   for (const violation of desktopViolations) console.error(`- ${violation}`)
   process.exit(1)
 }

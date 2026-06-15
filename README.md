@@ -81,11 +81,12 @@ Build a debug APK without installing it:
 npm run android:assemble
 ```
 
-## Pear desktop peer
+## Desktop peer
 
-The desktop peer is a Pear v2 app under `desktop/`. It is a development client
-for testing the Android two-device path from a laptop. Pear Electron runtime
-dependencies live in `desktop/` so they do not leak into the Android package.
+The desktop peer is an Electron app under `desktop/` with `pear-runtime`
+embedded in the Electron main process. It is a development client for testing
+the Android two-device path from a laptop. Desktop runtime dependencies live in
+`desktop/` so they do not leak into the Android package.
 
 Install the desktop-only runtime packages:
 
@@ -93,28 +94,15 @@ Install the desktop-only runtime packages:
 npm run desktop:install
 ```
 
-Run the app with the local npm Pear CLI:
+Run the Electron desktop app:
 
 ```bash
 npm run desktop
 ```
 
-The desktop app uses a Pear v2 JavaScript entrypoint (`desktop/index.js`) and
-`pear-electron/pre` to open `desktop/index.html`. Do not add a top-level
-`main: "index.html"` back to `desktop/package.json`; `npm run lint` checks this.
-
-The script uses the npm `pear` package. Do not call bare `pear` unless your PATH
-points to Holepunch Pear; on macOS/Homebrew it may resolve to PHP PEAR instead.
-Check with:
-
-```bash
-npx pear -v
-```
-
-On first install, Pear may ask you to open the runtime app or add its bin
-directory to PATH. If `pear run`, `pear -v`, or `pear help` hangs before the
-Kepos window opens, fix the local Pear runtime installation first; the app has
-not reached its renderer code yet.
+The desktop app starts with Electron through `desktop/electron/main.cjs`; it no
+longer uses `pear run`. Current Pear CLI main has removed `pear run`, so local
+desktop development follows the official `electron + pear-runtime` path.
 
 Current desktop scope:
 

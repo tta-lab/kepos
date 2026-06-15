@@ -9,7 +9,7 @@
     "android:assemble": "npm run backend:bundle:android && expo prebuild --platform android --no-install && cd android && ./gradlew assembleDebug && cd .. && npm run android:check-apk",
     "android:check-apk": "node scripts/check-android-apk.mjs",
     "backend:bundle:android": "bare-pack --host android-arm64 --linked --out mobile/app.bundle.mjs backend/backend.mjs",
-    "desktop": "npx pear run --dev desktop",
+    "desktop": "npm run start --prefix desktop",
     "desktop:install": "npm install --prefix desktop",
     "format": "prettier --write . && lunte --fix",
     "lint": "prettier --check . && lunte && node scripts/check-platform-boundaries.mjs",
@@ -40,7 +40,6 @@
     "bare-pack": "^2.1.3",
     "lefthook": "^2.1.9",
     "lunte": "^1.8.0",
-    "pear": "^2.0.4",
     "prettier": "^3.8.4",
     "prettier-config-holepunch": "^2.0.0"
   }
