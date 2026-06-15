@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 
 import Hyperswarm from "hyperswarm";
 import readline from "node:readline";
@@ -16,8 +16,8 @@ function usage() {
   return `Kepos P2P chat prototype
 
 Usage:
-  bun start -- create [--nick <name>]
-  bun start -- join <room-key> [--nick <name>]
+  npm start -- create [--nick <name>]
+  npm start -- join <room-key> [--nick <name>]
 `;
 }
 
@@ -110,7 +110,7 @@ async function runChat({ roomKey, nick, created }) {
   if (created) {
     console.log("Room created.");
     console.log(`Room key: ${roomKey}`);
-    console.log(`Invite: bun start -- join ${roomKey} --nick <name>`);
+    console.log(`Invite: npm start -- join ${roomKey} --nick <name>`);
   } else {
     console.log("Joined room.");
   }

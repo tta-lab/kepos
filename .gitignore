@@ -1,2 +1,4 @@
 node_modules/
 .expo/
+android/
+mobile/app.bundle.mjs

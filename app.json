@@ -6,6 +6,16 @@
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "scheme": "kepos",
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 29
+          }
+        }
+      ]
+    ],
     "android": {
       "package": "io.guion.kepos",
       "permissions": ["INTERNET"]

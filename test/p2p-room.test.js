@@ -1,0 +1,102 @@
+import assert from "node:assert/strict";
+import { describe, test } from "node:test";
+import { createP2PRoom } from "../src/p2p-room.js";
+
+describe("p2p room backend", () => {
+  test("join starts discovery with a derived room topic", async () => {
+    const joins = [];
+    const room = createP2PRoom({
+      createSwarm: () => new FakeSwarm(joins),
+    });
+
+    await room.join({ roomKey: "a".repeat(64), nick: "Neil" });
+
+    assert.equal(joins.length, 1);
+    assert.equal(joins[0].topic.byteLength, 32);
+    assert.deepEqual(joins[0].options, { client: true, server: true });
+  });
+
+  test("send broadcasts a chat frame to connected peers", async () => {
+    const socket = new FakeSocket();
+    const room = createP2PRoom({
+      createSwarm: () => new FakeSwarm(),
+    });
+
+    await room.join({ roomKey: "a".repeat(64), nick: "Neil" });
+    room.addPeer(socket);
+    room.send({
+      id: "local-1",
+      text: "hello",
+      at: 1_797_331_200_000,
+    });
+
+    assert.equal(socket.writes.length, 1);
+    assert.deepEqual(JSON.parse(socket.writes[0]), {
+      type: "chat",
+      id: "local-1",
+      nick: "Neil",
+      text: "hello",
+      at: 1_797_331_200_000,
+    });
+  });
+
+  test("incoming chat frames are emitted once", async () => {
+    const messages = [];
+    const room = createP2PRoom({
+      createSwarm: () => new FakeSwarm(),
+      onMessage: (message) => messages.push(message),
+    });
+    const socket = new FakeSocket();
+
+    await room.join({ roomKey: "a".repeat(64), nick: "Neil" });
+    room.addPeer(socket);
+    socket.emitData('{"type":"chat","id":"remote-1","nick":"Ada","text":"hi","at":1}\n');
+    socket.emitData('{"type":"chat","id":"remote-1","nick":"Ada","text":"hi","at":1}\n');
+
+    assert.equal(messages.length, 1);
+    assert.equal(messages[0].nick, "Ada");
+  });
+});
+
+class FakeSwarm {
+  constructor(joins = []) {
+    this.joins = joins;
+    this.handlers = new Map();
+    this.destroyed = false;
+  }
+
+  on(event, handler) {
+    this.handlers.set(event, handler);
+  }
+
+  join(topic, options) {
+    this.joins.push({ topic, options });
+    return {
+      flushed: async () => {},
+    };
+  }
+
+  async destroy() {
+    this.destroyed = true;
+  }
+}
+
+class FakeSocket {
+  constructor() {
+    this.destroyed = false;
+    this.handlers = new Map();
+    this.writes = [];
+  }
+
+  on(event, handler) {
+    this.handlers.set(event, handler);
+  }
+
+  write(frame) {
+    this.writes.push(frame);
+  }
+
+  emitData(data) {
+    this.handlers.get("data")?.(Buffer.from(data));
+  }
+}

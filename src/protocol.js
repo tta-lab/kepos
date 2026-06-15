@@ -1,10 +1,11 @@
-import { createHash, randomBytes } from "node:crypto";
+import crypto from "hypercore-crypto";
+import b4a from "b4a";
 
 const ROOM_KEY_PATTERN = /^[0-9a-f]{64}$/;
 const TOPIC_PREFIX = "kepos-room:v1:";
 
 export function createRoomKey() {
-  return randomBytes(32).toString("hex");
+  return b4a.toString(crypto.randomBytes(32), "hex");
 }
 
 export function isRoomKey(value) {
@@ -16,7 +17,7 @@ export function deriveTopic(roomKey) {
     throw new Error("Invalid room key");
   }
 
-  return createHash("sha256").update(`${TOPIC_PREFIX}${roomKey}`).digest();
+  return crypto.hash(b4a.from(`${TOPIC_PREFIX}${roomKey}`));
 }
 
 export function encodeFrame(message) {

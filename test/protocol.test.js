@@ -1,4 +1,5 @@
-import { describe, expect, test } from "bun:test";
+import assert from "node:assert/strict";
+import { describe, test } from "node:test";
 import {
   createRoomKey,
   decodeFrame,
@@ -11,15 +12,15 @@ describe("room keys", () => {
   test("createRoomKey returns a 32-byte hex secret", () => {
     const key = createRoomKey();
 
-    expect(key).toMatch(/^[0-9a-f]{64}$/);
-    expect(isRoomKey(key)).toBe(true);
+    assert.match(key, /^[0-9a-f]{64}$/);
+    assert.equal(isRoomKey(key), true);
   });
 
   test("isRoomKey rejects malformed room keys", () => {
-    expect(isRoomKey("")).toBe(false);
-    expect(isRoomKey("abc")).toBe(false);
-    expect(isRoomKey("g".repeat(64))).toBe(false);
-    expect(isRoomKey("0".repeat(63))).toBe(false);
+    assert.equal(isRoomKey(""), false);
+    assert.equal(isRoomKey("abc"), false);
+    assert.equal(isRoomKey("g".repeat(64)), false);
+    assert.equal(isRoomKey("0".repeat(63)), false);
   });
 });
 
@@ -27,13 +28,13 @@ describe("topic derivation", () => {
   test("deriveTopic returns a stable 32-byte topic for the same room", () => {
     const key = "a".repeat(64);
 
-    expect(deriveTopic(key)).toEqual(deriveTopic(key));
-    expect(deriveTopic(key)).toBeInstanceOf(Uint8Array);
-    expect(deriveTopic(key).byteLength).toBe(32);
+    assert.deepEqual(deriveTopic(key), deriveTopic(key));
+    assert.equal(deriveTopic(key) instanceof Uint8Array, true);
+    assert.equal(deriveTopic(key).byteLength, 32);
   });
 
   test("deriveTopic rejects invalid room keys", () => {
-    expect(() => deriveTopic("bad-key")).toThrow("Invalid room key");
+    assert.throws(() => deriveTopic("bad-key"), /Invalid room key/);
   });
 });
 
@@ -49,11 +50,11 @@ describe("wire frames", () => {
 
     const frame = encodeFrame(message);
 
-    expect(frame.endsWith("\n")).toBe(true);
-    expect(decodeFrame(frame.trimEnd())).toEqual(message);
+    assert.equal(frame.endsWith("\n"), true);
+    assert.deepEqual(decodeFrame(frame.trimEnd()), message);
   });
 
   test("decodeFrame rejects non-chat frames", () => {
-    expect(() => decodeFrame('{"type":"join"}')).toThrow("Unsupported frame");
+    assert.throws(() => decodeFrame('{"type":"join"}'), /Unsupported frame/);
   });
 });

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import {
   FlatList,
   KeyboardAvoidingView,
@@ -21,8 +21,22 @@ import {
 } from "lucide-react-native";
 import {
   appendLocalMessage,
+  appendRemoteMessage,
   createChatSession,
 } from "../src/chat-session.js";
+import { Worklet } from "react-native-bare-kit";
+import RPC from "bare-rpc";
+import b4a from "b4a";
+import bundle from "./app.bundle.mjs";
+import {
+  RPC_ERROR,
+  RPC_JOIN,
+  RPC_LEAVE,
+  RPC_MESSAGE,
+  RPC_PEER_COUNT,
+  RPC_SEND,
+  RPC_STATUS,
+} from "../rpc-commands.mjs";
 
 const ROOM_KEY_PATTERN = /^[0-9a-f]{64}$/;
 
@@ -31,7 +45,10 @@ export default function App() {
   const [roomKey, setRoomKey] = useState("");
   const [draft, setDraft] = useState("");
   const [session, setSession] = useState(null);
-  const [notice, setNotice] = useState("UI preview. P2P worklet not connected yet.");
+  const [notice, setNotice] = useState("Start or join a room to bring up the P2P backend.");
+  const [peerCount, setPeerCount] = useState(0);
+  const [rpc, setRpc] = useState(null);
+  const workletRef = useRef(null);
 
   const canJoin = ROOM_KEY_PATTERN.test(roomKey.trim());
 
@@ -39,7 +56,8 @@ export default function App() {
     const key = createMobileRoomKey();
     setRoomKey(key);
     setSession(createChatSession({ roomKey: key, nick }));
-    setNotice("Room created on this phone. P2P backend is the next wiring step.");
+    setPeerCount(0);
+    startBackend({ roomKey: key, nick });
   }
 
   function joinRoom() {
@@ -49,12 +67,17 @@ export default function App() {
     }
 
     setSession(createChatSession({ roomKey: roomKey.trim(), nick }));
-    setNotice("Joined local room view. The UI is ready for the Bare RPC backend.");
+    setPeerCount(0);
+    startBackend({ roomKey: roomKey.trim(), nick });
   }
 
   function leaveRoom() {
+    rpc?.request(RPC_LEAVE).send(JSON.stringify({}));
     setSession(null);
     setDraft("");
+    setPeerCount(0);
+    setRpc(null);
+    workletRef.current = null;
     setNotice("Left room.");
   }
 
@@ -63,13 +86,54 @@ export default function App() {
       return;
     }
 
-    setSession(
-      appendLocalMessage(session, draft, {
+    const message = {
         id: createMessageId(),
+        text: draft,
         at: Date.now(),
-      }),
-    );
+      };
+
+    setSession(appendLocalMessage(session, message.text, message));
+    rpc?.request(RPC_SEND).send(JSON.stringify(message));
     setDraft("");
+  }
+
+  function startBackend(nextSession) {
+    try {
+      const worklet = new Worklet();
+      worklet.start("/app.bundle", bundle, []);
+      workletRef.current = worklet;
+
+      const nextRpc = new RPC(worklet.IPC, (req) => {
+        const payload = readRpcPayload(req);
+
+        if (req.command === RPC_MESSAGE) {
+          setSession((current) =>
+            current ? appendRemoteMessage(current, payload) : current,
+          );
+          return;
+        }
+
+        if (req.command === RPC_PEER_COUNT) {
+          setPeerCount(payload.count || 0);
+          return;
+        }
+
+        if (req.command === RPC_STATUS) {
+          setNotice(`P2P backend ${payload.status}.`);
+          return;
+        }
+
+        if (req.command === RPC_ERROR) {
+          setNotice(payload.message || "P2P backend error.");
+        }
+      });
+
+      nextRpc.request(RPC_JOIN).send(JSON.stringify(nextSession));
+      setRpc(nextRpc);
+      setNotice("Starting P2P backend...");
+    } catch (error) {
+      setNotice(`P2P backend unavailable: ${error.message}`);
+    }
   }
 
   return (
@@ -79,7 +143,7 @@ export default function App() {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.screen}
       >
-        <Header notice={notice} online={session ? 1 : 0} title={session ? "Room" : "Kepos"} />
+        <Header notice={notice} online={peerCount} title={session ? "Room" : "Kepos"} />
         {session ? (
           <ChatRoom
             draft={draft}
@@ -280,6 +344,14 @@ function createMessageId() {
   }
 
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function readRpcPayload(req) {
+  if (!req.data?.byteLength) {
+    return {};
+  }
+
+  return JSON.parse(b4a.toString(req.data));
 }
 
 const styles = StyleSheet.create({

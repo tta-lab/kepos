@@ -1,4 +1,5 @@
-import { describe, expect, test } from "bun:test";
+import assert from "node:assert/strict";
+import { describe, test } from "node:test";
 import {
   appendLocalMessage,
   appendRemoteMessage,
@@ -12,10 +13,10 @@ describe("chat session state", () => {
       nick: "Neil",
     });
 
-    expect(session.roomKey).toBe("a".repeat(64));
-    expect(session.nick).toBe("Neil");
-    expect(session.messages).toEqual([]);
-    expect(session.seenMessageIds).toEqual(new Set());
+    assert.equal(session.roomKey, "a".repeat(64));
+    assert.equal(session.nick, "Neil");
+    assert.deepEqual(session.messages, []);
+    assert.deepEqual(session.seenMessageIds, new Set());
   });
 
   test("appendLocalMessage adds an outgoing chat message", () => {
@@ -29,7 +30,7 @@ describe("chat session state", () => {
       at: 1_797_331_200_000,
     });
 
-    expect(next.messages).toEqual([
+    assert.deepEqual(next.messages, [
       {
         type: "chat",
         id: "local-1",
@@ -39,7 +40,7 @@ describe("chat session state", () => {
         direction: "out",
       },
     ]);
-    expect(next.seenMessageIds.has("local-1")).toBe(true);
+    assert.equal(next.seenMessageIds.has("local-1"), true);
   });
 
   test("appendRemoteMessage ignores duplicate messages", () => {
@@ -58,7 +59,7 @@ describe("chat session state", () => {
     const once = appendRemoteMessage(session, remote);
     const twice = appendRemoteMessage(once, remote);
 
-    expect(twice.messages).toHaveLength(1);
-    expect(twice.messages[0].direction).toBe("in");
+    assert.equal(twice.messages.length, 1);
+    assert.equal(twice.messages[0].direction, "in");
   });
 });
