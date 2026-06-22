@@ -8,7 +8,12 @@ import {
   createPostEvent
 } from './treehole-state.js'
 
-export async function createTreeholeBase({ storage, bootstrapKey = null, nick = 'anon' } = {}) {
+export async function createTreeholeBase({
+  storage,
+  bootstrapKey = null,
+  nick = 'anon',
+  profileId = null
+} = {}) {
   const store = new Corestore(storage || randomAccessMemory())
   await store.ready()
 
@@ -24,6 +29,7 @@ export async function createTreeholeBase({ storage, bootstrapKey = null, nick = 
       createPostEvent({
         id,
         author: nick,
+        authorProfileId: profileId,
         text,
         createdAt
       })

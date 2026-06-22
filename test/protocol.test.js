@@ -60,4 +60,18 @@ describe('wire frames', () => {
 
     assert.deepEqual(decodeFrame(encodeFrame(frame).trimEnd()), frame)
   })
+
+  test('decodeFrame accepts direct message frames', () => {
+    const frame = {
+      type: 'dm',
+      id: 'dm-1',
+      fromProfileId: 'profile-a',
+      toProfileId: 'profile-b',
+      nick: 'Ada',
+      text: 'hello',
+      at: 1_797_331_200_000
+    }
+
+    assert.deepEqual(decodeFrame(encodeFrame(frame).trimEnd()), frame)
+  })
 })

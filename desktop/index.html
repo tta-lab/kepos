@@ -23,22 +23,24 @@
             <input id="nickInput" autocomplete="off" value="Desktop" />
           </label>
           <label>
-            Room key
+            Manual home key
             <textarea
               id="roomKeyInput"
               spellcheck="false"
-              placeholder="64-character key"
+              placeholder="64-character manual key"
             ></textarea>
           </label>
           <div class="actions">
-            <button id="createButton" type="button">Create</button>
-            <button id="joinButton" type="submit">Join</button>
+            <button id="createButton" type="button">Create Home</button>
+            <button id="joinButton" type="submit">Join Home</button>
           </div>
         </form>
 
         <section class="panel roomMeta">
-          <p class="label">Room</p>
+          <p class="label">Home address</p>
           <p id="roomKeyLabel" class="mono muted">not joined</p>
+          <p class="label">Profile</p>
+          <p id="profileIdLabel" class="mono muted">not ready</p>
           <p class="label">Peers</p>
           <p id="peerLabel" class="metric">0</p>
           <button id="leaveButton" type="button" disabled>Leave</button>
@@ -48,11 +50,12 @@
       <section class="workspace">
         <header class="topbar">
           <div>
-            <p id="noticeLabel" class="notice">Create or join a room.</p>
+            <p id="noticeLabel" class="notice">Create or join a home.</p>
             <p id="treeholeStatusLabel" class="subnotice">treehole idle</p>
           </div>
           <div class="tabs">
             <button id="chatTab" class="tab active" type="button">Chat</button>
+            <button id="dmTab" class="tab" type="button">DM</button>
             <button id="treeholeTab" class="tab" type="button">Treehole</button>
           </div>
         </header>
@@ -60,8 +63,22 @@
         <section id="chatPane" class="pane">
           <ol id="messageList" class="list"></ol>
           <form id="chatForm" class="composer">
-            <input id="chatInput" placeholder="Write to the room" autocomplete="off" />
+            <input id="chatInput" placeholder="Write to the home" autocomplete="off" />
             <button type="submit">Send</button>
+          </form>
+        </section>
+
+        <section id="dmPane" class="pane hidden">
+          <ol id="dmList" class="list"></ol>
+          <form id="dmForm" class="composer tall">
+            <input
+              id="dmRecipientInput"
+              placeholder="Recipient profile id"
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <textarea id="dmInput" placeholder="Write a direct message"></textarea>
+            <button type="submit">Send DM</button>
           </form>
         </section>
 

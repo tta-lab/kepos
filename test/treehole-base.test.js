@@ -37,6 +37,41 @@ describe('treehole autobase', () => {
     }
   })
 
+  test('appends profile-owned posts while preserving display author', async () => {
+    const storage = await mkdtemp(join(tmpdir(), 'kepos-treehole-profile-'))
+
+    try {
+      const treehole = await createTreeholeBase({
+        storage,
+        profileId: 'profile-a',
+        nick: 'Ada'
+      })
+      await treehole.post({
+        id: 'post-1',
+        text: 'owned by profile',
+        createdAt: 1000
+      })
+
+      const state = await treehole.getState()
+
+      assert.deepEqual(state.posts, [
+        {
+          id: 'post-1',
+          author: 'Ada',
+          authorProfileId: 'profile-a',
+          text: 'owned by profile',
+          createdAt: 1000,
+          commentCount: 0,
+          likeCount: 0
+        }
+      ])
+
+      await treehole.close()
+    } finally {
+      await rm(storage, { recursive: true, force: true })
+    }
+  })
+
   test('replicates posts from an added writer', async () => {
     const firstStorage = await mkdtemp(join(tmpdir(), 'kepos-treehole-a-'))
     const secondStorage = await mkdtemp(join(tmpdir(), 'kepos-treehole-b-'))

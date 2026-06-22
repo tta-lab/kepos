@@ -5,6 +5,7 @@ import { decodeFrame, deriveTopic, encodeFrame } from './protocol.js'
 export function createP2PRoom(options = {}) {
   const createSwarm = options.createSwarm || (() => new Hyperswarm())
   const onMessage = options.onMessage || (() => {})
+  const onDirectMessage = options.onDirectMessage || (() => {})
   const onControl = options.onControl || (() => {})
   const onPeer = options.onPeer || (() => {})
   const onPeerCount = options.onPeerCount || (() => {})
@@ -31,17 +32,28 @@ export function createP2PRoom(options = {}) {
 
         try {
           const message = decodeFrame(line)
-          if (message.type !== 'chat') {
-            onControl(message)
+
+          if (message.type === 'chat') {
+            if (shouldSkipMessage(message)) {
+              continue
+            }
+
+            seenMessages.add(message.id)
+            onMessage(message)
             continue
           }
 
-          if (seenMessages.has(message.id)) {
+          if (message.type === 'dm') {
+            if (shouldSkipMessage(message)) {
+              continue
+            }
+
+            seenMessages.add(message.id)
+            onDirectMessage(message)
             continue
           }
 
-          seenMessages.add(message.id)
-          onMessage(message)
+          onControl(message)
         } catch {
           // Ignore malformed peer frames in the prototype.
         }
@@ -81,6 +93,19 @@ export function createP2PRoom(options = {}) {
     seenMessages.add(id)
   }
 
+  function sendDirectMessage({ id, fromProfileId, toProfileId, text, at }) {
+    broadcastFrame({
+      type: 'dm',
+      id,
+      fromProfileId,
+      toProfileId,
+      nick,
+      text,
+      at
+    })
+    seenMessages.add(id)
+  }
+
   function broadcastControl(message) {
     broadcastFrame(message)
   }
@@ -92,6 +117,10 @@ export function createP2PRoom(options = {}) {
         peer.write(frame)
       }
     }
+  }
+
+  function shouldSkipMessage(message) {
+    return !message.id || seenMessages.has(message.id)
   }
 
   async function leave() {
@@ -113,6 +142,7 @@ export function createP2PRoom(options = {}) {
     broadcastControl,
     join,
     leave,
-    send
+    send,
+    sendDirectMessage
   }
 }

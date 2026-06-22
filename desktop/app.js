@@ -4,9 +4,15 @@ import Hyperswarm from 'hyperswarm'
 import os from 'node:os'
 import path from 'node:path'
 import { appendLocalMessage, appendRemoteMessage, createChatSession } from '../src/chat-session.js'
+import {
+  appendLocalDirectMessage,
+  appendRemoteDirectMessage,
+  createDirectMessageSession
+} from '../src/dm-session.js'
 import { createP2PRoom } from '../src/p2p-room.js'
 import { createRoomKey } from '../src/protocol.js'
 import { createTreeholeBase } from '../src/treehole-base.js'
+import { getOrCreateLocalProfile } from '../src/local-profile.js'
 import {
   createDesktopState,
   setDesktopRoom,
@@ -20,6 +26,12 @@ const els = {
   chatPane: document.querySelector('#chatPane'),
   chatTab: document.querySelector('#chatTab'),
   createButton: document.querySelector('#createButton'),
+  dmForm: document.querySelector('#dmForm'),
+  dmInput: document.querySelector('#dmInput'),
+  dmList: document.querySelector('#dmList'),
+  dmPane: document.querySelector('#dmPane'),
+  dmRecipientInput: document.querySelector('#dmRecipientInput'),
+  dmTab: document.querySelector('#dmTab'),
   joinButton: document.querySelector('#joinButton'),
   leaveButton: document.querySelector('#leaveButton'),
   lobbyForm: document.querySelector('#lobbyForm'),
@@ -27,6 +39,7 @@ const els = {
   nickInput: document.querySelector('#nickInput'),
   noticeLabel: document.querySelector('#noticeLabel'),
   peerLabel: document.querySelector('#peerLabel'),
+  profileIdLabel: document.querySelector('#profileIdLabel'),
   roomKeyInput: document.querySelector('#roomKeyInput'),
   roomKeyLabel: document.querySelector('#roomKeyLabel'),
   treeholeForm: document.querySelector('#treeholeForm'),
@@ -39,6 +52,7 @@ const els = {
 
 let state = createDesktopState()
 let session = null
+let dmSession = null
 let room = null
 let treehole = null
 let treeholeSwarm = null
@@ -61,11 +75,17 @@ els.lobbyForm.addEventListener('submit', (event) => {
 
 els.leaveButton.addEventListener('click', () => leaveRoom().catch(showError))
 els.chatTab.addEventListener('click', () => setTab('chat'))
+els.dmTab.addEventListener('click', () => setTab('dm'))
 els.treeholeTab.addEventListener('click', () => setTab('treehole'))
 
 els.chatForm.addEventListener('submit', (event) => {
   event.preventDefault()
   sendChat()
+})
+
+els.dmForm.addEventListener('submit', (event) => {
+  event.preventDefault()
+  sendDirectMessage()
 })
 
 els.treeholeForm.addEventListener('submit', (event) => {
@@ -79,13 +99,19 @@ async function joinRoom({ createTreehole, mode, roomKey }) {
   await leaveRoom()
 
   const nick = els.nickInput.value.trim() || 'Desktop'
-  session = createChatSession({ nick, roomKey })
+  const profile = getOrCreateLocalProfile({ displayName: nick })
+  session = createChatSession({ nick, profileId: profile.id, roomKey })
+  dmSession = createDirectMessageSession({ localProfileId: profile.id, nick })
   state = setDesktopRoom(state, { mode, nick, peers: 0, roomKey })
-  state = { ...state, notice: 'Joining P2P room...' }
+  state = { ...state, notice: 'Joining home room...' }
   render()
 
   room = createP2PRoom({
     onControl: (message) => handleControl(message).catch(showError),
+    onDirectMessage: (message) => {
+      dmSession = appendRemoteDirectMessage(dmSession, message)
+      render()
+    },
     onMessage: (message) => {
       session = appendRemoteMessage(session, message)
       render()
@@ -109,7 +135,7 @@ async function joinRoom({ createTreehole, mode, roomKey }) {
     })
   }
 
-  state = { ...state, notice: 'Room joined.' }
+  state = { ...state, notice: 'Home joined.' }
   render()
 }
 
@@ -124,6 +150,7 @@ async function leaveRoom() {
 
   addedWriters.clear()
   session = null
+  dmSession = null
   state = createDesktopState()
   render()
 }
@@ -141,6 +168,27 @@ function sendChat() {
   session = appendLocalMessage(session, text, message)
   room.send(message)
   els.chatInput.value = ''
+  render()
+}
+
+function sendDirectMessage() {
+  const toProfileId = els.dmRecipientInput.value.trim()
+  const text = els.dmInput.value.trim()
+  if (!room || !dmSession || !toProfileId || !text) return
+
+  const message = {
+    at: Date.now(),
+    id: createId(),
+    text,
+    toProfileId
+  }
+
+  dmSession = appendLocalDirectMessage(dmSession, message)
+  room.sendDirectMessage({
+    ...message,
+    fromProfileId: dmSession.localProfileId
+  })
+  els.dmInput.value = ''
   render()
 }
 
@@ -181,6 +229,7 @@ async function openTreehole(bootstrapKey = null) {
   treehole = await createTreeholeBase({
     bootstrapKey,
     nick: session.nick,
+    profileId: session.profileId,
     storage: treeholeStoragePath(session.roomKey, bootstrapKey)
   })
 
@@ -232,16 +281,20 @@ function render() {
   els.joinButton.disabled = inRoom
   els.createButton.disabled = inRoom
   els.roomKeyLabel.textContent = inRoom ? shorten(state.roomKey) : 'not joined'
+  els.profileIdLabel.textContent = session?.profileId ? shorten(session.profileId) : 'not ready'
   els.peerLabel.textContent = String(state.peers)
   els.noticeLabel.textContent = state.notice
-  els.treeholeStatusLabel.textContent = `treehole ${state.treeholeStatus}`
+  els.treeholeStatusLabel.textContent = `home treehole ${state.treeholeStatus}`
 
   els.chatPane.classList.toggle('hidden', state.activeTab !== 'chat')
+  els.dmPane.classList.toggle('hidden', state.activeTab !== 'dm')
   els.treeholePane.classList.toggle('hidden', state.activeTab !== 'treehole')
   els.chatTab.classList.toggle('active', state.activeTab === 'chat')
+  els.dmTab.classList.toggle('active', state.activeTab === 'dm')
   els.treeholeTab.classList.toggle('active', state.activeTab === 'treehole')
 
   renderMessages()
+  renderDirectMessages()
   renderPosts()
 }
 
@@ -253,6 +306,21 @@ function renderMessages() {
       item.className = `item ${message.direction === 'out' ? 'outgoing' : 'incoming'}`
       item.innerHTML = `
         <p class="meta">${escapeHtml(message.nick)}</p>
+        <p>${escapeHtml(message.text)}</p>
+      `
+      return item
+    })
+  )
+}
+
+function renderDirectMessages() {
+  const messages = dmSession?.messages || []
+  els.dmList.replaceChildren(
+    ...messages.map((message) => {
+      const item = document.createElement('li')
+      item.className = `item ${message.direction === 'out' ? 'outgoing' : 'incoming'}`
+      item.innerHTML = `
+        <p class="meta">${escapeHtml(message.nick)} to ${escapeHtml(message.toProfileId)}</p>
         <p>${escapeHtml(message.text)}</p>
       `
       return item

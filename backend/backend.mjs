@@ -8,6 +8,8 @@ import { createTreeholeBase } from '../src/treehole-base.js'
 import { createTreeholeStoragePath } from '../src/treehole-storage.js'
 import {
   RPC_ERROR,
+  RPC_DM_MESSAGE,
+  RPC_DM_SEND,
   RPC_JOIN,
   RPC_LEAVE,
   RPC_MESSAGE,
@@ -31,6 +33,7 @@ let treeholeSwarm = null
 let roomKey = null
 let treeholeStorageBasePath = null
 let nick = 'anon'
+let profileId = null
 const addedWriters = new Set()
 
 async function handleRequest(req) {
@@ -58,6 +61,12 @@ async function handleRequest(req) {
   if (req.command === RPC_TREEHOLE_POST) {
     await postTreehole(payload)
     req.reply?.(b4a.from(JSON.stringify({ ok: true })))
+    return
+  }
+
+  if (req.command === RPC_DM_SEND) {
+    sendDirectMessage(payload)
+    req.reply?.(b4a.from(JSON.stringify({ ok: true })))
   }
 }
 
@@ -66,6 +75,7 @@ async function joinRoom(payload) {
   roomKey = payload.roomKey
   treeholeStorageBasePath = payload.storageBasePath
   nick = payload.nick?.trim() || 'anon'
+  profileId = payload.profileId?.trim() || null
 
   room = createP2PRoom({
     onControl: (message) => {
@@ -73,6 +83,7 @@ async function joinRoom(payload) {
         sendToUI(RPC_ERROR, { message: error.message })
       })
     },
+    onDirectMessage: handleDirectMessage,
     onMessage: (message) => sendToUI(RPC_MESSAGE, message),
     onPeer: () => announceTreehole(),
     onPeerCount: (count) => sendToUI(RPC_PEER_COUNT, { count })
@@ -93,12 +104,19 @@ async function joinRoom(payload) {
   sendToUI(RPC_STATUS, { status: 'joined' })
 }
 
+function handleDirectMessage(message) {
+  if (message.toProfileId === profileId) {
+    sendToUI(RPC_DM_MESSAGE, message)
+  }
+}
+
 async function leaveRoom() {
   await room?.leave()
   room = null
   await closeTreehole()
   roomKey = null
   treeholeStorageBasePath = null
+  profileId = null
   addedWriters.clear()
 }
 
@@ -110,6 +128,7 @@ async function openTreehole(bootstrapKey = null) {
   treehole = await createTreeholeBase({
     bootstrapKey,
     nick,
+    profileId,
     storage: createTreeholeStoragePath({
       basePath: treeholeStorageBasePath,
       bootstrapKey,
@@ -191,6 +210,24 @@ async function postTreehole(payload) {
   })
   announceTreehole()
   await sendTreeholeState()
+}
+
+function sendDirectMessage(payload) {
+  if (!room) {
+    throw new Error('Home is not ready')
+  }
+
+  if (!profileId) {
+    throw new Error('Profile is not ready')
+  }
+
+  room.sendDirectMessage({
+    id: payload.id,
+    fromProfileId: profileId,
+    toProfileId: payload.toProfileId,
+    text: payload.text,
+    at: payload.at
+  })
 }
 
 async function sendTreeholeState() {

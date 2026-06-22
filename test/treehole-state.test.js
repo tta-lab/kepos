@@ -56,6 +56,24 @@ describe('treehole state', () => {
     )
   })
 
+  test('post events carry profile ownership separately from display author', () => {
+    const events = [
+      createPostEvent({
+        id: 'post-1',
+        author: 'Ada',
+        authorProfileId: 'profile-a',
+        text: 'owned by profile',
+        createdAt: 1000
+      })
+    ]
+
+    const state = applyTreeholeEvents(events)
+
+    assert.equal(events[0].authorProfileId, 'profile-a')
+    assert.equal(state.posts[0].authorProfileId, 'profile-a')
+    assert.equal(state.posts[0].author, 'Ada')
+  })
+
   test('comment and like events attach to their target post', () => {
     const events = [
       createPostEvent({

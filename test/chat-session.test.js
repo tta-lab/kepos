@@ -15,6 +15,17 @@ describe('chat session state', () => {
     assert.deepEqual(session.seenMessageIds, new Set())
   })
 
+  test('createChatSession carries the local profile id', () => {
+    const session = createChatSession({
+      roomKey: 'a'.repeat(64),
+      nick: 'Ada',
+      profileId: 'profile-a'
+    })
+
+    assert.equal(session.profileId, 'profile-a')
+    assert.equal(session.nick, 'Ada')
+  })
+
   test('appendLocalMessage adds an outgoing chat message', () => {
     const session = createChatSession({
       roomKey: 'a'.repeat(64),

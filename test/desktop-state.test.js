@@ -42,6 +42,12 @@ describe('desktop state', () => {
     assert.deepEqual(state.treeholePosts, [{ id: 'post-1', author: 'Ada', text: 'hello' }])
   })
 
+  test('setDesktopTab accepts direct messages', () => {
+    const state = setDesktopTab(createDesktopState(), 'dm')
+
+    assert.equal(state.activeTab, 'dm')
+  })
+
   test('setDesktopTab rejects unknown tabs', () => {
     assert.throws(() => setDesktopTab(createDesktopState(), 'settings'), /Unknown tab/)
   })

@@ -8,3 +8,5 @@ export const RPC_ERROR = 6
 export const RPC_TREEHOLE_POST = 7
 export const RPC_TREEHOLE_STATE = 8
 export const RPC_TREEHOLE_STATUS = 9
+export const RPC_DM_SEND = 10
+export const RPC_DM_MESSAGE = 11

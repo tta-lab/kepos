@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kepos 功能与端支持</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #172019;
+        --muted: #687268;
+        --paper: #f6f1e7;
+        --leaf: #174c35;
+        --moss: #dce8cf;
+        --line: #c9d2c1;
+        --clay: #c85f3f;
+        --sky: #d8e5ef;
+        --shadow: 0 24px 70px rgba(23, 32, 25, 0.14);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background:
+          linear-gradient(90deg, rgba(23, 76, 53, 0.08) 1px, transparent 1px) 0 0 / 32px 32px,
+          linear-gradient(rgba(23, 76, 53, 0.06) 1px, transparent 1px) 0 0 / 32px 32px,
+          var(--paper);
+        color: var(--ink);
+        font-family: ui-serif, Georgia, Cambria, 'Times New Roman', 'Noto Serif CJK SC', serif;
+        line-height: 1.55;
+      }
+
+      .page {
+        width: min(1180px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 34px 0 56px;
+      }
+
+      .hero {
+        min-height: 58vh;
+        display: grid;
+        grid-template-columns: 1.08fr 0.92fr;
+        gap: 28px;
+        align-items: stretch;
+        border: 1px solid var(--line);
+        background: rgba(246, 241, 231, 0.84);
+        box-shadow: var(--shadow);
+      }
+
+      .hero-copy {
+        padding: clamp(28px, 5vw, 64px);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .mark {
+        width: 64px;
+        height: 64px;
+        display: grid;
+        place-items: center;
+        background: var(--leaf);
+        color: #f6f1e7;
+        font:
+          700 34px/1 ui-monospace,
+          SFMono-Regular,
+          Menlo,
+          Consolas,
+          monospace;
+        margin-bottom: 42px;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        max-width: 720px;
+        font-size: clamp(42px, 8vw, 104px);
+        line-height: 0.9;
+        letter-spacing: 0;
+      }
+
+      .lead {
+        max-width: 660px;
+        margin-top: 24px;
+        font-size: clamp(18px, 2vw, 24px);
+        color: #354036;
+      }
+
+      .hero-aside {
+        padding: 24px;
+        border-left: 1px solid var(--line);
+        display: grid;
+        grid-template-rows: 1fr auto;
+        gap: 18px;
+        background:
+          radial-gradient(circle at 24% 18%, rgba(200, 95, 63, 0.18), transparent 24%), var(--moss);
+      }
+
+      .status-board {
+        border: 1px solid rgba(23, 76, 53, 0.32);
+        background: rgba(246, 241, 231, 0.72);
+        padding: 22px;
+        display: grid;
+        gap: 18px;
+      }
+
+      .eyebrow {
+        color: var(--leaf);
+        font:
+          700 12px/1.2 ui-monospace,
+          SFMono-Regular,
+          Menlo,
+          Consolas,
+          monospace;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .meter {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+      }
+
+      .meter div {
+        min-height: 92px;
+        padding: 14px;
+        border: 1px solid var(--line);
+        background: #fbf8ef;
+      }
+
+      .meter strong {
+        display: block;
+        font-size: 28px;
+        line-height: 1;
+      }
+
+      .meter span {
+        display: block;
+        margin-top: 8px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .note {
+        padding: 18px 20px;
+        background: var(--leaf);
+        color: #f6f1e7;
+        font-size: 17px;
+      }
+
+      .section {
+        margin-top: 42px;
+      }
+
+      .section-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 24px;
+        align-items: end;
+        padding-bottom: 14px;
+        border-bottom: 2px solid var(--ink);
+      }
+
+      h2 {
+        font-size: clamp(28px, 4vw, 52px);
+        line-height: 1;
+      }
+
+      .section-head p {
+        max-width: 520px;
+        color: var(--muted);
+      }
+
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        border-left: 1px solid var(--line);
+        border-top: 1px solid var(--line);
+      }
+
+      .feature {
+        min-height: 260px;
+        padding: 24px;
+        border-right: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+        background: rgba(246, 241, 231, 0.86);
+      }
+
+      .feature:nth-child(2),
+      .feature:nth-child(5) {
+        background: rgba(216, 229, 239, 0.72);
+      }
+
+      .feature h3,
+      .platform h3 {
+        margin-top: 18px;
+        font-size: 24px;
+        line-height: 1.12;
+      }
+
+      .feature p,
+      .platform p {
+        margin-top: 14px;
+        color: #3d463d;
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        min-height: 28px;
+        padding: 0 10px;
+        border: 1px solid var(--leaf);
+        color: var(--leaf);
+        font:
+          700 12px/1 ui-monospace,
+          SFMono-Regular,
+          Menlo,
+          Consolas,
+          monospace;
+        text-transform: uppercase;
+      }
+
+      .platforms {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 18px;
+      }
+
+      .platform {
+        padding: 24px;
+        min-height: 250px;
+        border: 1px solid var(--line);
+        background: rgba(246, 241, 231, 0.9);
+      }
+
+      .platform.ready {
+        border-color: rgba(23, 76, 53, 0.55);
+        background: linear-gradient(180deg, rgba(220, 232, 207, 0.92), rgba(246, 241, 231, 0.9));
+      }
+
+      .platform.later {
+        background: repeating-linear-gradient(
+          -45deg,
+          rgba(246, 241, 231, 0.9),
+          rgba(246, 241, 231, 0.9) 12px,
+          rgba(201, 210, 193, 0.28) 12px,
+          rgba(201, 210, 193, 0.28) 24px
+        );
+      }
+
+      .facts {
+        display: grid;
+        grid-template-columns: 0.85fr 1.15fr;
+        gap: 18px;
+      }
+
+      .facts aside,
+      .facts .list {
+        padding: 24px;
+        border: 1px solid var(--line);
+        background: rgba(246, 241, 231, 0.9);
+      }
+
+      .facts aside {
+        background: var(--ink);
+        color: #f6f1e7;
+      }
+
+      ul {
+        margin: 16px 0 0;
+        padding-left: 20px;
+      }
+
+      li + li {
+        margin-top: 10px;
+      }
+
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        color: var(--clay);
+      }
+
+      @media (max-width: 860px) {
+        .hero,
+        .facts {
+          grid-template-columns: 1fr;
+        }
+
+        .hero-aside {
+          border-left: 0;
+          border-top: 1px solid var(--line);
+        }
+
+        .feature-grid,
+        .platforms {
+          grid-template-columns: 1fr;
+        }
+
+        .section-head {
+          display: block;
+        }
+
+        .section-head p {
+          margin-top: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header class="hero">
+        <div class="hero-copy">
+          <div>
+            <div class="mark">K</div>
+            <p class="eyebrow">Kepos / current prototype</p>
+            <h1>私人花园里的 P2P 房间。</h1>
+            <p class="lead">
+              Kepos
+              现在已经有多人房间、实时文字聊天和纯文本树洞原型。核心方向是不依赖业务服务器，让移动端、桌面端和命令行端都能作为
+              peer 参与测试。
+            </p>
+          </div>
+        </div>
+        <aside class="hero-aside">
+          <div class="status-board">
+            <p class="eyebrow">当前能力</p>
+            <div class="meter">
+              <div>
+                <strong>3</strong>
+                <span>可测试端</span>
+              </div>
+              <div>
+                <strong>P2P</strong>
+                <span>Hyperswarm 房间</span>
+              </div>
+              <div>
+                <strong>Text</strong>
+                <span>聊天与树洞</span>
+              </div>
+            </div>
+          </div>
+          <p class="note">
+            这是产品原型说明页，不是发布页。它描述的是当前仓库已经实现并可本地验证的功能。
+          </p>
+        </aside>
+      </header>
+
+      <section class="section">
+        <div class="section-head">
+          <h2>已有功能</h2>
+          <p>
+            第一版聚焦多人房间和文字内容。图片、账号体系、审核后台、正式邀请流还没有进入当前实现。
+          </p>
+        </div>
+        <div class="feature-grid">
+          <article class="feature">
+            <span class="tag">room</span>
+            <h3>创建和加入房间</h3>
+            <p>
+              可以生成 32-byte room key，其他 peer 用同一个 key 加入。房间 topic 从 key 派生，用
+              Hyperswarm 做发现和连接。
+            </p>
+          </article>
+          <article class="feature">
+            <span class="tag">chat</span>
+            <h3>实时文字聊天</h3>
+            <p>房间内支持 live text message。消息在当前会话中展示，并做了基本的重复消息过滤。</p>
+          </article>
+          <article class="feature">
+            <span class="tag">treehole</span>
+            <h3>纯文本树洞</h3>
+            <p>
+              树洞采用 Autobase 事件日志。当前 UI 暴露发纯文本帖子；数据模型已经包含评论和点赞事件。
+            </p>
+          </article>
+          <article class="feature">
+            <span class="tag">multiwriter</span>
+            <h3>树洞 writer 交换</h3>
+            <p>
+              peer 会交换 treehole bootstrap key 和 writer key，让多端可以加入同一个 Autobase
+              treehole 日志并复制内容。
+            </p>
+          </article>
+          <article class="feature">
+            <span class="tag">native</span>
+            <h3>Android Bare 后端</h3>
+            <p>
+              Android UI 运行在 React Native，P2P 后端运行在 Bare worklet，两边通过
+              <code>bare-rpc</code> 通信。
+            </p>
+          </article>
+          <article class="feature">
+            <span class="tag">tooling</span>
+            <h3>代码风格和边界检查</h3>
+            <p>
+              项目已有
+              <code>prettier</code
+              >、<code>lunte</code>、<code>lefthook</code>，并检查桌面依赖不泄漏到 Android 构建。
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-head">
+          <h2>支持的端</h2>
+          <p>当前目标是能做 two-device path：手机和桌面端互相作为 peer 测试。</p>
+        </div>
+        <div class="platforms">
+          <article class="platform ready">
+            <span class="tag">Android</span>
+            <h3>原生开发构建可测</h3>
+            <p>
+              Expo React Native + <code>react-native-bare-kit</code>。支持创建/加入房间、聊天、树洞
+              tab、Bare P2P 后端和 Autobase treehole。
+            </p>
+          </article>
+          <article class="platform ready">
+            <span class="tag">Desktop</span>
+            <h3>Electron + pear-runtime</h3>
+            <p>
+              桌面端已经从旧 <code>pear run</code> 切到官方最新方向：Electron 主进程内嵌
+              <code>pear-runtime</code>，用于和 Android 做 peer 测试。
+            </p>
+          </article>
+          <article class="platform ready">
+            <span class="tag">CLI</span>
+            <h3>终端房间原型</h3>
+            <p>命令行端可以创建/加入房间并发送实时文字消息，适合快速验证协议和 P2P 连接。</p>
+          </article>
+          <article class="platform later">
+            <span class="tag">iOS</span>
+            <h3>暂未接入</h3>
+            <p>
+              当前没有 iOS 构建路径。后续如果做移动双端，需要单独验证 Bare/iOS 集成和 native module
+              链接。
+            </p>
+          </article>
+          <article class="platform later">
+            <span class="tag">Web</span>
+            <h3>暂不支持</h3>
+            <p>当前 P2P 栈依赖 native/Bare 能力，浏览器 Web 端不是第一阶段目标。</p>
+          </article>
+          <article class="platform later">
+            <span class="tag">Server</span>
+            <h3>没有业务服务器</h3>
+            <p>
+              Kepos 当前不是 client-server 产品；已有后端是 Android 内部 Bare
+              worklet，不是中心化服务。
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section facts">
+        <aside>
+          <p class="eyebrow">运行入口</p>
+          <ul>
+            <li><code>npm start -- create --nick Neil</code></li>
+            <li><code>npm start -- join &lt;room-key&gt; --nick Ada</code></li>
+            <li><code>npm run android</code></li>
+            <li><code>npm run android:assemble</code></li>
+            <li><code>npm run desktop</code></li>
+          </ul>
+        </aside>
+        <div class="list">
+          <p class="eyebrow">还未完成</p>
+          <ul>
+            <li>正式账号、邀请和成员管理。</li>
+            <li>树洞评论和点赞的完整 UI。</li>
+            <li>消息历史持久化和产品级同步体验。</li>
+            <li>iOS、Web、正式桌面打包和 OTA 发布流程。</li>
+            <li>图片、画图游戏、审核/管理工具。</li>
+          </ul>
+        </div>
+      </section>
+    </div>
+  </body>
+</html>

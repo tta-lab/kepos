@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import * as FileSystem from 'expo-file-system/legacy'
 import {
   FlatList,
@@ -14,12 +14,21 @@ import {
 } from 'react-native'
 import { ArrowRight, Heart, LogOut, MessageCircle, Plus, Send, Sprout } from 'lucide-react-native'
 import { appendLocalMessage, appendRemoteMessage, createChatSession } from '../src/chat-session.js'
+import {
+  appendLocalDirectMessage,
+  appendRemoteDirectMessage,
+  createDirectMessageSession
+} from '../src/dm-session.js'
+import { getOrCreateLocalProfile } from '../src/local-profile.js'
+import { getOrCreateMobileProfileId } from '../src/mobile-profile.js'
 import { Worklet } from 'react-native-bare-kit'
 import RPC from 'bare-rpc'
 import b4a from 'b4a'
 import bundle from './app.bundle.mjs'
 import {
   RPC_ERROR,
+  RPC_DM_MESSAGE,
+  RPC_DM_SEND,
   RPC_JOIN,
   RPC_LEAVE,
   RPC_MESSAGE,
@@ -35,30 +44,62 @@ const ROOM_KEY_PATTERN = /^[0-9a-f]{64}$/
 
 export default function App() {
   const [nick, setNick] = useState('Neil')
+  const [profileId, setProfileId] = useState(null)
   const [roomKey, setRoomKey] = useState('')
   const [draft, setDraft] = useState('')
+  const [dmDraft, setDmDraft] = useState('')
+  const [dmMessages, setDmMessages] = useState([])
+  const [dmRecipient, setDmRecipient] = useState('')
+  const [dmSession, setDmSession] = useState(null)
   const [treeholeDraft, setTreeholeDraft] = useState('')
   const [treeholePosts, setTreeholePosts] = useState([])
   const [treeholeStatus, setTreeholeStatus] = useState('idle')
   const [activeTab, setActiveTab] = useState('chat')
   const [session, setSession] = useState(null)
-  const [notice, setNotice] = useState('Start or join a room to bring up the P2P backend.')
+  const [notice, setNotice] = useState('Start or join a home to bring up the P2P backend.')
   const [peerCount, setPeerCount] = useState(0)
   const [rpc, setRpc] = useState(null)
   const workletRef = useRef(null)
 
   const canJoin = ROOM_KEY_PATTERN.test(roomKey.trim())
 
+  useEffect(() => {
+    let cancelled = false
+
+    loadMobileProfileId()
+      .then((nextProfileId) => {
+        if (!cancelled) {
+          setProfileId(nextProfileId)
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          setNotice(`Profile storage unavailable: ${error.message}`)
+        }
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   async function createRoom() {
     try {
+      if (!profileId) {
+        setNotice('Profile is still loading.')
+        return
+      }
+
       const key = createMobileRoomKey()
       const storageBasePath = await getBackendStorageBasePath()
       setRoomKey(key)
-      setSession(createChatSession({ roomKey: key, nick }))
+      setSession(createChatSession({ roomKey: key, nick, profileId }))
+      setDmSession(createDirectMessageSession({ localProfileId: profileId, nick }))
+      setDmMessages([])
       setPeerCount(0)
       setTreeholePosts([])
       setTreeholeStatus('starting')
-      startBackend({ roomKey: key, nick, createTreehole: true, storageBasePath })
+      startBackend({ roomKey: key, nick, profileId, createTreehole: true, storageBasePath })
     } catch (error) {
       setNotice(`P2P backend unavailable: ${error.message}`)
     }
@@ -66,17 +107,30 @@ export default function App() {
 
   async function joinRoom() {
     if (!canJoin) {
-      setNotice('Room key must be 64 lowercase hex characters.')
+      setNotice('Manual home key must be 64 lowercase hex characters.')
       return
     }
 
     try {
+      if (!profileId) {
+        setNotice('Profile is still loading.')
+        return
+      }
+
       const storageBasePath = await getBackendStorageBasePath()
-      setSession(createChatSession({ roomKey: roomKey.trim(), nick }))
+      setSession(createChatSession({ roomKey: roomKey.trim(), nick, profileId }))
+      setDmSession(createDirectMessageSession({ localProfileId: profileId, nick }))
+      setDmMessages([])
       setPeerCount(0)
       setTreeholePosts([])
       setTreeholeStatus('waiting')
-      startBackend({ roomKey: roomKey.trim(), nick, createTreehole: false, storageBasePath })
+      startBackend({
+        roomKey: roomKey.trim(),
+        nick,
+        profileId,
+        createTreehole: false,
+        storageBasePath
+      })
     } catch (error) {
       setNotice(`P2P backend unavailable: ${error.message}`)
     }
@@ -85,7 +139,10 @@ export default function App() {
   function leaveRoom() {
     rpc?.request(RPC_LEAVE).send(JSON.stringify({}))
     setSession(null)
+    setDmSession(null)
     setDraft('')
+    setDmDraft('')
+    setDmMessages([])
     setTreeholeDraft('')
     setTreeholePosts([])
     setTreeholeStatus('idle')
@@ -93,7 +150,7 @@ export default function App() {
     setPeerCount(0)
     setRpc(null)
     workletRef.current = null
-    setNotice('Left room.')
+    setNotice('Left home.')
   }
 
   function sendMessage() {
@@ -110,6 +167,29 @@ export default function App() {
     setSession(appendLocalMessage(session, message.text, message))
     rpc?.request(RPC_SEND).send(JSON.stringify(message))
     setDraft('')
+  }
+
+  function sendDirectMessage() {
+    if (!dmSession || !dmDraft.trim() || !dmRecipient.trim()) {
+      return
+    }
+
+    const message = {
+      id: createMessageId(),
+      toProfileId: dmRecipient.trim(),
+      text: dmDraft,
+      at: Date.now()
+    }
+    const nextSession = appendLocalDirectMessage(dmSession, message)
+
+    setDmSession(nextSession)
+    setDmMessages(nextSession.messages)
+    rpc?.request(RPC_DM_SEND).send(
+      JSON.stringify({
+        ...message
+      })
+    )
+    setDmDraft('')
   }
 
   function sendTreeholePost() {
@@ -138,6 +218,19 @@ export default function App() {
 
         if (req.command === RPC_MESSAGE) {
           setSession((current) => (current ? appendRemoteMessage(current, payload) : current))
+          return
+        }
+
+        if (req.command === RPC_DM_MESSAGE) {
+          setDmSession((current) => {
+            if (!current) {
+              return current
+            }
+
+            const next = appendRemoteDirectMessage(current, payload)
+            setDmMessages(next.messages)
+            return next
+          })
           return
         }
 
@@ -181,14 +274,20 @@ export default function App() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.screen}
       >
-        <Header notice={notice} online={peerCount} title={session ? 'Room' : 'Kepos'} />
+        <Header notice={notice} online={peerCount} title={session ? 'Home' : 'Kepos'} />
         {session ? (
           <ChatRoom
             draft={draft}
+            dmDraft={dmDraft}
+            dmMessages={dmMessages}
+            dmRecipient={dmRecipient}
             activeTab={activeTab}
             onDraftChange={setDraft}
+            onDmDraftChange={setDmDraft}
+            onDmRecipientChange={setDmRecipient}
             onLeave={leaveRoom}
             onSend={sendMessage}
+            onSendDm={sendDirectMessage}
             onTabChange={setActiveTab}
             onTreeholeDraftChange={setTreeholeDraft}
             onTreeholePost={sendTreeholePost}
@@ -248,23 +347,23 @@ function Lobby({
       <View style={styles.panel}>
         <Text style={styles.panelTitle}>Start a room</Text>
         <Text style={styles.panelCopy}>
-          Create a shared key, then invite another device into the same room.
+          Create a home address, then invite another device into the same home.
         </Text>
         <Field label='Nick' onChangeText={onNickChange} value={nick} />
         <Pressable style={styles.primaryButton} onPress={onCreateRoom}>
           <Plus color='#fffaf0' size={18} />
-          <Text style={styles.primaryButtonText}>Create Room</Text>
+          <Text style={styles.primaryButtonText}>Create Home</Text>
         </Pressable>
       </View>
 
       <View style={styles.panel}>
-        <Text style={styles.panelTitle}>Join by key</Text>
+        <Text style={styles.panelTitle}>Manual home key</Text>
         <TextInput
           autoCapitalize='none'
           autoCorrect={false}
           multiline
           onChangeText={onRoomKeyChange}
-          placeholder='64-character room key'
+          placeholder='64-character manual key'
           placeholderTextColor='#8b9188'
           style={styles.keyInput}
           value={roomKey}
@@ -276,7 +375,7 @@ function Lobby({
         >
           <ArrowRight color={canJoin ? '#143d2b' : '#8b9188'} size={18} />
           <Text style={[styles.secondaryButtonText, !canJoin && styles.disabledButtonText]}>
-            Join Room
+            Join Home
           </Text>
         </Pressable>
       </View>
@@ -287,9 +386,15 @@ function Lobby({
 function ChatRoom({
   activeTab,
   draft,
+  dmDraft,
+  dmMessages,
+  dmRecipient,
   onDraftChange,
+  onDmDraftChange,
+  onDmRecipientChange,
   onLeave,
   onSend,
+  onSendDm,
   onTabChange,
   onTreeholeDraftChange,
   onTreeholePost,
@@ -307,7 +412,7 @@ function ChatRoom({
     <View style={styles.chat}>
       <View style={styles.roomBar}>
         <View>
-          <Text style={styles.roomLabel}>room key</Text>
+          <Text style={styles.roomLabel}>home address</Text>
           <Text style={styles.roomKey}>{roomShort}</Text>
         </View>
         <Pressable style={styles.iconButton} onPress={onLeave}>
@@ -317,6 +422,7 @@ function ChatRoom({
 
       <View style={styles.tabs}>
         <TabButton active={activeTab === 'chat'} label='Chat' onPress={() => onTabChange('chat')} />
+        <TabButton active={activeTab === 'dm'} label='DM' onPress={() => onTabChange('dm')} />
         <TabButton
           active={activeTab === 'treehole'}
           label='Treehole'
@@ -331,6 +437,15 @@ function ChatRoom({
           onDraftChange={onDraftChange}
           onSend={onSend}
         />
+      ) : activeTab === 'dm' ? (
+        <DirectPane
+          draft={dmDraft}
+          messages={dmMessages}
+          onDraftChange={onDmDraftChange}
+          onRecipientChange={onDmRecipientChange}
+          onSend={onSendDm}
+          recipient={dmRecipient}
+        />
       ) : (
         <TreeholePane
           draft={treeholeDraft}
@@ -341,6 +456,53 @@ function ChatRoom({
         />
       )}
     </View>
+  )
+}
+
+function DirectPane({ draft, messages, onDraftChange, onRecipientChange, onSend, recipient }) {
+  return (
+    <>
+      <FlatList
+        contentContainerStyle={styles.messageList}
+        data={messages}
+        keyExtractor={(item) => item.id}
+        ListEmptyComponent={<EmptyDirectMessages />}
+        renderItem={({ item }) => <DirectBubble message={item} />}
+      />
+
+      <View style={styles.directComposer}>
+        <TextInput
+          autoCapitalize='none'
+          autoCorrect={false}
+          onChangeText={onRecipientChange}
+          placeholder='Recipient profile id'
+          placeholderTextColor='#8b9188'
+          style={styles.recipientInput}
+          value={recipient}
+        />
+        <View style={styles.composer}>
+          <TextInput
+            onChangeText={onDraftChange}
+            onSubmitEditing={onSend}
+            placeholder='Write a direct message'
+            placeholderTextColor='#8b9188'
+            returnKeyType='send'
+            style={styles.messageInput}
+            value={draft}
+          />
+          <Pressable
+            disabled={!draft.trim() || !recipient.trim()}
+            onPress={onSend}
+            style={[
+              styles.sendButton,
+              (!draft.trim() || !recipient.trim()) && styles.disabledSendButton
+            ]}
+          >
+            <Send color='#fffaf0' size={18} />
+          </Pressable>
+        </View>
+      </View>
+    </>
   )
 }
 
@@ -367,7 +529,7 @@ function ChatPane({ draft, messages, onDraftChange, onSend }) {
         <TextInput
           onChangeText={onDraftChange}
           onSubmitEditing={onSend}
-          placeholder='Write to the room'
+          placeholder='Write to the home'
           placeholderTextColor='#8b9188'
           returnKeyType='send'
           style={styles.messageInput}
@@ -458,6 +620,29 @@ function EmptyMessages() {
   )
 }
 
+function EmptyDirectMessages() {
+  return (
+    <View style={styles.empty}>
+      <MessageCircle color='#56715f' size={34} />
+      <Text style={styles.emptyTitle}>No direct messages yet</Text>
+      <Text style={styles.emptyCopy}>Paste a profile id and send a text DM.</Text>
+    </View>
+  )
+}
+
+function DirectBubble({ message }) {
+  const outgoing = message.direction === 'out'
+
+  return (
+    <View style={[styles.bubble, outgoing ? styles.outBubble : styles.inBubble]}>
+      <Text style={[styles.bubbleMeta, !outgoing && styles.inBubbleMeta]}>
+        {message.nick} to {message.toProfileId}
+      </Text>
+      <Text style={[styles.bubbleText, !outgoing && styles.inBubbleText]}>{message.text}</Text>
+    </View>
+  )
+}
+
 function MessageBubble({ message }) {
   const outgoing = message.direction === 'out'
 
@@ -517,6 +702,21 @@ async function getBackendStorageBasePath() {
   return storageUri
 }
 
+async function loadMobileProfileId() {
+  const baseUri = FileSystem.documentDirectory || FileSystem.cacheDirectory
+  const profileId = await getOrCreateMobileProfileId({
+    baseUri,
+    createId: createMessageId,
+    fileSystem: FileSystem
+  })
+
+  return getOrCreateLocalProfile({
+    createId: () => profileId,
+    displayName: 'Neil',
+    storage: null
+  }).id
+}
+
 function formatPostTime(value) {
   return new Date(value).toLocaleTimeString([], {
     hour: '2-digit',
@@ -526,7 +726,7 @@ function formatPostTime(value) {
 
 function treeholeStatusText(status) {
   if (status === 'waiting' || status === 'waiting-for-bootstrap') {
-    return 'Waiting for a room peer to share the treehole log.'
+    return 'Waiting for a home peer to share the treehole log.'
   }
 
   if (status === 'starting') {
@@ -831,6 +1031,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 10,
     padding: 14
+  },
+  directComposer: {
+    borderTopColor: '#d9dfcf',
+    borderTopWidth: 1
+  },
+  recipientInput: {
+    backgroundColor: '#fffdf7',
+    borderColor: '#cfd8c6',
+    borderRadius: 8,
+    borderWidth: 1,
+    color: '#162119',
+    fontSize: 13,
+    marginHorizontal: 14,
+    marginTop: 14,
+    minHeight: 42,
+    paddingHorizontal: 12
   },
   messageInput: {
     backgroundColor: '#fffdf7',

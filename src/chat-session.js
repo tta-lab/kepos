@@ -1,12 +1,13 @@
 const ROOM_KEY_PATTERN = /^[0-9a-f]{64}$/
 
-export function createChatSession({ roomKey, nick }) {
+export function createChatSession({ roomKey, nick, profileId = null }) {
   if (!isRoomKey(roomKey)) {
     throw new Error('Invalid room key')
   }
 
   return {
     roomKey,
+    profileId: profileId?.trim() || null,
     nick: nick?.trim() || 'anon',
     messages: [],
     seenMessageIds: new Set()

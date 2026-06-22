@@ -2,14 +2,22 @@ const POST_CREATE = 'treehole.post.create'
 const COMMENT_CREATE = 'treehole.comment.create'
 const LIKE_ADD = 'treehole.like.add'
 
-export function createPostEvent({ id, author, text, createdAt }) {
-  return {
+export function createPostEvent({ id, author, authorProfileId, text, createdAt }) {
+  const event = {
     type: POST_CREATE,
     id,
     author: cleanAuthor(author),
     text: cleanText(text),
     createdAt
   }
+
+  const cleanAuthorProfileId = cleanProfileId(authorProfileId)
+
+  if (cleanAuthorProfileId) {
+    event.authorProfileId = cleanAuthorProfileId
+  }
+
+  return event
 }
 
 export function createCommentEvent({ id, postId, author, text, createdAt }) {
@@ -43,12 +51,19 @@ export function applyTreeholeEvents(events) {
         continue
       }
 
-      postsById.set(event.id, {
+      const post = {
         id: event.id,
         author: event.author,
         text: event.text,
         createdAt: event.createdAt
-      })
+      }
+      const cleanAuthorProfileId = cleanProfileId(event.authorProfileId)
+
+      if (cleanAuthorProfileId) {
+        post.authorProfileId = cleanAuthorProfileId
+      }
+
+      postsById.set(event.id, post)
       continue
     }
 
@@ -107,4 +122,8 @@ function cleanAuthor(author) {
 
 function cleanText(text) {
   return text?.trim() || ''
+}
+
+function cleanProfileId(profileId) {
+  return profileId?.trim() || null
 }
