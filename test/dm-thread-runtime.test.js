@@ -46,7 +46,10 @@ describe('DM thread runtime', () => {
 
     assert.deepEqual(channels[0].broadcasted, [stored])
     assert.deepEqual(saved.at(-1), [stored[0], incoming])
-    assert.deepEqual(displayed, [{ direction: 'in', message: incoming, thread }])
+    assert.deepEqual(displayed, [
+      { direction: 'out', message: stored[0], thread },
+      { direction: 'in', message: incoming, thread }
+    ])
   })
 
   test('sends signed messages over the opened thread and persists them', async () => {

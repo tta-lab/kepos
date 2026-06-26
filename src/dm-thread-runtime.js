@@ -37,6 +37,9 @@ export function createDmThreadRuntime({
     threads.set(thread.threadId, record)
 
     await channel.joinThread(thread)
+    for (const message of record.messages) {
+      onMessage(thread, message, message.fromProfileId === localProfileId ? 'out' : 'in')
+    }
     channel.broadcastMessages(record.messages)
   }
 

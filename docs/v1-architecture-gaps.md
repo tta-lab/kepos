@@ -266,6 +266,22 @@ Minimum V1 parity:
 
 Automated V1 model smoke now covers the shared model version of this path in `test/v1-model-smoke.test.js`. It is not a substitute for live desktop/Android parity smoke because it does not exercise camera permissions, Pear runtime, Bare backend lifecycle, Hyperswarm transport, or rendered UI state.
 
+The debug two-device smoke now provides live desktop/Android runtime evidence for:
+
+- desktop trusting Android profile URI
+- Android trusting the desktop profile through app-private ContactBook storage
+- Android joining the desktop home through the debug manual key path
+- desktop and Android connecting as peers
+- bidirectional room chat
+- desktop treehole post replication to Android
+- Android message request delivery to desktop
+- desktop request acceptance into a signed DM thread
+- bidirectional signed DM body delivery
+- Android DM body persistence across restart
+- post-restart signed DM delivery
+
+This is still debug-path evidence. It does not cover QR camera scan behavior.
+
 ## Gap 9: Failure States Need Product Semantics
 
 P2P failures often look like broken UI.
@@ -343,4 +359,4 @@ Resolved V1 decisions:
 
 Remaining evidence before calling V1 ready:
 
-- exact result of desktop + Android two-device smoke
+- manual QR camera scan smoke for profile/home import

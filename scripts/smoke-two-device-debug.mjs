@@ -18,27 +18,17 @@ const maestro = resolveMaestroCommand()
 const userDataDir = await mkdtemp(path.join(os.tmpdir(), 'kepos-two-device-desktop-'))
 const workDir = await mkdtemp(path.join(os.tmpdir(), 'kepos-two-device-'))
 const androidChatText = 'Android hello'
+const androidDmAfterRestartText = 'Android DM after restart'
+const androidDmBodyText = 'Android signed DM body'
+const androidMessageRequestText = 'Android DM request'
 const desktopChatText = 'desktop hello'
+const desktopDmBodyText = 'desktop signed DM body'
 const desktopTreeholeText = 'desktop treehole smoke'
 let app = null
+let page = null
 
 try {
-  app = await electron.launch({
-    args: ['.', `--user-data-dir=${userDataDir}`],
-    cwd: desktopDir,
-    env: {
-      ...process.env,
-      KEPOS_SMOKE_DESKTOP: '1'
-    },
-    executablePath: electronExecutable,
-    timeout: 60000
-  })
-
-  const page = await app.firstWindow({ timeout: 60000 })
-  await page.waitForLoadState('domcontentloaded')
-  page.on('console', (message) => {
-    if (message.type() === 'error') console.error(`[desktop] ${message.text()}`)
-  })
+  page = await launchDesktopApp()
 
   await waitForInputPrefix(page, '#profileQrOutput', 'kepos://profile')
   await waitForInputPrefix(page, '#homeQrOutput', 'kepos://home')
@@ -91,6 +81,32 @@ try {
   await tapAndroidByTestId('treehole-tab')
   await waitForAndroidText(desktopTreeholeText)
 
+  await sendAndroidMessageRequest()
+  await acceptDesktopMessageRequest(page)
+  await waitForAndroidDmThread(desktopProfile.profileId)
+
+  await sendAndroidDmBody(androidDmBodyText)
+  await waitFor(async () => {
+    const text = await page.locator('#dmList').textContent()
+    return textIncludes(text, androidDmBodyText)
+  }, 'desktop receives Android signed DM body')
+
+  await sendDesktopDmBody(page, androidProfile.profileId, desktopDmBodyText)
+  await tapAndroidByTestId('dm-tab')
+  await waitForAndroidText(desktopDmBodyText)
+
+  page = await restartBothAppsAndRejoin({
+    androidRemoteProfileId: desktopProfile.profileId,
+    roomKey: desktopHome.roomKey
+  })
+  await verifyDmPersistsAfterRestart(desktopDmBodyText)
+
+  await sendAndroidDmBody(androidDmAfterRestartText)
+  await waitFor(async () => {
+    const text = await page.locator('#dmList').textContent()
+    return textIncludes(text, androidDmAfterRestartText)
+  }, 'desktop receives Android signed DM body after restart')
+
   console.log(
     JSON.stringify(
       {
@@ -105,7 +121,13 @@ try {
           'desktop and Android connect as peers',
           'desktop chat reaches Android',
           'Android chat reaches desktop',
-          'desktop treehole post reaches Android'
+          'desktop treehole post reaches Android',
+          'Android message request reaches desktop',
+          'desktop accepts request and opens signed DM thread',
+          'Android signed DM body reaches desktop',
+          'desktop signed DM body reaches Android',
+          'signed DM body persists across Android restart',
+          'signed DM channel works after restart'
         ]
       },
       null,
@@ -116,6 +138,27 @@ try {
   await app?.close().catch(() => {})
   await rm(userDataDir, { force: true, recursive: true }).catch(() => {})
   await rm(workDir, { force: true, recursive: true }).catch(() => {})
+}
+
+async function launchDesktopApp() {
+  app = await electron.launch({
+    args: ['.', `--user-data-dir=${userDataDir}`],
+    cwd: desktopDir,
+    env: {
+      ...process.env,
+      KEPOS_SMOKE_DESKTOP: '1'
+    },
+    executablePath: electronExecutable,
+    timeout: 60000
+  })
+
+  const nextPage = await app.firstWindow({ timeout: 60000 })
+  await nextPage.waitForLoadState('domcontentloaded')
+  nextPage.on('console', (message) => {
+    if (message.type() === 'error') console.error(`[desktop] ${message.text()}`)
+  })
+
+  return nextPage
 }
 
 async function readAndroidProfileUri() {
@@ -159,7 +202,7 @@ async function writeAndroidContactBook({ alias, ownerProfileId, trustedProfileId
   runAdb(['push', localPath, devicePath])
   runAdb([
     'shell',
-    `run-as io.guion.kepos sh -c 'mkdir -p files/kepos/kepos && cp ${devicePath} files/kepos/kepos/contact-book.json'`
+    `run-as io.guion.kepos sh -c 'mkdir -p files/kepos files/kepos/kepos && cp ${devicePath} files/kepos/contact-book.json && cp ${devicePath} files/kepos/kepos/contact-book.json'`
   ])
   runAdb(['shell', 'rm', '-f', devicePath])
 }
@@ -223,6 +266,115 @@ async function sendAndroidChat() {
 `
   )
   runMaestro(['test', flow])
+}
+
+async function sendAndroidMessageRequest() {
+  await sendAndroidDirectMessage({
+    fileName: 'android-message-request.yaml',
+    text: androidMessageRequestText
+  })
+}
+
+async function acceptDesktopMessageRequest(page) {
+  await page.click('#dmTab')
+  await waitFor(async () => {
+    const text = await page.locator('#dmList').textContent()
+    return textIncludes(text, androidMessageRequestText)
+  }, 'desktop receives Android message request')
+  await page.locator('#dmList button', { hasText: 'Accept' }).click()
+  await waitFor(async () => {
+    const text = await page.locator('#noticeLabel').textContent()
+    return textIncludes(text, 'Accepted message request')
+  }, 'desktop accepted Android message request')
+}
+
+async function sendAndroidDmBody(text) {
+  await sendAndroidDirectMessage({
+    fileName: `android-dm-${text.replaceAll(' ', '-').toLowerCase()}.yaml`,
+    text
+  })
+}
+
+async function sendAndroidDirectMessage({ fileName, text }) {
+  const flow = path.join(workDir, fileName)
+  await writeFile(
+    flow,
+    `appId: io.guion.kepos
+---
+- tapOn:
+    id: 'dm-tab'
+- tapOn:
+    text: 'Desktop smoke'
+- tapOn:
+    id: 'dm-message-input'
+- inputText: '${text}'
+- hideKeyboard
+- tapOn:
+    id: 'dm-send-button'
+`
+  )
+  runMaestro(['test', flow])
+}
+
+async function sendDesktopDmBody(page, toProfileId, text) {
+  await page.click('#dmTab')
+  await page.fill('#dmRecipientInput', toProfileId)
+  await page.fill('#dmInput', text)
+  await page.click('#dmForm button[type="submit"]')
+  await waitFor(async () => {
+    const dmText = await page.locator('#dmList').textContent()
+    return textIncludes(dmText, text)
+  }, 'desktop shows outgoing signed DM body')
+}
+
+async function restartBothAppsAndRejoin({ androidRemoteProfileId, roomKey }) {
+  await app?.close()
+  app = null
+
+  const nextPage = await launchDesktopApp()
+  await waitForInputPrefix(nextPage, '#profileQrOutput', 'kepos://profile')
+  await waitForInputPrefix(nextPage, '#homeQrOutput', 'kepos://home')
+  await nextPage.click('#createButton')
+  await waitForText(nextPage, '#noticeLabel', 'Home joined.')
+
+  await runAndroidJoinFlow(roomKey)
+  await waitForTextNot(nextPage, '#peerLabel', '0')
+  await waitForAndroidDmThread(androidRemoteProfileId)
+  await tapAndroidByTestId('dm-tab')
+
+  return nextPage
+}
+
+async function verifyDmPersistsAfterRestart(text) {
+  await waitForAndroidText(text)
+}
+
+async function waitForAndroidDmThread(remoteProfileId) {
+  await waitFor(
+    () => {
+      const threads = readAndroidDmThreads()
+      return threads.some(
+        (thread) =>
+          thread.remoteProfileId === remoteProfileId &&
+          thread.state === 'accepted' &&
+          thread.revokedAt === undefined
+      )
+    },
+    `Android accepted DM thread for ${shorten(remoteProfileId)}`
+  )
+}
+
+function readAndroidDmThreads() {
+  const output = runAdb([
+    'shell',
+    "run-as io.guion.kepos sh -c 'cat files/kepos/kepos/dm/threads.json 2>/dev/null || cat files/kepos/dm/threads.json 2>/dev/null || true'"
+  ]).trim()
+
+  if (!output) {
+    return []
+  }
+
+  return (JSON.parse(output).threads || []).map((entry) => entry.thread || entry)
 }
 
 async function tapAndroidByTestId(testId) {
@@ -313,12 +465,27 @@ function runAdb(args) {
 }
 
 function runMaestro(args) {
-  const result = spawnSync(maestro, args, {
-    encoding: 'utf8',
-    stdio: 'inherit'
-  })
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
+    const result = spawnSync(maestro, args, {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe']
+    })
 
-  if (result.status !== 0) {
+    if (result.status === 0) {
+      process.stdout.write(result.stdout)
+      process.stderr.write(result.stderr)
+      return
+    }
+
+    const output = `${result.stdout}${result.stderr}`
+    process.stdout.write(result.stdout)
+    process.stderr.write(result.stderr)
+
+    if (attempt === 1 && output.includes('MaestroDriverStartupException')) {
+      spawnSync('sleep', ['2'])
+      continue
+    }
+
     throw new Error(`maestro ${args.join(' ')} failed`)
   }
 }

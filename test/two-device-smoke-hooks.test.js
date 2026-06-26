@@ -54,3 +54,22 @@ test('desktop UI exposes stable hooks for two-device smoke', async () => {
     assert.match(html, new RegExp(`id="${id}"`), `${id} is missing`)
   }
 })
+
+test('debug two-device smoke covers live DM exchange and restart persistence', async () => {
+  const source = await readFile(
+    new URL('../scripts/smoke-two-device-debug.mjs', import.meta.url),
+    'utf8'
+  )
+
+  for (const marker of [
+    'sendAndroidMessageRequest',
+    'acceptDesktopMessageRequest',
+    'sendAndroidDmBody',
+    'sendDesktopDmBody',
+    'restartBothAppsAndRejoin',
+    'verifyDmPersistsAfterRestart',
+    'MaestroDriverStartupException'
+  ]) {
+    assert.match(source, new RegExp(marker), `${marker} is missing`)
+  }
+})
