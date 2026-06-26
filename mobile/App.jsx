@@ -800,9 +800,11 @@ function QrScanner({ onCancel, onScanned }) {
         style={styles.scannerCamera}
         testID='qr-scanner-camera'
       />
-      <Pressable onPress={onCancel} style={styles.scannerCancel} testID='qr-scanner-cancel'>
-        <Text style={styles.scannerCancelText}>Cancel</Text>
-      </Pressable>
+      <View style={styles.scannerControls}>
+        <Pressable onPress={onCancel} style={styles.scannerCancel} testID='qr-scanner-cancel'>
+          <Text style={styles.scannerCancelText}>Cancel</Text>
+        </Pressable>
+      </View>
     </View>
   )
 }
@@ -1681,18 +1683,26 @@ const styles = StyleSheet.create({
   scannerOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: '#101711',
-    justifyContent: 'flex-end',
     zIndex: 20
   },
   scannerCamera: {
-    ...StyleSheet.absoluteFillObject
+    flex: 1,
+    minHeight: 0
+  },
+  scannerControls: {
+    alignItems: 'center',
+    bottom: 0,
+    left: 0,
+    paddingBottom: 28,
+    paddingTop: 16,
+    position: 'absolute',
+    right: 0
   },
   scannerCancel: {
     alignItems: 'center',
     alignSelf: 'center',
     backgroundColor: '#fffaf0',
     borderRadius: 8,
-    marginBottom: 28,
     minHeight: 46,
     paddingHorizontal: 22,
     justifyContent: 'center'

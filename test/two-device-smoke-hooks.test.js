@@ -35,6 +35,14 @@ test('Android lobby is scrollable so QR and trust controls are reachable', async
   assert.match(source, /<\/ScrollView>/)
 })
 
+test('Android QR scanner keeps the camera preview visible', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+
+  assert.match(source, /scannerCamera: \{\s*flex: 1,/)
+  assert.match(source, /scannerControls: \{/)
+  assert.doesNotMatch(source, /scannerCamera: \{\s*\.\.\.StyleSheet\.absoluteFillObject/)
+})
+
 test('desktop UI exposes stable hooks for two-device smoke', async () => {
   const html = await readFile(new URL('../desktop/index.html', import.meta.url), 'utf8')
 
