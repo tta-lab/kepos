@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
 import { createContactBook, getContact, isContactTrusted } from '../src/contact-book.ts'
 import { applyMobileHomeQrScan, applyMobileProfileQrScan } from '../src/mobile-qr-actions.js'
+import { getScannedQrData } from '../src/mobile-qr-event.js'
 import {
   createSignedHomeAddressPayload,
   createSignedTrustInvitePayload,
@@ -10,6 +11,12 @@ import {
 import { createSigningKeyPair } from '../src/signed-record.ts'
 
 describe('mobile QR scan actions', () => {
+  test('scan event data accepts direct and nativeEvent payload shapes', () => {
+    assert.equal(getScannedQrData({ data: 'kepos://profile' }), 'kepos://profile')
+    assert.equal(getScannedQrData({ nativeEvent: { data: 'kepos://home' } }), 'kepos://home')
+    assert.equal(getScannedQrData({ nativeEvent: { data: '   ' } }), null)
+  })
+
   test('profile scan applies only signed profile QR to ContactBook', () => {
     const local = createSigningKeyPair()
     const remote = createSigningKeyPair()

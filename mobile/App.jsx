@@ -58,6 +58,7 @@ import {
   getRequiredMobileDocumentDirectory
 } from '../src/mobile-profile.js'
 import { applyMobileHomeQrScan, applyMobileProfileQrScan } from '../src/mobile-qr-actions.js'
+import { getScannedQrData } from '../src/mobile-qr-event.js'
 import { applyLocalContactRevoke } from '../src/revoke-state.js'
 import {
   createSignedHomeAddressPayload,
@@ -380,7 +381,9 @@ export default function App() {
     setScanTarget(target)
   }
 
-  async function handleQrScanned({ data }) {
+  async function handleQrScanned(event) {
+    const data = getScannedQrData(event)
+
     if (!scanTarget || scanLockRef.current || !data) {
       return
     }
