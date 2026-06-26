@@ -4,6 +4,7 @@ import path from 'node:path'
 
 const flow = '.maestro/android-smoke.yaml'
 const maestro = resolveMaestroCommand()
+grantCameraPermission()
 const version = spawnSync(maestro, ['--version'], {
   encoding: 'utf8',
   stdio: ['ignore', 'pipe', 'pipe']
@@ -61,4 +62,15 @@ function homebrewMaestroCandidates(root) {
     .reverse()
     .map((version) => path.join(root, version, 'libexec', 'bin', 'maestro'))
     .filter((candidate) => existsSync(candidate))
+}
+
+function grantCameraPermission() {
+  const args = ['shell', 'pm', 'grant', 'io.guion.kepos', 'android.permission.CAMERA']
+  const serial = process.env.ANDROID_SERIAL?.trim()
+  const command = serial ? ['-s', serial, ...args] : args
+
+  spawnSync('adb', command, {
+    encoding: 'utf8',
+    stdio: ['ignore', 'ignore', 'ignore']
+  })
 }

@@ -66,12 +66,13 @@ smoke:android`.
 Expected:
 
 - lobby exposes stable React Native test IDs
+- Scan Profile QR opens a camera scanner and Cancel returns to the lobby
+- Scan Home QR opens a camera scanner and Cancel returns to the lobby
 - Create Home opens the room view
 - Chat and Treehole tabs are visible
 
-This smoke does not try to prove camera QR scan behavior. Use the manual checklist below for QR
-camera permission and scan handling until the UI stabilizes enough to justify fuller automated
-camera coverage.
+This smoke proves the Android camera scanner UI can open and close. It does not prove physical QR
+decode quality; use the manual checklist below for screen-to-camera profile/home scans.
 
 A debug two-device smoke can exercise the live desktop/Android transport without relying on camera
 scan or fragile long-text input through the Android keyboard:

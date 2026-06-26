@@ -11,6 +11,26 @@ appId: io.guion.kepos
     id: 'home-profile-uri'
 - scrollUntilVisible:
     element:
+      id: 'scan-profile-qr-button'
+    direction: DOWN
+- tapOn:
+    id: 'scan-profile-qr-button'
+- assertVisible:
+    id: 'qr-scanner-overlay'
+- tapOn:
+    id: 'qr-scanner-cancel'
+- scrollUntilVisible:
+    element:
+      id: 'scan-home-qr-button'
+    direction: UP
+- tapOn:
+    id: 'scan-home-qr-button'
+- assertVisible:
+    id: 'qr-scanner-overlay'
+- tapOn:
+    id: 'qr-scanner-cancel'
+- scrollUntilVisible:
+    element:
       id: 'create-home-button'
     direction: UP
 - tapOn:

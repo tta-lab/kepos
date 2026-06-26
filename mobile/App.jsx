@@ -790,13 +790,14 @@ function QrCard({ value }) {
 
 function QrScanner({ onCancel, onScanned }) {
   return (
-    <View style={styles.scannerOverlay}>
+    <View style={styles.scannerOverlay} testID='qr-scanner-overlay'>
       <CameraView
         barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
         onBarcodeScanned={onScanned}
         style={styles.scannerCamera}
+        testID='qr-scanner-camera'
       />
-      <Pressable onPress={onCancel} style={styles.scannerCancel}>
+      <Pressable onPress={onCancel} style={styles.scannerCancel} testID='qr-scanner-cancel'>
         <Text style={styles.scannerCancelText}>Cancel</Text>
       </Pressable>
     </View>
@@ -885,7 +886,11 @@ function Lobby({
             Join Home URI
           </Text>
         </Pressable>
-        <Pressable onPress={onScanHomeQr} style={styles.secondaryButton}>
+        <Pressable
+          onPress={onScanHomeQr}
+          style={styles.secondaryButton}
+          testID='scan-home-qr-button'
+        >
           <Text style={styles.secondaryButtonText}>Scan Home QR</Text>
         </Pressable>
       </View>
@@ -934,7 +939,11 @@ function Lobby({
             Trust Profile
           </Text>
         </Pressable>
-        <Pressable onPress={onScanProfileQr} style={styles.secondaryButton}>
+        <Pressable
+          onPress={onScanProfileQr}
+          style={styles.secondaryButton}
+          testID='scan-profile-qr-button'
+        >
           <Text style={styles.secondaryButtonText}>Scan Profile QR</Text>
         </Pressable>
       </View>

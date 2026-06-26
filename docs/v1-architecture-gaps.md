@@ -53,7 +53,7 @@ If a feature can bypass trust by using a copied room key, writer key, or control
 Remaining V1 evidence:
 
 - debug two-device desktop/Android smoke proves trusted home entry, treehole replication, DM setup, signed DM body exchange, restart persistence, and desktop revoke closing the accepted DM receive path in the UI/runtime
-- manual QR camera smoke still needs to prove physical profile/home QR scanning quality
+- manual physical QR scan still needs to prove screen-to-camera profile/home decode quality
 - transport-level rejection can come later with identity-signed join handshakes
 
 ## Gap 2: Treehole Writer Rights Need An Owner Rule
@@ -93,7 +93,7 @@ Current implementation status:
 
 Remaining evidence:
 
-- manual QR camera smoke still needs to prove the normal scan path that creates the trust used by signed hello
+- manual physical QR scan still needs to prove the normal scan path that creates the trust used by signed hello
 
 ## Gap 3: Trust Storage Needs A Shared ContactBook
 
@@ -123,7 +123,7 @@ Current implementation status:
 - desktop and Android render real QR images for signed profile/home URIs
 - Android camera scan routes QR data through signed validation before trust or home join
 - Android scan action handling is factored into `src/mobile-qr-actions.js` and covered by `test/mobile-qr-actions.test.js`
-- debug two-device smoke covers treehole, room chat, signed DM body exchange, restart persistence, and desktop revoke on live desktop/Android runtime; manual QR camera smoke remains for the physical scan path
+- debug two-device smoke covers treehole, room chat, signed DM body exchange, restart persistence, desktop revoke, and Android scanner open/cancel on live desktop/Android runtime; manual physical QR scan remains for screen-to-camera decode quality
 
 Identity says who the local profile is. ContactBook says who that profile knows, trusts, revoked, or can message. The rules should live in shared code.
 
@@ -285,7 +285,7 @@ The debug two-device smoke now provides live desktop/Android runtime evidence fo
 - desktop revoke removing Android from trusted contacts
 - desktop revoke closing the accepted DM receive path
 
-This is still debug-path evidence. It does not cover QR camera scan behavior.
+This is still debug-path evidence. It covers scanner open/cancel, not physical QR decode quality.
 
 ## Gap 9: Failure States Need Product Semantics
 
@@ -352,7 +352,7 @@ Completed implementation priorities:
 
 Remaining priority:
 
-10. Run manual QR camera smoke for physical scan quality.
+10. Run manual physical QR smoke for screen-to-camera decode quality.
 
 ## Resolved Decisions And Remaining Evidence
 
@@ -364,4 +364,4 @@ Resolved V1 decisions:
 
 Remaining evidence before calling V1 ready:
 
-- manual QR camera scan smoke for profile/home import
+- manual physical QR scan smoke for profile/home import
