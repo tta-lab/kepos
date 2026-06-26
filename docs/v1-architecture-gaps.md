@@ -121,6 +121,7 @@ Current implementation status:
 - desktop and Android backend lifecycle wiring exists for accepted-thread DM replication and signed message body RPC/display
 - trusted contacts can be selected as DM recipients in desktop and mobile before falling back to manual profile id entry
 - desktop and Android render real QR images for signed profile/home URIs
+- generated signed profile/home QR PNGs are decoded by `jsQR` in `test/qr-rendering.test.js`
 - Android camera scan routes QR data through signed validation before trust or home join
 - Android scan action handling is factored into `src/mobile-qr-actions.js` and covered by `test/mobile-qr-actions.test.js`
 - debug two-device smoke covers treehole, room chat, signed DM body exchange, restart persistence, desktop revoke, and Android scanner open/cancel on live desktop/Android runtime; manual physical QR scan remains for screen-to-camera decode quality

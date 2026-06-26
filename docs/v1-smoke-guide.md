@@ -29,6 +29,10 @@ Current automated coverage proves lint, tests, typecheck, Android bundle creatio
 
 This is model evidence only. It does not exercise camera scan permissions, Pear desktop runtime, Android Bare lifecycle, live Hyperswarm transport, or rendered UI state.
 
+`test/qr-rendering.test.js` renders signed profile and home QR payloads and verifies the generated
+PNG output can be decoded by `jsQR`. This is no-camera decode evidence; it still does not prove
+real screen-to-camera focus, glare, distance, or device camera behavior.
+
 ## Basic CLI Smoke
 
 Desktop smoke uses Playwright's Electron support and launches the real Electron app with an isolated

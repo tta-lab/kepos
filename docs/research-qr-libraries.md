@@ -76,7 +76,7 @@ Do not use `react-qr-code` for current desktop unless the desktop app moves to R
 - Unit test URI envelope creation and parsing for profile, home, and message-request QR strings.
 - Unit test payload validation: known type, required keys, key encoding, size limit, timestamp/expiry, and signature checks when signing lands.
 - Add generation smoke tests that call `qrcode` on representative V1 payloads and assert generation succeeds at the chosen error correction level.
-- Add a no-camera decode test with a static generated PNG/SVG fixture and either `jsQR` or `@zxing/browser` in a DOM-capable test harness. This verifies that generated output is decodable without relying on a physical camera.
+- Add a no-camera decode test with a static generated PNG/SVG fixture and either `jsQR` or `@zxing/browser` in a DOM-capable test harness. Done for generated signed profile/home PNGs with `jsQR` in `test/qr-rendering.test.js`.
 - Mock `expo-camera` scan callbacks in React Native tests: feed `onBarcodeScanned({ type: "qr", data: uri })` and verify routing/state changes. Do not require Android camera hardware in CI.
 - Add one manual Android device test before release: mobile displays profile/home/message-request QR, another mobile scans each QR, invalid QR fails closed, repeated scan is debounced, permission denied state is clear.
 
