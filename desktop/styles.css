@@ -68,6 +68,53 @@ textarea {
   width: 172px;
 }
 
+.largeQrDialog {
+  align-items: center;
+  background: rgba(23, 33, 27, 0.74);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 28px;
+  position: fixed;
+  z-index: 20;
+}
+
+.largeQrDialog.hidden {
+  display: none;
+}
+
+.largeQrPanel {
+  background: #fffdf7;
+  border: 1px solid #cbd4c3;
+  border-radius: 8px;
+  display: grid;
+  gap: 16px;
+  max-width: min(640px, 100%);
+  padding: 18px;
+}
+
+.largeQrHeader {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.largeQrCode {
+  align-items: center;
+  background: #fff;
+  border: 1px solid #d6dccf;
+  border-radius: 6px;
+  display: flex;
+  justify-content: center;
+  padding: 18px;
+}
+
+.largeQrCode svg {
+  display: block;
+  height: min(520px, calc(100vw - 112px), calc(100vh - 170px));
+  width: min(520px, calc(100vw - 112px), calc(100vh - 170px));
+}
+
 .shell {
   display: grid;
   grid-template-columns: 320px 1fr;

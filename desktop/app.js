@@ -75,6 +75,10 @@ const els = {
   homeQrOutput: document.querySelector('#homeQrOutput'),
   joinButton: document.querySelector('#joinButton'),
   joinHomeQrButton: document.querySelector('#joinHomeQrButton'),
+  largeQrCloseButton: document.querySelector('#largeQrCloseButton'),
+  largeQrCode: document.querySelector('#largeQrCode'),
+  largeQrDialog: document.querySelector('#largeQrDialog'),
+  largeQrTitle: document.querySelector('#largeQrTitle'),
   leaveButton: document.querySelector('#leaveButton'),
   lobbyForm: document.querySelector('#lobbyForm'),
   messageList: document.querySelector('#messageList'),
@@ -86,6 +90,8 @@ const els = {
   profileIdLabel: document.querySelector('#profileIdLabel'),
   roomKeyInput: document.querySelector('#roomKeyInput'),
   roomKeyLabel: document.querySelector('#roomKeyLabel'),
+  showLargeHomeQrButton: document.querySelector('#showLargeHomeQrButton'),
+  showLargeProfileQrButton: document.querySelector('#showLargeProfileQrButton'),
   treeholeForm: document.querySelector('#treeholeForm'),
   treeholeInput: document.querySelector('#treeholeInput'),
   treeholeList: document.querySelector('#treeholeList'),
@@ -125,6 +131,16 @@ els.leaveButton.addEventListener('click', () => leaveRoom().catch(showError))
 els.chatTab.addEventListener('click', () => setTab('chat'))
 els.dmTab.addEventListener('click', () => setTab('dm'))
 els.treeholeTab.addEventListener('click', () => setTab('treehole'))
+els.showLargeHomeQrButton.addEventListener('click', () => {
+  showLargeQr({ title: 'Home QR', uri: els.homeQrOutput.value }).catch(showError)
+})
+els.showLargeProfileQrButton.addEventListener('click', () => {
+  showLargeQr({ title: 'Profile QR', uri: els.profileQrOutput.value }).catch(showError)
+})
+els.largeQrCloseButton.addEventListener('click', hideLargeQr)
+els.largeQrDialog.addEventListener('click', (event) => {
+  if (event.target === els.largeQrDialog) hideLargeQr()
+})
 els.nickInput.addEventListener('input', () => {
   updateQrOutputs().catch(showError)
 })
@@ -355,6 +371,24 @@ async function updateQrOutputs() {
     type: 'svg',
     width: 172
   })
+}
+
+async function showLargeQr({ title, uri }) {
+  if (!uri) return
+
+  els.largeQrTitle.textContent = title
+  els.largeQrCode.innerHTML = await QRCode.toString(uri, {
+    errorCorrectionLevel: 'M',
+    margin: 2,
+    type: 'svg',
+    width: 520
+  })
+  els.largeQrDialog.classList.remove('hidden')
+}
+
+function hideLargeQr() {
+  els.largeQrDialog.classList.add('hidden')
+  els.largeQrCode.replaceChildren()
 }
 
 function loadLocalContactBook(ownerProfileId) {

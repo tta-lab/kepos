@@ -45,6 +45,7 @@
             <textarea id="homeQrOutput" class="compactArea" readonly spellcheck="false"></textarea>
           </label>
           <div id="homeQrCode" class="qrCode" aria-label="My home QR code"></div>
+          <button id="showLargeHomeQrButton" type="button">Large Home QR</button>
           <label>
             Join home URI
             <textarea
@@ -68,6 +69,7 @@
             ></textarea>
           </label>
           <div id="profileQrCode" class="qrCode" aria-label="My profile QR code"></div>
+          <button id="showLargeProfileQrButton" type="button">Large Profile QR</button>
           <label>
             Trust profile URI
             <textarea
@@ -145,6 +147,16 @@
         </section>
       </section>
     </main>
+
+    <div id="largeQrDialog" class="largeQrDialog hidden" role="dialog" aria-modal="true">
+      <section class="largeQrPanel">
+        <div class="largeQrHeader">
+          <p id="largeQrTitle" class="label">QR</p>
+          <button id="largeQrCloseButton" class="smallButton" type="button">Close</button>
+        </div>
+        <div id="largeQrCode" class="largeQrCode" aria-label="Large QR code"></div>
+      </section>
+    </div>
 
     <script>
       require('./app.bundle.cjs')

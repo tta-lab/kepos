@@ -140,6 +140,8 @@ Expected:
 - desktop lobby opens
 - profile QR image is visible
 - home QR image is visible
+- Large Profile QR opens a scan-sized QR dialog
+- Large Home QR opens a scan-sized QR dialog
 - text URI fields remain available as debug fallback
 
 ## Start Android
@@ -174,13 +176,15 @@ adb -s <serial> shell pidof io.guion.kepos
 Use one desktop and one Android profile.
 
 1. Desktop: Create Home.
-2. Android: scan desktop profile QR.
-3. Android: trust the desktop profile.
-4. Desktop: import or scan Android profile URI.
-5. Desktop: trust the Android profile.
-6. Android: scan desktop home QR.
-7. Android: join desktop home.
-8. Both: verify peer count increases.
+2. Desktop: open Large Profile QR.
+3. Android: scan desktop profile QR.
+4. Android: trust the desktop profile.
+5. Desktop: import or scan Android profile URI.
+6. Desktop: trust the Android profile.
+7. Desktop: open Large Home QR.
+8. Android: scan desktop home QR.
+9. Android: join desktop home.
+10. Both: verify peer count increases.
 
 Expected:
 

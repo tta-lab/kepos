@@ -41,6 +41,11 @@ test('desktop UI exposes stable hooks for two-device smoke', async () => {
   for (const id of [
     'homeQrOutput',
     'profileQrOutput',
+    'showLargeHomeQrButton',
+    'showLargeProfileQrButton',
+    'largeQrDialog',
+    'largeQrCode',
+    'largeQrCloseButton',
     'homeQrInput',
     'joinHomeQrButton',
     'trustQrInput',
@@ -52,6 +57,21 @@ test('desktop UI exposes stable hooks for two-device smoke', async () => {
     'treeholeInput'
   ]) {
     assert.match(html, new RegExp(`id="${id}"`), `${id} is missing`)
+  }
+})
+
+test('desktop large QR dialog renders scan-sized QR codes', async () => {
+  const source = await readFile(new URL('../desktop/app.js', import.meta.url), 'utf8')
+  const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
+
+  for (const marker of [
+    'showLargeQr',
+    'hideLargeQr',
+    'largeQrCode',
+    'width: 520',
+    'largeQrDialog.hidden'
+  ]) {
+    assert.match(`${source}\n${styles}`, new RegExp(marker), `${marker} is missing`)
   }
 })
 
