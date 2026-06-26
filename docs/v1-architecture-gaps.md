@@ -52,7 +52,8 @@ If a feature can bypass trust by using a copied room key, writer key, or control
 
 Remaining V1 evidence:
 
-- real two-device desktop/Android smoke must prove QR trust, trusted-only home entry, treehole writer policy, and DM setup work together in the UI/runtime
+- debug two-device desktop/Android smoke proves trusted home entry, treehole replication, DM setup, signed DM body exchange, restart persistence, and desktop revoke closing the accepted DM receive path in the UI/runtime
+- manual QR camera smoke still needs to prove physical profile/home QR scanning quality
 - transport-level rejection can come later with identity-signed join handshakes
 
 ## Gap 2: Treehole Writer Rights Need An Owner Rule
@@ -77,8 +78,9 @@ V1 needs a clear rule:
 - post, comment, and like events should carry signed author profile identity
 - duplicated or malformed events should be ignored
 
-Treehole events and signed-mode writer grants are now signed. The remaining evidence item is two-device smoke across QR trust, home entry, treehole writer grant, and DM.
-The integrated V1 model smoke covers the shared domain path; real desktop/Android smoke still needs to prove transport and UI wiring.
+Treehole events and signed-mode writer grants are now signed. The integrated V1 model smoke covers
+the shared domain path, and debug two-device desktop/Android smoke now proves the live transport and
+UI wiring for trusted home entry, treehole replication, and signed DM.
 
 Current implementation status:
 
@@ -87,11 +89,11 @@ Current implementation status:
 - treehole bootstrap and writer capabilities are sent with directed control frames after signed hello verification
 - the owner sends treehole bootstrap only to profiles allowed by the owner's ContactBook-derived treehole policy
 - `canShareTreeholeBootstrap()` centralizes the owner-to-trusted-profile bootstrap decision and is covered by `test/treehole-session.test.js`; desktop and Android backend both call it before sending bootstrap data
-- backend boundary tests and the integrated V1 model smoke cover the policy decision; device smoke still needs to show it on a live connection
+- backend boundary tests, the integrated V1 model smoke, and debug two-device smoke cover the policy decision on the shared model and live connection
 
 Remaining evidence:
 
-- two-device smoke must prove the signed hello flow shares treehole capabilities only after owner-side trust exists in the running desktop/Android apps
+- manual QR camera smoke still needs to prove the normal scan path that creates the trust used by signed hello
 
 ## Gap 3: Trust Storage Needs A Shared ContactBook
 
@@ -121,7 +123,7 @@ Current implementation status:
 - desktop and Android render real QR images for signed profile/home URIs
 - Android camera scan routes QR data through signed validation before trust or home join
 - Android scan action handling is factored into `src/mobile-qr-actions.js` and covered by `test/mobile-qr-actions.test.js`
-- remaining work is two-device smoke, including QR scan, treehole, room chat, and signed DM body exchange
+- debug two-device smoke covers treehole, room chat, signed DM body exchange, restart persistence, and desktop revoke on live desktop/Android runtime; manual QR camera smoke remains for the physical scan path
 
 Identity says who the local profile is. ContactBook says who that profile knows, trusts, revoked, or can message. The rules should live in shared code.
 
@@ -170,7 +172,8 @@ Current implementation status:
 
 Remaining V1 evidence:
 
-- two-device smoke must prove the running apps stop sending treehole bootstrap and writer keys after revoke
+- debug two-device smoke proves desktop revoke removes the trusted contact and closes the accepted DM receive path
+- source/boundary tests prove revoked profiles are removed from ContactBook-derived treehole policy; a future key-rotation design is still needed to prevent already-replicated treehole data from remaining available
 - keep old replicated data local
 - show revoked state without claiming data was removed
 
@@ -194,7 +197,7 @@ Current implementation status:
 
 Remaining V1 evidence:
 
-- desktop/Android smoke must prove signed DM body exchange and persistence across restart
+- debug two-device smoke now proves signed DM body exchange, Android persistence across restart, post-restart delivery, and desktop revoke closing the accepted DM receive path
 
 ## Gap 6: Profile, Home, And Treehole Need A Single Mapping
 
@@ -279,6 +282,8 @@ The debug two-device smoke now provides live desktop/Android runtime evidence fo
 - bidirectional signed DM body delivery
 - Android DM body persistence across restart
 - post-restart signed DM delivery
+- desktop revoke removing Android from trusted contacts
+- desktop revoke closing the accepted DM receive path
 
 This is still debug-path evidence. It does not cover QR camera scan behavior.
 
@@ -347,7 +352,7 @@ Completed implementation priorities:
 
 Remaining priority:
 
-10. Run desktop and Android parity smoke.
+10. Run manual QR camera smoke for physical scan quality.
 
 ## Resolved Decisions And Remaining Evidence
 

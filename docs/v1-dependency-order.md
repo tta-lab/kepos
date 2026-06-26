@@ -389,7 +389,7 @@ Current implementation status:
 - signed mode rejects writer grants without the writer profile id and ignores legacy unsigned `treehole.writer.add`.
 - Desktop and Android callers now load local ContactBook snapshots and pass treehole trust policy into signed treehole sessions.
 - Desktop and Android writer grant handling now checks writer profile id against the local owner policy before adding an Autobase writer.
-- Profile URI import now creates persisted trusted contacts. QR image display and Android camera scan UX exist. Remaining work is two-device smoke for the complete QR trust, room, treehole, and DM path.
+- Profile URI import now creates persisted trusted contacts. QR image display and Android camera scan UX exist. Debug two-device smoke covers the live room, treehole, DM, restart, and desktop revoke path; manual QR camera smoke remains for physical scan quality.
 
 ## 5. DM And Message Requests
 
@@ -492,7 +492,7 @@ Current implementation status:
 
 Remaining work:
 
-- run two-device smoke for QR, room chat, treehole, and signed DM body exchange
+- run manual QR camera smoke for physical profile/home scan quality
 
 ### 5.5 Sign DM Messages
 
@@ -526,7 +526,7 @@ Current implementation status:
 
 Remaining work:
 
-- run two-device smoke for desktop and Android signed DM body exchange
+- run manual QR camera smoke for physical profile/home scan quality
 - refine full contacts view after V1 smoke if needed
 
 ## 6. Revocation

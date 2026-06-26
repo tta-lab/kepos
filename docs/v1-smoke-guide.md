@@ -84,8 +84,9 @@ This launches desktop with Playwright, reads Android's profile URI from the UI h
 Android app-private ContactBook entry through `adb run-as`, joins the desktop home through the
 manual 64-character debug key path, and verifies peer connection, room chat, and desktop-to-Android
 treehole replication. It then verifies message request acceptance, signed DM body exchange, Android
-DM persistence across restart, and post-restart DM delivery. It is useful CLI evidence for the live
-runtime, but it does not replace the QR camera checklist below.
+DM persistence across restart, post-restart DM delivery, and the desktop revoke path closing the
+accepted DM receive path. It is useful CLI evidence for the live runtime, but it does not replace
+the QR camera checklist below.
 
 The desktop app in this debug smoke uses a temporary Electron `userDataDir`, and the script deletes
 that directory when it exits. Contacts created in this smoke are expected to disappear from the
@@ -210,6 +211,8 @@ Expected:
 9. Android receives it.
 10. Restart both apps and rejoin the home.
 11. Send another DM.
+12. Desktop revokes the Android contact.
+13. Android sends another DM.
 
 Expected:
 
@@ -218,6 +221,8 @@ Expected:
 - signed DM bodies use dedicated DM replication, not the home room
 - DM messages persist locally per thread
 - DM messages do not appear in home chat
+- revoked contacts are removed from desktop trusted contacts and DM recipients
+- desktop closes the accepted DM receive path for the revoked contact
 
 ## QR Failure Checks
 

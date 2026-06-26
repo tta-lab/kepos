@@ -212,9 +212,9 @@ Status: done for the invite domain model with libsodium sealed boxes.
 - replicate durable DM thread over its own channel
 - remove production dependency on home room for DM contents
 
-Status: implementation done; two-device smoke still required.
+Status: implementation done and covered by debug two-device smoke.
 
-The pure thread state model, storage adapters, desktop/Android setup wiring, signed DM message record shape, durable per-thread signed message storage, dedicated DM replication channel primitive, desktop/Android lifecycle wiring, and trusted-contact recipient picker exist. Remaining work is two-device smoke and any post-smoke contacts UI polish.
+The pure thread state model, storage adapters, desktop/Android setup wiring, signed DM message record shape, durable per-thread signed message storage, dedicated DM replication channel primitive, desktop/Android lifecycle wiring, trusted-contact recipient picker, debug two-device signed DM exchange, restart persistence, and desktop revoke close path exist. Remaining work is manual QR camera smoke and any post-smoke contacts UI polish.
 
 ## V1 Rule
 

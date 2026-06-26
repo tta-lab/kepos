@@ -19,6 +19,7 @@ const userDataDir = await mkdtemp(path.join(os.tmpdir(), 'kepos-two-device-deskt
 const workDir = await mkdtemp(path.join(os.tmpdir(), 'kepos-two-device-'))
 const androidChatText = 'Android hello'
 const androidDmAfterRestartText = 'Android DM after restart'
+const androidDmAfterRevokeText = 'Android DM after revoke'
 const androidDmBodyText = 'Android signed DM body'
 const androidMessageRequestText = 'Android DM request'
 const desktopChatText = 'desktop hello'
@@ -107,6 +108,10 @@ try {
     return textIncludes(text, androidDmAfterRestartText)
   }, 'desktop receives Android signed DM body after restart')
 
+  await revokeDesktopContact(page, androidProfile.profileId)
+  await sendAndroidDmBody(androidDmAfterRevokeText)
+  await verifyDesktopDmClosedAfterRevoke(page, androidDmAfterRevokeText)
+
   console.log(
     JSON.stringify(
       {
@@ -127,7 +132,9 @@ try {
           'Android signed DM body reaches desktop',
           'desktop signed DM body reaches Android',
           'signed DM body persists across Android restart',
-          'signed DM channel works after restart'
+          'signed DM channel works after restart',
+          'desktop revoke removes trusted Android contact',
+          'desktop revoke closes the accepted DM receive path'
         ]
       },
       null,
@@ -347,6 +354,34 @@ async function restartBothAppsAndRejoin({ androidRemoteProfileId, roomKey }) {
 
 async function verifyDmPersistsAfterRestart(text) {
   await waitForAndroidText(text)
+}
+
+async function revokeDesktopContact(page, profileId) {
+  await page.locator('#contactList button', { hasText: 'Revoke' }).click()
+  await waitFor(async () => {
+    const text = await page.locator('#noticeLabel').textContent()
+    return textIncludes(text, `Revoked ${shorten(profileId)}`)
+  }, 'desktop revoked Android contact')
+  await waitFor(async () => {
+    const text = await page.locator('#contactList').textContent()
+    return !textIncludes(text, shorten(profileId))
+  }, 'desktop contact list removes revoked Android profile')
+  await waitFor(async () => {
+    const text = await page.locator('#dmContactList').textContent()
+    return !textIncludes(text, 'Android smoke')
+  }, 'desktop DM contact list removes revoked Android profile')
+}
+
+async function verifyDesktopDmClosedAfterRevoke(page, text) {
+  const deadline = Date.now() + 5000
+
+  while (Date.now() < deadline) {
+    const dmText = await page.locator('#dmList').textContent()
+    if (textIncludes(dmText, text)) {
+      throw new Error('Desktop received a signed DM body after revoking the sender')
+    }
+    await delay(250)
+  }
 }
 
 async function waitForAndroidDmThread(remoteProfileId) {

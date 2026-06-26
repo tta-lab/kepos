@@ -68,6 +68,8 @@ test('debug two-device smoke covers live DM exchange and restart persistence', a
     'sendDesktopDmBody',
     'restartBothAppsAndRejoin',
     'verifyDmPersistsAfterRestart',
+    'revokeDesktopContact',
+    'verifyDesktopDmClosedAfterRevoke',
     'MaestroDriverStartupException'
   ]) {
     assert.match(source, new RegExp(marker), `${marker} is missing`)
