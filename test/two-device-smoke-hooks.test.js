@@ -41,6 +41,7 @@ test('Android QR scanner keeps the camera preview visible', async () => {
   assert.match(source, /scannerCamera: \{\s*flex: 1,/)
   assert.match(source, /scannerControls: \{/)
   assert.doesNotMatch(source, /scannerCamera: \{\s*\.\.\.StyleSheet\.absoluteFillObject/)
+  assert.doesNotMatch(source, /SafeAreaView/)
 })
 
 test('desktop UI exposes stable hooks for two-device smoke', async () => {

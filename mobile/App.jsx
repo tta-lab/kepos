@@ -7,7 +7,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -686,71 +685,74 @@ export default function App() {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <View style={styles.safe}>
       <StatusBar barStyle='dark-content' />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.screen}
       >
-        <Header notice={notice} online={peerCount} title={session ? 'Home' : 'Kepos'} />
-        {session ? (
-          <ChatRoom
-            draft={draft}
-            dmDraft={dmDraft}
-            dmContactOptions={dmContactOptions}
-            dmMessages={dmMessages}
-            dmRecipient={dmRecipient}
-            activeTab={activeTab}
-            onAcceptRequest={acceptIncomingMessageRequest}
-            onDraftChange={setDraft}
-            onDmDraftChange={setDmDraft}
-            onDmRecipientChange={setDmRecipient}
-            onLeave={leaveRoom}
-            onRevokeContact={revokeTrustedContact}
-            onSend={sendMessage}
-            onSendDm={sendMessageRequest}
-            onTabChange={setActiveTab}
-            onTreeholeDraftChange={setTreeholeDraft}
-            onTreeholeComment={sendTreeholeComment}
-            onTreeholeLike={sendTreeholeLike}
-            onTreeholePost={sendTreeholePost}
-            session={session}
-            treeholeDraft={treeholeDraft}
-            treeholePosts={treeholePosts}
-            treeholeStatus={treeholeStatus}
-          />
-        ) : (
-          <Lobby
-            canJoin={canJoin}
-            homeQrUri={homeQrUri}
-            myHomeQrUri={myHomeQrUri}
-            nick={nick}
-            onCreateRoom={createRoom}
-            onHomeQrChange={setHomeQrUri}
-            onJoinRoom={joinRoom}
-            onJoinHomeQr={joinHomeQr}
-            onNickChange={setNick}
-            onRoomKeyChange={setRoomKey}
-            onScanHomeQr={() => startQrScan('home')}
-            onScanProfileQr={() => startQrScan('profile')}
-            onToggleAdvancedJoin={() => setShowAdvancedJoin((value) => !value)}
-            onRevokeContact={revokeTrustedContact}
-            onTrustAliasChange={setTrustAlias}
-            onTrustProfile={trustProfileQr}
-            onTrustQrChange={setTrustQrUri}
-            profileQrUri={profileQrUri}
-            roomKey={roomKey}
-            showAdvancedJoin={showAdvancedJoin}
-            trustAlias={trustAlias}
-            trustQrUri={trustQrUri}
-            trustedContacts={dmContactOptions}
-          />
-        )}
         {scanTarget ? (
           <QrScanner onCancel={() => setScanTarget(null)} onScanned={handleQrScanned} />
-        ) : null}
+        ) : (
+          <>
+            <Header notice={notice} online={peerCount} title={session ? 'Home' : 'Kepos'} />
+            {session ? (
+              <ChatRoom
+                draft={draft}
+                dmDraft={dmDraft}
+                dmContactOptions={dmContactOptions}
+                dmMessages={dmMessages}
+                dmRecipient={dmRecipient}
+                activeTab={activeTab}
+                onAcceptRequest={acceptIncomingMessageRequest}
+                onDraftChange={setDraft}
+                onDmDraftChange={setDmDraft}
+                onDmRecipientChange={setDmRecipient}
+                onLeave={leaveRoom}
+                onRevokeContact={revokeTrustedContact}
+                onSend={sendMessage}
+                onSendDm={sendMessageRequest}
+                onTabChange={setActiveTab}
+                onTreeholeDraftChange={setTreeholeDraft}
+                onTreeholeComment={sendTreeholeComment}
+                onTreeholeLike={sendTreeholeLike}
+                onTreeholePost={sendTreeholePost}
+                session={session}
+                treeholeDraft={treeholeDraft}
+                treeholePosts={treeholePosts}
+                treeholeStatus={treeholeStatus}
+              />
+            ) : (
+              <Lobby
+                canJoin={canJoin}
+                homeQrUri={homeQrUri}
+                myHomeQrUri={myHomeQrUri}
+                nick={nick}
+                onCreateRoom={createRoom}
+                onHomeQrChange={setHomeQrUri}
+                onJoinRoom={joinRoom}
+                onJoinHomeQr={joinHomeQr}
+                onNickChange={setNick}
+                onRoomKeyChange={setRoomKey}
+                onScanHomeQr={() => startQrScan('home')}
+                onScanProfileQr={() => startQrScan('profile')}
+                onToggleAdvancedJoin={() => setShowAdvancedJoin((value) => !value)}
+                onRevokeContact={revokeTrustedContact}
+                onTrustAliasChange={setTrustAlias}
+                onTrustProfile={trustProfileQr}
+                onTrustQrChange={setTrustQrUri}
+                profileQrUri={profileQrUri}
+                roomKey={roomKey}
+                showAdvancedJoin={showAdvancedJoin}
+                trustAlias={trustAlias}
+                trustQrUri={trustQrUri}
+                trustedContacts={dmContactOptions}
+              />
+            )}
+          </>
+        )}
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   )
 }
 
@@ -1543,7 +1545,8 @@ function readRpcPayload(req) {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#fffaf0'
+    backgroundColor: '#fffaf0',
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 0
   },
   screen: {
     flex: 1,
@@ -1681,9 +1684,8 @@ const styles = StyleSheet.create({
     padding: 10
   },
   scannerOverlay: {
-    ...StyleSheet.absoluteFillObject,
     backgroundColor: '#101711',
-    zIndex: 20
+    flex: 1
   },
   scannerCamera: {
     flex: 1,
