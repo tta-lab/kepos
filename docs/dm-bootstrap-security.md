@@ -214,7 +214,7 @@ Status: done for the invite domain model with libsodium sealed boxes.
 
 Status: implementation done and covered by debug two-device smoke.
 
-The pure thread state model, storage adapters, desktop/Android setup wiring, signed DM message record shape, durable per-thread signed message storage, dedicated DM replication channel primitive, desktop/Android lifecycle wiring, trusted-contact recipient picker, debug two-device signed DM exchange, restart persistence, and desktop revoke close path exist. Remaining work is manual physical QR smoke and any contacts polish revealed by that smoke.
+The pure thread state model, storage adapters, desktop/Android setup wiring, signed DM message record shape, durable per-thread signed message storage, dedicated DM replication channel primitive, desktop/Android lifecycle wiring, trusted-contact recipient picker, debug two-device signed DM exchange, restart persistence, desktop revoke close path, and manual physical desktop-to-Android QR trust/home join path exist. Remaining work is contacts polish revealed by later smoke.
 
 ## V1 Rule
 

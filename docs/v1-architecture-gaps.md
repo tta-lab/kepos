@@ -50,10 +50,10 @@ The same authorization decision should gate:
 
 If a feature can bypass trust by using a copied room key, writer key, or control frame, the architecture is not V1-ready.
 
-Remaining V1 evidence:
+Current V1 evidence:
 
 - debug two-device desktop/Android smoke proves trusted home entry, treehole replication, DM setup, signed DM body exchange, restart persistence, and desktop revoke closing the accepted DM receive path in the UI/runtime
-- manual physical QR scan still needs to prove screen-to-camera profile/home decode quality
+- manual physical QR smoke proves desktop Large Profile QR and Large Home QR can be scanned by Android, creating trust and joining the trusted-only home through the normal QR path
 - transport-level rejection can come later with identity-signed join handshakes
 
 ## Gap 2: Treehole Writer Rights Need An Owner Rule
@@ -91,9 +91,9 @@ Current implementation status:
 - `canShareTreeholeBootstrap()` centralizes the owner-to-trusted-profile bootstrap decision and is covered by `test/treehole-session.test.js`; desktop and Android backend both call it before sending bootstrap data
 - backend boundary tests, the integrated V1 model smoke, and debug two-device smoke cover the policy decision on the shared model and live connection
 
-Remaining evidence:
+Current V1 evidence:
 
-- manual physical QR scan still needs to prove the normal scan path that creates the trust used by signed hello
+- manual physical QR smoke proves the normal scan path creates the trust needed before signed home hello and trusted-only home join
 
 ## Gap 3: Trust Storage Needs A Shared ContactBook
 
@@ -126,7 +126,7 @@ Current implementation status:
 - Android scan action handling is factored into `src/mobile-qr-actions.js` and covered by `test/mobile-qr-actions.test.js`
 - debug two-device smoke covers treehole, room chat, signed DM body exchange, restart persistence, desktop revoke, and Android scanner open/cancel on live desktop/Android runtime
 - desktop contact persistence smoke covers trusted ContactBook reload after desktop restart
-- manual physical QR scan remains for screen-to-camera decode quality
+- manual physical QR smoke proves screen-to-camera profile/home decode quality for the current desktop-to-Android path
 
 Identity says who the local profile is. ContactBook says who that profile knows, trusts, revoked, or can message. The rules should live in shared code.
 
@@ -291,7 +291,8 @@ The debug two-device smoke now provides live desktop/Android runtime evidence fo
 The desktop contact persistence smoke proves a trusted profile URI written through the real desktop
 UI remains visible after restarting the app with the same Electron `userDataDir`.
 
-This is still debug-path evidence. It covers scanner open/cancel, not physical QR decode quality.
+This is still debug-path evidence for the live transport. Physical QR smoke now covers the normal
+desktop Large Profile QR and Large Home QR screen-to-camera path into Android trust and home join.
 
 ## Gap 9: Failure States Need Product Semantics
 
@@ -344,7 +345,7 @@ V1 QR should use a URI envelope with encoded JSON payloads, such as `kepos://pro
 
 ## Recommended Priority
 
-Completed implementation priorities:
+Final completed priority:
 
 1. Research and choose maintained open source libraries for signing, canonical encoding, QR, encrypted invite payloads, and platform persistence.
 2. Add real identity signing and deterministic signed-record encoding.
@@ -356,11 +357,11 @@ Completed implementation priorities:
 8. Add schema versions for V1 records and local state envelopes.
 9. Add integrated V1 model smoke coverage for trust, trusted-only home, treehole, message request, accepted DM, signed DM persistence, and revoke writer gating.
 
-Remaining priority:
+Completed implementation priorities:
 
-10. Run manual physical QR smoke for screen-to-camera decode quality.
+10. Run manual physical QR smoke for screen-to-camera profile/home decode quality.
 
-## Resolved Decisions And Remaining Evidence
+## Resolved Decisions And Evidence
 
 Resolved V1 decisions:
 
@@ -368,6 +369,7 @@ Resolved V1 decisions:
 - Prototype manual home keys remain as Advanced/debug fallback. Normal path is signed profile/home/message-request QR plus trusted contact selection.
 - Corrupt local identity/home/contact/DM storage fails closed. Missing optional ContactBook/DM documents initialize as empty; corrupt required identity/home state is not silently replaced.
 
-Remaining evidence before calling V1 ready:
+Physical QR evidence:
 
-- manual physical QR scan smoke for profile/home import
+- Desktop Large Profile QR scanned by Android creates trust through the normal QR path.
+- Desktop Large Home QR scanned by Android joins the trusted-only home after trust exists.

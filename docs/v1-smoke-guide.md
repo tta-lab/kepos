@@ -15,7 +15,7 @@ Expo Android JS export, and APK native-library alignment checks.
 
 `npm run android:assemble` is the stronger APK build gate when a fresh native build is needed.
 
-Current automated coverage proves lint, tests, typecheck, Android bundle creation, Expo Android JS bundle creation, and APK native-library alignment. Current device smoke covers Android scanner open/cancel and the debug two-device desktop/Android runtime path. Manual physical QR scanning remains the final screen-to-camera check.
+Current automated coverage proves lint, tests, typecheck, Android bundle creation, Expo Android JS bundle creation, and APK native-library alignment. Current device smoke covers Android scanner open/cancel and the debug two-device desktop/Android runtime path. Manual physical QR smoke has also proven the current desktop Large Profile QR and Large Home QR screen-to-camera path into Android trust and trusted-only home join.
 
 `test/v1-model-smoke.test.js` covers the shared V1 model path with one owner and one peer:
 
@@ -88,8 +88,9 @@ Expected:
 - Create Home opens the room view
 - Chat and Treehole tabs are visible
 
-This smoke proves the Android camera scanner UI can open and close. It does not prove physical QR
-decode quality; use the manual checklist below for screen-to-camera profile/home scans.
+This smoke proves the Android camera scanner UI can open and close. It does not replace periodic
+physical screen-to-camera checks for profile/home scans because focus, glare, and device camera
+behavior are hardware-dependent.
 
 A debug two-device smoke can exercise the live desktop/Android transport without relying on camera
 scan or fragile long-text input through the Android keyboard:
@@ -103,8 +104,8 @@ Android app-private ContactBook entry through `adb run-as`, joins the desktop ho
 manual 64-character debug key path, and verifies peer connection, room chat, and desktop-to-Android
 treehole replication. It then verifies message request acceptance, signed DM body exchange, Android
 DM persistence across restart, post-restart DM delivery, and the desktop revoke path closing the
-accepted DM receive path. It is useful CLI evidence for the live runtime, but it does not replace
-the QR camera checklist below.
+accepted DM receive path. It is useful CLI evidence for the live runtime, but physical QR smoke
+should still be repeated before release builds.
 
 The desktop app in this debug smoke uses a temporary Electron `userDataDir`, and the script deletes
 that directory when it exits. Contacts created in this smoke are expected to disappear from the

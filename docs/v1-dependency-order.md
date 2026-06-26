@@ -58,7 +58,7 @@ Current probe status:
 - Node probe passes through `npm run compat:probe`.
 - Node test passes through `node --test test/compatibility-probes.test.js`.
 - Android Bare backend bundle passes through `npm run compat:bundle:android`.
-- Android device runtime execution is covered by `npm run smoke:android` and `npm run smoke:two-device:debug`; physical QR decode quality remains a manual screen-to-camera check.
+- Android device runtime execution is covered by `npm run smoke:android` and `npm run smoke:two-device:debug`; physical QR decode quality is covered by manual desktop Large Profile QR and Large Home QR screen-to-camera smoke into Android.
 - TypeScript probe passes through `npm run compat:typescript`.
 - TypeScript Android Bare backend bundle passes through `npm run compat:bundle:typescript`.
 
@@ -389,7 +389,7 @@ Current implementation status:
 - signed mode rejects writer grants without the writer profile id and ignores legacy unsigned `treehole.writer.add`.
 - Desktop and Android callers now load local ContactBook snapshots and pass treehole trust policy into signed treehole sessions.
 - Desktop and Android writer grant handling now checks writer profile id against the local owner policy before adding an Autobase writer.
-- Profile URI import now creates persisted trusted contacts. QR image display and Android camera scan UX exist. `test/qr-rendering.test.js` proves generated signed profile/home QR PNGs decode through `jsQR`. Debug two-device smoke covers the live room, treehole, DM, restart, and desktop revoke path; Android smoke covers scanner open/cancel; manual physical QR scan remains for screen-to-camera decode quality.
+- Profile URI import now creates persisted trusted contacts. QR image display and Android camera scan UX exist. `test/qr-rendering.test.js` proves generated signed profile/home QR PNGs decode through `jsQR`. Debug two-device smoke covers the live room, treehole, DM, restart, and desktop revoke path; Android smoke covers scanner open/cancel; manual physical QR smoke covers desktop Large Profile QR and Large Home QR screen-to-camera decode into Android trust and home join.
 
 ## 5. DM And Message Requests
 
@@ -490,9 +490,9 @@ Current implementation status:
 - `metro.config.cjs` maps `sodium-native` to `sodium-javascript` so Expo can bundle the signed QR path while DM invite crypto stays out of React Native UI code.
 - desktop and Android backend now route signed DM bodies over dedicated accepted-thread DM replication channels instead of the home room.
 
-Remaining work:
+Current V1 evidence:
 
-- run manual physical QR smoke for screen-to-camera profile/home decode quality
+- manual physical QR smoke proves screen-to-camera profile/home decode quality for the current desktop-to-Android path
 
 ### 5.5 Sign DM Messages
 
@@ -524,9 +524,8 @@ Current implementation status:
 - Android backend opens accepted DM threads inside Bare, persists thread/message state with Bare fs adapters, and exposes signed DM body send/receive through dedicated RPC commands.
 - `src/contact-book.ts` exposes trusted contacts as DM recipient options, and desktop/mobile DM composers can select trusted contacts before falling back to manual profile id entry.
 
-Remaining work:
+Remaining polish:
 
-- run manual physical QR smoke for screen-to-camera profile/home decode quality
 - refine full contacts view after V1 smoke if needed
 
 ## 6. Revocation
