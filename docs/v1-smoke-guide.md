@@ -50,6 +50,19 @@ Expected:
 - Create Home joins a home
 - treehole state reaches ready
 
+Desktop contact persistence smoke launches the real Electron app, trusts a signed profile URI,
+restarts with the same temporary `userDataDir`, and verifies the contact is still visible:
+
+```sh
+npm run smoke:desktop:contacts
+```
+
+Expected:
+
+- profile trust writes to desktop ContactBook storage
+- the trusted contact appears in the contact list
+- the trusted contact still appears after desktop restart
+
 Android smoke uses Maestro against the installed standalone Android app. This is intentionally a
 basic UI smoke while the mobile UI is still moving:
 

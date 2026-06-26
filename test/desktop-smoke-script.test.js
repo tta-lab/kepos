@@ -19,3 +19,30 @@ test('desktop smoke is wired to Playwright Electron with isolated state', async 
   assert.match(source, /--user-data-dir=/)
   assert.match(source, /KEPOS_SMOKE_DESKTOP/)
 })
+
+test('desktop contact persistence smoke restarts with the same user data', async () => {
+  const packageJson = JSON.parse(
+    await readFile(new URL('../package.json', import.meta.url), 'utf8')
+  )
+
+  assert.equal(
+    packageJson.scripts['smoke:desktop:contacts'],
+    'npm run desktop:bundle && node scripts/smoke-desktop-contacts.mjs'
+  )
+
+  const source = await readFile(
+    new URL('../scripts/smoke-desktop-contacts.mjs', import.meta.url),
+    'utf8'
+  )
+
+  for (const marker of [
+    'restartDesktopApp',
+    'createSignedTrustInvitePayload',
+    'Trust Contact',
+    'Persistent smoke',
+    'contact persists after desktop restart',
+    '--user-data-dir='
+  ]) {
+    assert.match(source, new RegExp(marker), `${marker} is missing`)
+  }
+})

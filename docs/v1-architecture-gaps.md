@@ -124,7 +124,9 @@ Current implementation status:
 - generated signed profile/home QR PNGs are decoded by `jsQR` in `test/qr-rendering.test.js`
 - Android camera scan routes QR data through signed validation before trust or home join
 - Android scan action handling is factored into `src/mobile-qr-actions.js` and covered by `test/mobile-qr-actions.test.js`
-- debug two-device smoke covers treehole, room chat, signed DM body exchange, restart persistence, desktop revoke, and Android scanner open/cancel on live desktop/Android runtime; manual physical QR scan remains for screen-to-camera decode quality
+- debug two-device smoke covers treehole, room chat, signed DM body exchange, restart persistence, desktop revoke, and Android scanner open/cancel on live desktop/Android runtime
+- desktop contact persistence smoke covers trusted ContactBook reload after desktop restart
+- manual physical QR scan remains for screen-to-camera decode quality
 
 Identity says who the local profile is. ContactBook says who that profile knows, trusts, revoked, or can message. The rules should live in shared code.
 
@@ -285,6 +287,9 @@ The debug two-device smoke now provides live desktop/Android runtime evidence fo
 - post-restart signed DM delivery
 - desktop revoke removing Android from trusted contacts
 - desktop revoke closing the accepted DM receive path
+
+The desktop contact persistence smoke proves a trusted profile URI written through the real desktop
+UI remains visible after restarting the app with the same Electron `userDataDir`.
 
 This is still debug-path evidence. It covers scanner open/cancel, not physical QR decode quality.
 
