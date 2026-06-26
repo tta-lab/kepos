@@ -45,6 +45,7 @@ import {
   canShareTreeholeBootstrap,
   createTreeholeSessionOptions
 } from '../src/treehole-policy.ts'
+import { createTreeholeStatePublisher } from '../src/treehole-state-publisher.js'
 import { serializeTreeholeState } from '../src/treehole-view.js'
 import { getOrCreateLocalProfile } from '../src/local-profile.js'
 import {
@@ -103,6 +104,7 @@ let dmRuntime = null
 let room = null
 let treehole = null
 let treeholeSwarm = null
+let treeholeStatePublisher = null
 let homeJoinDetails = null
 const addedWriters = new Set()
 
@@ -377,6 +379,8 @@ async function leaveRoom() {
 
   await treeholeSwarm?.destroy()
   treeholeSwarm = null
+  treeholeStatePublisher?.stop()
+  treeholeStatePublisher = null
   await treehole?.close()
   treehole = null
 
@@ -564,7 +568,7 @@ async function openTreehole(bootstrapKey = null) {
   discovery.flushed().catch((error) => {
     showError(new Error(`Treehole replication unavailable: ${error.message}`))
   })
-  await renderTreeholeState()
+  startTreeholeStatePublisher()
 }
 
 function sendHomeHello(peer = null) {
@@ -638,6 +642,24 @@ async function renderTreeholeState() {
     status: 'ready'
   })
   render()
+}
+
+function startTreeholeStatePublisher() {
+  treeholeStatePublisher?.stop()
+  treeholeStatePublisher = createTreeholeStatePublisher({
+    getSnapshot: async () => {
+      const treeholeState = await treehole.getState()
+      return serializeTreeholeState(treeholeState)
+    },
+    onError: (error) => showError(new Error(`Treehole state unavailable: ${error.message}`)),
+    publish: (snapshot) => {
+      state = setDesktopTreehole(state, {
+        posts: snapshot.posts,
+        status: 'ready'
+      })
+      render()
+    }
+  })
 }
 
 function setTab(tab) {

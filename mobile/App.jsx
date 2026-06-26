@@ -941,7 +941,11 @@ function Lobby({
 
       <ContactManager contacts={trustedContacts} onRevokeContact={onRevokeContact} />
 
-      <Pressable onPress={onToggleAdvancedJoin} style={styles.secondaryButton}>
+      <Pressable
+        onPress={onToggleAdvancedJoin}
+        style={styles.secondaryButton}
+        testID='advanced-join-toggle'
+      >
         <Text style={styles.secondaryButtonText}>Advanced</Text>
       </Pressable>
       {showAdvancedJoin ? (
@@ -955,12 +959,14 @@ function Lobby({
             placeholder='64-character manual key'
             placeholderTextColor='#8b9188'
             style={styles.keyInput}
+            testID='manual-home-key-input'
             value={roomKey}
           />
           <Pressable
             disabled={!canJoin}
             onPress={onJoinRoom}
             style={[styles.secondaryButton, !canJoin && styles.disabledButton]}
+            testID='manual-home-join-button'
           >
             <ArrowRight color={canJoin ? '#143d2b' : '#8b9188'} size={18} />
             <Text style={[styles.secondaryButtonText, !canJoin && styles.disabledButtonText]}>

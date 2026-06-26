@@ -25,6 +25,7 @@ import {
   createTreeholeSessionOptions
 } from '../src/treehole-policy.ts'
 import { createTreeholeStoragePath } from '../src/treehole-storage.js'
+import { createTreeholeStatePublisher } from '../src/treehole-state-publisher.js'
 import { serializeTreeholeState } from '../src/treehole-view.js'
 import {
   RPC_ERROR,
@@ -59,6 +60,7 @@ const rpc = new RPC(BareKit.IPC, (req) => {
 let room = null
 let treehole = null
 let treeholeSwarm = null
+let treeholeStatePublisher = null
 let roomKey = null
 let homeAddress = null
 let homeOwnerProfileId = null
@@ -266,12 +268,14 @@ async function openTreehole(bootstrapKey = null) {
     key: treehole.key,
     writerKey: treehole.localWriterKey
   })
-  await sendTreeholeState()
+  startTreeholeStatePublisher()
 }
 
 async function closeTreehole() {
   await treeholeSwarm?.destroy()
   treeholeSwarm = null
+  treeholeStatePublisher?.stop()
+  treeholeStatePublisher = null
   await treehole?.close()
   treehole = null
 }
@@ -720,6 +724,20 @@ async function sendTreeholeState() {
 
   const state = await treehole.getState()
   sendToUI(RPC_TREEHOLE_STATE, serializeTreeholeState(state))
+}
+
+function startTreeholeStatePublisher() {
+  treeholeStatePublisher?.stop()
+  treeholeStatePublisher = createTreeholeStatePublisher({
+    getSnapshot: async () => {
+      const state = await treehole.getState()
+      return serializeTreeholeState(state)
+    },
+    onError: (error) => {
+      sendToUI(RPC_ERROR, { message: `Treehole state unavailable: ${error.message}` })
+    },
+    publish: (snapshot) => sendToUI(RPC_TREEHOLE_STATE, snapshot)
+  })
 }
 
 function readPayload(req) {

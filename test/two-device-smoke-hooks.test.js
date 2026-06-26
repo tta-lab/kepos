@@ -8,6 +8,9 @@ test('Android UI exposes stable hooks for two-device smoke', async () => {
   for (const testID of [
     'join-home-uri-input',
     'join-home-uri-button',
+    'advanced-join-toggle',
+    'manual-home-key-input',
+    'manual-home-join-button',
     'trust-profile-uri-input',
     'trust-profile-alias-input',
     'trust-profile-button',

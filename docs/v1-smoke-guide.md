@@ -73,6 +73,19 @@ This smoke does not try to prove the full two-device flow. Use the manual checkl
 trust, join, chat, treehole, and DM until the UI stabilizes enough to justify a fuller automated
 flow.
 
+A debug two-device smoke can exercise the live desktop/Android transport without relying on camera
+scan or fragile long-text input through the Android keyboard:
+
+```sh
+npm run smoke:two-device:debug
+```
+
+This launches desktop with Playwright, reads Android's profile URI from the UI hierarchy, writes an
+Android app-private ContactBook entry through `adb run-as`, joins the desktop home through the
+manual 64-character debug key path, and verifies peer connection, room chat, and desktop-to-Android
+treehole replication. It is useful CLI evidence for the live runtime, but it does not replace the QR
+camera and full DM/restart checklist below.
+
 `smoke:android` assumes the app is already installed on a connected device or emulator and can load
 its JS bundle. For the local debug APK, keep Metro running:
 

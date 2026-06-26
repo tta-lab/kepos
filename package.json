@@ -23,6 +23,7 @@
     "prepare": "lefthook install",
     "smoke:android": "node scripts/smoke-android.mjs",
     "smoke:desktop": "npm run desktop:bundle && node scripts/smoke-desktop.mjs",
+    "smoke:two-device:debug": "npm run desktop:bundle && node scripts/smoke-two-device-debug.mjs",
     "start": "node src/cli.js",
     "test": "node --test",
     "typecheck": "tsc --noEmit",
