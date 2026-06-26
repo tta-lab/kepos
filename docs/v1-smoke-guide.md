@@ -15,7 +15,7 @@ Expo Android JS export, and APK native-library alignment checks.
 
 `npm run android:assemble` is the stronger APK build gate when a fresh native build is needed.
 
-Current automated coverage proves lint, tests, typecheck, Android bundle creation, Expo Android JS bundle creation, and APK native-library alignment. It does not prove device runtime behavior; the two-device path below is still required.
+Current automated coverage proves lint, tests, typecheck, Android bundle creation, Expo Android JS bundle creation, and APK native-library alignment. Current device smoke covers Android scanner open/cancel and the debug two-device desktop/Android runtime path. Manual physical QR scanning remains the final screen-to-camera check.
 
 `test/v1-model-smoke.test.js` covers the shared V1 model path with one owner and one peer:
 

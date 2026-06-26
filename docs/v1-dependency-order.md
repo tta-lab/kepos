@@ -58,7 +58,7 @@ Current probe status:
 - Node probe passes through `npm run compat:probe`.
 - Node test passes through `node --test test/compatibility-probes.test.js`.
 - Android Bare backend bundle passes through `npm run compat:bundle:android`.
-- Android device runtime execution is still part of later smoke, not proven by bundle alone.
+- Android device runtime execution is covered by `npm run smoke:android` and `npm run smoke:two-device:debug`; physical QR decode quality remains a manual screen-to-camera check.
 - TypeScript probe passes through `npm run compat:typescript`.
 - TypeScript Android Bare backend bundle passes through `npm run compat:bundle:typescript`.
 
