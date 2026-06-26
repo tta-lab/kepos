@@ -2,6 +2,7 @@ import { isHomePolicy } from './home-room.js'
 
 const TRUST_INVITE = 'kepos.trust.invite.v1'
 const HOME_ADDRESS = 'kepos.home.address.v1'
+const ROOM_KEY_PATTERN = /^[0-9a-f]{64}$/
 
 export function encodeQrPayload(payload) {
   return JSON.stringify(validatePayload(payload))
@@ -29,9 +30,15 @@ function validatePayload(payload) {
 
   if (payload?.type === HOME_ADDRESS) {
     const policy = payload.policy || 'trusted_only'
+    const address = cleanRequiredString(payload.address, 'Home address is required')
+    const roomKey = cleanRequiredString(payload.roomKey || address, 'Home room key is required')
 
     if (!isHomePolicy(policy)) {
       throw new Error('Invalid home policy')
+    }
+
+    if (!isRoomKey(roomKey)) {
+      throw new Error('Invalid home room key')
     }
 
     return {
@@ -40,7 +47,8 @@ function validatePayload(payload) {
         payload.ownerProfileId,
         'Home owner profile id is required'
       ),
-      address: cleanRequiredString(payload.address, 'Home address is required'),
+      address,
+      roomKey,
       policy
     }
   }
@@ -56,4 +64,8 @@ function cleanRequiredString(value, message) {
   }
 
   return cleaned
+}
+
+function isRoomKey(value) {
+  return typeof value === 'string' && ROOM_KEY_PATTERN.test(value)
 }

@@ -1,0 +1,26 @@
+appId: io.guion.kepos
+---
+- launchApp
+- assertVisible:
+    id: 'create-home-button'
+- scrollUntilVisible:
+    element:
+      id: 'home-profile-uri'
+    direction: DOWN
+- assertVisible:
+    id: 'home-profile-uri'
+- scrollUntilVisible:
+    element:
+      id: 'create-home-button'
+    direction: UP
+- tapOn:
+    id: 'create-home-button'
+- extendedWaitUntil:
+    visible:
+      id: 'room-home-address'
+    timeout: 20000
+- assertVisible:
+    id: 'chat-tab'
+- tapOn:
+    id: 'treehole-tab'
+- assertVisible: 'No treeholes yet'

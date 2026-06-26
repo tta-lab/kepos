@@ -1,19 +1,25 @@
 import { createHomeRoom } from './home-room.js'
+import { createIdentityKeyPair } from './identity.js'
 
-export function createProfile({ id = createProfileId(), displayName = 'Kepos' } = {}) {
-  const profileId = cleanRequiredString(id, 'Profile id is required')
+export function createProfile({
+  dmEncryptionKeyPair = null,
+  displayName = 'Kepos',
+  homeRoomKey = null,
+  identity = null
+} = {}) {
+  const profileIdentity = identity || createIdentityKeyPair()
+  const profileId = cleanRequiredString(profileIdentity.publicKey, 'Profile id is required')
 
   return {
     id: profileId,
     displayName: displayName?.trim() || 'Kepos',
+    dmEncryptionKeyPair,
+    identity: profileIdentity,
     homeRoom: createHomeRoom({
-      ownerProfileId: profileId
+      ownerProfileId: profileId,
+      roomKey: homeRoomKey || undefined
     })
   }
-}
-
-function createProfileId() {
-  return globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`
 }
 
 function cleanRequiredString(value, message) {

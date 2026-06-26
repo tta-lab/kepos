@@ -4,8 +4,9 @@ import { decodeFrame, deriveTopic, encodeFrame } from './protocol.js'
 
 export function createP2PRoom(options = {}) {
   const createSwarm = options.createSwarm || (() => new Hyperswarm())
+  const awaitDiscoveryFlush = options.awaitDiscoveryFlush ?? true
+  const onDiscoveryError = options.onDiscoveryError || (() => {})
   const onMessage = options.onMessage || (() => {})
-  const onDirectMessage = options.onDirectMessage || (() => {})
   const onControl = options.onControl || (() => {})
   const onPeer = options.onPeer || (() => {})
   const onPeerCount = options.onPeerCount || (() => {})
@@ -43,17 +44,7 @@ export function createP2PRoom(options = {}) {
             continue
           }
 
-          if (message.type === 'dm') {
-            if (shouldSkipMessage(message)) {
-              continue
-            }
-
-            seenMessages.add(message.id)
-            onDirectMessage(message)
-            continue
-          }
-
-          onControl(message)
+          onControl(message, socket)
         } catch {
           // Ignore malformed peer frames in the prototype.
         }
@@ -79,7 +70,13 @@ export function createP2PRoom(options = {}) {
       client: true,
       server: true
     })
-    await discovery.flushed()
+
+    if (awaitDiscoveryFlush) {
+      await discovery.flushed()
+      return
+    }
+
+    discovery.flushed().catch(onDiscoveryError)
   }
 
   function send({ id, text, at }) {
@@ -93,21 +90,16 @@ export function createP2PRoom(options = {}) {
     seenMessages.add(id)
   }
 
-  function sendDirectMessage({ id, fromProfileId, toProfileId, text, at }) {
-    broadcastFrame({
-      type: 'dm',
-      id,
-      fromProfileId,
-      toProfileId,
-      nick,
-      text,
-      at
-    })
-    seenMessages.add(id)
-  }
-
   function broadcastControl(message) {
     broadcastFrame(message)
+  }
+
+  function sendControl(peer, message) {
+    if (!peers.has(peer) || peer.destroyed) {
+      return
+    }
+
+    peer.write(encodeFrame(message))
   }
 
   function broadcastFrame(message) {
@@ -143,6 +135,6 @@ export function createP2PRoom(options = {}) {
     join,
     leave,
     send,
-    sendDirectMessage
+    sendControl
   }
 }

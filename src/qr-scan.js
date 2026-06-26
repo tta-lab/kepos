@@ -16,6 +16,7 @@ export function applyDecodedQrPayload({ payload, scannerProfileId, trust }) {
       kind: 'home',
       ownerProfileId: payload.ownerProfileId,
       address: payload.address,
+      roomKey: payload.roomKey || payload.address,
       policy,
       canEnter: canEnterHome({
         ownerProfileId: payload.ownerProfileId,

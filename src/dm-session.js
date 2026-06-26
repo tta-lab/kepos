@@ -31,6 +31,44 @@ export function appendRemoteDirectMessage(session, message) {
   })
 }
 
+export function appendLocalSignedDirectMessage(session, message, { remoteProfileId }) {
+  if (message?.fromProfileId !== session.localProfileId) {
+    return session
+  }
+
+  return appendDirectMessage(
+    session,
+    normalizeSignedDirectMessage(message, 'out', {
+      toProfileId: cleanRequiredString(remoteProfileId, 'Remote profile id is required')
+    })
+  )
+}
+
+export function appendRemoteSignedDirectMessage(session, message) {
+  if (message?.fromProfileId === session.localProfileId) {
+    return session
+  }
+
+  return appendDirectMessage(
+    session,
+    normalizeSignedDirectMessage(message, 'in', {
+      toProfileId: session.localProfileId
+    })
+  )
+}
+
+export function appendLocalMessageRequest(session, request) {
+  return appendDirectMessage(session, normalizeMessageRequest(request, 'out'))
+}
+
+export function appendRemoteMessageRequest(session, request) {
+  if (request?.toProfileId !== session.localProfileId) {
+    return session
+  }
+
+  return appendDirectMessage(session, normalizeMessageRequest(request, 'in'))
+}
+
 function appendDirectMessage(session, message) {
   if (!message.id || !message.text || session.seenMessageIds.has(message.id)) {
     return session
@@ -43,6 +81,35 @@ function appendDirectMessage(session, message) {
     ...session,
     seenMessageIds,
     messages: [...session.messages, message]
+  }
+}
+
+function normalizeMessageRequest(request, direction) {
+  const id = cleanRequiredString(request?.requestId, 'Request id is required')
+  const createdAt = request.createdAt || Date.now()
+
+  return {
+    ...request,
+    id,
+    at: createdAt,
+    direction,
+    text: cleanText(request.text),
+    type: 'kepos.message.request.v1'
+  }
+}
+
+function normalizeSignedDirectMessage(message, direction, { toProfileId }) {
+  const id = cleanRequiredString(message?.messageId, 'Message id is required')
+  const createdAt = message.createdAt || Date.now()
+
+  return {
+    ...message,
+    at: createdAt,
+    direction,
+    id,
+    text: cleanText(message.text),
+    toProfileId,
+    type: 'kepos.dm.message.v1'
   }
 }
 

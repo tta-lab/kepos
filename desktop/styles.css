@@ -47,6 +47,27 @@ textarea {
   resize: vertical;
 }
 
+.compactArea {
+  min-height: 58px;
+}
+
+.qrCode {
+  align-items: center;
+  background: #fffdf7;
+  border: 1px solid #cbd4c3;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  min-height: 188px;
+  padding: 8px;
+}
+
+.qrCode svg {
+  display: block;
+  height: 172px;
+  width: 172px;
+}
+
 .shell {
   display: grid;
   grid-template-columns: 320px 1fr;
@@ -242,6 +263,51 @@ textarea {
   align-items: end;
 }
 
+.composer.tall .contactList {
+  grid-column: 1 / -1;
+}
+
+.contactList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.contactButton {
+  background: #dfe9ce;
+  border-color: #b9c9ad;
+  color: #143d2b;
+  min-height: 32px;
+  padding: 0 10px;
+}
+
+.managedContacts {
+  display: grid;
+  gap: 10px;
+}
+
+.managedContact {
+  align-items: center;
+  border-bottom: 1px solid #d6dccf;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr auto;
+  padding-bottom: 10px;
+}
+
+.managedContact p {
+  margin: 0;
+}
+
+.smallText {
+  font-size: 0.82rem;
+}
+
+.dangerButton {
+  border-color: #d88b72;
+  color: #8e351f;
+}
+
 .post {
   max-width: 840px;
 }
@@ -250,6 +316,45 @@ textarea {
   align-items: center;
   display: flex;
   justify-content: space-between;
+}
+
+.comments {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.comment {
+  background: rgba(255, 250, 240, 0.68);
+  border-left: 3px solid #9bb68d;
+  padding: 8px 10px;
+}
+
+.comment p {
+  margin: 0;
+}
+
+.postActions {
+  align-items: center;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: auto 1fr;
+  margin-top: 12px;
+}
+
+.commentForm {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 1fr auto;
+}
+
+.commentInput {
+  min-width: 0;
+}
+
+.smallButton {
+  min-height: 34px;
+  padding: 0 12px;
 }
 
 .time,

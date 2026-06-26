@@ -1,15 +1,23 @@
 const HOME_POLICIES = new Set(['trusted_only', 'public'])
+const ROOM_KEY_PATTERN = /^[0-9a-f]{64}$/
 
 export function createHomeRoom({
   ownerProfileId,
-  address = ownerProfileId,
+  address = null,
+  roomKey = address || createRoomKey(),
   policy = 'trusted_only'
 }) {
   const cleanOwnerProfileId = cleanRequiredString(
     ownerProfileId,
     'Home owner profile id is required'
   )
-  const cleanAddress = cleanRequiredString(address, 'Home address is required')
+  const cleanRoomKey = cleanRequiredString(roomKey, 'Home room key is required')
+
+  if (!isRoomKey(cleanRoomKey)) {
+    throw new Error('Invalid home room key')
+  }
+
+  const cleanAddress = cleanRequiredString(address || cleanRoomKey, 'Home address is required')
 
   if (!isHomePolicy(policy)) {
     throw new Error('Invalid home policy')
@@ -18,12 +26,31 @@ export function createHomeRoom({
   return {
     ownerProfileId: cleanOwnerProfileId,
     address: cleanAddress,
+    roomKey: cleanRoomKey,
     policy
   }
 }
 
 export function isHomePolicy(policy) {
   return HOME_POLICIES.has(policy)
+}
+
+function createRoomKey() {
+  const bytes = new Uint8Array(32)
+
+  if (globalThis.crypto?.getRandomValues) {
+    globalThis.crypto.getRandomValues(bytes)
+  } else {
+    for (let index = 0; index < bytes.length; index += 1) {
+      bytes[index] = Math.floor(Math.random() * 256)
+    }
+  }
+
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('')
+}
+
+function isRoomKey(value) {
+  return typeof value === 'string' && ROOM_KEY_PATTERN.test(value)
 }
 
 function cleanRequiredString(value, message) {

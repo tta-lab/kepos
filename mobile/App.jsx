@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { CameraView, useCameraPermissions } from 'expo-camera'
+import * as Crypto from 'expo-crypto'
 import * as FileSystem from 'expo-file-system/legacy'
 import {
   FlatList,
@@ -6,35 +8,83 @@ import {
   Platform,
   Pressable,
   SafeAreaView,
+  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
   TextInput,
   View
 } from 'react-native'
-import { ArrowRight, Heart, LogOut, MessageCircle, Plus, Send, Sprout } from 'lucide-react-native'
-import { appendLocalMessage, appendRemoteMessage, createChatSession } from '../src/chat-session.js'
 import {
-  appendLocalDirectMessage,
-  appendRemoteDirectMessage,
+  ArrowRight,
+  Heart,
+  LogOut,
+  MessageCircle,
+  Plus,
+  Send,
+  Sprout,
+  UserMinus
+} from 'lucide-react-native'
+import QRCode from 'react-native-qrcode-svg'
+import { appendLocalMessage, appendRemoteMessage } from '../src/chat-session.js'
+import {
+  appendLocalSignedDirectMessage,
+  appendLocalMessageRequest,
+  appendRemoteSignedDirectMessage,
+  appendRemoteMessageRequest,
   createDirectMessageSession
 } from '../src/dm-session.js'
+import { loadDmThreadsFromFileSystem, saveDmThreadsToFileSystem } from '../src/dm-thread-storage.js'
+import {
+  acceptMessageRequest,
+  listTrustedContacts,
+  recordMessageRequest
+} from '../src/contact-book.ts'
+import {
+  createTreeholePolicyFromContactBook,
+  loadContactBookFromFileSystem,
+  saveContactBookToFileSystem
+} from '../src/contact-book-storage.js'
+import {
+  createHomeJoinSession,
+  createHomeJoinSessionFromAddress,
+  createManualHomeJoinSession
+} from '../src/home-session.js'
+import { createIdentityKeyPairFromSeed } from '../src/identity.js'
 import { getOrCreateLocalProfile } from '../src/local-profile.js'
-import { getOrCreateMobileProfileId } from '../src/mobile-profile.js'
+import {
+  getOrCreateMobileHomeRoomKey,
+  getOrCreateMobileIdentity,
+  getRequiredMobileDocumentDirectory
+} from '../src/mobile-profile.js'
+import { applyMobileHomeQrScan, applyMobileProfileQrScan } from '../src/mobile-qr-actions.js'
+import { applyLocalContactRevoke } from '../src/revoke-state.js'
+import {
+  createSignedHomeAddressPayload,
+  createSignedTrustInvitePayload,
+  encodeQrUri
+} from '../src/signed-qr-payload.ts'
 import { Worklet } from 'react-native-bare-kit'
 import RPC from 'bare-rpc'
 import b4a from 'b4a'
 import bundle from './app.bundle.mjs'
 import {
   RPC_ERROR,
+  RPC_DM_ACCEPT,
+  RPC_DM_BODY_MESSAGE,
+  RPC_DM_BODY_SEND,
   RPC_DM_MESSAGE,
+  RPC_DM_REVOKE,
   RPC_DM_SEND,
+  RPC_DM_THREAD,
   RPC_JOIN,
   RPC_LEAVE,
   RPC_MESSAGE,
   RPC_PEER_COUNT,
   RPC_SEND,
   RPC_STATUS,
+  RPC_TREEHOLE_COMMENT,
+  RPC_TREEHOLE_LIKE,
   RPC_TREEHOLE_POST,
   RPC_TREEHOLE_STATE,
   RPC_TREEHOLE_STATUS
@@ -45,12 +95,20 @@ const ROOM_KEY_PATTERN = /^[0-9a-f]{64}$/
 export default function App() {
   const [nick, setNick] = useState('Neil')
   const [profileId, setProfileId] = useState(null)
+  const [identity, setIdentity] = useState(null)
+  const [homeRoomKey, setHomeRoomKey] = useState(null)
+  const [contactBook, setContactBook] = useState(null)
+  const [treeholePolicy, setTreeholePolicy] = useState(null)
   const [roomKey, setRoomKey] = useState('')
+  const [homeQrUri, setHomeQrUri] = useState('')
+  const [trustAlias, setTrustAlias] = useState('')
+  const [trustQrUri, setTrustQrUri] = useState('')
   const [draft, setDraft] = useState('')
   const [dmDraft, setDmDraft] = useState('')
   const [dmMessages, setDmMessages] = useState([])
   const [dmRecipient, setDmRecipient] = useState('')
   const [dmSession, setDmSession] = useState(null)
+  const [dmThreads, setDmThreads] = useState([])
   const [treeholeDraft, setTreeholeDraft] = useState('')
   const [treeholePosts, setTreeholePosts] = useState([])
   const [treeholeStatus, setTreeholeStatus] = useState('idle')
@@ -59,20 +117,56 @@ export default function App() {
   const [notice, setNotice] = useState('Start or join a home to bring up the P2P backend.')
   const [peerCount, setPeerCount] = useState(0)
   const [rpc, setRpc] = useState(null)
+  const [scanTarget, setScanTarget] = useState(null)
+  const [showAdvancedJoin, setShowAdvancedJoin] = useState(false)
+  const [cameraPermission, requestCameraPermission] = useCameraPermissions()
+  const scanLockRef = useRef(false)
   const workletRef = useRef(null)
 
   const canJoin = ROOM_KEY_PATTERN.test(roomKey.trim())
+  const profileQrUri = useMemo(() => {
+    if (!identity) return ''
+
+    return encodeQrUri(
+      createSignedTrustInvitePayload({
+        displayName: nick,
+        identity
+      })
+    )
+  }, [identity, nick])
+  const myHomeQrUri = useMemo(() => {
+    if (!identity || !homeRoomKey) return ''
+
+    return encodeQrUri(
+      createSignedHomeAddressPayload({
+        address: homeRoomKey,
+        identity,
+        policy: 'trusted_only',
+        roomKey: homeRoomKey
+      })
+    )
+  }, [homeRoomKey, identity])
+  const dmContactOptions = useMemo(
+    () => (contactBook ? listTrustedContacts(contactBook) : []),
+    [contactBook]
+  )
 
   useEffect(() => {
     let cancelled = false
 
-    loadMobileProfileId()
-      .then((nextProfileId) => {
+    loadMobileProfile()
+      .then((profile) => {
         if (!cancelled) {
-          setProfileId(nextProfileId)
+          setProfileId(profile.profileId)
+          setIdentity(profile.identity)
+          setHomeRoomKey(profile.homeRoomKey)
+          setContactBook(profile.contactBook)
+          setDmThreads(profile.dmThreads)
+          setTreeholePolicy(profile.treeholePolicy)
         }
       })
       .catch((error) => {
+        console.error('Profile storage unavailable', error)
         if (!cancelled) {
           setNotice(`Profile storage unavailable: ${error.message}`)
         }
@@ -85,21 +179,33 @@ export default function App() {
 
   async function createRoom() {
     try {
-      if (!profileId) {
+      if (!identity || !profileId || !homeRoomKey) {
         setNotice('Profile is still loading.')
         return
       }
 
-      const key = createMobileRoomKey()
+      const profile = getOrCreateLocalProfile({
+        displayName: nick,
+        homeRoomKey,
+        createIdentity: () => identity,
+        storage: null
+      })
+      const homeJoin = createHomeJoinSession({ nick, profile })
       const storageBasePath = await getBackendStorageBasePath()
-      setRoomKey(key)
-      setSession(createChatSession({ roomKey: key, nick, profileId }))
+      setRoomKey(homeJoin.roomKey)
+      setSession(homeJoin.session)
       setDmSession(createDirectMessageSession({ localProfileId: profileId, nick }))
       setDmMessages([])
       setPeerCount(0)
       setTreeholePosts([])
       setTreeholeStatus('starting')
-      startBackend({ roomKey: key, nick, profileId, createTreehole: true, storageBasePath })
+      startBackend({
+        ...homeJoin,
+        createTreehole: true,
+        nick,
+        storageBasePath,
+        treeholePolicy
+      })
     } catch (error) {
       setNotice(`P2P backend unavailable: ${error.message}`)
     }
@@ -112,27 +218,184 @@ export default function App() {
     }
 
     try {
-      if (!profileId) {
+      if (!identity || !profileId) {
         setNotice('Profile is still loading.')
         return
       }
 
       const storageBasePath = await getBackendStorageBasePath()
-      setSession(createChatSession({ roomKey: roomKey.trim(), nick, profileId }))
+      const homeJoin = createManualHomeJoinSession({
+        identity,
+        nick,
+        profileId,
+        roomKey: roomKey.trim()
+      })
+      setSession(homeJoin.session)
       setDmSession(createDirectMessageSession({ localProfileId: profileId, nick }))
       setDmMessages([])
       setPeerCount(0)
       setTreeholePosts([])
       setTreeholeStatus('waiting')
       startBackend({
-        roomKey: roomKey.trim(),
+        ...homeJoin,
         nick,
-        profileId,
         createTreehole: false,
-        storageBasePath
+        storageBasePath,
+        treeholePolicy
       })
     } catch (error) {
       setNotice(`P2P backend unavailable: ${error.message}`)
+    }
+  }
+
+  async function joinHomeQr(uriOverride) {
+    const uri = (uriOverride || homeQrUri).trim()
+
+    if (!contactBook || !uri || !identity || !profileId) {
+      return
+    }
+
+    try {
+      const result = applyMobileHomeQrScan({
+        book: contactBook,
+        localProfileId: profileId,
+        uri
+      })
+
+      if (!result.canEnter) {
+        setNotice('This trusted-only home is not trusted locally.')
+        return
+      }
+
+      const storageBasePath = await getBackendStorageBasePath()
+      const homeJoin = createHomeJoinSessionFromAddress({
+        address: result.address,
+        identity,
+        nick,
+        ownerProfileId: result.ownerProfileId,
+        policy: result.policy,
+        profileId,
+        roomKey: result.roomKey
+      })
+      setRoomKey(homeJoin.roomKey)
+      setSession(homeJoin.session)
+      setDmSession(createDirectMessageSession({ localProfileId: profileId, nick }))
+      setDmMessages([])
+      setPeerCount(0)
+      setTreeholePosts([])
+      setTreeholeStatus('waiting')
+      setHomeQrUri('')
+      startBackend({
+        ...homeJoin,
+        createTreehole: false,
+        nick,
+        storageBasePath,
+        treeholePolicy
+      })
+    } catch (error) {
+      setNotice(`Invalid home QR: ${error.message}`)
+    }
+  }
+
+  async function trustProfileQr(uriOverride) {
+    const uri = (uriOverride || trustQrUri).trim()
+
+    if (!contactBook || !uri) {
+      return
+    }
+
+    try {
+      const result = applyMobileProfileQrScan({
+        alias: trustAlias,
+        book: contactBook,
+        localIdentity: identity,
+        uri
+      })
+
+      await saveContactBookToFileSystem({
+        baseUri: getRequiredMobileDocumentDirectory(FileSystem),
+        book: result.book,
+        fileSystem: FileSystem
+      })
+      setContactBook(result.book)
+      setTreeholePolicy(createTreeholePolicyFromContactBook(result.book))
+      setTrustAlias('')
+      setTrustQrUri('')
+      setNotice(`Trusted ${shortenProfileId(result.profileId)}.`)
+    } catch (error) {
+      setNotice(`Invalid profile QR: ${error.message}`)
+    }
+  }
+
+  async function revokeTrustedContact(contactProfileId) {
+    if (!contactBook) {
+      return
+    }
+
+    const result = applyLocalContactRevoke({
+      book: contactBook,
+      profileId: contactProfileId,
+      threads: dmThreads
+    })
+    const baseUri = getRequiredMobileDocumentDirectory(FileSystem)
+
+    await saveContactBookToFileSystem({
+      baseUri,
+      book: result.book,
+      fileSystem: FileSystem
+    })
+    await saveDmThreadsToFileSystem({
+      baseUri,
+      fileSystem: FileSystem,
+      threads: result.nextThreads
+    })
+
+    setContactBook(result.book)
+    setTreeholePolicy(result.treeholePolicy)
+    setDmThreads(result.nextThreads)
+    if (dmRecipient === contactProfileId) {
+      setDmRecipient('')
+    }
+
+    rpc?.request(RPC_DM_REVOKE).send(
+      JSON.stringify({
+        profileId: contactProfileId,
+        revokedAt: result.revokedAt
+      })
+    )
+    setNotice(`Revoked ${shortenProfileId(contactProfileId)}.`)
+  }
+
+  async function startQrScan(target) {
+    if (!cameraPermission?.granted) {
+      const nextPermission = await requestCameraPermission()
+
+      if (!nextPermission.granted) {
+        setNotice('Camera permission denied.')
+        return
+      }
+    }
+
+    scanLockRef.current = false
+    setScanTarget(target)
+  }
+
+  async function handleQrScanned({ data }) {
+    if (!scanTarget || scanLockRef.current || !data) {
+      return
+    }
+
+    scanLockRef.current = true
+    setScanTarget(null)
+
+    try {
+      if (scanTarget === 'home') {
+        await joinHomeQr(data)
+      } else {
+        await trustProfileQr(data)
+      }
+    } finally {
+      scanLockRef.current = false
     }
   }
 
@@ -169,24 +432,49 @@ export default function App() {
     setDraft('')
   }
 
-  function sendDirectMessage() {
+  function sendMessageRequest() {
     if (!dmSession || !dmDraft.trim() || !dmRecipient.trim()) {
       return
     }
 
     const message = {
-      id: createMessageId(),
+      createdAt: Date.now(),
+      fromProfileId: profileId,
+      requestId: createMessageId(),
       toProfileId: dmRecipient.trim(),
       text: dmDraft,
-      at: Date.now()
+      type: 'kepos.message.request.v1'
     }
-    const nextSession = appendLocalDirectMessage(dmSession, message)
+    const thread = dmThreads.find(
+      (entry) =>
+        entry.remoteProfileId === message.toProfileId &&
+        entry.state === 'accepted' &&
+        entry.revokedAt === undefined
+    )
+
+    if (thread) {
+      rpc?.request(RPC_DM_BODY_SEND).send(
+        JSON.stringify({
+          createdAt: message.createdAt,
+          messageId: message.requestId,
+          text: message.text,
+          threadId: thread.threadId
+        })
+      )
+      setDmDraft('')
+      return
+    }
+
+    const nextSession = appendLocalMessageRequest(dmSession, message)
 
     setDmSession(nextSession)
     setDmMessages(nextSession.messages)
     rpc?.request(RPC_DM_SEND).send(
       JSON.stringify({
-        ...message
+        at: message.createdAt,
+        id: message.requestId,
+        text: message.text,
+        toProfileId: message.toProfileId
       })
     )
     setDmDraft('')
@@ -207,6 +495,34 @@ export default function App() {
     setTreeholeDraft('')
   }
 
+  function sendTreeholeComment({ postId, text }) {
+    if (!session || !text.trim()) {
+      return
+    }
+
+    rpc?.request(RPC_TREEHOLE_COMMENT).send(
+      JSON.stringify({
+        createdAt: Date.now(),
+        id: createMessageId(),
+        postId,
+        text
+      })
+    )
+  }
+
+  function sendTreeholeLike(postId) {
+    if (!session) {
+      return
+    }
+
+    rpc?.request(RPC_TREEHOLE_LIKE).send(
+      JSON.stringify({
+        createdAt: Date.now(),
+        postId
+      })
+    )
+  }
+
   function startBackend(nextSession) {
     try {
       const worklet = new Worklet()
@@ -222,14 +538,42 @@ export default function App() {
         }
 
         if (req.command === RPC_DM_MESSAGE) {
+          persistIncomingMessageRequest(payload).catch((error) => {
+            setNotice(`Message request unavailable: ${error.message}`)
+          })
           setDmSession((current) => {
             if (!current) {
               return current
             }
 
-            const next = appendRemoteDirectMessage(current, payload)
+            const next = appendRemoteMessageRequest(current, payload)
             setDmMessages(next.messages)
             return next
+          })
+          return
+        }
+
+        if (req.command === RPC_DM_BODY_MESSAGE) {
+          setDmSession((current) => {
+            if (!current) {
+              return current
+            }
+
+            const next =
+              payload.direction === 'out'
+                ? appendLocalSignedDirectMessage(current, payload, {
+                    remoteProfileId: payload.remoteProfileId
+                  })
+                : appendRemoteSignedDirectMessage(current, payload)
+            setDmMessages(next.messages)
+            return next
+          })
+          return
+        }
+
+        if (req.command === RPC_DM_THREAD) {
+          saveMobileDmThread(payload).catch((error) => {
+            setNotice(`DM thread unavailable: ${error.message}`)
           })
           return
         }
@@ -267,6 +611,77 @@ export default function App() {
     }
   }
 
+  async function persistIncomingMessageRequest(request) {
+    if (!contactBook || request.toProfileId !== profileId) {
+      return
+    }
+
+    const nextBook = recordMessageRequest(contactBook, {
+      alias: shortenProfileId(request.fromProfileId),
+      profileId: request.fromProfileId,
+      requestedAt: request.createdAt,
+      requestId: request.requestId,
+      senderEncryptionPublicKey: request.senderEncryptionPublicKey,
+      source: 'home_room'
+    })
+
+    await saveContactBookToFileSystem({
+      baseUri: getRequiredMobileDocumentDirectory(FileSystem),
+      book: nextBook,
+      fileSystem: FileSystem
+    })
+    setContactBook(nextBook)
+  }
+
+  async function acceptIncomingMessageRequest(request) {
+    if (!contactBook || !identity || !rpc) {
+      return
+    }
+
+    const acceptedAt = Date.now()
+    const threadId = createMessageId()
+    const nextBook = acceptMessageRequest(contactBook, {
+      acceptedAt,
+      alias: shortenProfileId(request.fromProfileId),
+      profileId: request.fromProfileId
+    })
+
+    await saveContactBookToFileSystem({
+      baseUri: getRequiredMobileDocumentDirectory(FileSystem),
+      book: nextBook,
+      fileSystem: FileSystem
+    })
+    setContactBook(nextBook)
+    setTreeholePolicy(createTreeholePolicyFromContactBook(nextBook))
+    rpc.request(RPC_DM_ACCEPT).send(
+      JSON.stringify({
+        acceptedAt,
+        request,
+        threadId
+      })
+    )
+    setNotice(`Accepted message request from ${shortenProfileId(request.fromProfileId)}.`)
+  }
+
+  async function saveMobileDmThread(thread) {
+    const baseUri = getRequiredMobileDocumentDirectory(FileSystem)
+    const threads = await loadDmThreadsFromFileSystem({
+      baseUri,
+      fileSystem: FileSystem
+    })
+    const nextThreads = [
+      ...threads.filter((existing) => existing.threadId !== thread.threadId),
+      thread
+    ]
+
+    await saveDmThreadsToFileSystem({
+      baseUri,
+      fileSystem: FileSystem,
+      threads: nextThreads
+    })
+    setDmThreads(nextThreads)
+  }
+
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle='dark-content' />
@@ -279,17 +694,22 @@ export default function App() {
           <ChatRoom
             draft={draft}
             dmDraft={dmDraft}
+            dmContactOptions={dmContactOptions}
             dmMessages={dmMessages}
             dmRecipient={dmRecipient}
             activeTab={activeTab}
+            onAcceptRequest={acceptIncomingMessageRequest}
             onDraftChange={setDraft}
             onDmDraftChange={setDmDraft}
             onDmRecipientChange={setDmRecipient}
             onLeave={leaveRoom}
+            onRevokeContact={revokeTrustedContact}
             onSend={sendMessage}
-            onSendDm={sendDirectMessage}
+            onSendDm={sendMessageRequest}
             onTabChange={setActiveTab}
             onTreeholeDraftChange={setTreeholeDraft}
+            onTreeholeComment={sendTreeholeComment}
+            onTreeholeLike={sendTreeholeLike}
             onTreeholePost={sendTreeholePost}
             session={session}
             treeholeDraft={treeholeDraft}
@@ -299,14 +719,33 @@ export default function App() {
         ) : (
           <Lobby
             canJoin={canJoin}
+            homeQrUri={homeQrUri}
+            myHomeQrUri={myHomeQrUri}
             nick={nick}
             onCreateRoom={createRoom}
+            onHomeQrChange={setHomeQrUri}
             onJoinRoom={joinRoom}
+            onJoinHomeQr={joinHomeQr}
             onNickChange={setNick}
             onRoomKeyChange={setRoomKey}
+            onScanHomeQr={() => startQrScan('home')}
+            onScanProfileQr={() => startQrScan('profile')}
+            onToggleAdvancedJoin={() => setShowAdvancedJoin((value) => !value)}
+            onRevokeContact={revokeTrustedContact}
+            onTrustAliasChange={setTrustAlias}
+            onTrustProfile={trustProfileQr}
+            onTrustQrChange={setTrustQrUri}
+            profileQrUri={profileQrUri}
             roomKey={roomKey}
+            showAdvancedJoin={showAdvancedJoin}
+            trustAlias={trustAlias}
+            trustQrUri={trustQrUri}
+            trustedContacts={dmContactOptions}
           />
         )}
+        {scanTarget ? (
+          <QrScanner onCancel={() => setScanTarget(null)} onScanned={handleQrScanned} />
+        ) : null}
       </KeyboardAvoidingView>
     </SafeAreaView>
   )
@@ -321,65 +760,216 @@ function Header({ title, notice, online }) {
         </View>
         <View>
           <Text style={styles.kicker}>private garden</Text>
-          <Text style={styles.title}>{title}</Text>
+          <Text style={styles.title} testID={title === 'Home' ? 'home-title' : 'lobby-title'}>
+            {title}
+          </Text>
         </View>
       </View>
       <View style={styles.statusPill}>
         <View style={styles.statusDot} />
         <Text style={styles.statusText}>{online} peer</Text>
       </View>
-      <Text style={styles.notice}>{notice}</Text>
+      <Text style={styles.notice} testID='app-notice'>
+        {notice}
+      </Text>
+    </View>
+  )
+}
+
+function QrCard({ value }) {
+  if (!value) {
+    return null
+  }
+
+  return (
+    <View style={styles.qrCard}>
+      <QRCode backgroundColor='#fffdf7' ecl='M' quietZone={8} size={154} value={value} />
+    </View>
+  )
+}
+
+function QrScanner({ onCancel, onScanned }) {
+  return (
+    <View style={styles.scannerOverlay}>
+      <CameraView
+        barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+        onBarcodeScanned={onScanned}
+        style={styles.scannerCamera}
+      />
+      <Pressable onPress={onCancel} style={styles.scannerCancel}>
+        <Text style={styles.scannerCancelText}>Cancel</Text>
+      </Pressable>
     </View>
   )
 }
 
 function Lobby({
   canJoin,
+  homeQrUri,
+  myHomeQrUri,
   nick,
   onCreateRoom,
+  onHomeQrChange,
   onJoinRoom,
+  onJoinHomeQr,
   onNickChange,
   onRoomKeyChange,
-  roomKey
+  onRevokeContact,
+  onScanHomeQr,
+  onScanProfileQr,
+  onToggleAdvancedJoin,
+  onTrustAliasChange,
+  onTrustProfile,
+  onTrustQrChange,
+  profileQrUri,
+  roomKey,
+  showAdvancedJoin,
+  trustAlias,
+  trustQrUri,
+  trustedContacts
 }) {
   return (
-    <View style={styles.lobby}>
+    <ScrollView
+      contentContainerStyle={styles.lobby}
+      keyboardShouldPersistTaps='handled'
+      style={styles.lobbyScroll}
+      testID='lobby-scroll'
+    >
       <View style={styles.panel}>
         <Text style={styles.panelTitle}>Start a room</Text>
         <Text style={styles.panelCopy}>
           Create a home address, then invite another device into the same home.
         </Text>
         <Field label='Nick' onChangeText={onNickChange} value={nick} />
-        <Pressable style={styles.primaryButton} onPress={onCreateRoom}>
+        <Pressable style={styles.primaryButton} onPress={onCreateRoom} testID='create-home-button'>
           <Plus color='#fffaf0' size={18} />
           <Text style={styles.primaryButtonText}>Create Home</Text>
         </Pressable>
       </View>
 
       <View style={styles.panel}>
-        <Text style={styles.panelTitle}>Manual home key</Text>
+        <Text style={styles.panelTitle}>Home URI</Text>
+        <QrCard value={myHomeQrUri} />
+        <TextInput
+          autoCapitalize='none'
+          autoCorrect={false}
+          editable={false}
+          multiline
+          placeholder='Home URI'
+          placeholderTextColor='#8b9188'
+          style={styles.keyInput}
+          testID='home-address-uri'
+          value={myHomeQrUri}
+        />
         <TextInput
           autoCapitalize='none'
           autoCorrect={false}
           multiline
-          onChangeText={onRoomKeyChange}
-          placeholder='64-character manual key'
+          onChangeText={onHomeQrChange}
+          placeholder='Paste home URI'
           placeholderTextColor='#8b9188'
           style={styles.keyInput}
-          value={roomKey}
+          testID='join-home-uri-input'
+          value={homeQrUri}
         />
         <Pressable
-          disabled={!canJoin}
-          onPress={onJoinRoom}
-          style={[styles.secondaryButton, !canJoin && styles.disabledButton]}
+          disabled={!homeQrUri.trim()}
+          onPress={onJoinHomeQr}
+          style={[styles.secondaryButton, !homeQrUri.trim() && styles.disabledButton]}
+          testID='join-home-uri-button'
         >
-          <ArrowRight color={canJoin ? '#143d2b' : '#8b9188'} size={18} />
-          <Text style={[styles.secondaryButtonText, !canJoin && styles.disabledButtonText]}>
-            Join Home
+          <ArrowRight color={homeQrUri.trim() ? '#143d2b' : '#8b9188'} size={18} />
+          <Text
+            style={[styles.secondaryButtonText, !homeQrUri.trim() && styles.disabledButtonText]}
+          >
+            Join Home URI
           </Text>
         </Pressable>
+        <Pressable onPress={onScanHomeQr} style={styles.secondaryButton}>
+          <Text style={styles.secondaryButtonText}>Scan Home QR</Text>
+        </Pressable>
       </View>
-    </View>
+
+      <View style={styles.panel}>
+        <Text style={styles.panelTitle}>Profile trust</Text>
+        <QrCard value={profileQrUri} />
+        <TextInput
+          autoCapitalize='none'
+          autoCorrect={false}
+          editable={false}
+          multiline
+          placeholder='Profile URI'
+          placeholderTextColor='#8b9188'
+          style={styles.keyInput}
+          testID='home-profile-uri'
+          value={profileQrUri}
+        />
+        <TextInput
+          autoCapitalize='none'
+          autoCorrect={false}
+          multiline
+          onChangeText={onTrustQrChange}
+          placeholder='Paste profile URI'
+          placeholderTextColor='#8b9188'
+          style={styles.keyInput}
+          testID='trust-profile-uri-input'
+          value={trustQrUri}
+        />
+        <Field
+          label='Alias'
+          onChangeText={onTrustAliasChange}
+          testID='trust-profile-alias-input'
+          value={trustAlias}
+        />
+        <Pressable
+          disabled={!trustQrUri.trim()}
+          onPress={onTrustProfile}
+          style={[styles.secondaryButton, !trustQrUri.trim() && styles.disabledButton]}
+          testID='trust-profile-button'
+        >
+          <Plus color={trustQrUri.trim() ? '#143d2b' : '#8b9188'} size={18} />
+          <Text
+            style={[styles.secondaryButtonText, !trustQrUri.trim() && styles.disabledButtonText]}
+          >
+            Trust Profile
+          </Text>
+        </Pressable>
+        <Pressable onPress={onScanProfileQr} style={styles.secondaryButton}>
+          <Text style={styles.secondaryButtonText}>Scan Profile QR</Text>
+        </Pressable>
+      </View>
+
+      <ContactManager contacts={trustedContacts} onRevokeContact={onRevokeContact} />
+
+      <Pressable onPress={onToggleAdvancedJoin} style={styles.secondaryButton}>
+        <Text style={styles.secondaryButtonText}>Advanced</Text>
+      </Pressable>
+      {showAdvancedJoin ? (
+        <View style={styles.panel}>
+          <Text style={styles.panelTitle}>Manual home key</Text>
+          <TextInput
+            autoCapitalize='none'
+            autoCorrect={false}
+            multiline
+            onChangeText={onRoomKeyChange}
+            placeholder='64-character manual key'
+            placeholderTextColor='#8b9188'
+            style={styles.keyInput}
+            value={roomKey}
+          />
+          <Pressable
+            disabled={!canJoin}
+            onPress={onJoinRoom}
+            style={[styles.secondaryButton, !canJoin && styles.disabledButton]}
+          >
+            <ArrowRight color={canJoin ? '#143d2b' : '#8b9188'} size={18} />
+            <Text style={[styles.secondaryButtonText, !canJoin && styles.disabledButtonText]}>
+              Join Home
+            </Text>
+          </Pressable>
+        </View>
+      ) : null}
+    </ScrollView>
   )
 }
 
@@ -387,16 +977,21 @@ function ChatRoom({
   activeTab,
   draft,
   dmDraft,
+  dmContactOptions,
   dmMessages,
   dmRecipient,
+  onAcceptRequest,
   onDraftChange,
   onDmDraftChange,
   onDmRecipientChange,
   onLeave,
+  onRevokeContact,
   onSend,
   onSendDm,
   onTabChange,
+  onTreeholeComment,
   onTreeholeDraftChange,
+  onTreeholeLike,
   onTreeholePost,
   session,
   treeholeDraft,
@@ -413,7 +1008,9 @@ function ChatRoom({
       <View style={styles.roomBar}>
         <View>
           <Text style={styles.roomLabel}>home address</Text>
-          <Text style={styles.roomKey}>{roomShort}</Text>
+          <Text style={styles.roomKey} testID='room-home-address'>
+            {roomShort}
+          </Text>
         </View>
         <Pressable style={styles.iconButton} onPress={onLeave}>
           <LogOut color='#143d2b' size={18} />
@@ -421,12 +1018,23 @@ function ChatRoom({
       </View>
 
       <View style={styles.tabs}>
-        <TabButton active={activeTab === 'chat'} label='Chat' onPress={() => onTabChange('chat')} />
-        <TabButton active={activeTab === 'dm'} label='DM' onPress={() => onTabChange('dm')} />
+        <TabButton
+          active={activeTab === 'chat'}
+          label='Chat'
+          onPress={() => onTabChange('chat')}
+          testID='chat-tab'
+        />
+        <TabButton
+          active={activeTab === 'dm'}
+          label='DM'
+          onPress={() => onTabChange('dm')}
+          testID='dm-tab'
+        />
         <TabButton
           active={activeTab === 'treehole'}
           label='Treehole'
           onPress={() => onTabChange('treehole')}
+          testID='treehole-tab'
         />
       </View>
 
@@ -440,9 +1048,12 @@ function ChatRoom({
       ) : activeTab === 'dm' ? (
         <DirectPane
           draft={dmDraft}
+          contactOptions={dmContactOptions}
           messages={dmMessages}
+          onAcceptRequest={onAcceptRequest}
           onDraftChange={onDmDraftChange}
           onRecipientChange={onDmRecipientChange}
+          onRevokeContact={onRevokeContact}
           onSend={onSendDm}
           recipient={dmRecipient}
         />
@@ -450,6 +1061,8 @@ function ChatRoom({
         <TreeholePane
           draft={treeholeDraft}
           onDraftChange={onTreeholeDraftChange}
+          onComment={onTreeholeComment}
+          onLike={onTreeholeLike}
           onPost={onTreeholePost}
           posts={treeholePosts}
           status={treeholeStatus}
@@ -459,7 +1072,17 @@ function ChatRoom({
   )
 }
 
-function DirectPane({ draft, messages, onDraftChange, onRecipientChange, onSend, recipient }) {
+function DirectPane({
+  contactOptions,
+  draft,
+  messages,
+  onAcceptRequest,
+  onDraftChange,
+  onRecipientChange,
+  onRevokeContact,
+  onSend,
+  recipient
+}) {
   return (
     <>
       <FlatList
@@ -467,10 +1090,45 @@ function DirectPane({ draft, messages, onDraftChange, onRecipientChange, onSend,
         data={messages}
         keyExtractor={(item) => item.id}
         ListEmptyComponent={<EmptyDirectMessages />}
-        renderItem={({ item }) => <DirectBubble message={item} />}
+        renderItem={({ item }) => <DirectBubble message={item} onAcceptRequest={onAcceptRequest} />}
       />
 
       <View style={styles.directComposer}>
+        {contactOptions.length > 0 ? (
+          <ScrollView
+            horizontal
+            contentContainerStyle={styles.contactScroller}
+            showsHorizontalScrollIndicator={false}
+          >
+            {contactOptions.map((contact) => (
+              <View key={contact.profileId} style={styles.contactChipGroup}>
+                <Pressable
+                  onPress={() => onRecipientChange(contact.profileId)}
+                  style={[
+                    styles.contactChip,
+                    recipient === contact.profileId && styles.activeContactChip
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.contactChipText,
+                      recipient === contact.profileId && styles.activeContactChipText
+                    ]}
+                  >
+                    {contact.alias}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  accessibilityLabel={`Revoke ${contact.alias}`}
+                  onPress={() => onRevokeContact(contact.profileId)}
+                  style={styles.revokeChip}
+                >
+                  <UserMinus color='#8e351f' size={16} />
+                </Pressable>
+              </View>
+            ))}
+          </ScrollView>
+        ) : null}
         <TextInput
           autoCapitalize='none'
           autoCorrect={false}
@@ -478,6 +1136,7 @@ function DirectPane({ draft, messages, onDraftChange, onRecipientChange, onSend,
           placeholder='Recipient profile id'
           placeholderTextColor='#8b9188'
           style={styles.recipientInput}
+          testID='dm-recipient-input'
           value={recipient}
         />
         <View style={styles.composer}>
@@ -488,6 +1147,7 @@ function DirectPane({ draft, messages, onDraftChange, onRecipientChange, onSend,
             placeholderTextColor='#8b9188'
             returnKeyType='send'
             style={styles.messageInput}
+            testID='dm-message-input'
             value={draft}
           />
           <Pressable
@@ -497,6 +1157,7 @@ function DirectPane({ draft, messages, onDraftChange, onRecipientChange, onSend,
               styles.sendButton,
               (!draft.trim() || !recipient.trim()) && styles.disabledSendButton
             ]}
+            testID='dm-send-button'
           >
             <Send color='#fffaf0' size={18} />
           </Pressable>
@@ -506,9 +1167,41 @@ function DirectPane({ draft, messages, onDraftChange, onRecipientChange, onSend,
   )
 }
 
-function TabButton({ active, label, onPress }) {
+function ContactManager({ contacts, onRevokeContact }) {
+  if (!contacts?.length) {
+    return null
+  }
+
   return (
-    <Pressable onPress={onPress} style={[styles.tabButton, active && styles.activeTabButton]}>
+    <View style={styles.panel}>
+      <Text style={styles.panelTitle}>Contacts</Text>
+      {contacts.map((contact) => (
+        <View key={contact.profileId} style={styles.contactRow}>
+          <View style={styles.contactRowText}>
+            <Text style={styles.contactName}>{contact.alias}</Text>
+            <Text style={styles.contactProfile}>{shortenProfileId(contact.profileId)}</Text>
+          </View>
+          <Pressable
+            accessibilityLabel={`Revoke ${contact.alias}`}
+            onPress={() => onRevokeContact(contact.profileId)}
+            style={styles.revokeButton}
+          >
+            <UserMinus color='#8e351f' size={18} />
+            <Text style={styles.revokeButtonText}>Revoke</Text>
+          </Pressable>
+        </View>
+      ))}
+    </View>
+  )
+}
+
+function TabButton({ active, label, onPress, testID }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={[styles.tabButton, active && styles.activeTabButton]}
+      testID={testID}
+    >
       <Text style={[styles.tabText, active && styles.activeTabText]}>{label}</Text>
     </Pressable>
   )
@@ -533,9 +1226,10 @@ function ChatPane({ draft, messages, onDraftChange, onSend }) {
           placeholderTextColor='#8b9188'
           returnKeyType='send'
           style={styles.messageInput}
+          testID='chat-message-input'
           value={draft}
         />
-        <Pressable style={styles.sendButton} onPress={onSend}>
+        <Pressable style={styles.sendButton} onPress={onSend} testID='chat-send-button'>
           <Send color='#fffaf0' size={18} />
         </Pressable>
       </View>
@@ -543,7 +1237,7 @@ function ChatPane({ draft, messages, onDraftChange, onSend }) {
   )
 }
 
-function TreeholePane({ draft, onDraftChange, onPost, posts, status }) {
+function TreeholePane({ draft, onComment, onDraftChange, onLike, onPost, posts, status }) {
   return (
     <>
       <FlatList
@@ -551,7 +1245,9 @@ function TreeholePane({ draft, onDraftChange, onPost, posts, status }) {
         data={posts}
         keyExtractor={(item) => item.id}
         ListEmptyComponent={<EmptyTreehole status={status} />}
-        renderItem={({ item }) => <TreeholePost post={item} />}
+        renderItem={({ item }) => (
+          <TreeholePost onComment={onComment} onLike={onLike} post={item} />
+        )}
       />
 
       <View style={styles.treeholeComposer}>
@@ -561,6 +1257,7 @@ function TreeholePane({ draft, onDraftChange, onPost, posts, status }) {
           placeholder='Post to the treehole'
           placeholderTextColor='#8b9188'
           style={styles.treeholeInput}
+          testID='treehole-post-input'
           value={draft}
         />
         <Pressable
@@ -570,6 +1267,7 @@ function TreeholePane({ draft, onDraftChange, onPost, posts, status }) {
             styles.sendButton,
             (!draft.trim() || status !== 'ready') && styles.disabledSendButton
           ]}
+          testID='treehole-post-button'
         >
           <Send color='#fffaf0' size={18} />
         </Pressable>
@@ -588,14 +1286,33 @@ function EmptyTreehole({ status }) {
   )
 }
 
-function TreeholePost({ post }) {
+function TreeholePost({ onComment, onLike, post }) {
+  const [commentDraft, setCommentDraft] = useState('')
+
+  function submitComment() {
+    if (!commentDraft.trim()) {
+      return
+    }
+
+    onComment({ postId: post.id, text: commentDraft })
+    setCommentDraft('')
+  }
+
   return (
     <View style={styles.post}>
       <View style={styles.postHeader}>
-        <Text style={styles.postAuthor}>{post.author}</Text>
+        <Text style={styles.postAuthor}>{displayPostAuthor(post)}</Text>
         <Text style={styles.postTime}>{formatPostTime(post.createdAt)}</Text>
       </View>
       <Text style={styles.postText}>{post.text}</Text>
+      <View style={styles.commentList}>
+        {(post.comments || []).map((comment) => (
+          <View key={comment.id} style={styles.comment}>
+            <Text style={styles.commentAuthor}>{displayPostAuthor(comment)}</Text>
+            <Text style={styles.commentText}>{comment.text}</Text>
+          </View>
+        ))}
+      </View>
       <View style={styles.postStats}>
         <View style={styles.postStat}>
           <MessageCircle color='#5a6b54' size={14} />
@@ -606,8 +1323,39 @@ function TreeholePost({ post }) {
           <Text style={styles.postStatText}>{post.likeCount}</Text>
         </View>
       </View>
+      <View style={styles.postActions}>
+        <Pressable onPress={() => onLike(post.id)} style={styles.smallActionButton}>
+          <Heart color='#143d2b' size={15} />
+          <Text style={styles.smallActionText}>Like</Text>
+        </Pressable>
+        <View style={styles.commentComposer}>
+          <TextInput
+            onChangeText={setCommentDraft}
+            onSubmitEditing={submitComment}
+            placeholder='Write a comment'
+            placeholderTextColor='#8b9188'
+            style={styles.commentInput}
+            value={commentDraft}
+          />
+          <Pressable
+            disabled={!commentDraft.trim()}
+            onPress={submitComment}
+            style={[styles.smallSendButton, !commentDraft.trim() && styles.disabledSendButton]}
+          >
+            <Send color='#fffaf0' size={15} />
+          </Pressable>
+        </View>
+      </View>
     </View>
   )
+}
+
+function displayPostAuthor(post) {
+  return post.authorDisplayName || post.author || shortenProfileId(post.authorProfileId) || 'anon'
+}
+
+function shortenProfileId(value) {
+  return value ? `${value.slice(0, 8)}...${value.slice(-8)}` : ''
 }
 
 function EmptyMessages() {
@@ -630,15 +1378,30 @@ function EmptyDirectMessages() {
   )
 }
 
-function DirectBubble({ message }) {
+function DirectBubble({ message, onAcceptRequest }) {
   const outgoing = message.direction === 'out'
+  const peer = outgoing ? message.toProfileId : message.fromProfileId
+  const isRequest = message.type === 'kepos.message.request.v1'
 
   return (
     <View style={[styles.bubble, outgoing ? styles.outBubble : styles.inBubble]}>
       <Text style={[styles.bubbleMeta, !outgoing && styles.inBubbleMeta]}>
-        {message.nick} to {message.toProfileId}
+        {isRequest
+          ? `request ${outgoing ? 'to' : 'from'} ${shortenProfileId(peer)}`
+          : `${message.nick || 'DM'} to ${shortenProfileId(message.toProfileId)}`}
       </Text>
       <Text style={[styles.bubbleText, !outgoing && styles.inBubbleText]}>{message.text}</Text>
+      {isRequest && !outgoing ? (
+        <Pressable
+          style={styles.requestButton}
+          onPress={() => {
+            onAcceptRequest(message).catch(() => {})
+          }}
+          testID='message-request-accept-button'
+        >
+          <Text style={styles.requestButtonText}>Accept</Text>
+        </Pressable>
+      ) : null}
     </View>
   )
 }
@@ -654,7 +1417,7 @@ function MessageBubble({ message }) {
   )
 }
 
-function Field({ label, onChangeText, value }) {
+function Field({ label, onChangeText, testID, value }) {
   return (
     <View style={styles.field}>
       <Text style={styles.label}>{label}</Text>
@@ -663,24 +1426,11 @@ function Field({ label, onChangeText, value }) {
         autoCorrect={false}
         onChangeText={onChangeText}
         style={styles.input}
+        testID={testID}
         value={value}
       />
     </View>
   )
-}
-
-function createMobileRoomKey() {
-  const bytes = new Uint8Array(32)
-
-  if (globalThis.crypto?.getRandomValues) {
-    globalThis.crypto.getRandomValues(bytes)
-  } else {
-    for (let index = 0; index < bytes.length; index += 1) {
-      bytes[index] = Math.floor(Math.random() * 256)
-    }
-  }
-
-  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('')
 }
 
 function createMessageId() {
@@ -692,29 +1442,55 @@ function createMessageId() {
 }
 
 async function getBackendStorageBasePath() {
-  const baseUri = FileSystem.documentDirectory || FileSystem.cacheDirectory
-  if (!baseUri) {
-    throw new Error('App storage directory is unavailable')
-  }
+  const baseUri = getRequiredMobileDocumentDirectory(FileSystem)
 
   const storageUri = `${baseUri.replace(/\/+$/, '')}/kepos`
   await FileSystem.makeDirectoryAsync(storageUri, { intermediates: true })
   return storageUri
 }
 
-async function loadMobileProfileId() {
-  const baseUri = FileSystem.documentDirectory || FileSystem.cacheDirectory
-  const profileId = await getOrCreateMobileProfileId({
+async function loadMobileProfile() {
+  const baseUri = getRequiredMobileDocumentDirectory(FileSystem)
+  const identity = await getOrCreateMobileIdentity({
     baseUri,
-    createId: createMessageId,
+    createIdentity: () => createIdentityKeyPairFromSeed(Crypto.getRandomBytes(32)),
+    fileSystem: FileSystem
+  })
+  const homeRoomKey = await getOrCreateMobileHomeRoomKey({
+    baseUri,
+    createKey: createHomeRoomKey,
     fileSystem: FileSystem
   })
 
-  return getOrCreateLocalProfile({
-    createId: () => profileId,
+  const profile = getOrCreateLocalProfile({
+    createIdentity: () => identity,
     displayName: 'Neil',
+    homeRoomKey,
     storage: null
-  }).id
+  })
+  const contactBook = await loadContactBookFromFileSystem({
+    baseUri,
+    fileSystem: FileSystem,
+    ownerProfileId: profile.id
+  })
+  const dmThreads = await loadDmThreadsFromFileSystem({
+    baseUri,
+    fileSystem: FileSystem
+  })
+
+  return {
+    contactBook,
+    dmThreads,
+    homeRoomKey: profile.homeRoom.roomKey,
+    identity: profile.identity,
+    profileId: profile.id,
+    treeholePolicy: createTreeholePolicyFromContactBook(contactBook)
+  }
+}
+
+function createHomeRoomKey() {
+  const bytes = Crypto.getRandomBytes(32)
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('')
 }
 
 function formatPostTime(value) {
@@ -817,9 +1593,11 @@ const styles = StyleSheet.create({
     marginTop: 12
   },
   lobby: {
-    flex: 1,
     gap: 14,
     padding: 18
+  },
+  lobbyScroll: {
+    flex: 1
   },
   panel: {
     backgroundColor: '#f6f1e4',
@@ -871,6 +1649,40 @@ const styles = StyleSheet.create({
     marginTop: 14,
     minHeight: 96,
     padding: 13
+  },
+  qrCard: {
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: '#fffdf7',
+    borderColor: '#cfd8c6',
+    borderRadius: 8,
+    borderWidth: 1,
+    marginTop: 14,
+    padding: 10
+  },
+  scannerOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#101711',
+    justifyContent: 'flex-end',
+    zIndex: 20
+  },
+  scannerCamera: {
+    ...StyleSheet.absoluteFillObject
+  },
+  scannerCancel: {
+    alignItems: 'center',
+    alignSelf: 'center',
+    backgroundColor: '#fffaf0',
+    borderRadius: 8,
+    marginBottom: 28,
+    minHeight: 46,
+    paddingHorizontal: 22,
+    justifyContent: 'center'
+  },
+  scannerCancelText: {
+    color: '#143d2b',
+    fontSize: 15,
+    fontWeight: '900'
   },
   primaryButton: {
     alignItems: 'center',
@@ -1024,6 +1836,19 @@ const styles = StyleSheet.create({
   inBubbleText: {
     color: '#162119'
   },
+  requestButton: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#d9714b',
+    borderRadius: 7,
+    marginTop: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 7
+  },
+  requestButtonText: {
+    color: '#fffaf0',
+    fontSize: 12,
+    fontWeight: '900'
+  },
   composer: {
     alignItems: 'center',
     borderTopColor: '#d9dfcf',
@@ -1035,6 +1860,83 @@ const styles = StyleSheet.create({
   directComposer: {
     borderTopColor: '#d9dfcf',
     borderTopWidth: 1
+  },
+  contactScroller: {
+    gap: 8,
+    paddingHorizontal: 14,
+    paddingTop: 14
+  },
+  contactChipGroup: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 4
+  },
+  contactChip: {
+    backgroundColor: '#dfe9ce',
+    borderColor: '#b9c9ad',
+    borderRadius: 8,
+    borderWidth: 1,
+    minHeight: 34,
+    paddingHorizontal: 12,
+    paddingVertical: 8
+  },
+  activeContactChip: {
+    backgroundColor: '#143d2b',
+    borderColor: '#143d2b'
+  },
+  contactChipText: {
+    color: '#143d2b',
+    fontSize: 12,
+    fontWeight: '900'
+  },
+  activeContactChipText: {
+    color: '#fffaf0'
+  },
+  revokeChip: {
+    alignItems: 'center',
+    borderColor: '#d88b72',
+    borderRadius: 8,
+    borderWidth: 1,
+    height: 34,
+    justifyContent: 'center',
+    width: 34
+  },
+  contactRow: {
+    alignItems: 'center',
+    borderBottomColor: '#d9dfcf',
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    gap: 10,
+    justifyContent: 'space-between',
+    paddingVertical: 10
+  },
+  contactRowText: {
+    flex: 1
+  },
+  contactName: {
+    color: '#162119',
+    fontSize: 15,
+    fontWeight: '800'
+  },
+  contactProfile: {
+    color: '#6f766b',
+    fontSize: 12,
+    marginTop: 2
+  },
+  revokeButton: {
+    alignItems: 'center',
+    borderColor: '#d88b72',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 6,
+    minHeight: 38,
+    paddingHorizontal: 10
+  },
+  revokeButtonText: {
+    color: '#8e351f',
+    fontSize: 13,
+    fontWeight: '800'
   },
   recipientInput: {
     backgroundColor: '#fffdf7',
@@ -1104,6 +2006,30 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     marginTop: 10
   },
+  commentList: {
+    gap: 8,
+    marginTop: 12
+  },
+  comment: {
+    backgroundColor: '#f4f6ed',
+    borderLeftColor: '#9bb68d',
+    borderLeftWidth: 3,
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 8
+  },
+  commentAuthor: {
+    color: '#5a6b54',
+    fontSize: 11,
+    fontWeight: '900',
+    textTransform: 'uppercase'
+  },
+  commentText: {
+    color: '#162119',
+    fontSize: 14,
+    lineHeight: 20,
+    marginTop: 3
+  },
   postStats: {
     flexDirection: 'row',
     gap: 14,
@@ -1118,6 +2044,50 @@ const styles = StyleSheet.create({
     color: '#5a6b54',
     fontSize: 13,
     fontWeight: '800'
+  },
+  postActions: {
+    gap: 8,
+    marginTop: 12
+  },
+  smallActionButton: {
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    borderColor: '#c9d3bf',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 6,
+    minHeight: 36,
+    paddingHorizontal: 10
+  },
+  smallActionText: {
+    color: '#143d2b',
+    fontSize: 13,
+    fontWeight: '800'
+  },
+  commentComposer: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 8
+  },
+  commentInput: {
+    backgroundColor: '#fffdf7',
+    borderColor: '#cfd8c6',
+    borderRadius: 8,
+    borderWidth: 1,
+    color: '#162119',
+    flex: 1,
+    fontSize: 14,
+    minHeight: 42,
+    paddingHorizontal: 11
+  },
+  smallSendButton: {
+    alignItems: 'center',
+    backgroundColor: '#d9714b',
+    borderRadius: 8,
+    height: 42,
+    justifyContent: 'center',
+    width: 42
   },
   treeholeComposer: {
     alignItems: 'flex-end',

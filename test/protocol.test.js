@@ -61,7 +61,7 @@ describe('wire frames', () => {
     assert.deepEqual(decodeFrame(encodeFrame(frame).trimEnd()), frame)
   })
 
-  test('decodeFrame accepts direct message frames', () => {
+  test('decodeFrame rejects direct message body frames', () => {
     const frame = {
       type: 'dm',
       id: 'dm-1',
@@ -72,6 +72,33 @@ describe('wire frames', () => {
       at: 1_797_331_200_000
     }
 
-    assert.deepEqual(decodeFrame(encodeFrame(frame).trimEnd()), frame)
+    assert.throws(() => decodeFrame(encodeFrame(frame).trimEnd()), /Unsupported frame/)
+  })
+
+  test('decodeFrame accepts message request and DM invite control frames', () => {
+    const request = {
+      type: 'kepos.message.request.v1',
+      requestId: 'request-1'
+    }
+    const invite = {
+      type: 'kepos.dm.invite.v1',
+      inviteId: 'invite-1'
+    }
+
+    assert.deepEqual(decodeFrame(encodeFrame(request).trimEnd()), request)
+    assert.deepEqual(decodeFrame(encodeFrame(invite).trimEnd()), invite)
+  })
+
+  test('decodeFrame accepts signed home hello control frames', () => {
+    const hello = {
+      type: 'kepos.home.hello.v1',
+      profileId: 'a'.repeat(64)
+    }
+    const request = {
+      type: 'kepos.home.hello.request.v1'
+    }
+
+    assert.deepEqual(decodeFrame(encodeFrame(hello).trimEnd()), hello)
+    assert.deepEqual(decodeFrame(encodeFrame(request).trimEnd()), request)
   })
 })

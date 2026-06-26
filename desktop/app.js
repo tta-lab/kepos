@@ -3,15 +3,49 @@
 import Hyperswarm from 'hyperswarm'
 import os from 'node:os'
 import path from 'node:path'
-import { appendLocalMessage, appendRemoteMessage, createChatSession } from '../src/chat-session.js'
+import QRCode from 'qrcode'
+import { appendLocalMessage, appendRemoteMessage } from '../src/chat-session.js'
 import {
-  appendLocalDirectMessage,
-  appendRemoteDirectMessage,
+  appendLocalMessageRequest,
+  appendLocalSignedDirectMessage,
+  appendRemoteMessageRequest,
+  appendRemoteSignedDirectMessage,
   createDirectMessageSession
 } from '../src/dm-session.js'
+import { createDmEncryptionKeyPair } from '../src/dm-invite.ts'
+import { acceptDmInviteAsRecipient } from '../src/dm-invite-acceptance.js'
+import { loadDmMessagesFromStorage, saveDmMessagesToStorage } from '../src/dm-message-storage.ts'
+import { createDmThreadRuntime } from '../src/dm-thread-runtime.js'
+import { loadDmThreadsFromStorage, saveDmThreadsToStorage } from '../src/dm-thread-storage.js'
+import { applyMessageRequestToContactBook, createMessageRequest } from '../src/message-request.ts'
+import { acceptMessageRequestWithInvite } from '../src/message-request-acceptance.js'
+import {
+  createTreeholePolicyFromContactBook,
+  loadContactBookFromStorage,
+  saveContactBookToStorage
+} from '../src/contact-book-storage.js'
+import { listTrustedContacts } from '../src/contact-book.ts'
+import {
+  createHomeJoinSession,
+  createHomeJoinSessionFromAddress,
+  createManualHomeJoinSession
+} from '../src/home-session.js'
+import { createHomeHello, verifyHomeHello } from '../src/home-presence.ts'
 import { createP2PRoom } from '../src/p2p-room.js'
-import { createRoomKey } from '../src/protocol.js'
+import { applyLocalContactRevoke } from '../src/revoke-state.js'
+import { applySignedQrUriToContactBook } from '../src/signed-qr-scan.js'
+import {
+  createSignedHomeAddressPayload,
+  createSignedTrustInvitePayload,
+  encodeQrUri
+} from '../src/signed-qr-payload.ts'
 import { createTreeholeBase } from '../src/treehole-base.js'
+import {
+  canGrantTreeholeWriter,
+  canShareTreeholeBootstrap,
+  createTreeholeSessionOptions
+} from '../src/treehole-policy.ts'
+import { serializeTreeholeState } from '../src/treehole-view.js'
 import { getOrCreateLocalProfile } from '../src/local-profile.js'
 import {
   createDesktopState,
@@ -25,20 +59,29 @@ const els = {
   chatInput: document.querySelector('#chatInput'),
   chatPane: document.querySelector('#chatPane'),
   chatTab: document.querySelector('#chatTab'),
+  contactList: document.querySelector('#contactList'),
   createButton: document.querySelector('#createButton'),
   dmForm: document.querySelector('#dmForm'),
+  dmContactList: document.querySelector('#dmContactList'),
   dmInput: document.querySelector('#dmInput'),
   dmList: document.querySelector('#dmList'),
   dmPane: document.querySelector('#dmPane'),
   dmRecipientInput: document.querySelector('#dmRecipientInput'),
   dmTab: document.querySelector('#dmTab'),
+  homeQrForm: document.querySelector('#homeQrForm'),
+  homeQrCode: document.querySelector('#homeQrCode'),
+  homeQrInput: document.querySelector('#homeQrInput'),
+  homeQrOutput: document.querySelector('#homeQrOutput'),
   joinButton: document.querySelector('#joinButton'),
+  joinHomeQrButton: document.querySelector('#joinHomeQrButton'),
   leaveButton: document.querySelector('#leaveButton'),
   lobbyForm: document.querySelector('#lobbyForm'),
   messageList: document.querySelector('#messageList'),
   nickInput: document.querySelector('#nickInput'),
   noticeLabel: document.querySelector('#noticeLabel'),
   peerLabel: document.querySelector('#peerLabel'),
+  profileQrCode: document.querySelector('#profileQrCode'),
+  profileQrOutput: document.querySelector('#profileQrOutput'),
   profileIdLabel: document.querySelector('#profileIdLabel'),
   roomKeyInput: document.querySelector('#roomKeyInput'),
   roomKeyLabel: document.querySelector('#roomKeyLabel'),
@@ -47,21 +90,24 @@ const els = {
   treeholeList: document.querySelector('#treeholeList'),
   treeholePane: document.querySelector('#treeholePane'),
   treeholeStatusLabel: document.querySelector('#treeholeStatusLabel'),
-  treeholeTab: document.querySelector('#treeholeTab')
+  treeholeTab: document.querySelector('#treeholeTab'),
+  trustAliasInput: document.querySelector('#trustAliasInput'),
+  trustForm: document.querySelector('#trustForm'),
+  trustQrInput: document.querySelector('#trustQrInput')
 }
 
 let state = createDesktopState()
 let session = null
 let dmSession = null
+let dmRuntime = null
 let room = null
 let treehole = null
 let treeholeSwarm = null
+let homeJoinDetails = null
 const addedWriters = new Set()
 
 els.createButton.addEventListener('click', () => {
-  const roomKey = createRoomKey()
-  els.roomKeyInput.value = roomKey
-  joinRoom({ createTreehole: true, mode: 'host', roomKey }).catch(showError)
+  joinRoom({ createTreehole: true, mode: 'host' }).catch(showError)
 })
 
 els.lobbyForm.addEventListener('submit', (event) => {
@@ -77,6 +123,9 @@ els.leaveButton.addEventListener('click', () => leaveRoom().catch(showError))
 els.chatTab.addEventListener('click', () => setTab('chat'))
 els.dmTab.addEventListener('click', () => setTab('dm'))
 els.treeholeTab.addEventListener('click', () => setTab('treehole'))
+els.nickInput.addEventListener('input', () => {
+  updateQrOutputs().catch(showError)
+})
 
 els.chatForm.addEventListener('submit', (event) => {
   event.preventDefault()
@@ -85,7 +134,11 @@ els.chatForm.addEventListener('submit', (event) => {
 
 els.dmForm.addEventListener('submit', (event) => {
   event.preventDefault()
-  sendDirectMessage()
+  try {
+    sendMessageRequest()
+  } catch (error) {
+    showError(error)
+  }
 })
 
 els.treeholeForm.addEventListener('submit', (event) => {
@@ -93,41 +146,109 @@ els.treeholeForm.addEventListener('submit', (event) => {
   postTreehole().catch(showError)
 })
 
+els.trustForm.addEventListener('submit', (event) => {
+  event.preventDefault()
+  try {
+    trustProfileQr()
+  } catch (error) {
+    showError(error)
+  }
+})
+
+els.homeQrForm.addEventListener('submit', (event) => {
+  event.preventDefault()
+  joinHomeQr().catch(showError)
+})
+
+updateQrOutputs().catch(showError)
 render()
 
-async function joinRoom({ createTreehole, mode, roomKey }) {
+async function joinRoom({ createTreehole, homeAddress = null, mode, roomKey }) {
   await leaveRoom()
 
   const nick = els.nickInput.value.trim() || 'Desktop'
-  const profile = getOrCreateLocalProfile({ displayName: nick })
-  session = createChatSession({ nick, profileId: profile.id, roomKey })
+  const profile = getDesktopProfile(nick)
+  const contactBook = loadLocalContactBook(profile.id)
+  const treeholePolicy = createTreeholePolicyFromContactBook(contactBook)
+  const homeJoin = homeAddress
+    ? createHomeJoinSessionFromAddress({
+        address: homeAddress.address,
+        identity: profile.identity,
+        nick,
+        ownerProfileId: homeAddress.ownerProfileId,
+        policy: homeAddress.policy,
+        profileId: profile.id,
+        roomKey: homeAddress.roomKey
+      })
+    : roomKey
+      ? createManualHomeJoinSession({
+          identity: profile.identity,
+          nick,
+          profileId: profile.id,
+          roomKey
+        })
+      : createHomeJoinSession({ nick, profile })
+
+  els.roomKeyInput.value = homeJoin.roomKey
+  homeJoinDetails = { ...homeJoin, treeholePolicy }
+  session = homeJoin.session
   dmSession = createDirectMessageSession({ localProfileId: profile.id, nick })
-  state = setDesktopRoom(state, { mode, nick, peers: 0, roomKey })
+  dmRuntime = createDmThreadRuntime({
+    identity: profile.identity,
+    loadMessages: (thread) =>
+      loadDmMessagesFromStorage({
+        ownerProfileId: profile.id,
+        storage: globalThis.localStorage,
+        threadId: thread.threadId
+      }),
+    localProfileId: profile.id,
+    onMessage: (thread, message, direction) => {
+      dmSession =
+        direction === 'out'
+          ? appendLocalSignedDirectMessage(dmSession, message, {
+              remoteProfileId: thread.remoteProfileId
+            })
+          : appendRemoteSignedDirectMessage(dmSession, message)
+      render()
+    },
+    saveMessages: (thread, messages) =>
+      saveDmMessagesToStorage({
+        messages,
+        ownerProfileId: profile.id,
+        storage: globalThis.localStorage,
+        threadId: thread.threadId
+      })
+  })
+  state = setDesktopRoom(state, { mode, nick, peers: 0, roomKey: homeJoin.roomKey })
   state = { ...state, notice: 'Joining home room...' }
   render()
 
   room = createP2PRoom({
-    onControl: (message) => handleControl(message).catch(showError),
-    onDirectMessage: (message) => {
-      dmSession = appendRemoteDirectMessage(dmSession, message)
-      render()
+    awaitDiscoveryFlush: false,
+    onDiscoveryError: (error) => {
+      showError(new Error(`Home discovery unavailable: ${error.message}`))
     },
+    onControl: (message, peer) => handleControl(message, peer).catch(showError),
     onMessage: (message) => {
       session = appendRemoteMessage(session, message)
       render()
     },
-    onPeer: () => announceTreehole(),
+    onPeer: (peer) => {
+      sendHomeHello(peer)
+      requestHomeHello(peer)
+    },
     onPeerCount: (peers) => {
       state = { ...state, peers }
       render()
     }
   })
 
-  await room.join({ nick, roomKey })
+  await room.join({ nick, roomKey: homeJoin.roomKey })
+  await openLocalDmThreads(profile.id)
 
   if (createTreehole) {
     await openTreehole()
-    announceTreehole()
+    requestHomeHello()
   } else {
     state = setDesktopTreehole(state, {
       status: 'waiting-for-bootstrap',
@@ -139,7 +260,118 @@ async function joinRoom({ createTreehole, mode, roomKey }) {
   render()
 }
 
+async function joinHomeQr() {
+  const uri = els.homeQrInput.value.trim()
+  if (!uri) return
+
+  const profile = getDesktopProfile(els.nickInput.value.trim() || 'Desktop')
+  const result = applySignedQrUriToContactBook({
+    book: loadLocalContactBook(profile.id),
+    localProfileId: profile.id,
+    uri
+  })
+
+  if (result.kind !== 'home') {
+    throw new Error('Home QR is required')
+  }
+
+  if (!result.canEnter) {
+    throw new Error('This trusted-only home is not trusted locally')
+  }
+
+  els.homeQrInput.value = ''
+  await joinRoom({
+    createTreehole: false,
+    homeAddress: result,
+    mode: 'peer'
+  })
+}
+
+function trustProfileQr() {
+  const uri = els.trustQrInput.value.trim()
+  if (!uri) return
+
+  const profile = getDesktopProfile(els.nickInput.value.trim() || 'Desktop')
+  const result = applySignedQrUriToContactBook({
+    alias: els.trustAliasInput.value,
+    book: loadLocalContactBook(profile.id),
+    localIdentity: profile.identity,
+    source: 'profile_qr',
+    uri
+  })
+
+  if (result.kind !== 'trust') {
+    throw new Error('Profile QR is required')
+  }
+
+  saveContactBookToStorage({
+    book: result.book,
+    storage: globalThis.localStorage
+  })
+
+  const treeholePolicy = createTreeholePolicyFromContactBook(result.book)
+  if (homeJoinDetails?.profileId === profile.id) {
+    homeJoinDetails = {
+      ...homeJoinDetails,
+      treeholePolicy
+    }
+  }
+  els.trustQrInput.value = ''
+  els.trustAliasInput.value = ''
+  state = { ...state, notice: `Trusted ${shorten(result.profileId)}.` }
+  render()
+}
+
+async function updateQrOutputs() {
+  const profile = getDesktopProfile(els.nickInput.value.trim() || 'Desktop')
+  const profileUri = encodeQrUri(
+    createSignedTrustInvitePayload({
+      displayName: profile.displayName,
+      identity: profile.identity
+    })
+  )
+  const homeUri = encodeQrUri(
+    createSignedHomeAddressPayload({
+      address: profile.homeRoom.address,
+      identity: profile.identity,
+      policy: profile.homeRoom.policy,
+      roomKey: profile.homeRoom.roomKey
+    })
+  )
+
+  els.profileQrOutput.value = profileUri
+  els.homeQrOutput.value = homeUri
+  els.profileQrCode.innerHTML = await QRCode.toString(profileUri, {
+    errorCorrectionLevel: 'M',
+    margin: 1,
+    type: 'svg',
+    width: 172
+  })
+  els.homeQrCode.innerHTML = await QRCode.toString(homeUri, {
+    errorCorrectionLevel: 'M',
+    margin: 1,
+    type: 'svg',
+    width: 172
+  })
+}
+
+function loadLocalContactBook(ownerProfileId) {
+  return loadContactBookFromStorage({
+    ownerProfileId,
+    storage: globalThis.localStorage
+  })
+}
+
+function getDesktopProfile(displayName) {
+  return getOrCreateLocalProfile({
+    createDmEncryptionKeyPair,
+    displayName
+  })
+}
+
 async function leaveRoom() {
+  await dmRuntime?.closeAll()
+  dmRuntime = null
   await room?.leave()
   room = null
 
@@ -151,6 +383,7 @@ async function leaveRoom() {
   addedWriters.clear()
   session = null
   dmSession = null
+  homeJoinDetails = null
   state = createDesktopState()
   render()
 }
@@ -171,23 +404,36 @@ function sendChat() {
   render()
 }
 
-function sendDirectMessage() {
+function sendMessageRequest() {
   const toProfileId = els.dmRecipientInput.value.trim()
   const text = els.dmInput.value.trim()
   if (!room || !dmSession || !toProfileId || !text) return
+  const profile = getDesktopProfile(els.nickInput.value.trim() || 'Desktop')
+  const thread = findLocalDmThread(profile.id, toProfileId)
 
-  const message = {
-    at: Date.now(),
-    id: createId(),
-    text,
-    toProfileId
+  if (thread && dmRuntime) {
+    dmRuntime.sendMessage({
+      createdAt: Date.now(),
+      messageId: createId(),
+      text,
+      threadId: thread.threadId
+    })
+    els.dmInput.value = ''
+    render()
+    return
   }
 
-  dmSession = appendLocalDirectMessage(dmSession, message)
-  room.sendDirectMessage({
-    ...message,
-    fromProfileId: dmSession.localProfileId
+  const request = createMessageRequest({
+    createdAt: Date.now(),
+    fromIdentity: profile.identity,
+    requestId: createId(),
+    senderEncryptionPublicKey: profile.dmEncryptionKeyPair.publicKey,
+    text,
+    toProfileId
   })
+
+  dmSession = appendLocalMessageRequest(dmSession, request)
+  room.broadcastControl(request)
   els.dmInput.value = ''
   render()
 }
@@ -202,23 +448,91 @@ async function postTreehole() {
     text
   })
   els.treeholeInput.value = ''
-  announceTreehole()
   await renderTreeholeState()
 }
 
-async function handleControl(message) {
+async function handleControl(message, peer) {
+  if (message.type === 'kepos.home.hello.request.v1') {
+    sendHomeHello(peer)
+    return
+  }
+
+  if (message.type === 'kepos.home.hello.v1') {
+    if (!verifyHomeHello(message) || message.homeAddress !== homeJoinDetails?.address) {
+      return
+    }
+
+    sendTreeholeBootstrap(peer, message.profileId)
+    return
+  }
+
+  if (message.type === 'kepos.message.request.v1') {
+    if (!dmSession || message.toProfileId !== dmSession.localProfileId) return
+
+    const book = loadLocalContactBook(dmSession.localProfileId)
+    const nextBook = applyMessageRequestToContactBook(book, {
+      alias: shorten(message.fromProfileId),
+      request: message,
+      source: 'home_room'
+    })
+
+    saveContactBookToStorage({
+      book: nextBook,
+      storage: globalThis.localStorage
+    })
+    dmSession = appendRemoteMessageRequest(dmSession, message)
+    state = { ...state, notice: 'Message request received.' }
+    render()
+    return
+  }
+
+  if (message.type === 'kepos.dm.invite.v1') {
+    if (!dmSession || message.toProfileId !== dmSession.localProfileId) return
+
+    const profile = getDesktopProfile(els.nickInput.value.trim() || 'Desktop')
+    const book = loadLocalContactBook(profile.id)
+    const thread = acceptDmInviteAsRecipient({
+      acceptedAt: Date.now(),
+      contactBook: book,
+      invite: message,
+      localProfileId: profile.id,
+      recipientEncryptionKeyPair: profile.dmEncryptionKeyPair
+    })
+
+    saveLocalDmThread(profile.id, thread)
+    openLocalDmThread(thread).catch(showError)
+    state = { ...state, notice: 'DM invite accepted.' }
+    render()
+    return
+  }
+
   if (message.type === 'treehole.bootstrap') {
+    if (message.ownerProfileId && homeJoinDetails) {
+      homeJoinDetails = {
+        ...homeJoinDetails,
+        ownerProfileId: message.ownerProfileId
+      }
+    }
     await openTreehole(message.key)
-    announceTreehole()
+    sendTreeholeWriter(peer)
     return
   }
 
   if (message.type === 'treehole.writer') {
     if (!treehole || addedWriters.has(message.key)) return
 
+    if (
+      !canGrantTreeholeWriter({
+        ownerProfileId: homeJoinDetails?.ownerProfileId || session.profileId,
+        policy: homeJoinDetails?.treeholePolicy,
+        writerProfileId: message.profileId
+      })
+    ) {
+      return
+    }
+
     addedWriters.add(message.key)
-    await treehole.addWriter(message.key)
-    announceTreehole()
+    await treehole.addWriter(message.key, { profileId: message.profileId })
     await renderTreeholeState()
   }
 }
@@ -226,12 +540,17 @@ async function handleControl(message) {
 async function openTreehole(bootstrapKey = null) {
   if (treehole) return
 
-  treehole = await createTreeholeBase({
-    bootstrapKey,
-    nick: session.nick,
-    profileId: session.profileId,
-    storage: treeholeStoragePath(session.roomKey, bootstrapKey)
-  })
+  treehole = await createTreeholeBase(
+    createTreeholeSessionOptions({
+      bootstrapKey,
+      identity: homeJoinDetails?.identity,
+      nick: session.nick,
+      ownerProfileId: homeJoinDetails?.ownerProfileId || session.profileId,
+      profileId: session.profileId,
+      storage: treeholeStoragePath(session.roomKey, bootstrapKey),
+      treeholePolicy: homeJoinDetails?.treeholePolicy
+    })
+  )
 
   treeholeSwarm = new Hyperswarm()
   treeholeSwarm.on('connection', (socket) => {
@@ -242,19 +561,70 @@ async function openTreehole(bootstrapKey = null) {
     client: true,
     server: true
   })
-  await discovery.flushed()
+  discovery.flushed().catch((error) => {
+    showError(new Error(`Treehole replication unavailable: ${error.message}`))
+  })
   await renderTreeholeState()
 }
 
-function announceTreehole() {
-  if (!room || !treehole) return
+function sendHomeHello(peer = null) {
+  if (!room || !homeJoinDetails?.identity || !homeJoinDetails?.address) return
 
-  room.broadcastControl({
+  const hello = createHomeHello({
+    homeAddress: homeJoinDetails.address,
+    identity: homeJoinDetails.identity
+  })
+
+  if (peer) {
+    room.sendControl(peer, hello)
+    return
+  }
+
+  room.broadcastControl(hello)
+}
+
+function requestHomeHello(peer = null) {
+  if (!room) return
+
+  const request = { type: 'kepos.home.hello.request.v1' }
+
+  if (peer) {
+    room.sendControl(peer, request)
+    return
+  }
+
+  room.broadcastControl(request)
+}
+
+function sendTreeholeBootstrap(peer, remoteProfileId) {
+  if (!room || !treehole || !peer || homeJoinDetails?.ownerProfileId !== session.profileId) {
+    return
+  }
+
+  if (
+    !canShareTreeholeBootstrap({
+      localProfileId: session.profileId,
+      ownerProfileId: session.profileId,
+      policy: homeJoinDetails?.treeholePolicy,
+      remoteProfileId
+    })
+  ) {
+    return
+  }
+
+  room.sendControl(peer, {
     key: treehole.key,
+    ownerProfileId: session.profileId,
     type: 'treehole.bootstrap'
   })
-  room.broadcastControl({
+}
+
+function sendTreeholeWriter(peer) {
+  if (!room || !treehole || !peer) return
+
+  room.sendControl(peer, {
     key: treehole.localWriterKey,
+    profileId: session.profileId,
     type: 'treehole.writer'
   })
 }
@@ -264,7 +634,7 @@ async function renderTreeholeState() {
 
   const treeholeState = await treehole.getState()
   state = setDesktopTreehole(state, {
-    posts: treeholeState.posts,
+    posts: serializeTreeholeState(treeholeState).posts,
     status: 'ready'
   })
   render()
@@ -295,6 +665,8 @@ function render() {
 
   renderMessages()
   renderDirectMessages()
+  renderDirectContacts()
+  renderContacts()
   renderPosts()
 }
 
@@ -319,13 +691,214 @@ function renderDirectMessages() {
     ...messages.map((message) => {
       const item = document.createElement('li')
       item.className = `item ${message.direction === 'out' ? 'outgoing' : 'incoming'}`
-      item.innerHTML = `
-        <p class="meta">${escapeHtml(message.nick)} to ${escapeHtml(message.toProfileId)}</p>
-        <p>${escapeHtml(message.text)}</p>
-      `
+      item.append(renderDirectMessageContent(message))
       return item
     })
   )
+}
+
+function renderDirectContacts() {
+  if (!els.dmContactList) return
+
+  const profile = getDesktopProfile(els.nickInput.value.trim() || 'Desktop')
+  const contacts = listTrustedContacts(loadLocalContactBook(profile.id))
+
+  els.dmContactList.replaceChildren(
+    ...contacts.map((contact) => {
+      const button = document.createElement('button')
+      button.type = 'button'
+      button.className = 'contactButton'
+      button.textContent = contact.alias
+      button.title = contact.profileId
+      button.addEventListener('click', () => {
+        els.dmRecipientInput.value = contact.profileId
+      })
+      return button
+    })
+  )
+}
+
+function renderContacts() {
+  if (!els.contactList) return
+
+  const profile = getDesktopProfile(els.nickInput.value.trim() || 'Desktop')
+  const contacts = listTrustedContacts(loadLocalContactBook(profile.id))
+
+  if (contacts.length === 0) {
+    const empty = document.createElement('p')
+    empty.className = 'muted smallText'
+    empty.textContent = 'No trusted contacts'
+    els.contactList.replaceChildren(empty)
+    return
+  }
+
+  els.contactList.replaceChildren(
+    ...contacts.map((contact) => {
+      const row = document.createElement('div')
+      const label = document.createElement('div')
+      const alias = document.createElement('p')
+      const profileId = document.createElement('p')
+      const button = document.createElement('button')
+
+      row.className = 'managedContact'
+      alias.textContent = contact.alias
+      profileId.className = 'mono muted smallText'
+      profileId.textContent = shorten(contact.profileId)
+      label.append(alias, profileId)
+      button.type = 'button'
+      button.className = 'smallButton dangerButton'
+      button.textContent = 'Revoke'
+      button.addEventListener('click', () => revokeLocalContact(contact.profileId).catch(showError))
+      row.append(label, button)
+      return row
+    })
+  )
+}
+
+async function revokeLocalContact(profileId) {
+  const profile = getDesktopProfile(els.nickInput.value.trim() || 'Desktop')
+  const threads = loadDmThreadsFromStorage({
+    ownerProfileId: profile.id,
+    storage: globalThis.localStorage
+  })
+  const result = applyLocalContactRevoke({
+    book: loadLocalContactBook(profile.id),
+    profileId,
+    threads
+  })
+
+  saveContactBookToStorage({
+    book: result.book,
+    storage: globalThis.localStorage
+  })
+  saveDmThreadsToStorage({
+    ownerProfileId: profile.id,
+    storage: globalThis.localStorage,
+    threads: result.nextThreads
+  })
+
+  await Promise.all(result.revokedThreadIds.map((threadId) => dmRuntime?.closeThread(threadId)))
+
+  if (homeJoinDetails?.profileId === profile.id) {
+    homeJoinDetails = {
+      ...homeJoinDetails,
+      treeholePolicy: result.treeholePolicy
+    }
+  }
+
+  if (els.dmRecipientInput.value.trim() === profileId) {
+    els.dmRecipientInput.value = ''
+  }
+
+  state = { ...state, notice: `Revoked ${shorten(profileId)}.` }
+  render()
+}
+
+function renderDirectMessageContent(message) {
+  const fragment = document.createDocumentFragment()
+  const meta = document.createElement('p')
+  const text = document.createElement('p')
+
+  meta.className = 'meta'
+  meta.textContent = displayDirectMessageMeta(message)
+  text.textContent = message.text
+  fragment.append(meta, text)
+
+  if (message.type === 'kepos.message.request.v1' && message.direction === 'in') {
+    const button = document.createElement('button')
+    button.type = 'button'
+    button.className = 'smallButton'
+    button.textContent = 'Accept'
+    button.addEventListener('click', () => {
+      try {
+        acceptIncomingMessageRequest(message)
+      } catch (error) {
+        showError(error)
+      }
+    })
+    fragment.append(button)
+  }
+
+  return fragment
+}
+
+function displayDirectMessageMeta(message) {
+  if (message.type === 'kepos.message.request.v1') {
+    const peer = message.direction === 'out' ? message.toProfileId : message.fromProfileId
+
+    return `message request ${message.direction === 'out' ? 'to' : 'from'} ${shorten(peer)}`
+  }
+
+  return `${message.nick || 'DM'} to ${message.toProfileId}`
+}
+
+function acceptIncomingMessageRequest(message) {
+  if (!room || !dmSession) return
+
+  const profile = getDesktopProfile(els.nickInput.value.trim() || 'Desktop')
+  const result = acceptMessageRequestWithInvite({
+    acceptedAt: Date.now(),
+    acceptorIdentity: profile.identity,
+    book: loadLocalContactBook(profile.id),
+    remoteProfileId: message.fromProfileId,
+    threadId: createId()
+  })
+
+  saveContactBookToStorage({
+    book: result.book,
+    storage: globalThis.localStorage
+  })
+  saveLocalDmThread(profile.id, result.thread)
+  openLocalDmThread(result.thread).catch(showError)
+  room.broadcastControl(result.invite)
+  state = { ...state, notice: `Accepted message request from ${shorten(message.fromProfileId)}.` }
+  render()
+}
+
+function saveLocalDmThread(ownerProfileId, thread) {
+  const threads = loadDmThreadsFromStorage({
+    ownerProfileId,
+    storage: globalThis.localStorage
+  })
+  const nextThreads = [
+    ...threads.filter((existing) => existing.threadId !== thread.threadId),
+    thread
+  ]
+
+  saveDmThreadsToStorage({
+    ownerProfileId,
+    storage: globalThis.localStorage,
+    threads: nextThreads
+  })
+}
+
+function findLocalDmThread(ownerProfileId, remoteProfileId) {
+  return loadDmThreadsFromStorage({
+    ownerProfileId,
+    storage: globalThis.localStorage
+  }).find(
+    (thread) =>
+      thread.remoteProfileId === remoteProfileId &&
+      thread.state === 'accepted' &&
+      thread.revokedAt === undefined
+  )
+}
+
+async function openLocalDmThreads(ownerProfileId) {
+  const threads = loadDmThreadsFromStorage({
+    ownerProfileId,
+    storage: globalThis.localStorage
+  })
+
+  await Promise.all(threads.map((thread) => openLocalDmThread(thread)))
+}
+
+async function openLocalDmThread(thread) {
+  if (thread.state !== 'accepted' || thread.revokedAt !== undefined) {
+    return
+  }
+
+  await dmRuntime?.openThread(thread)
 }
 
 function renderPosts() {
@@ -335,20 +908,100 @@ function renderPosts() {
       item.className = 'item post'
       item.innerHTML = `
         <div class="postHead">
-          <p class="meta">${escapeHtml(post.author)}</p>
+          <p class="meta">${escapeHtml(displayPostAuthor(post))}</p>
           <p class="time">${formatTime(post.createdAt)}</p>
         </div>
         <p>${escapeHtml(post.text)}</p>
         <p class="stats">${post.commentCount || 0} comments · ${post.likeCount || 0} likes</p>
       `
+      item.append(renderPostComments(post))
+      item.append(renderPostActions(post))
       return item
     })
   )
 }
 
+function renderPostComments(post) {
+  const comments = document.createElement('div')
+  comments.className = 'comments'
+
+  comments.replaceChildren(
+    ...(post.comments || []).map((comment) => {
+      const item = document.createElement('div')
+      item.className = 'comment'
+      item.innerHTML = `
+        <p class="meta">${escapeHtml(displayPostAuthor(comment))}</p>
+        <p>${escapeHtml(comment.text)}</p>
+      `
+      return item
+    })
+  )
+
+  return comments
+}
+
+function renderPostActions(post) {
+  const actions = document.createElement('div')
+  actions.className = 'postActions'
+
+  const likeButton = document.createElement('button')
+  likeButton.type = 'button'
+  likeButton.className = 'smallButton'
+  likeButton.textContent = 'Like'
+  likeButton.addEventListener('click', () => likeTreeholePost(post.id).catch(showError))
+
+  const form = document.createElement('form')
+  form.className = 'commentForm'
+  const input = document.createElement('input')
+  input.placeholder = 'Write a comment'
+  input.className = 'commentInput'
+  const submit = document.createElement('button')
+  submit.type = 'submit'
+  submit.className = 'smallButton'
+  submit.textContent = 'Comment'
+  form.append(input, submit)
+  form.addEventListener('submit', (event) => {
+    event.preventDefault()
+    commentTreeholePost({ postId: post.id, text: input.value }).catch(showError)
+  })
+
+  actions.append(likeButton, form)
+  return actions
+}
+
+async function commentTreeholePost({ postId, text }) {
+  if (!treehole || !text.trim()) return
+
+  await treehole.comment({
+    createdAt: Date.now(),
+    id: createId(),
+    postId,
+    text
+  })
+  await renderTreeholeState()
+}
+
+async function likeTreeholePost(postId) {
+  if (!treehole) return
+
+  await treehole.like({
+    createdAt: Date.now(),
+    postId
+  })
+  await renderTreeholeState()
+}
+
 function showError(error) {
   state = { ...state, notice: error.message }
   render()
+}
+
+function displayPostAuthor(post) {
+  return post.authorDisplayName || post.author || shortenProfileId(post.authorProfileId) || 'anon'
+}
+
+function shortenProfileId(value) {
+  return value ? shorten(value) : ''
 }
 
 function treeholeStoragePath(roomKey, bootstrapKey) {

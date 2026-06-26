@@ -16,6 +16,18 @@ describe('p2p room backend', () => {
     assert.deepEqual(joins[0].options, { client: true, server: true })
   })
 
+  test('join can skip waiting for discovery flush in UI runtimes', async () => {
+    const joins = []
+    const room = createP2PRoom({
+      awaitDiscoveryFlush: false,
+      createSwarm: () => new FakeSwarm(joins, { pendingFlush: true })
+    })
+
+    await room.join({ roomKey: 'a'.repeat(64), nick: 'Neil' })
+
+    assert.equal(joins.length, 1)
+  })
+
   test('send broadcasts a chat frame to connected peers', async () => {
     const socket = new FakeSocket()
     const room = createP2PRoom({
@@ -57,11 +69,11 @@ describe('p2p room backend', () => {
     assert.equal(messages[0].nick, 'Ada')
   })
 
-  test('incoming direct message frames are routed separately and deduped', async () => {
-    const directMessages = []
+  test('incoming direct message body frames are ignored', async () => {
+    const controls = []
     const room = createP2PRoom({
       createSwarm: () => new FakeSwarm(),
-      onDirectMessage: (message) => directMessages.push(message)
+      onControl: (message) => controls.push(message)
     })
     const socket = new FakeSocket()
 
@@ -74,17 +86,14 @@ describe('p2p room backend', () => {
       '{"type":"dm","id":"dm-1","fromProfileId":"profile-a","toProfileId":"profile-b","nick":"Ada","text":"hi","at":1}\n'
     )
 
-    assert.equal(directMessages.length, 1)
-    assert.equal(directMessages[0].toProfileId, 'profile-b')
+    assert.deepEqual(controls, [])
   })
 
-  test('id-less direct message frames do not suppress later treehole controls', async () => {
+  test('unsupported direct message frames do not suppress later treehole controls', async () => {
     const controls = []
-    const directMessages = []
     const room = createP2PRoom({
       createSwarm: () => new FakeSwarm(),
-      onControl: (message) => controls.push(message),
-      onDirectMessage: (message) => directMessages.push(message)
+      onControl: (message) => controls.push(message)
     })
     const socket = new FakeSocket()
 
@@ -95,40 +104,12 @@ describe('p2p room backend', () => {
     )
     socket.emitData(`{"type":"treehole.bootstrap","key":"${'b'.repeat(64)}"}\n`)
 
-    assert.deepEqual(directMessages, [])
     assert.deepEqual(controls, [
       {
         type: 'treehole.bootstrap',
         key: 'b'.repeat(64)
       }
     ])
-  })
-
-  test('sendDirectMessage broadcasts a direct message frame to connected peers', async () => {
-    const socket = new FakeSocket()
-    const room = createP2PRoom({
-      createSwarm: () => new FakeSwarm()
-    })
-
-    await room.join({ roomKey: 'a'.repeat(64), nick: 'Neil' })
-    room.addPeer(socket)
-    room.sendDirectMessage({
-      id: 'dm-1',
-      fromProfileId: 'profile-a',
-      toProfileId: 'profile-b',
-      text: 'hello',
-      at: 1_797_331_200_000
-    })
-
-    assert.deepEqual(JSON.parse(socket.writes[0]), {
-      type: 'dm',
-      id: 'dm-1',
-      fromProfileId: 'profile-a',
-      toProfileId: 'profile-b',
-      nick: 'Neil',
-      text: 'hello',
-      at: 1_797_331_200_000
-    })
   })
 
   test('incoming treehole frames are routed as control messages', async () => {
@@ -151,6 +132,25 @@ describe('p2p room backend', () => {
     ])
   })
 
+  test('incoming control frames include the sending peer', async () => {
+    const controls = []
+    const room = createP2PRoom({
+      createSwarm: () => new FakeSwarm(),
+      onControl: (message, peer) => controls.push({ message, peer })
+    })
+    const socket = new FakeSocket()
+
+    await room.join({ roomKey: 'a'.repeat(64), nick: 'Neil' })
+    room.addPeer(socket)
+    socket.emitData('{"type":"kepos.home.hello.request.v1"}\n')
+
+    assert.equal(controls.length, 1)
+    assert.equal(controls[0].peer, socket)
+    assert.deepEqual(controls[0].message, {
+      type: 'kepos.home.hello.request.v1'
+    })
+  })
+
   test('broadcastControl sends a treehole frame to connected peers', async () => {
     const socket = new FakeSocket()
     const room = createP2PRoom({
@@ -170,6 +170,51 @@ describe('p2p room backend', () => {
     })
   })
 
+  test('sendControl writes a control frame only to one peer', async () => {
+    const left = new FakeSocket()
+    const right = new FakeSocket()
+    const room = createP2PRoom({
+      createSwarm: () => new FakeSwarm()
+    })
+
+    await room.join({ roomKey: 'a'.repeat(64), nick: 'Neil' })
+    room.addPeer(left)
+    room.addPeer(right)
+    room.sendControl(left, {
+      type: 'kepos.home.hello.request.v1'
+    })
+
+    assert.deepEqual(JSON.parse(left.writes[0]), {
+      type: 'kepos.home.hello.request.v1'
+    })
+    assert.equal(right.writes.length, 0)
+  })
+
+  test('incoming message request and DM invite frames are routed as control messages', async () => {
+    const controls = []
+    const room = createP2PRoom({
+      createSwarm: () => new FakeSwarm(),
+      onControl: (message) => controls.push(message)
+    })
+    const socket = new FakeSocket()
+
+    await room.join({ roomKey: 'a'.repeat(64), nick: 'Neil' })
+    room.addPeer(socket)
+    socket.emitData('{"type":"kepos.message.request.v1","requestId":"request-1"}\n')
+    socket.emitData('{"type":"kepos.dm.invite.v1","inviteId":"invite-1"}\n')
+
+    assert.deepEqual(controls, [
+      {
+        type: 'kepos.message.request.v1',
+        requestId: 'request-1'
+      },
+      {
+        type: 'kepos.dm.invite.v1',
+        inviteId: 'invite-1'
+      }
+    ])
+  })
+
   test('onPeer is called for newly connected peers', async () => {
     const peers = []
     const socket = new FakeSocket()
@@ -186,8 +231,9 @@ describe('p2p room backend', () => {
 })
 
 class FakeSwarm {
-  constructor(joins = []) {
+  constructor(joins = [], options = {}) {
     this.joins = joins
+    this.options = options
     this.handlers = new Map()
     this.destroyed = false
   }
@@ -199,7 +245,7 @@ class FakeSwarm {
   join(topic, options) {
     this.joins.push({ topic, options })
     return {
-      flushed: () => Promise.resolve()
+      flushed: () => (this.options.pendingFlush ? new Promise(() => {}) : Promise.resolve())
     }
   }
 

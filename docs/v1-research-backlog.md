@@ -1,0 +1,141 @@
+# Kepos V1 Research Backlog
+
+This document tracks research that had to be complete before V1 implementation and the current status of those research gates.
+
+The goal is to make implementation boring: by the time code work starts, library choices, security boundaries, platform risks, and migration rules should already be clear.
+
+## Research Principle
+
+Before implementing protocol-critical pieces, query and evaluate maintained open source libraries.
+
+Do not hand-roll:
+
+- cryptography
+- signature formats
+- canonical serialization
+- QR generation/scanning
+- encrypted invite payloads
+- storage/migration machinery when a simple maintained option fits
+
+## Dependency Order
+
+### 1. Signing And Canonical Encoding
+
+Output: `docs/research-signing-canonical-encoding.md`
+
+Blocks:
+
+- signed trust grants
+- signed home/profile/message-request QR payloads
+- signed treehole events
+- signed DM invites
+- signed DM messages
+
+Must answer:
+
+- which signing library to use
+- how keys are serialized
+- what exact bytes are signed
+- which canonical encoding to use
+- fallback if Holepunch/Keet libraries do not work across Node, Bare Android, and React Native-safe paths
+
+### 2. DM Invite Encryption
+
+Output: `docs/research-dm-invite-encryption.md`
+
+Blocks:
+
+- encrypted DM invite payload
+- message request acceptance handoff
+- durable pairwise DM setup
+- future DM key rotation
+
+Must answer:
+
+- how to encrypt invite payloads to a recipient identity
+- whether signing keys and encryption keys are separate
+- what channel material is public vs encrypted
+- which library works across our target platforms
+
+### 3. QR Libraries
+
+Output: `docs/research-qr-libraries.md`
+
+Blocks:
+
+- profile QR
+- home QR
+- message request QR
+- Android scan flow
+- desktop render/share flow
+
+Must answer:
+
+- mobile QR generation library
+- mobile scanner/camera library
+- desktop QR generation/rendering path
+- test strategy without relying on a physical camera
+- fallback if desktop camera scan is deferred
+
+### 4. Local Storage And Migrations
+
+Output: `docs/research-local-storage-migrations.md`
+
+Blocks:
+
+- identity persistence
+- ContactBook persistence
+- home persistence
+- DM thread persistence
+- schema versioning
+- corrupt data behavior
+
+Must answer:
+
+- versioned JSON files vs storage library/database
+- platform adapter boundaries
+- migration function pattern
+- how to handle invalid/corrupt local state
+
+### 5. Autobase Treehole Authorization
+
+Output: `docs/treehole-authorization.md`
+
+Blocks:
+
+- owner-only main posts
+- trusted comment/like writes
+- owner comment moderation
+- lazy writer grants
+- signed treehole reducer policy
+
+Must answer:
+
+- how writer grants are represented
+- how signed events are verified before reducer apply
+- how trust state is available to reducer/policy
+- how unauthorized events are ignored
+- how delete tombstones are handled
+
+This research is tightly coupled to the current treehole code and should be done locally after the signing research result is known. Done.
+
+## Current Subagent Assignments
+
+- Signing and canonical encoding: complete, see `docs/research-signing-canonical-encoding.md`.
+- DM invite encryption: complete, see `docs/research-dm-invite-encryption.md`.
+- QR libraries: complete, see `docs/research-qr-libraries.md`.
+- Local storage and migrations: complete, see `docs/research-local-storage-migrations.md`.
+
+No subagent should modify implementation files during this research phase.
+
+## Implementation Gate
+
+Implementation should not start until these are true:
+
+- `docs/research-signing-canonical-encoding.md` has a recommendation and fallback. Done.
+- `docs/research-dm-invite-encryption.md` has an invite encryption boundary. Done.
+- `docs/research-qr-libraries.md` has mobile/desktop library choices and test path. Done.
+- `docs/research-local-storage-migrations.md` has persistence and migration policy. Done.
+- Compatibility probes confirm the chosen crypto/encoding/encryption libraries work in Node and Bare Android bundle. Done for Node execution and Android bundle; Android device runtime remains a later smoke item.
+- `docs/treehole-authorization.md` defines signed treehole event and writer policy. Done.
+- `docs/v1-dependency-order.md` is updated from the research results. Done.

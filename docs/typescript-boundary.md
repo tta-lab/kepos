@@ -1,0 +1,98 @@
+# Kepos TypeScript Boundary
+
+This document defines where V1 should use TypeScript.
+
+## Decision
+
+New protocol and domain modules should be TypeScript-first.
+
+Platform runtime glue can stay JavaScript until its loader path is proven.
+
+## Why
+
+Kepos V1 has security-sensitive state:
+
+- identity keys
+- signed records
+- trust grants
+- home access policy
+- treehole events
+- DM requests, invites, threads, and messages
+- QR payload schemas
+
+These shapes should be explicit and checked. Plain JavaScript is too easy to drift when several platforms share the same rules.
+
+## Use TypeScript Now
+
+Use TypeScript for pure shared modules under `src/` when they are not directly loaded by a fragile runtime path:
+
+- identity and signed-record helpers
+- trust and ContactBook model
+- home access policy
+- treehole signed event schemas and reducers
+- DM request, invite, thread, and message schemas
+- QR payload schemas and parsers
+- versioned local storage envelopes
+
+Every new TypeScript module must pass:
+
+- `npm run typecheck`
+- `npm run compat:typescript` when it is shared protocol logic
+- `npm run compat:bundle:typescript` when it must work in the Bare Android backend
+
+## Keep JavaScript For Now
+
+Keep these as JavaScript until their runtime loading path is verified:
+
+- `backend/backend.mjs`
+- `desktop/app.js`
+- `mobile/App.jsx`
+- Electron renderer entry code
+- Bare worklet entry code
+- React Native UI glue
+
+These files should call shared typed modules instead of owning protocol rules.
+
+## Migration Rule
+
+Do not rewrite everything to TypeScript in one pass.
+
+When touching an existing JavaScript protocol/domain module for meaningful new behavior, prefer one of these:
+
+1. Move the changed protocol shape into a new TypeScript module and keep a thin JS caller.
+2. Convert the module to TypeScript if all import paths are already proven by tests, Node execution, and Android bundle probes.
+3. Leave the file in JavaScript only when the change is small and the module is on a fragile platform path.
+
+The direction is TypeScript for shared rules, JavaScript for platform edges.
+
+## Migration Priority
+
+Convert security-sensitive shared modules before convenience modules.
+
+1. `src/signed-record.ts` (done)
+   - core signed envelope, deterministic bytes, key validation, timestamp/version checks
+   - everything else depends on this being stable
+2. `src/dm-invite.ts` and `src/message-request.ts` (done)
+   - DM bootstrap, sealed invite payloads, one-message request rules, signed request validation
+   - mistakes here can leak private-message setup through the wrong trust boundary
+3. `src/trust-grant.ts` and `src/signed-qr-payload.ts` (done)
+   - trust creation, revoke payloads, profile QR, home QR, proof matching
+   - this is the normal user-facing authority path
+4. `src/contact-book.ts` and `src/dm-thread.ts` (done)
+   - durable local trust state, request state, accepted/revoked DM thread state
+   - these are central domain models and should become typed before they grow more fields
+5. Policy slices from `src/treehole-policy.ts` (done)
+   - Autobase/runtime glue can remain JS
+   - signed event and writer-policy rules should move behind typed shared helpers
+
+`src/identity.js` already uses the same Ed25519 key shape as signed records. A profile id must be a public key backed by its matching secret key; do not recreate old public-id-only compatibility paths.
+
+## Not V1
+
+V1 does not need:
+
+- a full app-wide TypeScript rewrite
+- React Native UI conversion
+- Electron renderer conversion
+- generated API clients
+- runtime schema libraries unless plain TypeScript plus validation helpers becomes too weak

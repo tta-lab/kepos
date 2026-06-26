@@ -1,6 +1,8 @@
 node_modules/
 .expo/
 android/
+desktop/app.bundle.cjs
 mobile/app.bundle.mjs
 dist/
 coverage/
+tmp/

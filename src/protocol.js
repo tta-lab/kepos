@@ -3,7 +3,15 @@ import b4a from 'b4a'
 
 const ROOM_KEY_PATTERN = /^[0-9a-f]{64}$/
 const TOPIC_PREFIX = 'kepos-room:v1:'
-const SUPPORTED_FRAME_TYPES = new Set(['chat', 'dm', 'treehole.bootstrap', 'treehole.writer'])
+const SUPPORTED_FRAME_TYPES = new Set([
+  'chat',
+  'kepos.dm.invite.v1',
+  'kepos.home.hello.request.v1',
+  'kepos.home.hello.v1',
+  'kepos.message.request.v1',
+  'treehole.bootstrap',
+  'treehole.writer'
+])
 
 export function createRoomKey() {
   return b4a.toString(crypto.randomBytes(32), 'hex')

@@ -1,4 +1,25 @@
+import { isIdentityKey, isIdentityKeyPair } from './identity.js'
+
 const PROFILE_ID_FILE = 'profile-id.txt'
+const HOME_ROOM_KEY_FILE = 'home-room-key.txt'
+const IDENTITY_PUBLIC_KEY_FILE = 'identity-public-key.txt'
+const IDENTITY_SECRET_KEY_FILE = 'identity-secret-key.txt'
+const V1_DIR = 'v1'
+const V1_IDENTITY_FILE = 'identity.json'
+const V1_HOME_FILE = 'home.json'
+const DM_ENCRYPTION_PUBLIC_KEY_FILE = 'dm-encryption-public-key.txt'
+const DM_ENCRYPTION_SECRET_KEY_FILE = 'dm-encryption-secret-key.txt'
+const HEX_32_PATTERN = /^[0-9a-f]{64}$/
+
+export function getRequiredMobileDocumentDirectory(fileSystem) {
+  const documentDirectory = fileSystem?.documentDirectory?.trim?.() || null
+
+  if (!documentDirectory) {
+    throw new Error('App document directory is unavailable')
+  }
+
+  return documentDirectory
+}
 
 export async function getOrCreateMobileProfileId({ baseUri, createId, fileSystem }) {
   if (!baseUri) {
@@ -6,9 +27,15 @@ export async function getOrCreateMobileProfileId({ baseUri, createId, fileSystem
   }
 
   const profileDir = `${baseUri.replace(/\/+$/, '')}/kepos`
+  const identityPath = `${profileDir}/${V1_DIR}/${V1_IDENTITY_FILE}`
   const profilePath = `${profileDir}/${PROFILE_ID_FILE}`
 
   await fileSystem.makeDirectoryAsync(profileDir, { intermediates: true })
+
+  const identityDocument = await readMobileDocument(fileSystem, identityPath, 'kepos.identity')
+  if (identityDocument) {
+    return identityDocument.data.publicKey
+  }
 
   try {
     const existingId = (await fileSystem.readAsStringAsync(profilePath)).trim()
@@ -21,4 +48,222 @@ export async function getOrCreateMobileProfileId({ baseUri, createId, fileSystem
   const profileId = createId()
   await fileSystem.writeAsStringAsync(profilePath, profileId)
   return profileId
+}
+
+export async function getOrCreateMobileHomeRoomKey({ baseUri, createKey, fileSystem }) {
+  if (!baseUri) {
+    throw new Error('App storage directory is unavailable')
+  }
+
+  const profileDir = `${baseUri.replace(/\/+$/, '')}/kepos`
+  const homePath = `${profileDir}/${V1_DIR}/${V1_HOME_FILE}`
+  const homeRoomKeyPath = `${profileDir}/${HOME_ROOM_KEY_FILE}`
+
+  await fileSystem.makeDirectoryAsync(profileDir, { intermediates: true })
+  await fileSystem.makeDirectoryAsync(`${profileDir}/${V1_DIR}`, { intermediates: true })
+
+  const homeDocument = await readMobileDocument(fileSystem, homePath, 'kepos.home')
+  const existingHomeRoomKey = homeDocument?.data?.roomKey || null
+
+  const existingKey = existingHomeRoomKey || (await readOptionalFile(fileSystem, homeRoomKeyPath))
+
+  if (existingKey) {
+    if (!HEX_32_PATTERN.test(existingKey)) {
+      throw new Error('Corrupt mobile home room key')
+    }
+
+    if (!homeDocument) {
+      await writeMobileHomeDocument(fileSystem, homePath, {
+        ownerProfileId: await readMobileProfileId(fileSystem, profileDir),
+        roomKey: existingKey
+      })
+    }
+
+    return existingKey
+  }
+
+  const homeRoomKey = createKey()
+  if (!HEX_32_PATTERN.test(homeRoomKey)) {
+    throw new Error('Invalid mobile home room key')
+  }
+
+  await writeMobileHomeDocument(fileSystem, homePath, {
+    ownerProfileId: await readMobileProfileId(fileSystem, profileDir),
+    roomKey: homeRoomKey
+  })
+  await fileSystem.writeAsStringAsync(homeRoomKeyPath, homeRoomKey)
+  return homeRoomKey
+}
+
+export async function getOrCreateMobileIdentity({ baseUri, createIdentity, fileSystem }) {
+  if (!baseUri) {
+    throw new Error('App storage directory is unavailable')
+  }
+
+  const profileDir = `${baseUri.replace(/\/+$/, '')}/kepos`
+  const identityPath = `${profileDir}/${V1_DIR}/${V1_IDENTITY_FILE}`
+  const publicKeyPath = `${profileDir}/${IDENTITY_PUBLIC_KEY_FILE}`
+  const secretKeyPath = `${profileDir}/${IDENTITY_SECRET_KEY_FILE}`
+  const profilePath = `${profileDir}/${PROFILE_ID_FILE}`
+
+  await fileSystem.makeDirectoryAsync(profileDir, { intermediates: true })
+  await fileSystem.makeDirectoryAsync(`${profileDir}/${V1_DIR}`, { intermediates: true })
+
+  const identityDocument = await readMobileDocument(fileSystem, identityPath, 'kepos.identity')
+  if (identityDocument) {
+    const identity = identityDocument.data
+
+    if (!isIdentityKeyPair(identity)) {
+      throw new Error('Corrupt mobile identity')
+    }
+
+    return identity
+  }
+
+  const publicKey = await readOptionalFile(fileSystem, publicKeyPath)
+  const secretKey = await readOptionalFile(fileSystem, secretKeyPath)
+
+  if (publicKey || secretKey) {
+    const identity = {
+      publicKey,
+      secretKey
+    }
+
+    if (!isIdentityKeyPair(identity)) {
+      throw new Error('Corrupt mobile identity')
+    }
+
+    await writeMobileIdentityDocument(fileSystem, identityPath, identity)
+    await fileSystem.writeAsStringAsync(profilePath, identity.publicKey)
+    return identity
+  }
+
+  const identity = createIdentity()
+  if (!isIdentityKeyPair(identity)) {
+    throw new Error('Invalid mobile identity')
+  }
+
+  await writeMobileIdentityDocument(fileSystem, identityPath, identity)
+  await fileSystem.writeAsStringAsync(publicKeyPath, identity.publicKey)
+  await fileSystem.writeAsStringAsync(secretKeyPath, identity.secretKey)
+  await fileSystem.writeAsStringAsync(profilePath, identity.publicKey)
+  return identity
+}
+
+export async function getOrCreateMobileDmEncryptionKeyPair({ baseUri, createKeyPair, fileSystem }) {
+  if (!baseUri) {
+    throw new Error('App storage directory is unavailable')
+  }
+
+  const profileDir = `${baseUri.replace(/\/+$/, '')}/kepos`
+  const publicKeyPath = `${profileDir}/${DM_ENCRYPTION_PUBLIC_KEY_FILE}`
+  const secretKeyPath = `${profileDir}/${DM_ENCRYPTION_SECRET_KEY_FILE}`
+
+  await fileSystem.makeDirectoryAsync(profileDir, { intermediates: true })
+
+  const publicKey = await readOptionalFile(fileSystem, publicKeyPath)
+  const secretKey = await readOptionalFile(fileSystem, secretKeyPath)
+
+  if (publicKey || secretKey) {
+    const keyPair = {
+      publicKey,
+      secretKey
+    }
+
+    if (!isDmEncryptionKeyPair(keyPair)) {
+      throw new Error('Corrupt mobile DM encryption key pair')
+    }
+
+    return keyPair
+  }
+
+  const keyPair = createKeyPair()
+  if (!isDmEncryptionKeyPair(keyPair)) {
+    throw new Error('Invalid mobile DM encryption key pair')
+  }
+
+  await fileSystem.writeAsStringAsync(publicKeyPath, keyPair.publicKey)
+  await fileSystem.writeAsStringAsync(secretKeyPath, keyPair.secretKey)
+  return keyPair
+}
+
+async function readOptionalFile(fileSystem, path) {
+  try {
+    return (await fileSystem.readAsStringAsync(path)).trim() || null
+  } catch (error) {
+    if (await fileExists(fileSystem, path)) {
+      throw error
+    }
+
+    return null
+  }
+}
+
+async function readMobileDocument(fileSystem, path, type) {
+  const raw = await readOptionalFile(fileSystem, path)
+
+  if (!raw) {
+    return null
+  }
+
+  try {
+    const document = JSON.parse(raw)
+
+    if (document?.type !== type || document?.schemaVersion !== 1 || !document?.data) {
+      throw new Error(`Unsupported ${type} storage document`)
+    }
+
+    return document
+  } catch (error) {
+    throw new Error(`Corrupt mobile ${type} storage: ${error.message}`)
+  }
+}
+
+async function writeMobileIdentityDocument(fileSystem, path, identity) {
+  await fileSystem.writeAsStringAsync(
+    path,
+    JSON.stringify({
+      data: {
+        publicKey: identity.publicKey,
+        secretKey: identity.secretKey
+      },
+      schemaVersion: 1,
+      type: 'kepos.identity'
+    })
+  )
+}
+
+async function writeMobileHomeDocument(fileSystem, path, home) {
+  await fileSystem.writeAsStringAsync(
+    path,
+    JSON.stringify({
+      data: {
+        ownerProfileId: home.ownerProfileId,
+        roomKey: home.roomKey
+      },
+      schemaVersion: 1,
+      type: 'kepos.home'
+    })
+  )
+}
+
+function readMobileProfileId(fileSystem, profileDir) {
+  return readOptionalFile(fileSystem, `${profileDir}/${PROFILE_ID_FILE}`)
+}
+
+async function fileExists(fileSystem, path) {
+  if (!fileSystem.getInfoAsync) {
+    return false
+  }
+
+  try {
+    const info = await fileSystem.getInfoAsync(path)
+    return Boolean(info?.exists)
+  } catch {
+    return false
+  }
+}
+
+function isDmEncryptionKeyPair(keyPair) {
+  return isIdentityKey(keyPair?.publicKey) && isIdentityKey(keyPair?.secretKey)
 }

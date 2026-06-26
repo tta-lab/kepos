@@ -57,7 +57,7 @@ function getAppPath() {
 
 app.whenReady().then(() => {
   createWindow()
-  void startPearRuntime()
+  if (process.env.KEPOS_SMOKE_DESKTOP !== '1') void startPearRuntime()
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

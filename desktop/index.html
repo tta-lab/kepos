@@ -22,19 +22,72 @@
             Nick
             <input id="nickInput" autocomplete="off" value="Desktop" />
           </label>
-          <label>
-            Manual home key
-            <textarea
-              id="roomKeyInput"
-              spellcheck="false"
-              placeholder="64-character manual key"
-            ></textarea>
-          </label>
           <div class="actions">
             <button id="createButton" type="button">Create Home</button>
-            <button id="joinButton" type="submit">Join Home</button>
           </div>
+          <details id="advancedJoin" class="advanced">
+            <summary>Advanced</summary>
+            <label>
+              Manual home key
+              <textarea
+                id="roomKeyInput"
+                spellcheck="false"
+                placeholder="64-character manual key"
+              ></textarea>
+            </label>
+            <button id="joinButton" type="submit">Join Home</button>
+          </details>
         </form>
+
+        <form id="homeQrForm" class="panel">
+          <label>
+            My home URI
+            <textarea id="homeQrOutput" class="compactArea" readonly spellcheck="false"></textarea>
+          </label>
+          <div id="homeQrCode" class="qrCode" aria-label="My home QR code"></div>
+          <label>
+            Join home URI
+            <textarea
+              id="homeQrInput"
+              class="compactArea"
+              spellcheck="false"
+              placeholder="kepos://home..."
+            ></textarea>
+          </label>
+          <button id="joinHomeQrButton" type="submit">Join Home URI</button>
+        </form>
+
+        <form id="trustForm" class="panel">
+          <label>
+            My profile URI
+            <textarea
+              id="profileQrOutput"
+              class="compactArea"
+              readonly
+              spellcheck="false"
+            ></textarea>
+          </label>
+          <div id="profileQrCode" class="qrCode" aria-label="My profile QR code"></div>
+          <label>
+            Trust profile URI
+            <textarea
+              id="trustQrInput"
+              class="compactArea"
+              spellcheck="false"
+              placeholder="kepos://profile..."
+            ></textarea>
+          </label>
+          <label>
+            Alias
+            <input id="trustAliasInput" autocomplete="off" placeholder="Contact name" />
+          </label>
+          <button id="trustButton" type="submit">Trust Profile</button>
+        </form>
+
+        <section class="panel contactsPanel">
+          <p class="label">Contacts</p>
+          <div id="contactList" class="managedContacts"></div>
+        </section>
 
         <section class="panel roomMeta">
           <p class="label">Home address</p>
@@ -71,6 +124,7 @@
         <section id="dmPane" class="pane hidden">
           <ol id="dmList" class="list"></ol>
           <form id="dmForm" class="composer tall">
+            <div id="dmContactList" class="contactList"></div>
             <input
               id="dmRecipientInput"
               placeholder="Recipient profile id"
@@ -92,6 +146,8 @@
       </section>
     </main>
 
-    <script src="./app.js" type="module"></script>
+    <script>
+      require('./app.bundle.cjs')
+    </script>
   </body>
 </html>

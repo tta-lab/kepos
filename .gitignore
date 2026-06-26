@@ -1,4 +1,7 @@
 node_modules/
+.DS_Store
 .expo/
 android/
+desktop/app.bundle.cjs
 mobile/app.bundle.mjs
+tmp/

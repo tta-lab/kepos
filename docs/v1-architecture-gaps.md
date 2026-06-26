@@ -1,0 +1,346 @@
+# Kepos V1 Architecture Gaps
+
+This document records V1 gaps that remain after the identity/security and QR matching designs.
+
+Related docs:
+
+- `docs/keet-grade-identity-security.md`
+- `docs/qr-code-matching.md`
+
+## V1 Target
+
+V1 should have a solid profile, home room, treehole, chat, and DM model across desktop and Android.
+
+The product model is:
+
+- one device is one profile
+- one profile owns one home room
+- one profile owns one treehole
+- posts belong to the author profile, not to a room
+- trust grants access to the owner's home and treehole
+- DM is pairwise and separate from home room traffic
+- raw keys are hidden from normal users
+
+## Gap 1: Authorization Protocol Rule
+
+Trust is now implemented as the application-level authorization SSOT for V1.
+
+Current implementation status:
+
+- signed treehole event constructors and reducer policy now exist
+- Autobase treehole sessions can run in signed mode
+- desktop and Android backend callers now use a shared typed treehole policy helper that selects signed mode when identity and owner data are available
+- signed mode rejects non-owner main posts and accepts only trusted comment/like writers
+- ContactBook is the shared local trust/request state model
+- signed profile QR writes trust through ContactBook
+- signed home QR joins public homes or locally trusted homes
+- message requests grant no access and are bounded to one pending request
+- accepted requests create trust plus a durable pairwise DM thread
+- `test/v1-model-smoke.test.js` now exercises one owner/peer identity pair across QR trust, trusted-only home access, treehole writer authorization, message request acceptance, and durable signed DM messages
+
+Trust is the authorization SSOT. Keys are transport capabilities and debug-visible handles, never product-level permission.
+
+The same authorization decision should gate:
+
+- joining a trusted-only home
+- receiving treehole bootstrap data
+- receiving treehole writer rights
+- opening a pairwise DM channel
+- accepting or blocking untrusted message requests
+
+If a feature can bypass trust by using a copied room key, writer key, or control frame, the architecture is not V1-ready.
+
+Remaining V1 evidence:
+
+- real two-device desktop/Android smoke must prove QR trust, trusted-only home entry, treehole writer policy, and DM setup work together in the UI/runtime
+- transport-level rejection can come later with identity-signed join handshakes
+
+## Gap 2: Treehole Writer Rights Need An Owner Rule
+
+Treehole is backed by Autobase, so writer management is the real write permission surface.
+
+Current implementation status:
+
+- signed treehole reducer enforces owner-only main posts even after a peer has writer transport access
+- signed Autobase mode can append signed post/comment/like/delete events
+- desktop and Android callers can open signed treehole sessions with persisted local identity
+- desktop and Android writer handling now checks writer profile id against the local owner ContactBook-derived treehole policy before adding a writer
+- typed `src/treehole-policy.ts` owns signed/prototype session selection and writer grant policy
+- signed mode writes `treehole.writer.grant.v1` as an owner-signed audit event before adding an Autobase writer
+- signed mode ignores legacy unsigned `treehole.writer.add` grants
+
+V1 needs a clear rule:
+
+- the owner profile is the first writer
+- trusted profiles can write only after the owner authorizes them
+- writer grants should be owner-controlled and tied to both the trusted profile id and the Autobase writer key
+- post, comment, and like events should carry signed author profile identity
+- duplicated or malformed events should be ignored
+
+Treehole events and signed-mode writer grants are now signed. The remaining evidence item is two-device smoke across QR trust, home entry, treehole writer grant, and DM.
+The integrated V1 model smoke covers the shared domain path; real desktop/Android smoke still needs to prove transport and UI wiring.
+
+Current implementation status:
+
+- room control frames now expose the sending peer to callers
+- desktop and Android backend send signed `kepos.home.hello.v1` records on home connections
+- treehole bootstrap and writer capabilities are sent with directed control frames after signed hello verification
+- the owner sends treehole bootstrap only to profiles allowed by the owner's ContactBook-derived treehole policy
+- `canShareTreeholeBootstrap()` centralizes the owner-to-trusted-profile bootstrap decision and is covered by `test/treehole-session.test.js`; desktop and Android backend both call it before sending bootstrap data
+- backend boundary tests and the integrated V1 model smoke cover the policy decision; device smoke still needs to show it on a live connection
+
+Remaining evidence:
+
+- two-device smoke must prove the signed hello flow shares treehole capabilities only after owner-side trust exists in the running desktop/Android apps
+
+## Gap 3: Trust Storage Needs A Shared ContactBook
+
+Trust cannot stay as only in-memory state or scattered UI storage.
+
+V1 should use a shared `ContactBook` domain model with platform persistence adapters.
+
+Current implementation status:
+
+- shared typed ContactBook domain helpers exist
+- ContactBook JSON serialization/deserialization is versioned
+- desktop/localStorage-style and Android app-file-style persistence adapters exist
+- treehole policy snapshots are derived from trusted/revoked contacts
+- signed profile URI import writes trusted contacts through persisted ContactBook
+- signed profile URI import writes local owner-signed trust grant proofs when local identity is available
+- signed home URI import joins public or locally trusted homes without manual room key entry
+- signed message requests can be created, verified, recorded as one pending request, and carried as home room setup/control frames
+- durable DM thread lifecycle helpers exist for pending/accepted/revoked state
+- durable DM thread storage adapters exist for desktop/localStorage-style and Android app-file-style storage
+- desktop can accept/reply to a message request by creating trust, broadcasting a sealed DM invite, and persisting an accepted thread
+- Android can accept/reply to a message request through Bare backend invite creation, React Native bridge handling, and local thread persistence
+- signed DM message record creation and verification exists in TypeScript
+- durable per-thread signed DM message storage exists in TypeScript
+- dedicated DM replication channel primitive exists and uses a topic derived from the accepted thread's channel discovery key
+- desktop and Android backend lifecycle wiring exists for accepted-thread DM replication and signed message body RPC/display
+- trusted contacts can be selected as DM recipients in desktop and mobile before falling back to manual profile id entry
+- desktop and Android render real QR images for signed profile/home URIs
+- Android camera scan routes QR data through signed validation before trust or home join
+- Android scan action handling is factored into `src/mobile-qr-actions.js` and covered by `test/mobile-qr-actions.test.js`
+- remaining work is two-device smoke, including QR scan, treehole, room chat, and signed DM body exchange
+
+Identity says who the local profile is. ContactBook says who that profile knows, trusts, revoked, or can message. The rules should live in shared code.
+
+Desktop and Android can store the data differently, but they should use the same shape and validation.
+
+Target shape:
+
+```js
+ContactBook {
+  ownerProfileId,
+  contacts: [
+    {
+      profileId,
+      alias,
+      displayNameSnapshot?,
+      homeAddress?,
+      homePolicy?,
+      trustedAt?,
+      revokedAt?,
+      source
+    }
+  ]
+}
+```
+
+This keeps V1 local and simple while leaving room for future signed grants and identity-owned replicated contact logs.
+
+## Gap 4: Revoke Boundary
+
+We have accepted that revoke blocks future access but does not delete already copied data.
+
+Current implementation status:
+
+- ContactBook stores revoked contacts and clears revoke on re-trust
+- treehole policy snapshots include trusted and revoked profile ids
+- signed treehole reducer rejects revoked writers
+- writer grant policy rejects revoked profiles
+- DM thread model supports revoked threads
+- ContactBook rejects new message requests from revoked contacts
+- message request acceptance rejects revoked contacts before creating a new DM invite or thread
+- incoming DM invite acceptance rejects revoked senders and rejects ordinary invites from untrusted senders
+- signed trusted-only home QR import rejects revoked owners before joining
+- desktop and Android expose contact revoke controls
+- revoke persists ContactBook state, removes the contact from trusted recipient options, updates treehole policy snapshots, marks matching DM threads revoked, and closes active DM runtime channels
+- `applyLocalContactRevoke()` centralizes local revoke state transitions and is covered by `test/revoke-state.test.js`; desktop and Android UI paths call it before saving state and closing/notifying DM runtimes
+
+Remaining V1 evidence:
+
+- two-device smoke must prove the running apps stop sending treehole bootstrap and writer keys after revoke
+- keep old replicated data local
+- show revoked state without claiming data was removed
+
+Home or treehole key rotation can come after V1, but the model should not prevent it.
+
+## Gap 5: DM Must Leave The Home Swarm
+
+Production DM message bodies no longer ride the home room. The home room can carry setup/control records such as message requests and DM invites.
+
+Current implementation status:
+
+- pairwise DM channel per profile pair
+- DM discovery separate from home discovery
+- message content never broadcast to room peers
+- trusted users can create a DM channel
+- untrusted users can send only one message request
+- reply or accept upgrades the request into a DM channel
+- signed DM bodies replicate over dedicated accepted-thread DM channels
+- DM messages persist locally per thread
+- the integrated V1 model smoke proves accepted request setup plus signed DM message persistence through the shared runtime/storage APIs
+
+Remaining V1 evidence:
+
+- desktop/Android smoke must prove signed DM body exchange and persistence across restart
+
+## Gap 6: Profile, Home, And Treehole Need A Single Mapping
+
+The architecture needs these invariants as tests:
+
+- `profile.id === identity.publicKey`
+- `identity.secretKey` matches `identity.publicKey` for signing
+- `profile.homeRoom.ownerProfileId === profile.id`
+- `profile.homeRoom.address` is the shareable home address
+- `profile.homeRoom.roomKey` is the transport capability
+- treehole owner is the same profile id
+- treehole storage path is app-private and stable across restart
+
+Without these invariants, desktop and Android can drift.
+
+Current implementation status:
+
+- local identity generation now uses `hypercore-crypto` keypairs rather than random-looking hex strings
+- local profile persistence rotates a legacy profile id if the matching identity secret is missing
+- tests prove generated identities can sign records under their profile id
+- profile/home/session tests cover owner binding and home room key persistence
+- treehole storage path tests cover app-private storage base usage
+- desktop and Android identity/home/DM key persistence now fails closed on corrupt or partial stored key material instead of silently creating a new identity, home key, or DM key pair
+- Android Bare backend DM encryption key persistence now uses the same fail-closed rule; `test/backend-dm-key-storage.test.js` covers missing-file creation, valid reuse, corrupt JSON rejection, and partial key rejection
+- Android durable profile, ContactBook, home, and DM storage now requires `FileSystem.documentDirectory`; it does not fall back to cache storage
+- Android profile/home first-run key generation uses `expo-crypto` secure random bytes for identity seeds and home room keys, avoiding React Native JS fallback paths that cannot satisfy Holepunch crypto randomness
+
+## Gap 7: Schema Versions And Migration
+
+Identity, home, QR, room frames, and treehole events are already changing.
+
+Current implementation status:
+
+- ContactBook serialization is versioned
+- DM thread serialization is versioned
+- signed record envelopes are versioned
+- trust grants, QR payloads, message requests, DM invites, DM messages, and treehole events carry typed versioned records
+- compatibility probes cover signed encoding and sealed-box dependencies
+- ContactBook file storage treats missing optional files as first-run empty state and corrupt files as fatal
+- DM thread/message file storage treats missing optional files as empty state and corrupt files as fatal
+- desktop and Android profile/home key adapters read and write V1 JSON envelopes for identity and home state, import legacy localStorage/text key files, validate existing identity, home, and DM key files before reuse, and only create new values on first run or explicit legacy profile-id migration
+- Android secure-random smoke on Pixel 7a proves the first screen can load profile identity and render signed home QR without the previous `No secure random number generator available` error
+
+Remaining post-V1 migration work:
+
+- add migrations when the next stored schema version appears
+
+## Gap 8: Cross-Platform Parity Needs A Checklist
+
+Desktop and Android should pass the same smoke matrix.
+
+Minimum V1 parity:
+
+- create profile
+- persist identity across restart
+- persist home key across restart
+- create home
+- join home
+- room text chat
+- create treehole post
+- receive replicated treehole post
+- comment and like treehole post
+- scan or import profile/home payload
+- trust another profile
+- block untrusted home access when policy is trusted-only
+- send and receive one untrusted message request
+- accept/reply to a message request and create a durable DM thread
+- send trusted DM over the pairwise DM thread
+
+Automated V1 model smoke now covers the shared model version of this path in `test/v1-model-smoke.test.js`. It is not a substitute for live desktop/Android parity smoke because it does not exercise camera permissions, Pear runtime, Bare backend lifecycle, Hyperswarm transport, or rendered UI state.
+
+## Gap 9: Failure States Need Product Semantics
+
+P2P failures often look like broken UI.
+
+V1 should define visible states for:
+
+- discovering peers
+- connected
+- no peers
+- syncing treehole
+- unauthorized
+- revoked
+- invalid QR
+- stale QR
+- message request pending
+- DM channel unavailable
+
+Current implementation status:
+
+- invalid signed profile/home QR fails before trust or join
+- stale signed profile/home QR with `expiresAt` fails before trust or join
+- Android camera permission denial sets a visible notice
+- desktop and Android expose joining, waiting-for-treehole, and backend error notices
+- message request pending state is stored in ContactBook
+
+The UI does not need verbose help text, but state should be explicit.
+
+## Gap 10: Manual Key Entry Should Become Debug UX
+
+Manual 32-byte keys are still useful for development and support, but they should not be the main product path.
+
+V1 product UX should prefer:
+
+- profile QR
+- home QR
+- scan QR
+- trusted contact list
+- message request inbox
+
+Manual key entry can remain under an advanced or debug section.
+
+Current implementation status:
+
+- desktop keeps manual home key entry inside an Advanced section
+- Android keeps manual home key entry hidden until Advanced is opened
+- `test/manual-key-debug-ui.test.js` guards the normal-path QR boundary
+
+V1 QR should use a URI envelope with encoded JSON payloads, such as `kepos://profile?v=1&payload=...`. Raw JSON can remain in tests, and compact binary encoding can wait.
+
+## Recommended Priority
+
+Completed implementation priorities:
+
+1. Research and choose maintained open source libraries for signing, canonical encoding, QR, encrypted invite payloads, and platform persistence.
+2. Add real identity signing and deterministic signed-record encoding.
+3. Lock profile/home/treehole invariants in code and tests.
+4. Add shared ContactBook, local alias, signed trust grants, and trust policy.
+5. Add signed home/profile/message-request QR payloads.
+6. Add signed treehole events and reducer authorization.
+7. Add explicit signed/encrypted DM invites and durable pairwise DM threads.
+8. Add schema versions for V1 records and local state envelopes.
+9. Add integrated V1 model smoke coverage for trust, trusted-only home, treehole, message request, accepted DM, signed DM persistence, and revoke writer gating.
+
+Remaining priority:
+
+10. Run desktop and Android parity smoke.
+
+## Resolved Decisions And Remaining Evidence
+
+Resolved V1 decisions:
+
+- User-facing identity verification is alias plus shortened profile id/fingerprint. V1 does not include a safety-number compare flow, username registry, or multi-device identity ceremony.
+- Prototype manual home keys remain as Advanced/debug fallback. Normal path is signed profile/home/message-request QR plus trusted contact selection.
+- Corrupt local identity/home/contact/DM storage fails closed. Missing optional ContactBook/DM documents initialize as empty; corrupt required identity/home state is not silently replaced.
+
+Remaining evidence before calling V1 ready:
+
+- exact result of desktop + Android two-device smoke
