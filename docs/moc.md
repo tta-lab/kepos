@@ -28,6 +28,10 @@ This is the map of content for Kepos architecture docs.
    - Desktop and Android manual smoke checklist for V1 parity.
    - Use this before calling V1 ready.
 
+7. `docs/cross-device-smoke.md`
+   - Agent recipe for validating desktop/Android product paths.
+   - Use this before reporting cross-device work as ready.
+
 ## Core Architecture
 
 1. `docs/keet-grade-identity-security.md`

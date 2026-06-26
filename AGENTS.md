@@ -14,6 +14,7 @@ Use these docs as the current architecture map for Kepos.
 - `docs/v1-tradeoffs.md`: accepted V1 tradeoffs, rejected options, risks, and future escape hatches.
 - `docs/typescript-boundary.md`: TypeScript boundary for V1 protocol/domain modules versus platform runtime glue.
 - `docs/v1-smoke-guide.md`: desktop and Android manual smoke checklist for V1 parity.
+- `docs/cross-device-smoke.md`: agent recipe for desktop/Android gates, smoke, QR, persistence, revoke, and cleanup.
 - `docs/kepos-features.html`: local HTML overview of implemented user-visible features and supported platforms.
 
 ## Current V1 Product Rules
