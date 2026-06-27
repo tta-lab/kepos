@@ -612,7 +612,7 @@ async function handleControl(message, peer) {
 
     saveLocalDmThread(profile.id, thread)
     openLocalDmThread(thread).catch(showError)
-    state = { ...state, notice: 'DM invite accepted.' }
+    state = { ...state, notice: 'Direct message ready.' }
     render()
     return
   }

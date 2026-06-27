@@ -256,6 +256,8 @@ test('mobile success notices avoid profile id snippets', async () => {
   assert.match(source, /setNotice\('Trusted friend added\.'\)/)
   assert.match(source, /setNotice\('Trust revoked\.'\)/)
   assert.match(source, /setNotice\('Message request accepted\.'\)/)
+  assert.match(source, /setNotice\('Could not save this direct message\.'\)/)
+  assert.equal(source.includes('Could not save this DM thread.'), false)
   assert.equal(
     source.includes('setNotice(`Trusted ${shortenProfileId(result.profileId)}.`)'),
     false
@@ -277,7 +279,9 @@ test('desktop success notices avoid profile id snippets', async () => {
 
   assert.match(source, /notice: 'Trusted friend added\.'/)
   assert.match(source, /notice: 'Message request accepted\.'/)
+  assert.match(source, /notice: 'Direct message ready\.'/)
   assert.match(source, /notice: 'Trust revoked\.'/)
+  assert.equal(source.includes("notice: 'DM invite accepted.'"), false)
   assert.equal(source.includes('notice: `Trusted ${shorten(result.profileId)}.`'), false)
   assert.equal(
     source.includes('notice: `Accepted message request from ${shorten(message.fromProfileId)}.`'),

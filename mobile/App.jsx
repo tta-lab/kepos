@@ -683,7 +683,7 @@ export default function App() {
           saveMobileDmThread(payload).catch((error) => {
             console.error('DM thread unavailable', error)
             setLastError(error.message)
-            setNotice('Could not save this DM thread.')
+            setNotice('Could not save this direct message.')
           })
           return
         }
