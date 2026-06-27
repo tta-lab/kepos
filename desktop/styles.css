@@ -551,6 +551,25 @@ textarea {
   margin: 0;
 }
 
+.trustMeta {
+  align-items: center;
+  color: var(--ink-muted);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.76rem;
+  gap: 6px;
+  margin-top: 5px;
+}
+
+.trustMeta span:first-child {
+  background: var(--success-soft);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  color: var(--accent-strong);
+  font-weight: 800;
+  padding: 2px 7px;
+}
+
 .inlineActions {
   align-items: center;
   display: flex;

@@ -65,6 +65,17 @@ test('desktop people UI uses trusted friends copy', async () => {
   assert.match(source, /<PaneLabel eyebrow='trusted' title='People' \/>/)
   assert.match(source, /Trusted friends/)
   assert.match(controller, /empty\.textContent = 'No trusted friends yet'/)
+  assert.match(controller, /status\.textContent = 'Trusted'/)
+  assert.match(
+    controller,
+    /source\.textContent = `From \$\{formatTrustSource\(contact\.source\)\}`/
+  )
+  assert.match(
+    controller,
+    /trustedAt\.textContent = `Trusted \$\{formatTrustTime\(contact\.trustedAt\)\}`/
+  )
+  assert.match(controller, /function formatTrustSource\(source\)/)
+  assert.match(controller, /function formatTrustTime\(trustedAt\)/)
   assert.equal(source.indexOf("id='contactList'") > source.indexOf("id='peoplePane'"), true)
   assert.match(
     controller,

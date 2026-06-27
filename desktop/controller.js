@@ -908,13 +908,22 @@ function renderContacts() {
       const label = document.createElement('div')
       const alias = document.createElement('p')
       const profileId = document.createElement('p')
+      const meta = document.createElement('div')
+      const status = document.createElement('span')
+      const source = document.createElement('span')
+      const trustedAt = document.createElement('span')
       const button = document.createElement('button')
 
       row.className = 'managedContact'
       alias.textContent = contact.alias
       profileId.className = 'mono muted smallText'
       profileId.textContent = shorten(contact.profileId)
-      label.append(alias, profileId)
+      meta.className = 'trustMeta'
+      status.textContent = 'Trusted'
+      source.textContent = `From ${formatTrustSource(contact.source)}`
+      trustedAt.textContent = `Trusted ${formatTrustTime(contact.trustedAt)}`
+      meta.append(status, source, trustedAt)
+      label.append(alias, profileId, meta)
       button.type = 'button'
       button.className = 'smallButton dangerButton'
       button.textContent = 'Revoke'
@@ -925,6 +934,18 @@ function renderContacts() {
       return row
     })
   )
+}
+
+function formatTrustSource(source) {
+  if (source === 'profile_qr' || source === 'person_qr') return 'Profile QR'
+  if (source === 'home_room') return 'Home room'
+  if (source === 'message_request') return 'Message request'
+  return 'local trust'
+}
+
+function formatTrustTime(trustedAt) {
+  if (!Number.isFinite(trustedAt)) return 'recently'
+  return new Date(trustedAt).toLocaleDateString()
 }
 
 function renderMessageRequests() {
