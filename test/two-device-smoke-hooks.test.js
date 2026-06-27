@@ -481,6 +481,25 @@ test('Android people pane surfaces pending message requests', async () => {
   assert.match(source, /senderEncryptionPublicKey: request\.senderEncryptionPublicKey/)
 })
 
+test('Android people pane keeps visible empty states', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const messageRequestManager = source.slice(
+    source.indexOf('function MessageRequestManager('),
+    source.indexOf('function PeopleActions(')
+  )
+  const contactManager = source.slice(
+    source.indexOf('function ContactManager('),
+    source.indexOf('function TabButton(')
+  )
+
+  assert.match(messageRequestManager, /No message requests/)
+  assert.match(messageRequestManager, /New requests from friends will appear here\./)
+  assert.equal(messageRequestManager.includes('return null'), false)
+  assert.match(contactManager, /No trusted friends yet/)
+  assert.match(contactManager, /Trust a friend to unlock home access and direct messages\./)
+  assert.equal(contactManager.includes('return null'), false)
+})
+
 test('Android lobby and room reuse the same people action UI', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 

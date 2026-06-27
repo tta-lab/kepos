@@ -1410,14 +1410,16 @@ function PeoplePane({
 function MessageRequestManager({ onAcceptRequest, onIgnoreRequest, pendingRequests, profileId }) {
   const { styles } = useMobileTheme()
 
-  if (!pendingRequests?.length) {
-    return null
-  }
-
   return (
     <View style={styles.panel}>
       <Text style={styles.panelTitle}>Message requests</Text>
-      {pendingRequests.map((request) => {
+      {!pendingRequests?.length ? (
+        <View style={styles.panelEmpty}>
+          <Text style={styles.panelEmptyTitle}>No message requests</Text>
+          <Text style={styles.panelEmptyCopy}>New requests from friends will appear here.</Text>
+        </View>
+      ) : null}
+      {(pendingRequests || []).map((request) => {
         const canAccept = Boolean(
           profileId && request.requestId && request.senderEncryptionPublicKey
         )
@@ -1770,14 +1772,18 @@ function DirectPane({
 function ContactManager({ contacts, onRevokeContact }) {
   const { styles, theme } = useMobileTheme()
 
-  if (!contacts?.length) {
-    return null
-  }
-
   return (
     <View style={styles.panel}>
       <Text style={styles.panelTitle}>Trusted friends</Text>
-      {contacts.map((contact) => (
+      {!contacts?.length ? (
+        <View style={styles.panelEmpty}>
+          <Text style={styles.panelEmptyTitle}>No trusted friends yet</Text>
+          <Text style={styles.panelEmptyCopy}>
+            Trust a friend to unlock home access and direct messages.
+          </Text>
+        </View>
+      ) : null}
+      {(contacts || []).map((contact) => (
         <View key={contact.profileId} style={styles.contactRow}>
           <View style={styles.contactRowText}>
             <Text style={styles.contactName}>{contact.alias}</Text>
@@ -2374,6 +2380,25 @@ function createMobileStyles(theme) {
       fontSize: 14,
       lineHeight: 20,
       marginTop: 6
+    },
+    panelEmpty: {
+      backgroundColor: theme.quickPanel,
+      borderColor: theme.border,
+      borderRadius: 8,
+      borderWidth: 1,
+      marginTop: 12,
+      padding: 12
+    },
+    panelEmptyTitle: {
+      color: theme.ink,
+      fontSize: 14,
+      fontWeight: '800'
+    },
+    panelEmptyCopy: {
+      color: theme.inkMuted,
+      fontSize: 13,
+      lineHeight: 18,
+      marginTop: 4
     },
     quickStartPanel: {
       backgroundColor: theme.quickPanel,
