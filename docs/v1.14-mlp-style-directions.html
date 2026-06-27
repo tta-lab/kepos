@@ -1,0 +1,1011 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kepos V1 MLP Style Directions</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --ink: #161512;
+        --paper: #f6efe2;
+        --line: rgba(246, 239, 226, 0.18);
+        --muted: rgba(246, 239, 226, 0.68);
+        --shadow: 0 24px 90px rgba(0, 0, 0, 0.28);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        background: #10100f;
+        color: var(--paper);
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          sans-serif;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      .page {
+        min-height: 100vh;
+      }
+
+      .switcher {
+        align-items: center;
+        backdrop-filter: blur(18px);
+        background: rgba(16, 16, 15, 0.82);
+        border-bottom: 1px solid rgba(246, 239, 226, 0.12);
+        display: flex;
+        gap: 10px;
+        justify-content: space-between;
+        left: 0;
+        padding: 12px 18px;
+        position: sticky;
+        right: 0;
+        top: 0;
+        z-index: 20;
+      }
+
+      .switcher strong {
+        font-size: 14px;
+        letter-spacing: 0;
+      }
+
+      .switcher nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: flex-end;
+      }
+
+      .switcher a {
+        border: 1px solid rgba(246, 239, 226, 0.18);
+        border-radius: 999px;
+        color: rgba(246, 239, 226, 0.78);
+        font-size: 12px;
+        padding: 7px 10px;
+        text-decoration: none;
+      }
+
+      .switcher a:hover {
+        border-color: rgba(246, 239, 226, 0.52);
+        color: #fff;
+      }
+
+      .intro {
+        display: grid;
+        gap: 18px;
+        margin: 0 auto;
+        max-width: 1120px;
+        padding: 60px 20px 34px;
+      }
+
+      .intro h1 {
+        font-size: clamp(38px, 7vw, 92px);
+        letter-spacing: 0;
+        line-height: 0.92;
+        margin: 0;
+        max-width: 980px;
+      }
+
+      .intro p {
+        color: rgba(246, 239, 226, 0.72);
+        font-size: clamp(16px, 2vw, 21px);
+        line-height: 1.5;
+        margin: 0;
+        max-width: 780px;
+      }
+
+      .direction {
+        min-height: 100vh;
+        overflow: hidden;
+        padding: 48px 20px 64px;
+      }
+
+      .directionInner {
+        display: grid;
+        gap: 22px;
+        margin: 0 auto;
+        max-width: 1260px;
+      }
+
+      .directionHead {
+        align-items: end;
+        display: grid;
+        gap: 18px;
+        grid-template-columns: 1fr auto;
+      }
+
+      .directionHead h2 {
+        font-size: clamp(36px, 6vw, 76px);
+        letter-spacing: 0;
+        line-height: 0.95;
+        margin: 0;
+      }
+
+      .directionHead p {
+        color: var(--muted);
+        font-size: 16px;
+        line-height: 1.5;
+        margin: 0;
+        max-width: 650px;
+      }
+
+      .verdict {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        color: var(--muted);
+        font-size: 12px;
+        padding: 9px 12px;
+        white-space: nowrap;
+      }
+
+      .showcase {
+        align-items: stretch;
+        display: grid;
+        gap: 18px;
+        grid-template-columns: minmax(0, 1fr) 310px;
+      }
+
+      .desktopMock {
+        border: 1px solid var(--line);
+        box-shadow: var(--shadow);
+        display: grid;
+        grid-template-columns: 74px minmax(0, 1fr) 292px;
+        min-height: 620px;
+        overflow: hidden;
+      }
+
+      .rail {
+        border-right: 1px solid var(--line);
+        display: grid;
+        gap: 10px;
+        grid-template-rows: auto 1fr auto;
+        padding: 14px 10px;
+      }
+
+      .mark {
+        align-items: center;
+        border-radius: 18px;
+        display: flex;
+        font-weight: 900;
+        height: 48px;
+        justify-content: center;
+        width: 48px;
+      }
+
+      .railNav {
+        display: grid;
+        gap: 9px;
+        justify-items: center;
+        padding-top: 20px;
+      }
+
+      .iconButton {
+        align-items: center;
+        border: 1px solid transparent;
+        border-radius: 16px;
+        display: flex;
+        height: 48px;
+        justify-content: center;
+        width: 48px;
+      }
+
+      .mainSurface {
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        min-width: 0;
+      }
+
+      .topbar {
+        align-items: center;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        justify-content: space-between;
+        min-height: 76px;
+        padding: 16px 20px;
+      }
+
+      .eyebrow {
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        margin: 0 0 6px;
+        text-transform: uppercase;
+      }
+
+      .roomTitle {
+        font-size: 24px;
+        font-weight: 850;
+        margin: 0;
+      }
+
+      .statusPill {
+        align-items: center;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        display: inline-flex;
+        font-size: 12px;
+        gap: 8px;
+        padding: 8px 11px;
+      }
+
+      .dot {
+        border-radius: 50%;
+        height: 8px;
+        width: 8px;
+      }
+
+      .feed {
+        align-content: start;
+        display: grid;
+        gap: 14px;
+        overflow: hidden;
+        padding: 22px;
+      }
+
+      .bubble {
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        display: grid;
+        gap: 8px;
+        max-width: 68%;
+        padding: 14px 16px;
+      }
+
+      .bubble.out {
+        justify-self: end;
+      }
+
+      .bubbleMeta {
+        font-size: 12px;
+        font-weight: 800;
+        margin: 0;
+      }
+
+      .bubbleText {
+        font-size: 15px;
+        line-height: 1.42;
+        margin: 0;
+      }
+
+      .composer {
+        border-top: 1px solid var(--line);
+        display: grid;
+        gap: 10px;
+        grid-template-columns: 1fr auto;
+        padding: 16px 20px;
+      }
+
+      .composer input {
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        min-height: 48px;
+        outline: none;
+        padding: 0 16px;
+        width: 100%;
+      }
+
+      .sendButton {
+        border: 0;
+        border-radius: 18px;
+        color: #fff;
+        min-height: 48px;
+        min-width: 58px;
+      }
+
+      .sidePanel {
+        border-left: 1px solid var(--line);
+        display: grid;
+        gap: 16px;
+        grid-template-rows: auto auto 1fr;
+        padding: 18px;
+      }
+
+      .people {
+        display: grid;
+        gap: 10px;
+      }
+
+      .person {
+        align-items: center;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        display: grid;
+        gap: 10px;
+        grid-template-columns: 36px 1fr;
+        padding: 10px;
+      }
+
+      .avatar {
+        align-items: center;
+        border-radius: 14px;
+        display: flex;
+        font-size: 13px;
+        font-weight: 900;
+        height: 36px;
+        justify-content: center;
+        width: 36px;
+      }
+
+      .person strong,
+      .person span {
+        display: block;
+      }
+
+      .person strong {
+        font-size: 13px;
+      }
+
+      .person span {
+        color: var(--muted);
+        font-size: 12px;
+        margin-top: 2px;
+      }
+
+      .qrBox {
+        align-items: center;
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        display: grid;
+        gap: 12px;
+        justify-items: center;
+        padding: 18px;
+      }
+
+      .fakeQr {
+        aspect-ratio: 1;
+        border: 10px solid #fff;
+        display: grid;
+        gap: 6px;
+        grid-template-columns: repeat(5, 1fr);
+        padding: 8px;
+        width: 138px;
+      }
+
+      .fakeQr i {
+        display: block;
+      }
+
+      .mobileMock {
+        border: 1px solid var(--line);
+        border-radius: 34px;
+        box-shadow: var(--shadow);
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        min-height: 620px;
+        overflow: hidden;
+      }
+
+      .mobileTop {
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        justify-content: space-between;
+        padding: 18px 18px 14px;
+      }
+
+      .mobileFeed {
+        align-content: start;
+        display: grid;
+        gap: 12px;
+        padding: 18px;
+      }
+
+      .mobilePost {
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        display: grid;
+        gap: 10px;
+        padding: 14px;
+      }
+
+      .mobileTabs {
+        border-top: 1px solid var(--line);
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        min-height: 72px;
+      }
+
+      .mobileTabs div {
+        align-items: center;
+        display: grid;
+        font-size: 11px;
+        gap: 4px;
+        justify-items: center;
+      }
+
+      .tokens {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      .token {
+        border: 1px solid var(--line);
+        min-height: 92px;
+        padding: 14px;
+      }
+
+      .token strong {
+        display: block;
+        font-size: 13px;
+        margin-bottom: 8px;
+      }
+
+      .token span {
+        color: var(--muted);
+        display: block;
+        font-size: 12px;
+        line-height: 1.4;
+      }
+
+      .swatches {
+        display: flex;
+        gap: 7px;
+      }
+
+      .swatch {
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        border-radius: 50%;
+        height: 24px;
+        width: 24px;
+      }
+
+      .glyph {
+        font-size: 20px;
+        line-height: 1;
+      }
+
+      .cozy {
+        --line: rgba(88, 56, 42, 0.18);
+        --muted: rgba(58, 44, 38, 0.64);
+        background:
+          linear-gradient(90deg, rgba(88, 56, 42, 0.08) 1px, transparent 1px) 0 0 / 34px 34px,
+          #f4ddc8;
+        color: #2a201b;
+      }
+
+      .cozy .desktopMock,
+      .cozy .mobileMock,
+      .cozy .token {
+        background: rgba(255, 248, 235, 0.72);
+      }
+
+      .cozy .rail,
+      .cozy .sidePanel {
+        background: rgba(255, 231, 206, 0.72);
+      }
+
+      .cozy .mark,
+      .cozy .sendButton,
+      .cozy .dot {
+        background: #ef6b4a;
+      }
+
+      .cozy .iconButton.active,
+      .cozy .bubble.out {
+        background: #2f5b47;
+        color: #fff7e8;
+      }
+
+      .cozy .bubble,
+      .cozy .mobilePost,
+      .cozy .composer input,
+      .cozy .person,
+      .cozy .qrBox {
+        background: #fff8eb;
+      }
+
+      .cozy .avatar {
+        background: #ffd16a;
+      }
+
+      .cozy .fakeQr i {
+        background: #2f5b47;
+      }
+
+      .cyber {
+        --line: rgba(126, 255, 191, 0.2);
+        --muted: rgba(203, 229, 216, 0.62);
+        background:
+          linear-gradient(90deg, rgba(126, 255, 191, 0.08) 1px, transparent 1px) 0 0 / 28px 28px,
+          linear-gradient(rgba(126, 255, 191, 0.06) 1px, transparent 1px) 0 0 / 28px 28px,
+          #07110f;
+        color: #e5fff1;
+      }
+
+      .cyber .desktopMock,
+      .cyber .mobileMock,
+      .cyber .token {
+        background: rgba(7, 17, 15, 0.86);
+      }
+
+      .cyber .rail,
+      .cyber .sidePanel,
+      .cyber .bubble,
+      .cyber .mobilePost,
+      .cyber .composer input,
+      .cyber .person,
+      .cyber .qrBox {
+        background: rgba(11, 30, 26, 0.86);
+      }
+
+      .cyber .mark,
+      .cyber .sendButton,
+      .cyber .dot {
+        background: #2df49b;
+        color: #07110f;
+      }
+
+      .cyber .iconButton.active,
+      .cyber .bubble.out {
+        background: #d6ff4f;
+        color: #07110f;
+      }
+
+      .cyber .avatar {
+        background: #1c4dff;
+      }
+
+      .cyber .fakeQr i {
+        background: #2df49b;
+      }
+
+      .console {
+        --line: rgba(255, 255, 255, 0.18);
+        --muted: rgba(245, 244, 220, 0.66);
+        background:
+          linear-gradient(135deg, rgba(255, 209, 72, 0.12) 0 25%, transparent 25% 50%), #19213a;
+        background-size:
+          42px 42px,
+          auto;
+        color: #fff9d8;
+      }
+
+      .console .desktopMock,
+      .console .mobileMock,
+      .console .token {
+        background: #27345b;
+        border-radius: 26px;
+      }
+
+      .console .rail,
+      .console .sidePanel,
+      .console .bubble,
+      .console .mobilePost,
+      .console .composer input,
+      .console .person,
+      .console .qrBox {
+        background: #11182e;
+      }
+
+      .console .mark,
+      .console .sendButton,
+      .console .dot {
+        background: #ffcf3d;
+        color: #11182e;
+      }
+
+      .console .iconButton.active,
+      .console .bubble.out {
+        background: #ff6f61;
+        color: #fff;
+      }
+
+      .console .avatar {
+        background: #6de3ff;
+        color: #11182e;
+      }
+
+      .console .fakeQr i {
+        background: #11182e;
+      }
+
+      .brutal {
+        --line: rgba(18, 18, 18, 0.9);
+        --muted: rgba(18, 18, 18, 0.68);
+        background: #f8f05a;
+        color: #121212;
+      }
+
+      .brutal .desktopMock,
+      .brutal .mobileMock,
+      .brutal .token {
+        background: #fffdf0;
+        border: 3px solid #121212;
+        box-shadow: 10px 10px 0 #121212;
+      }
+
+      .brutal .rail,
+      .brutal .sidePanel,
+      .brutal .bubble,
+      .brutal .mobilePost,
+      .brutal .composer input,
+      .brutal .person,
+      .brutal .qrBox {
+        background: #fffdf0;
+        border-color: #121212;
+      }
+
+      .brutal .mark,
+      .brutal .sendButton,
+      .brutal .dot {
+        background: #ff4d8d;
+        color: #121212;
+      }
+
+      .brutal .iconButton.active,
+      .brutal .bubble.out {
+        background: #00d084;
+        color: #121212;
+      }
+
+      .brutal .avatar {
+        background: #4dd5ff;
+        border: 2px solid #121212;
+      }
+
+      .brutal .fakeQr i {
+        background: #121212;
+      }
+
+      @media (max-width: 980px) {
+        .directionHead,
+        .showcase,
+        .tokens {
+          grid-template-columns: 1fr;
+        }
+
+        .desktopMock {
+          grid-template-columns: 60px minmax(0, 1fr);
+        }
+
+        .sidePanel {
+          display: none;
+        }
+
+        .mobileMock {
+          min-height: 560px;
+        }
+      }
+
+      @media (max-width: 620px) {
+        .switcher {
+          align-items: start;
+          display: grid;
+        }
+
+        .desktopMock {
+          min-height: 560px;
+        }
+
+        .topbar {
+          align-items: start;
+          display: grid;
+          gap: 12px;
+        }
+
+        .bubble {
+          max-width: 92%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header class="switcher">
+        <strong>Kepos V1 MLP style directions</strong>
+        <nav aria-label="Style directions">
+          <a href="#cozy">Neo Cozy</a>
+          <a href="#cyber">Quiet Cyber</a>
+          <a href="#console">Indie Console</a>
+          <a href="#brutal">Soft Brutalist</a>
+        </nav>
+      </header>
+
+      <section class="intro">
+        <h1>Four possible faces for a private P2P home.</h1>
+        <p>
+          These are not final screens. They are visual hypotheses for the same product loop: trusted
+          people, home chat, treehole, DM, and QR invite. The best direction should feel young
+          without turning Kepos into a generic social app. Current default direction: Neo Cozy +
+          Indie Console.
+        </p>
+      </section>
+
+      <section id="cozy" class="direction cozy">
+        <div class="directionInner">
+          <header class="directionHead">
+            <div>
+              <h2>Neo Cozy</h2>
+              <p>
+                A private room feeling: warm, personal, soft, and easy to reopen every day. Good for
+                making P2P trust feel human instead of technical.
+              </p>
+            </div>
+            <div class="verdict">Default base</div>
+          </header>
+
+          <div class="showcase">
+            <article class="desktopMock" aria-label="Neo Cozy desktop preview">
+              <desktop-mock-content></desktop-mock-content>
+            </article>
+            <article class="mobileMock" aria-label="Neo Cozy mobile preview">
+              <mobile-mock-content></mobile-mock-content>
+            </article>
+          </div>
+
+          <style-tokens
+            palette="#f4ddc8,#fff8eb,#ef6b4a,#2f5b47"
+            words="private room, trusted, warm"
+            risk="Can become too diary-like if too soft."
+            fit="Best for V1 trust, chat, treehole."
+          ></style-tokens>
+        </div>
+      </section>
+
+      <section id="cyber" class="direction cyber">
+        <div class="directionInner">
+          <header class="directionHead">
+            <div>
+              <h2>Quiet Cyber</h2>
+              <p>
+                A private network feeling: dark, sharp, encrypted, and cool. Strong for trust,
+                tunnels, RetroArch, and local services.
+              </p>
+            </div>
+            <div class="verdict">Not selected for default</div>
+          </header>
+
+          <div class="showcase">
+            <article class="desktopMock" aria-label="Quiet Cyber desktop preview">
+              <desktop-mock-content></desktop-mock-content>
+            </article>
+            <article class="mobileMock" aria-label="Quiet Cyber mobile preview">
+              <mobile-mock-content></mobile-mock-content>
+            </article>
+          </div>
+
+          <style-tokens
+            palette="#07110f,#0b1e1a,#2df49b,#d6ff4f"
+            words="secret network, trust, signal"
+            risk="Can feel like a security tool."
+            fit="Excellent for V3 tunnel/game surfaces."
+          ></style-tokens>
+        </div>
+      </section>
+
+      <section id="console" class="direction console">
+        <div class="directionInner">
+          <header class="directionHead">
+            <div>
+              <h2>Indie Console</h2>
+              <p>
+                A lobby feeling: playful, social, and close to co-play. It makes future game rooms
+                feel native, but may be too game-forward for V1.
+              </p>
+            </div>
+            <div class="verdict">Default interaction language</div>
+          </header>
+
+          <div class="showcase">
+            <article class="desktopMock" aria-label="Indie Console desktop preview">
+              <desktop-mock-content></desktop-mock-content>
+            </article>
+            <article class="mobileMock" aria-label="Indie Console mobile preview">
+              <mobile-mock-content></mobile-mock-content>
+            </article>
+          </div>
+
+          <style-tokens
+            palette="#19213a,#27345b,#ffcf3d,#ff6f61"
+            words="lobby, co-play, session"
+            risk="Can narrow the app into game-only expectations."
+            fit="Great for V3, useful as room variant."
+          ></style-tokens>
+        </div>
+      </section>
+
+      <section id="brutal" class="direction brutal">
+        <div class="directionInner">
+          <header class="directionHead">
+            <div>
+              <h2>Soft Brutalist</h2>
+              <p>
+                A young social-tool feeling: bold, memorable, and direct. It can stand apart from
+                Discord clones, but needs strong execution.
+              </p>
+            </div>
+            <div class="verdict">Most memorable, highest risk</div>
+          </header>
+
+          <div class="showcase">
+            <article class="desktopMock" aria-label="Soft Brutalist desktop preview">
+              <desktop-mock-content></desktop-mock-content>
+            </article>
+            <article class="mobileMock" aria-label="Soft Brutalist mobile preview">
+              <mobile-mock-content></mobile-mock-content>
+            </article>
+          </div>
+
+          <style-tokens
+            palette="#f8f05a,#fffdf0,#ff4d8d,#00d084"
+            words="direct, loud, social"
+            risk="Can look cheap if spacing and type are weak."
+            fit="Good for a bolder youth-facing brand."
+          ></style-tokens>
+        </div>
+      </section>
+    </div>
+
+    <template id="desktop-template">
+      <aside class="rail">
+        <div class="mark">K</div>
+        <nav class="railNav" aria-label="Desktop preview navigation">
+          <div class="iconButton active" title="Home"><span class="glyph">H</span></div>
+          <div class="iconButton" title="DM"><span class="glyph">M</span></div>
+          <div class="iconButton" title="Treehole"><span class="glyph">T</span></div>
+          <div class="iconButton" title="People"><span class="glyph">P</span></div>
+        </nav>
+        <div class="iconButton" title="Settings"><span class="glyph">S</span></div>
+      </aside>
+      <main class="mainSurface">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">trusted home</p>
+            <p class="roomTitle">Ada's room</p>
+          </div>
+          <div class="statusPill"><span class="dot"></span> 2 peers online</div>
+        </header>
+        <ol class="feed">
+          <li class="bubble">
+            <p class="bubbleMeta">Ada</p>
+            <p class="bubbleText">I posted a small note in treehole.</p>
+          </li>
+          <li class="bubble out">
+            <p class="bubbleMeta">Neil</p>
+            <p class="bubbleText">I can see it. The room feels much clearer now.</p>
+          </li>
+          <li class="bubble">
+            <p class="bubbleMeta">Ada</p>
+            <p class="bubbleText">Send me your home QR later.</p>
+          </li>
+        </ol>
+        <form class="composer">
+          <input value="Write to the home" aria-label="Message preview input" />
+          <button class="sendButton" type="button">Send</button>
+        </form>
+      </main>
+      <aside class="sidePanel">
+        <div>
+          <p class="eyebrow">people</p>
+          <p class="roomTitle">Trusted</p>
+        </div>
+        <div class="people">
+          <div class="person">
+            <div class="avatar">A</div>
+            <div><strong>Ada</strong><span>trusted friend</span></div>
+          </div>
+          <div class="person">
+            <div class="avatar">N</div>
+            <div><strong>Neil</strong><span>home owner</span></div>
+          </div>
+        </div>
+        <div class="qrBox">
+          <p class="eyebrow">home qr</p>
+          <div class="fakeQr" aria-hidden="true">
+            <i></i><i></i><i></i><i></i><i></i> <i></i><i></i><i></i><i></i><i></i> <i></i><i></i
+            ><i></i><i></i><i></i> <i></i><i></i><i></i><i></i><i></i> <i></i><i></i><i></i><i></i
+            ><i></i>
+          </div>
+        </div>
+      </aside>
+    </template>
+
+    <template id="mobile-template">
+      <header class="mobileTop">
+        <div>
+          <p class="eyebrow">home</p>
+          <p class="roomTitle">Ada</p>
+        </div>
+        <div class="statusPill"><span class="dot"></span> live</div>
+      </header>
+      <main class="mobileFeed">
+        <article class="mobilePost">
+          <p class="bubbleMeta">Treehole</p>
+          <p class="bubbleText">Only trusted friends can comment here.</p>
+        </article>
+        <article class="bubble out">
+          <p class="bubbleMeta">You</p>
+          <p class="bubbleText">This feels like a private room.</p>
+        </article>
+        <article class="mobilePost">
+          <p class="bubbleMeta">People</p>
+          <p class="bubbleText">Ada and Neil are trusted on this device.</p>
+        </article>
+      </main>
+      <footer class="mobileTabs">
+        <div><span class="glyph">H</span><span>Home</span></div>
+        <div><span class="glyph">M</span><span>DM</span></div>
+        <div><span class="glyph">T</span><span>Tree</span></div>
+        <div><span class="glyph">P</span><span>People</span></div>
+      </footer>
+    </template>
+
+    <template id="tokens-template">
+      <div class="tokens">
+        <div class="token">
+          <strong>Palette</strong>
+          <div class="swatches"></div>
+        </div>
+        <div class="token">
+          <strong>Words</strong>
+          <span data-token="words"></span>
+        </div>
+        <div class="token">
+          <strong>Risk</strong>
+          <span data-token="risk"></span>
+        </div>
+        <div class="token">
+          <strong>Fit</strong>
+          <span data-token="fit"></span>
+        </div>
+      </div>
+    </template>
+
+    <script>
+      customElements.define(
+        'desktop-mock-content',
+        class extends HTMLElement {
+          connectedCallback() {
+            this.replaceWith(document.querySelector('#desktop-template').content.cloneNode(true))
+          }
+        }
+      )
+
+      customElements.define(
+        'mobile-mock-content',
+        class extends HTMLElement {
+          connectedCallback() {
+            this.replaceWith(document.querySelector('#mobile-template').content.cloneNode(true))
+          }
+        }
+      )
+
+      customElements.define(
+        'style-tokens',
+        class extends HTMLElement {
+          connectedCallback() {
+            const fragment = document.querySelector('#tokens-template').content.cloneNode(true)
+            const colors = this.getAttribute('palette').split(',')
+            const swatches = fragment.querySelector('.swatches')
+            colors.forEach((color) => {
+              const item = document.createElement('span')
+              item.className = 'swatch'
+              item.style.background = color
+              swatches.append(item)
+            })
+            fragment.querySelector('[data-token="words"]').textContent = this.getAttribute('words')
+            fragment.querySelector('[data-token="risk"]').textContent = this.getAttribute('risk')
+            fragment.querySelector('[data-token="fit"]').textContent = this.getAttribute('fit')
+            this.replaceWith(fragment)
+          }
+        }
+      )
+    </script>
+  </body>
+</html>

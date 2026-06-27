@@ -129,8 +129,8 @@ Corrupt data behavior:
 - Local: `src/treehole-storage.js` — current normalized treehole Corestore path helper.
 - Local: `src/treehole-base.js` — current Corestore/Autobase storage requirement.
 - Local: `src/contact-book-storage.js`, `src/dm-thread-storage.js`, and `src/dm-message-storage.ts` — current local trust and DM persistence adapters.
-- Local: `docs/v1-tradeoffs.md` — ContactBook adapter direction.
-- Local: `docs/v1-architecture-gaps.md` — current schema version, migration, and remaining live-smoke evidence.
+- Local: `docs/v1.04-tradeoffs.md` — ContactBook adapter direction.
+- Local: `docs/v1.07-architecture-gaps.md` — current schema version, migration, and remaining live-smoke evidence.
 - Expo FileSystem legacy docs: https://docs.expo.dev/versions/v56.0.0/sdk/filesystem-legacy/ — app-scoped document/cache directories, document persistence, read/write APIs.
 - AsyncStorage limits docs: https://react-native-async-storage.github.io/2.0/advanced/Limits/ — Android default total and per-entry limits.
 - Expo SQLite docs: https://docs.expo.dev/versions/latest/sdk/sqlite/ — persisted SQLite, `PRAGMA user_version` migration example, SQLCipher and key-value store options.

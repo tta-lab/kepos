@@ -67,7 +67,7 @@ Do not sign ad hoc `JSON.stringify()` output. If JSON must be signed, use `canon
 
 ## Sources
 
-- Verified: local Kepos docs require real V1 signing and deterministic signed bytes: `docs/v1-dependency-order.md`, `docs/keet-grade-identity-security.md`, `docs/v1-limitations.md`.
+- Verified: local Kepos docs require real V1 signing and deterministic signed bytes: `docs/v1.01-dependency-order.md`, `docs/v1.06-identity-security.md`, `docs/v1.03-limitations.md`.
 - Verified: `hypercore-crypto` npm metadata and README: https://www.npmjs.com/package/hypercore-crypto and https://github.com/mafintosh/hypercore-crypto
 - Verified: `keet-identity-key` npm metadata and README: https://www.npmjs.com/package/keet-identity-key and https://github.com/holepunchto/keet-identity-key
 - Verified: `keypear` npm metadata and README: https://www.npmjs.com/package/keypear and https://github.com/holepunchto/keypear
