@@ -68,13 +68,18 @@ test('desktop controller routes treehole runtime updates through backend bridge 
     new URL('../src/desktop-local-backend-host.js', import.meta.url),
     'utf8'
   )
+  const subscriptions = await readFile(
+    new URL('../src/desktop-backend-subscriptions.js', import.meta.url),
+    'utf8'
+  )
 
   assert.match(host, /createDesktopBackendRuntime/)
   assert.match(host, /emit: \(event, payload\) => bridge\.emit\(event, payload\)/)
   assert.match(source, /const treeholeRuntime = backendHost\.treeholeRuntime/)
-  assert.match(source, /backendClient\.subscribe\('treeholeStateChanged'/)
-  assert.match(source, /setDesktopTreehole\(state, snapshot\)/)
-  assert.match(source, /backendClient\.subscribe\('errorReceived', showError\)/)
+  assert.match(source, /createDesktopBackendSubscriptions/)
+  assert.match(subscriptions, /backendClient\.subscribe\('treeholeStateChanged'/)
+  assert.match(subscriptions, /setDesktopTreehole\(getState\(\), snapshot\)/)
+  assert.match(subscriptions, /backendClient\.subscribe\('errorReceived', onError\)/)
   assert.doesNotMatch(source, /import Hyperswarm/)
   assert.doesNotMatch(source, /createTreeholeBase/)
   assert.doesNotMatch(source, /createTreeholeStatePublisher/)
@@ -86,11 +91,16 @@ test('desktop controller routes Home and Direct sessions through backend bridge 
     new URL('../src/desktop-backend-runtime.js', import.meta.url),
     'utf8'
   )
+  const subscriptions = await readFile(
+    new URL('../src/desktop-backend-subscriptions.js', import.meta.url),
+    'utf8'
+  )
 
   assert.match(runtime, /emit\('homeMessageReceived', session\)/)
   assert.match(runtime, /emit\('dmMessageReceived', session\)/)
-  assert.match(source, /backendClient\.subscribe\('homeMessageReceived'/)
-  assert.match(source, /backendClient\.subscribe\('dmMessageReceived'/)
+  assert.match(source, /createDesktopBackendSubscriptions/)
+  assert.match(subscriptions, /backendClient\.subscribe\('homeMessageReceived'/)
+  assert.match(subscriptions, /backendClient\.subscribe\('dmMessageReceived'/)
   assert.doesNotMatch(source, /onHomeSessionChanged:/)
   assert.doesNotMatch(source, /onDmSessionChanged:/)
 })

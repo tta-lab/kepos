@@ -1,6 +1,7 @@
 /* global navigator */
 
 import { createDesktopBackendActions } from '../src/desktop-backend-actions.js'
+import { createDesktopBackendSubscriptions } from '../src/desktop-backend-subscriptions.js'
 import { createDesktopControlActions } from '../src/desktop-control-actions.js'
 import { createDesktopProfileContext } from '../src/desktop-profile-context.js'
 import { createDesktopMessageActions } from '../src/desktop-message-actions.js'
@@ -8,7 +9,7 @@ import { createDesktopMessageRequestActions } from '../src/desktop-message-reque
 import { createDesktopQrActions } from '../src/desktop-qr-actions.js'
 import { createDesktopRenderPresenter } from '../src/desktop-render-presenter.js'
 import { createDesktopRoomActions } from '../src/desktop-room-actions.js'
-import { createDesktopState, setDesktopTab, setDesktopTreehole } from '../src/desktop-state.js'
+import { createDesktopState, setDesktopTab } from '../src/desktop-state.js'
 import { createDesktopLocalBackendHost } from '../src/desktop-local-backend-host.js'
 import { createDesktopRendererBackendClient } from '../src/desktop-renderer-backend-client.js'
 import { getDesktopStorageBasePath } from '../src/desktop-storage-base.js'
@@ -212,23 +213,21 @@ globalThis.keposDesktopUi?.setTreeholeComposerActions({
   postTreehole: ({ text }) => dispatchCommand('postTreehole', { text })
 })
 
-backendClient.subscribe('homeMessageReceived', (nextSession) => {
-  session = nextSession
-  render()
+createDesktopBackendSubscriptions({
+  backendClient,
+  getState: () => state,
+  onError: showError,
+  onRender: () => render(),
+  setDmSession: (nextSession) => {
+    dmSession = nextSession
+  },
+  setHomeSession: (nextSession) => {
+    session = nextSession
+  },
+  setState: (nextState) => {
+    state = nextState
+  }
 })
-backendClient.subscribe('dmMessageReceived', (nextSession) => {
-  dmSession = nextSession
-  render()
-})
-backendClient.subscribe('treeholeStateChanged', (snapshot) => {
-  state = setDesktopTreehole(state, snapshot)
-  render()
-})
-backendClient.subscribe('peerCountChanged', ({ peers }) => {
-  state = { ...state, peers }
-  render()
-})
-backendClient.subscribe('errorReceived', showError)
 
 qrActions.updateQrOutputs().catch(showError)
 render()
