@@ -1769,7 +1769,7 @@ function treeholeStatusText(status) {
   }
 
   if (status === 'starting') {
-    return 'Starting the treehole log.'
+    return 'Starting the treehole.'
   }
 
   return 'Write the first post from this phone.'

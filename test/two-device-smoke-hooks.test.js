@@ -223,7 +223,9 @@ test('Android treehole empty state talks about posts', async () => {
 
   assert.match(source, /No posts yet/)
   assert.match(source, /Waiting for the home owner to share the treehole\./)
+  assert.match(source, /Starting the treehole\./)
   assert.equal(source.includes('No treeholes yet'), false)
+  assert.equal(source.includes('Starting the treehole log.'), false)
   assert.equal(source.includes('Waiting for a home peer to share the treehole log.'), false)
 })
 
