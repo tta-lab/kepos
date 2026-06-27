@@ -20,18 +20,33 @@ import {
 
 const THEME_STORAGE_KEY = 'kepos.desktop.theme'
 const desktopUiBridge = {
+  setDirectMessageActions: () => {},
+  setDirectMessages: () => {},
   setHomeMessages: () => {}
 }
 
 globalThis.keposDesktopUi = {
+  setDirectMessageActions(actions = {}) {
+    desktopUiBridge.setDirectMessageActions(actions)
+  },
+  setDirectMessages(messages = []) {
+    desktopUiBridge.setDirectMessages(messages)
+  },
   setHomeMessages(messages = []) {
     desktopUiBridge.setHomeMessages(messages)
   }
 }
 
 function DesktopApp() {
+  const [directMessageActions, setDirectMessageActions] = useState({
+    acceptMessage: () => {},
+    ignoreMessage: () => {}
+  })
+  const [directMessages, setDirectMessages] = useState([])
   const [homeMessages, setHomeMessages] = useState([])
   const [theme, setTheme] = useState(getInitialTheme)
+  desktopUiBridge.setDirectMessageActions = setDirectMessageActions
+  desktopUiBridge.setDirectMessages = setDirectMessages
   desktopUiBridge.setHomeMessages = setHomeMessages
 
   useEffect(() => {
@@ -126,12 +141,10 @@ function DesktopApp() {
 
           <section id='dmPane' className='pane hidden'>
             <PaneLabel eyebrow='durable' title='Direct messages' />
-            <ol
-              id='dmList'
-              className='list'
-              aria-label='Direct messages'
-              data-empty='No direct messages yet'
-              data-empty-detail='Choose a trusted friend and send the first message.'
+            <DirectMessageList
+              messages={directMessages}
+              onAccept={directMessageActions.acceptMessage}
+              onIgnore={directMessageActions.ignoreMessage}
             />
             <form id='dmForm' className='composer tall'>
               <div id='dmContactList' className='contactList' />
@@ -414,6 +427,43 @@ function HomeChatList({ messages }) {
         <li key={`${message.meta}-${index}-${message.text}`} className={message.className}>
           <p className='meta'>{message.meta}</p>
           <p>{message.text}</p>
+        </li>
+      ))}
+    </ol>
+  )
+}
+
+function DirectMessageList({ messages, onAccept, onIgnore }) {
+  return (
+    <ol
+      id='dmList'
+      className='list'
+      aria-label='Direct messages'
+      data-empty='No direct messages yet'
+      data-empty-detail='Choose a trusted friend and send the first message.'
+    >
+      {messages.map((message, index) => (
+        <li key={`${message.meta}-${index}-${message.text}`} className={message.className}>
+          <p className='meta'>{message.meta}</p>
+          <p>{message.text}</p>
+          {message.actions ? (
+            <div className='inlineActions'>
+              <button
+                className='smallButton'
+                type='button'
+                onClick={() => onIgnore(message.actions.ignoreMessage)}
+              >
+                Ignore
+              </button>
+              <button
+                className='smallButton'
+                type='button'
+                onClick={() => onAccept(message.actions.acceptMessage)}
+              >
+                Accept
+              </button>
+            </div>
+          ) : null}
         </li>
       ))}
     </ol>

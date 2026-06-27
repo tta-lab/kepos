@@ -45,3 +45,18 @@ test('desktop React owns the home chat list surface', async () => {
   assert.match(controller, /globalThis\.keposDesktopUi\?\.setHomeMessages\(messages\)/)
   assert.doesNotMatch(controller, /els\.messageList\.replaceChildren/)
 })
+
+test('desktop React owns the direct message list surface', async () => {
+  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+
+  assert.match(source, /function DirectMessageList\(\{ messages, onAccept, onIgnore \}\)/)
+  assert.match(source, /setDirectMessages\(messages = \[\]\)/)
+  assert.match(source, /setDirectMessageActions\(actions = \{\}\)/)
+  assert.match(source, /<DirectMessageList[\s\S]*messages=\{directMessages\}/)
+  assert.match(source, /onClick=\{\(\) => onIgnore\(message\.actions\.ignoreMessage\)\}/)
+  assert.match(source, /onClick=\{\(\) => onAccept\(message\.actions\.acceptMessage\)\}/)
+  assert.match(controller, /globalThis\.keposDesktopUi\?\.setDirectMessages\(messages\)/)
+  assert.match(controller, /globalThis\.keposDesktopUi\?\.setDirectMessageActions\(\{/)
+  assert.doesNotMatch(controller, /els\.dmList\.replaceChildren/)
+})

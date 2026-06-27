@@ -52,7 +52,6 @@ const els = {
   dmForm: document.querySelector('#dmForm'),
   dmContactList: document.querySelector('#dmContactList'),
   dmInput: document.querySelector('#dmInput'),
-  dmList: document.querySelector('#dmList'),
   dmPane: document.querySelector('#dmPane'),
   dmRecipientInput: document.querySelector('#dmRecipientInput'),
   dmSendButton: document.querySelector('#dmSendButton'),
@@ -156,6 +155,11 @@ const backendRuntime = createDesktopBackendRuntime({
 const dmRuntime = backendRuntime.dm
 const homeRuntime = backendRuntime.home
 const treeholeRuntime = backendRuntime.treehole
+
+globalThis.keposDesktopUi?.setDirectMessageActions({
+  acceptMessage: (message) => dispatchCommand('acceptMessageRequest', { message }),
+  ignoreMessage: (message) => dispatchCommand('ignoreMessageRequest', { message })
+})
 
 backendClient.subscribe('treeholeStateChanged', (snapshot) => {
   state = setDesktopTreehole(state, snapshot)
@@ -677,14 +681,7 @@ function renderDirectMessages() {
     messages: dmSession?.messages || [],
     shortenProfileId: shorten
   })
-  els.dmList.replaceChildren(
-    ...messages.map((message) => {
-      const item = document.createElement('li')
-      item.className = message.className
-      item.append(renderDirectMessageContent(message))
-      return item
-    })
-  )
+  globalThis.keposDesktopUi?.setDirectMessages(messages)
 }
 
 function renderDirectContacts() {
@@ -867,40 +864,6 @@ async function revokeLocalContact(profileId) {
 
   state = { ...state, notice: 'Trust revoked.' }
   render()
-}
-
-function renderDirectMessageContent(message) {
-  const fragment = document.createDocumentFragment()
-  const meta = document.createElement('p')
-  const text = document.createElement('p')
-
-  meta.className = 'meta'
-  meta.textContent = message.meta
-  text.textContent = message.text
-  fragment.append(meta, text)
-
-  if (message.actions) {
-    const actions = document.createElement('div')
-    const ignoreButton = document.createElement('button')
-    const button = document.createElement('button')
-    actions.className = 'inlineActions'
-    ignoreButton.type = 'button'
-    ignoreButton.className = 'smallButton'
-    ignoreButton.textContent = 'Ignore'
-    ignoreButton.addEventListener('click', () => {
-      dispatchCommand('ignoreMessageRequest', { message: message.actions.ignoreMessage })
-    })
-    button.type = 'button'
-    button.className = 'smallButton'
-    button.textContent = 'Accept'
-    button.addEventListener('click', () => {
-      dispatchCommand('acceptMessageRequest', { message: message.actions.acceptMessage })
-    })
-    actions.append(ignoreButton, button)
-    fragment.append(actions)
-  }
-
-  return fragment
 }
 
 async function acceptIncomingMessageRequest(message) {
