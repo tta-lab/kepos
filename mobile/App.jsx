@@ -922,7 +922,7 @@ function Lobby({
           >
             <ArrowRight color={canJoin ? '#143d2b' : '#8b9188'} size={18} />
             <Text style={[styles.secondaryButtonText, !canJoin && styles.disabledButtonText]}>
-              Join Home
+              Join home
             </Text>
           </Pressable>
         </View>

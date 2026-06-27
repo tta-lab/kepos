@@ -48,6 +48,16 @@ describe('manual key debug UI boundary', () => {
     )
   })
 
+  test('manual home key buttons still use product join copy', async () => {
+    const desktop = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+    const mobile = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+
+    assert.match(desktop, /Join home/)
+    assert.match(mobile, /Join home/)
+    assert.equal(desktop.includes('Join Home'), false)
+    assert.equal(mobile.includes('Join Home'), false)
+  })
+
   test('mobile keeps manual DM recipient entry inside an advanced section', async () => {
     const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 

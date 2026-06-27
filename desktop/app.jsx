@@ -183,7 +183,7 @@ function DesktopApp() {
                 </label>
                 <button id='joinButton' type='submit'>
                   <LogOut size={17} />
-                  Join Home
+                  Join home
                 </button>
               </details>
             </form>
