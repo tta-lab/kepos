@@ -4,11 +4,6 @@ import QRCode from 'qrcode'
 import { applyMessageRequestToContactBook } from '../src/message-request.ts'
 import { createTreeholePolicyFromContactBook } from '../src/contact-book-storage.js'
 import { ignoreMessageRequest, listTrustedContacts } from '../src/contact-book.ts'
-import {
-  createHomeJoinSession,
-  createHomeJoinSessionFromAddress,
-  createManualHomeJoinSession
-} from '../src/home-session.js'
 import { applyLocalContactRevoke } from '../src/revoke-state.js'
 import { applySignedQrUriToContactBook } from '../src/signed-qr-scan.js'
 import {
@@ -17,6 +12,7 @@ import {
   encodeQrUri
 } from '../src/signed-qr-payload.ts'
 import { createDesktopBackendRuntime } from '../src/desktop-backend-runtime.js'
+import { createDesktopHomeJoinDetails } from '../src/desktop-home-join-service.js'
 import {
   getDesktopLocalProfile,
   loadDesktopContactBook,
@@ -284,32 +280,26 @@ async function joinRoom({ createTreehole, homeAddress = null, mode, roomKey }) {
   const nick = els.nickInput.value.trim() || 'Desktop'
   const profile = getDesktopProfile(nick)
   const contactBook = loadLocalContactBook(profile.id)
-  const treeholePolicy = createTreeholePolicyFromContactBook(contactBook)
-  const homeJoin = homeAddress
-    ? createHomeJoinSessionFromAddress({
-        address: homeAddress.address,
-        identity: profile.identity,
-        nick,
-        ownerProfileId: homeAddress.ownerProfileId,
-        policy: homeAddress.policy,
-        profileId: profile.id,
-        roomKey: homeAddress.roomKey
-      })
-    : roomKey
-      ? createManualHomeJoinSession({
-          identity: profile.identity,
-          nick,
-          profileId: profile.id,
-          roomKey
-        })
-      : createHomeJoinSession({ nick, profile })
+  const homeJoin = createDesktopHomeJoinDetails({
+    contactBook,
+    homeAddress,
+    mode,
+    nick,
+    profile,
+    roomKey
+  })
 
-  els.roomKeyInput.value = homeJoin.roomKey
-  homeJoinDetails = { ...homeJoin, treeholePolicy }
+  els.roomKeyInput.value = homeJoin.homeJoinDetails.roomKey
+  homeJoinDetails = homeJoin.homeJoinDetails
   session = homeJoin.session
   configureTreeholeRuntime()
   dmSession = await dmRuntime.start({ nick, profile, storage: globalThis.localStorage })
-  state = setDesktopRoom(state, { mode, nick, peers: 0, roomKey: homeJoin.roomKey })
+  state = setDesktopRoom(state, {
+    mode: homeJoin.mode,
+    nick,
+    peers: 0,
+    roomKey: homeJoin.homeJoinDetails.roomKey
+  })
   state = { ...state, notice: 'Joining home...' }
   render()
 
