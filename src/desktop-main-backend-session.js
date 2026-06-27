@@ -11,14 +11,17 @@ export function createDesktopMainBackendSession({
   storageBasePath
 } = {}) {
   const controllerState = createControllerState({ defaultDisplayName })
+  let backendSession = null
 
-  return createBackendSession({
+  backendSession = createBackendSession({
     controllerState,
     createId,
     getCurrentDisplayName: () => controllerState.getCurrentDisplayName(),
     getProfileContext: (displayName = controllerState.getCurrentDisplayName()) =>
       createProfileContext({ displayName, storageBasePath }),
-    onChanged: () => {},
+    onChanged: () => {
+      backendSession?.backendHost.bridge.emit('desktopStateChanged', controllerState.getState())
+    },
     setContextFormDraft: () => {},
     setDirectComposerRecipient: (profileId) => {
       controllerState.setDirectComposerRecipient(profileId)
@@ -32,6 +35,8 @@ export function createDesktopMainBackendSession({
       controllerState.updateState(updater)
     }
   })
+
+  return backendSession
 }
 
 function defaultCreateId() {

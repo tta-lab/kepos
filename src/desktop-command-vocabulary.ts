@@ -16,6 +16,7 @@ export const DESKTOP_COMMANDS = [
 
 export const DESKTOP_EVENTS = [
   'contactBookChanged',
+  'desktopStateChanged',
   'dmMessageReceived',
   'dmThreadChanged',
   'errorReceived',

@@ -16,6 +16,7 @@ const DESKTOP_COMMANDS = [
 
 const DESKTOP_EVENTS = [
   'contactBookChanged',
+  'desktopStateChanged',
   'dmMessageReceived',
   'dmThreadChanged',
   'errorReceived',

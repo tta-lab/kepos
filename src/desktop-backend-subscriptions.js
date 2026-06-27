@@ -14,6 +14,10 @@ export function createDesktopBackendSubscriptions({
       setHomeSession(nextSession)
       onRender()
     }),
+    backendClient.subscribe('desktopStateChanged', (nextState) => {
+      setState(nextState)
+      onRender()
+    }),
     backendClient.subscribe('dmMessageReceived', (nextSession) => {
       setDmSession(nextSession)
       onRender()

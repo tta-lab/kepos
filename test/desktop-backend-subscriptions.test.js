@@ -48,6 +48,7 @@ test('desktop backend subscriptions update renderer snapshots from backend event
   })
 
   emit('homeMessageReceived', { messages: ['home'] })
+  emit('desktopStateChanged', { ...state, mode: 'host', notice: 'Home joined.', view: 'room' })
   emit('dmMessageReceived', { messages: ['dm'] })
   emit('treeholeStateChanged', { canPost: false, posts: [], status: 'ready' })
   emit('peerCountChanged', { peers: 3 })
@@ -56,18 +57,23 @@ test('desktop backend subscriptions update renderer snapshots from backend event
 
   assert.deepEqual(homeSession, { messages: ['home'] })
   assert.deepEqual(dmSession, { messages: ['dm'] })
+  assert.equal(state.mode, 'host')
+  assert.equal(state.notice, 'Home joined.')
+  assert.equal(state.view, 'room')
   assert.equal(state.treeholeStatus, 'ready')
   assert.equal(state.treeholeCanPost, false)
   assert.equal(state.peers, 3)
   assert.equal(errors[0].message, 'failed')
-  assert.deepEqual(renders, ['render', 'render', 'render', 'render'])
+  assert.deepEqual(renders, ['render', 'render', 'render', 'render', 'render'])
   assert.deepEqual(subscriptions, [
     ['subscribe', 'homeMessageReceived'],
+    ['subscribe', 'desktopStateChanged'],
     ['subscribe', 'dmMessageReceived'],
     ['subscribe', 'treeholeStateChanged'],
     ['subscribe', 'peerCountChanged'],
     ['subscribe', 'errorReceived'],
     ['unsubscribe', 'homeMessageReceived'],
+    ['unsubscribe', 'desktopStateChanged'],
     ['unsubscribe', 'dmMessageReceived'],
     ['unsubscribe', 'treeholeStateChanged'],
     ['unsubscribe', 'peerCountChanged'],

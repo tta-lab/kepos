@@ -4,12 +4,17 @@ import { createDesktopMainBackendSession } from '../src/desktop-main-backend-ses
 
 test('desktop main backend session uses file profile context and local backend bridge', () => {
   const calls = []
+  const emitted = []
   const session = createDesktopMainBackendSession({
     createBackendSession: (options) => {
       calls.push(options)
       return {
         backendHost: {
-          bridge: { dispatch: () => undefined, subscribe: () => () => {} }
+          bridge: {
+            dispatch: () => undefined,
+            emit: (event, payload) => emitted.push([event, payload]),
+            subscribe: () => () => {}
+          }
         }
       }
     },
@@ -28,17 +33,20 @@ test('desktop main backend session uses file profile context and local backend b
   calls[0].getProfileContext('Ada')
   calls[0].setDirectComposerRecipient('friend-1')
   calls[0].setNotice('Ready.')
+  calls[0].onChanged()
 
   assert.deepEqual(calls.slice(1), [
     ['profileContext', { displayName: 'Ada', storageBasePath: '/user-data/kepos/v1' }],
     ['setDirectComposerRecipient', 'friend-1'],
     ['updateState']
   ])
+  assert.deepEqual(emitted, [['desktopStateChanged', { notice: 'Ready.' }]])
 })
 
 function createControllerState(calls) {
   return {
     getCurrentDisplayName: () => 'Desktop',
+    getState: () => ({ notice: 'Ready.' }),
     setDirectComposerRecipient: (profileId) =>
       calls.push(['setDirectComposerRecipient', profileId]),
     updateState: () => calls.push(['updateState'])
