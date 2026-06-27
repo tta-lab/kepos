@@ -721,7 +721,7 @@ function ContextPanel({ actions, controls, form, setForm, shareQrOutputs }) {
             <input
               id='trustAliasInput'
               autoComplete='off'
-              placeholder='Friend name'
+              placeholder='Ada'
               value={form.trustAlias}
               onChange={(event) => updateForm({ trustAlias: event.target.value })}
             />

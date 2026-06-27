@@ -34,7 +34,7 @@ test('desktop context panel uses product actions for home and people flows', asy
   assert.match(source, /placeholder='Paste Home QR'/)
   assert.match(source, /placeholder='Paste Profile QR'/)
   assert.match(source, /Friend name[\s\S]*id='trustAliasInput'/)
-  assert.match(source, /placeholder='Friend name'/)
+  assert.match(source, /placeholder='Ada'/)
   assert.match(source, /<details className='contextGroup peopleActions'/)
   assert.equal(/<details className='contextGroup peopleActions'[^>]+open>/.test(source), false)
   assert.match(source, /Trust a friend before home access or direct messages\./)
@@ -53,6 +53,14 @@ test('desktop context panel uses product actions for home and people flows', asy
   assert.match(styles, /\.contextGroup > summary/)
   assert.match(styles, /\.contextGroup\[open\]/)
   assert.match(styles, /\.contextHint/)
+})
+
+test('desktop trust form shows friend name copy once', async () => {
+  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const labelBlock = source.match(/<label>[\s\S]*?id='trustAliasInput'[\s\S]*?<\/label>/)?.[0]
+
+  assert.ok(labelBlock)
+  assert.equal(labelBlock.match(/Friend name/g)?.length, 1)
 })
 
 test('desktop people UI uses trusted friends copy', async () => {
