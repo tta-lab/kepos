@@ -266,7 +266,11 @@ test('Android room bar keeps raw home key behind advanced details', async () => 
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 
   assert.match(source, /const \[showRoomAdvanced, setShowRoomAdvanced\] = useState\(false\)/)
-  assert.match(source, /Live session/)
+  assert.match(source, /function getMobileRoomSurface\(activeTab\)/)
+  assert.match(source, /const roomSurface = getMobileRoomSurface\(activeTab\)/)
+  assert.match(source, /Current space/)
+  assert.match(source, /\{roomSurface\}/)
+  assert.equal(source.includes('Live session'), false)
   assert.match(source, /showRoomAdvanced \? \(/)
   assert.equal(
     source.indexOf("testID='room-home-address'") > source.indexOf('showRoomAdvanced ? ('),

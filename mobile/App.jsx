@@ -1075,13 +1075,16 @@ function ChatRoom({
     () => `${session.roomKey.slice(0, 8)}...${session.roomKey.slice(-8)}`,
     [session.roomKey]
   )
+  const roomSurface = getMobileRoomSurface(activeTab)
 
   return (
     <View style={styles.chat}>
       <View style={styles.roomBar}>
-        <View>
-          <Text style={styles.roomLabel}>Home</Text>
-          <Text style={styles.roomName}>Live session</Text>
+        <View style={styles.sessionStrip}>
+          <View style={styles.sessionBadge}>
+            <Text style={styles.sessionBadgeText}>Current space</Text>
+          </View>
+          <Text style={styles.roomName}>{roomSurface}</Text>
         </View>
         <View style={styles.roomActions}>
           <Pressable
@@ -1864,6 +1867,22 @@ function getMobileBackendNotice(status) {
   return 'Home status updated.'
 }
 
+function getMobileRoomSurface(activeTab) {
+  if (activeTab === 'dm') {
+    return 'Direct messages'
+  }
+
+  if (activeTab === 'treehole') {
+    return 'Treehole'
+  }
+
+  if (activeTab === 'people') {
+    return 'People'
+  }
+
+  return 'Home chat'
+}
+
 function EmptyMessages() {
   const { styles, theme } = useMobileTheme()
 
@@ -2306,6 +2325,26 @@ function createMobileStyles(theme) {
       justifyContent: 'space-between',
       paddingHorizontal: 18,
       paddingVertical: 13
+    },
+    sessionStrip: {
+      flex: 1,
+      gap: 6,
+      paddingRight: 12
+    },
+    sessionBadge: {
+      alignSelf: 'flex-start',
+      backgroundColor: theme.quickPanel,
+      borderColor: theme.quickPanelBorder,
+      borderRadius: 7,
+      borderWidth: 1,
+      paddingHorizontal: 8,
+      paddingVertical: 4
+    },
+    sessionBadgeText: {
+      color: theme.inkSoft,
+      fontSize: 10,
+      fontWeight: '900',
+      textTransform: 'uppercase'
     },
     roomActions: {
       alignItems: 'center',
