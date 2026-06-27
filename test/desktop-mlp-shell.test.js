@@ -103,6 +103,10 @@ test('desktop people UI uses trusted friends copy', async () => {
 test('desktop people pane surfaces pending message requests', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const backendActions = await readFile(
+    new URL('../src/desktop-backend-actions.js', import.meta.url),
+    'utf8'
+  )
   const presenter = await readFile(
     new URL('../src/desktop-render-presenter.js', import.meta.url),
     'utf8'
@@ -130,8 +134,14 @@ test('desktop people pane surfaces pending message requests', async () => {
     /ignoreMessageRequest: \(profileId\) => dispatchCommand\('ignoreMessageRequest'/
   )
   assert.match(controller, /createDesktopMessageRequestActions/)
-  assert.match(controller, /acceptMessageRequest: messageRequestActions\.acceptMessageRequest/)
-  assert.match(controller, /ignoreMessageRequest: messageRequestActions\.ignoreMessageRequest/)
+  assert.match(
+    backendActions,
+    /acceptMessageRequest: messageRequestActions\?\.acceptMessageRequest/
+  )
+  assert.match(
+    backendActions,
+    /ignoreMessageRequest: messageRequestActions\?\.ignoreMessageRequest/
+  )
   assert.match(actions, /createDesktopMessageRequestAcceptance/)
   assert.match(actions, /createDesktopMessageRequestIgnore/)
 })

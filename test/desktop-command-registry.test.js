@@ -69,6 +69,10 @@ test('desktop controller routes UI actions through the command host', async () =
 test('desktop home message command carries composer text as payload', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const host = await readFile(new URL('../src/desktop-command-host.js', import.meta.url), 'utf8')
+  const backendActions = await readFile(
+    new URL('../src/desktop-backend-actions.js', import.meta.url),
+    'utf8'
+  )
   const actions = await readFile(
     new URL('../src/desktop-message-actions.js', import.meta.url),
     'utf8'
@@ -83,7 +87,8 @@ test('desktop home message command carries composer text as payload', async () =
     host,
     /sendHomeMessage: \(payload\) => actions\.sendHomeMessage\(readCommandPayload\(payload\)\)/
   )
-  assert.match(source, /sendHomeMessage: messageActions\.sendHomeMessage/)
+  assert.match(source, /createDesktopBackendActions/)
+  assert.match(backendActions, /sendHomeMessage: messageActions\?\.sendHomeMessage/)
   assert.match(actions, /sendHomeMessage\(\{ text \} = \{\}\)/)
   assert.doesNotMatch(
     source,
@@ -94,6 +99,10 @@ test('desktop home message command carries composer text as payload', async () =
 test('desktop direct message command carries composer fields as payload', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const host = await readFile(new URL('../src/desktop-command-host.js', import.meta.url), 'utf8')
+  const backendActions = await readFile(
+    new URL('../src/desktop-backend-actions.js', import.meta.url),
+    'utf8'
+  )
   const actions = await readFile(
     new URL('../src/desktop-message-actions.js', import.meta.url),
     'utf8'
@@ -108,7 +117,7 @@ test('desktop direct message command carries composer fields as payload', async 
     host,
     /sendDmMessage: \(payload\) => actions\.sendDmMessage\(readCommandPayload\(payload\)\)/
   )
-  assert.match(source, /sendDmMessage: messageActions\.sendDmMessage/)
+  assert.match(backendActions, /sendDmMessage: messageActions\?\.sendDmMessage/)
   assert.match(actions, /sendDmMessage\(\{ text, toProfileId \} = \{\}\)/)
   assert.doesNotMatch(source, /dmForm: document\.querySelector/)
   assert.doesNotMatch(source, /dmInput: document\.querySelector/)
@@ -122,6 +131,10 @@ test('desktop direct message command carries composer fields as payload', async 
 test('desktop treehole post command carries composer text as payload', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const host = await readFile(new URL('../src/desktop-command-host.js', import.meta.url), 'utf8')
+  const backendActions = await readFile(
+    new URL('../src/desktop-backend-actions.js', import.meta.url),
+    'utf8'
+  )
   const actions = await readFile(
     new URL('../src/desktop-message-actions.js', import.meta.url),
     'utf8'
@@ -136,7 +149,7 @@ test('desktop treehole post command carries composer text as payload', async () 
     host,
     /postTreehole: \(payload\) => actions\.postTreehole\(readCommandPayload\(payload\)\)/
   )
-  assert.match(source, /postTreehole: messageActions\.postTreehole/)
+  assert.match(backendActions, /postTreehole: messageActions\?\.postTreehole/)
   assert.match(actions, /async postTreehole\(\{ text \} = \{\}\)/)
   assert.doesNotMatch(
     source,
@@ -147,6 +160,10 @@ test('desktop treehole post command carries composer text as payload', async () 
 test('desktop Home QR join command carries QR text and display name as payload', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const host = await readFile(new URL('../src/desktop-command-host.js', import.meta.url), 'utf8')
+  const backendActions = await readFile(
+    new URL('../src/desktop-backend-actions.js', import.meta.url),
+    'utf8'
+  )
   const actions = await readFile(new URL('../src/desktop-room-actions.js', import.meta.url), 'utf8')
 
   assert.match(
@@ -158,7 +175,7 @@ test('desktop Home QR join command carries QR text and display name as payload',
     host,
     /joinHomeUri: \(payload\) => actions\.joinHomeUri\(readCommandPayload\(payload\)\)/
   )
-  assert.match(source, /joinHomeUri: roomActions\.joinHomeUri/)
+  assert.match(backendActions, /joinHomeUri: roomActions\?\.joinHomeUri/)
   assert.match(actions, /async function joinHomeUri\(\{ displayName = 'Desktop', uri \} = \{\}\)/)
   assert.doesNotMatch(source, /homeQrForm: document\.querySelector/)
   assert.doesNotMatch(source, /homeQrInput: document\.querySelector/)
@@ -173,6 +190,10 @@ test('desktop Home QR join command carries QR text and display name as payload',
 test('desktop Profile QR trust command carries QR text alias and display name as payload', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const host = await readFile(new URL('../src/desktop-command-host.js', import.meta.url), 'utf8')
+  const backendActions = await readFile(
+    new URL('../src/desktop-backend-actions.js', import.meta.url),
+    'utf8'
+  )
   const actions = await readFile(
     new URL('../src/desktop-trust-actions.js', import.meta.url),
     'utf8'
@@ -187,7 +208,7 @@ test('desktop Profile QR trust command carries QR text alias and display name as
     host,
     /trustProfileUri: \(payload\) => actions\.trustProfileUri\(readCommandPayload\(payload\)\)/
   )
-  assert.match(source, /trustProfileUri: trustActions\.trustProfileUri/)
+  assert.match(backendActions, /trustProfileUri: trustActions\?\.trustProfileUri/)
   assert.match(
     actions,
     /function trustProfileUri\(\{ alias = '', displayName = 'Desktop', uri \} = \{\}\)/

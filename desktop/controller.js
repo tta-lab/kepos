@@ -1,5 +1,6 @@
 /* global navigator */
 
+import { createDesktopBackendActions } from '../src/desktop-backend-actions.js'
 import { createDesktopControlActions } from '../src/desktop-control-actions.js'
 import { createDesktopProfileContext } from '../src/desktop-profile-context.js'
 import { createDesktopMessageActions } from '../src/desktop-message-actions.js'
@@ -118,22 +119,14 @@ const trustActions = createDesktopTrustActions({
     state = { ...state, notice }
   }
 })
+const backendActions = createDesktopBackendActions({
+  messageActions,
+  messageRequestActions,
+  roomActions,
+  trustActions
+})
 const backendHost = createDesktopLocalBackendHost({
-  actions: {
-    acceptMessageRequest: messageRequestActions.acceptMessageRequest,
-    commentTreehole: messageActions.commentTreehole,
-    ignoreMessageRequest: messageRequestActions.ignoreMessageRequest,
-    joinHome: roomActions.joinHome,
-    joinHomeUri: roomActions.joinHomeUri,
-    leaveHome: roomActions.leaveHome,
-    likeTreehole: messageActions.likeTreehole,
-    postTreehole: messageActions.postTreehole,
-    revokeContact: trustActions.revokeContact,
-    sendDmMessage: messageActions.sendDmMessage,
-    sendHomeMessage: messageActions.sendHomeMessage,
-    sendMessageRequest: messageActions.sendDmMessage,
-    trustProfileUri: trustActions.trustProfileUri
-  },
+  actions: backendActions,
   runtimeOptions: {
     onHomeControl: (message, peer) => controlActions.handleControl(message, peer).catch(showError),
     onVerifiedHello: (message, peer) =>

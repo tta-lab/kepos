@@ -5,13 +5,18 @@ import test from 'node:test'
 test('desktop exposes contact revoke controls that update trust and DM threads', async () => {
   const app = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const backendActions = await readFile(
+    new URL('../src/desktop-backend-actions.js', import.meta.url),
+    'utf8'
+  )
   const actions = await readFile(
     new URL('../src/desktop-trust-actions.js', import.meta.url),
     'utf8'
   )
 
   assert.match(app, /id='contactList'/)
-  assert.match(controller, /revokeContact: trustActions\.revokeContact/)
+  assert.match(controller, /createDesktopBackendActions/)
+  assert.match(backendActions, /revokeContact: trustActions\?\.revokeContact/)
   assert.match(actions, /createDesktopContactRevoke/)
   assert.match(actions, /async function revokeContact/)
   assert.match(actions, /dmRuntime\.closeThreads/)

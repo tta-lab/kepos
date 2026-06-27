@@ -109,6 +109,10 @@ test('desktop controller delegates home transport to a runtime boundary', async 
     new URL('../src/desktop-control-actions.js', import.meta.url),
     'utf8'
   )
+  const backendActions = await readFile(
+    new URL('../src/desktop-backend-actions.js', import.meta.url),
+    'utf8'
+  )
   const host = await readFile(
     new URL('../src/desktop-local-backend-host.js', import.meta.url),
     'utf8'
@@ -118,7 +122,8 @@ test('desktop controller delegates home transport to a runtime boundary', async 
   assert.match(source, /const homeRuntime = backendHost\.homeRuntime/)
   assert.match(source, /onHomeControl: \(message, peer\) => controlActions\.handleControl/)
   assert.match(controlActions, /async function handleControl\(message, peer\)/)
-  assert.match(source, /joinHome: roomActions\.joinHome/)
+  assert.match(source, /createDesktopBackendActions/)
+  assert.match(backendActions, /joinHome: roomActions\?\.joinHome/)
   assert.match(roomActions, /getHomeRuntime\(\)\.join/)
   assert.match(actions, /homeRuntime\.sendMessage/)
   assert.doesNotMatch(source, /from '..\/src\/p2p-room\.js'/)
