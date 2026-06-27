@@ -926,11 +926,9 @@ function renderDirectMessageContent(message) {
 
 function displayDirectMessageMeta(message) {
   if (message.type === 'kepos.message.request.v1') {
-    const peer = message.direction === 'out' ? message.toProfileId : message.fromProfileId
-
     return message.direction === 'out'
-      ? `You asked Profile ${shorten(peer)} to start a DM`
-      : `Profile ${shorten(peer)} wants to start a DM`
+      ? 'You asked someone to start a DM'
+      : 'Someone wants to start a DM'
   }
 
   return message.direction === 'out'

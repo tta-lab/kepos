@@ -1639,7 +1639,6 @@ function EmptyDirectMessages() {
 
 function DirectBubble({ message, onAcceptRequest }) {
   const outgoing = message.direction === 'out'
-  const peer = outgoing ? message.toProfileId : message.fromProfileId
   const isRequest = message.type === 'kepos.message.request.v1'
 
   return (
@@ -1647,8 +1646,8 @@ function DirectBubble({ message, onAcceptRequest }) {
       <Text style={[styles.bubbleMeta, !outgoing && styles.inBubbleMeta]}>
         {isRequest
           ? outgoing
-            ? `You asked Profile ${shortenProfileId(peer)} to start a DM`
-            : `Profile ${shortenProfileId(peer)} wants to start a DM`
+            ? 'You asked someone to start a DM'
+            : 'Someone wants to start a DM'
           : outgoing
             ? `You to ${displayDirectPeer(message.toProfileId)}`
             : `${displayDirectPeer(message.fromProfileId, message.nick)} to you`}
