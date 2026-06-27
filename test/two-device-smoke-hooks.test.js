@@ -160,6 +160,18 @@ test('Android header shows product home status instead of raw peer count', async
   assert.equal(source.includes('{online} peer'), false)
 })
 
+test('Android room bar keeps raw home key behind advanced details', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+
+  assert.match(source, /const \[showRoomAdvanced, setShowRoomAdvanced\] = useState\(false\)/)
+  assert.match(source, /Live session/)
+  assert.match(source, /showRoomAdvanced \? \(/)
+  assert.equal(
+    source.indexOf("testID='room-home-address'") > source.indexOf('showRoomAdvanced ? ('),
+    true
+  )
+})
+
 test('Android room panes label live and durable surfaces', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 

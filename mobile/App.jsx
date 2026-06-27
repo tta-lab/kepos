@@ -968,6 +968,7 @@ function ChatRoom({
   trustAlias,
   trustQrUri
 }) {
+  const [showRoomAdvanced, setShowRoomAdvanced] = useState(false)
   const roomShort = useMemo(
     () => `${session.roomKey.slice(0, 8)}...${session.roomKey.slice(-8)}`,
     [session.roomKey]
@@ -977,15 +978,29 @@ function ChatRoom({
     <View style={styles.chat}>
       <View style={styles.roomBar}>
         <View>
-          <Text style={styles.roomLabel}>home</Text>
+          <Text style={styles.roomLabel}>Home</Text>
+          <Text style={styles.roomName}>Live session</Text>
+        </View>
+        <View style={styles.roomActions}>
+          <Pressable
+            onPress={() => setShowRoomAdvanced((value) => !value)}
+            style={styles.roomAdvancedButton}
+          >
+            <Text style={styles.advancedSummary}>Advanced</Text>
+          </Pressable>
+          <Pressable style={styles.iconButton} onPress={onLeave}>
+            <LogOut color='#143d2b' size={18} />
+          </Pressable>
+        </View>
+      </View>
+      {showRoomAdvanced ? (
+        <View style={styles.roomAdvancedPanel}>
+          <Text style={styles.roomLabel}>Home key</Text>
           <Text style={styles.roomKey} testID='room-home-address'>
             {roomShort}
           </Text>
         </View>
-        <Pressable style={styles.iconButton} onPress={onLeave}>
-          <LogOut color='#143d2b' size={18} />
-        </Pressable>
-      </View>
+      ) : null}
 
       <View style={styles.tabs}>
         <TabButton
@@ -2027,11 +2042,38 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 13
   },
+  roomActions: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 10
+  },
+  roomAdvancedButton: {
+    alignItems: 'center',
+    borderColor: '#c9d3bf',
+    borderRadius: 8,
+    borderWidth: 1,
+    height: 42,
+    justifyContent: 'center',
+    paddingHorizontal: 12
+  },
+  roomAdvancedPanel: {
+    backgroundColor: '#f6f1e4',
+    borderBottomColor: '#d9dfcf',
+    borderBottomWidth: 1,
+    paddingHorizontal: 18,
+    paddingVertical: 10
+  },
   roomLabel: {
     color: '#6f766b',
     fontSize: 11,
     fontWeight: '800',
     textTransform: 'uppercase'
+  },
+  roomName: {
+    color: '#162119',
+    fontSize: 17,
+    fontWeight: '800',
+    marginTop: 2
   },
   roomKey: {
     color: '#162119',
