@@ -1783,6 +1783,15 @@ function ContactManager({ contacts, onRevokeContact }) {
           <View style={styles.contactRowText}>
             <Text style={styles.contactName}>{contact.alias}</Text>
             <Text style={styles.contactProfile}>{shortenProfileId(contact.profileId)}</Text>
+            <View style={styles.trustMeta}>
+              <Text style={styles.trustStatus}>Trusted</Text>
+              <Text style={styles.trustMetaText}>
+                From {formatMobileTrustSource(contact.source)}
+              </Text>
+              <Text style={styles.trustMetaText}>
+                Trusted {formatMobileTrustTime(contact.trustedAt)}
+              </Text>
+            </View>
           </View>
           <Pressable
             accessibilityLabel={`Revoke ${contact.alias}`}
@@ -2055,6 +2064,18 @@ function getMobileRoomSurface(activeTab) {
   }
 
   return 'Home chat'
+}
+
+function formatMobileTrustSource(source) {
+  if (source === 'profile_qr' || source === 'person_qr') return 'Profile QR'
+  if (source === 'home_room') return 'Home room'
+  if (source === 'message_request') return 'Message request'
+  return 'local trust'
+}
+
+function formatMobileTrustTime(trustedAt) {
+  if (!Number.isFinite(trustedAt)) return 'recently'
+  return new Date(trustedAt).toLocaleDateString()
 }
 
 function EmptyMessages() {
@@ -2788,6 +2809,29 @@ function createMobileStyles(theme) {
       color: theme.inkMuted,
       fontSize: 12,
       marginTop: 2
+    },
+    trustMeta: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 6,
+      marginTop: 7
+    },
+    trustStatus: {
+      backgroundColor: theme.treeComment,
+      borderColor: theme.treeCommentBorder,
+      borderRadius: 999,
+      borderWidth: 1,
+      color: theme.accentStrong,
+      fontSize: 11,
+      fontWeight: '900',
+      paddingHorizontal: 7,
+      paddingVertical: 2
+    },
+    trustMetaText: {
+      color: theme.inkMuted,
+      fontSize: 11,
+      fontWeight: '700'
     },
     requestCard: {
       alignItems: 'center',

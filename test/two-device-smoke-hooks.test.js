@@ -427,6 +427,11 @@ test('Android people UI uses trusted friends copy', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 
   assert.match(source, /Trusted friends/)
+  assert.match(source, /<Text style=\{styles\.trustStatus\}>Trusted<\/Text>/)
+  assert.match(source, /\{formatMobileTrustSource\(contact\.source\)\}/)
+  assert.match(source, /\{formatMobileTrustTime\(contact\.trustedAt\)\}/)
+  assert.match(source, /function formatMobileTrustSource\(source\)/)
+  assert.match(source, /function formatMobileTrustTime\(trustedAt\)/)
   assert.equal(source.includes('<Text style={styles.panelTitle}>Contacts</Text>'), false)
 })
 
