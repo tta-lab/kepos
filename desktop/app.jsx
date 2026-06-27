@@ -165,7 +165,7 @@ function DesktopApp() {
               <div className='actions singleAction'>
                 <button id='createButton' type='button'>
                   <HomeIcon />
-                  Create Home
+                  Create my home
                 </button>
               </div>
               <details id='advancedJoin' className='advanced'>
@@ -268,7 +268,7 @@ function DesktopApp() {
           </section>
 
           <section className='panel roomMeta'>
-            <p className='label'>Home address</p>
+            <p className='label'>Home</p>
             <p id='roomKeyLabel' className='mono muted'>
               not joined
             </p>

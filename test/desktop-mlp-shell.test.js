@@ -36,6 +36,15 @@ test('desktop context panel uses product actions for home and people flows', asy
   assert.match(styles, /\.contextHint/)
 })
 
+test('desktop normal UI copy avoids raw home address language', async () => {
+  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+
+  assert.match(source, /Create my home/)
+  assert.match(source, /<p className='label'>Home<\/p>/)
+  assert.equal(source.includes('Create Home'), false)
+  assert.equal(source.includes("<p className='label'>Home address</p>"), false)
+})
+
 test('desktop primary panes expose short empty states before content arrives', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
