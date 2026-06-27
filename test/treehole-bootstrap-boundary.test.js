@@ -21,3 +21,15 @@ test('android backend shares treehole capabilities only after signed home hello'
   assert.doesNotMatch(source, /broadcastControl\(\{\s*type: 'treehole\.bootstrap'/s)
   assert.doesNotMatch(source, /broadcastControl\(\{\s*type: 'treehole\.writer'/s)
 })
+
+test('android backend reports whether the local profile can post to treehole', async () => {
+  const source = await readFile(new URL('../backend/backend.mjs', import.meta.url), 'utf8')
+
+  assert.match(source, /function canPostToCurrentTreehole\(\)/)
+  assert.match(source, /canPost: canPostToCurrentTreehole\(\)/)
+  assert.match(source, /homeOwnerProfileId \|\| profileId/)
+  assert.match(
+    source,
+    /return Boolean\(profileId && ownerProfileId && profileId === ownerProfileId\)/
+  )
+})

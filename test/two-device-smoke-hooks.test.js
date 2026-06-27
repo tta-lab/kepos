@@ -318,6 +318,20 @@ test('Android treehole empty state talks about posts', async () => {
   assert.equal(source.includes('Waiting for a home peer to share the treehole log.'), false)
 })
 
+test('Android treehole composer explains owner-only posting', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+
+  assert.match(source, /const \[treeholeCanPost, setTreeholeCanPost\] = useState\(false\)/)
+  assert.match(source, /setTreeholeCanPost\(Boolean\(payload\.canPost\)\)/)
+  assert.match(source, /canPost={treeholeCanPost}/)
+  assert.match(source, /function TreeholePane\(\{ canPost,/)
+  assert.match(source, /const canSubmitPost = canPost && draft\.trim\(\)/)
+  assert.match(source, /const showOwnerOnlyHint = status === 'ready' && !canPost/)
+  assert.match(source, /Only the owner can post here\./)
+  assert.match(source, /disabled=\{!canSubmitPost\}/)
+  assert.match(source, /!canSubmitPost && styles\.disabledSendButton/)
+})
+
 test('Android room has a People tab for QR and trusted contacts', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 

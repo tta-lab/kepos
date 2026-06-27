@@ -186,6 +186,7 @@ export default function App() {
   const [dmSession, setDmSession] = useState(null)
   const [dmThreads, setDmThreads] = useState([])
   const [treeholeDraft, setTreeholeDraft] = useState('')
+  const [treeholeCanPost, setTreeholeCanPost] = useState(false)
   const [treeholePosts, setTreeholePosts] = useState([])
   const [treeholeStatus, setTreeholeStatus] = useState('idle')
   const [activeTab, setActiveTab] = useState('chat')
@@ -279,6 +280,7 @@ export default function App() {
       setDmMessages([])
       setPeerCount(0)
       setTreeholePosts([])
+      setTreeholeCanPost(false)
       setTreeholeStatus('starting')
       startBackend({
         ...homeJoin,
@@ -317,6 +319,7 @@ export default function App() {
       setDmMessages([])
       setPeerCount(0)
       setTreeholePosts([])
+      setTreeholeCanPost(false)
       setTreeholeStatus('waiting')
       startBackend({
         ...homeJoin,
@@ -366,6 +369,7 @@ export default function App() {
       setDmMessages([])
       setPeerCount(0)
       setTreeholePosts([])
+      setTreeholeCanPost(false)
       setTreeholeStatus('waiting')
       setHomeQrUri('')
       startBackend({
@@ -494,6 +498,7 @@ export default function App() {
     setDmDraft('')
     setDmMessages([])
     setTreeholeDraft('')
+    setTreeholeCanPost(false)
     setTreeholePosts([])
     setTreeholeStatus('idle')
     setActiveTab('chat')
@@ -679,6 +684,7 @@ export default function App() {
 
         if (req.command === RPC_TREEHOLE_STATUS) {
           setTreeholeStatus(payload.status || 'idle')
+          setTreeholeCanPost(Boolean(payload.canPost))
           return
         }
 
@@ -1056,6 +1062,7 @@ function ChatRoom({
   profileId,
   profileQrUri,
   session,
+  treeholeCanPost,
   treeholeDraft,
   treeholePosts,
   treeholeStatus,
@@ -1125,6 +1132,7 @@ function ChatRoom({
             onLike={onTreeholeLike}
             onPost={onTreeholePost}
             posts={treeholePosts}
+            canPost={treeholeCanPost}
             status={treeholeStatus}
           />
         ) : (
@@ -1664,8 +1672,10 @@ function ChatPane({ draft, messages, onDraftChange, onSend }) {
   )
 }
 
-function TreeholePane({ draft, onComment, onDraftChange, onLike, onPost, posts, status }) {
+function TreeholePane({ canPost, draft, onComment, onDraftChange, onLike, onPost, posts, status }) {
   const { styles, theme } = useMobileTheme()
+  const canSubmitPost = canPost && draft.trim()
+  const showOwnerOnlyHint = status === 'ready' && !canPost
 
   return (
     <>
@@ -1681,22 +1691,24 @@ function TreeholePane({ draft, onComment, onDraftChange, onLike, onPost, posts, 
       />
 
       <View style={styles.treeholeComposer}>
-        <TextInput
-          multiline
-          onChangeText={onDraftChange}
-          placeholder='Post to the treehole'
-          placeholderTextColor={theme.placeholder}
-          style={styles.treeholeInput}
-          testID='treehole-post-input'
-          value={draft}
-        />
+        <View style={styles.treeholeComposerFields}>
+          <TextInput
+            multiline
+            onChangeText={onDraftChange}
+            placeholder='Post to the treehole'
+            placeholderTextColor={theme.placeholder}
+            style={styles.treeholeInput}
+            testID='treehole-post-input'
+            value={draft}
+          />
+          {showOwnerOnlyHint ? (
+            <Text style={styles.composerHint}>Only the owner can post here.</Text>
+          ) : null}
+        </View>
         <Pressable
-          disabled={!draft.trim() || status !== 'ready'}
+          disabled={!canSubmitPost}
           onPress={onPost}
-          style={[
-            styles.sendButton,
-            (!draft.trim() || status !== 'ready') && styles.disabledSendButton
-          ]}
+          style={[styles.sendButton, !canSubmitPost && styles.disabledSendButton]}
           testID='treehole-post-button'
         >
           <Send color={theme.surface} size={18} />
@@ -2671,13 +2683,21 @@ function createMobileStyles(theme) {
       gap: 10,
       padding: 14
     },
+    treeholeComposerFields: {
+      flex: 1,
+      gap: 6
+    },
+    composerHint: {
+      color: theme.inkMuted,
+      fontSize: 12,
+      lineHeight: 16
+    },
     treeholeInput: {
       backgroundColor: theme.raised,
       borderColor: theme.borderStrong,
       borderRadius: 8,
       borderWidth: 1,
       color: theme.ink,
-      flex: 1,
       fontSize: 16,
       lineHeight: 22,
       maxHeight: 118,
