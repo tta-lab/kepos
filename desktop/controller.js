@@ -51,6 +51,7 @@ import { getOrCreateLocalProfile } from '../src/local-profile.js'
 import {
   createDesktopState,
   getDesktopHomeStatus,
+  getDesktopTreeholeStatus,
   setDesktopRoom,
   setDesktopTab,
   setDesktopTreehole
@@ -754,7 +755,7 @@ function render() {
   els.profileIdLabel.textContent = session?.profileId ? shorten(session.profileId) : 'not ready'
   els.peerLabel.textContent = String(state.peers)
   els.noticeLabel.textContent = state.notice
-  els.treeholeStatusLabel.textContent = `Treehole ${state.treeholeStatus}`
+  els.treeholeStatusLabel.textContent = getDesktopTreeholeStatus(state)
   els.treeholeForm.classList.toggle('disabledComposer', !state.treeholeCanPost)
   els.treeholeInput.disabled = !state.treeholeCanPost
   els.treeholePostPolicy.hidden = state.treeholeCanPost

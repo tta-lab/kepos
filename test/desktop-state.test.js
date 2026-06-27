@@ -3,6 +3,7 @@ import { describe, test } from 'node:test'
 import {
   createDesktopState,
   getDesktopHomeStatus,
+  getDesktopTreeholeStatus,
   setDesktopRoom,
   setDesktopTab,
   setDesktopTreehole
@@ -69,6 +70,22 @@ describe('desktop state', () => {
         })
       ),
       'Connected'
+    )
+  })
+
+  test('getDesktopTreeholeStatus maps internal states to product words', () => {
+    assert.equal(getDesktopTreeholeStatus(createDesktopState()), 'Treehole offline')
+    assert.equal(
+      getDesktopTreeholeStatus(setDesktopTreehole(createDesktopState(), { status: 'starting' })),
+      'Syncing treehole'
+    )
+    assert.equal(
+      getDesktopTreeholeStatus(setDesktopTreehole(createDesktopState(), { status: 'ready' })),
+      'Treehole ready'
+    )
+    assert.equal(
+      getDesktopTreeholeStatus(setDesktopTreehole(createDesktopState(), { status: 'waiting' })),
+      'Syncing treehole'
     )
   })
 })

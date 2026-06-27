@@ -75,14 +75,17 @@ test('desktop status panel keeps raw ids in advanced details', async () => {
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
 
   assert.match(source, /id='homeStatusLabel'/)
+  assert.match(source, /Treehole offline/)
   assert.match(source, /<details[^>]+id='advancedStatus'/)
   assert.equal(source.indexOf("id='roomKeyLabel'") > source.indexOf("id='advancedStatus'"), true)
   assert.equal(source.indexOf("id='profileIdLabel'") > source.indexOf("id='advancedStatus'"), true)
   assert.match(controller, /els\.homeStatusLabel\.textContent = getDesktopHomeStatus\(state\)/)
   assert.match(
     controller,
-    /treeholeStatusLabel\.textContent = `Treehole \$\{state\.treeholeStatus\}`/
+    /els\.treeholeStatusLabel\.textContent = getDesktopTreeholeStatus\(state\)/
   )
+  assert.equal(source.includes('treehole idle'), false)
+  assert.equal(controller.includes('Treehole ${state.treeholeStatus}'), false)
 })
 
 test('desktop primary panes expose short empty states before content arrives', async () => {

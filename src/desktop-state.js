@@ -55,3 +55,23 @@ export function getDesktopHomeStatus(state) {
 
   return state.peers > 0 ? 'Connected' : 'Looking for peers'
 }
+
+export function getDesktopTreeholeStatus(state) {
+  if (state.treeholeStatus === 'ready') {
+    return 'Treehole ready'
+  }
+
+  if (
+    state.treeholeStatus === 'starting' ||
+    state.treeholeStatus === 'waiting' ||
+    state.treeholeStatus === 'waiting-for-bootstrap'
+  ) {
+    return 'Syncing treehole'
+  }
+
+  if (state.treeholeStatus === 'error') {
+    return 'Treehole error'
+  }
+
+  return 'Treehole offline'
+}

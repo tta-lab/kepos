@@ -61,7 +61,7 @@ function DesktopApp() {
                 Create or join a home.
               </p>
               <p id='treeholeStatusLabel' className='subnotice'>
-                treehole idle
+                Treehole offline
               </p>
             </div>
             <div className='themeSwitch' role='group' aria-label='Theme'>
