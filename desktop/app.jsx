@@ -35,7 +35,6 @@ const DEFAULT_CONTROLS = {
   canLeaveHome: false,
   canPostTreehole: false,
   canSendDirectMessage: false,
-  canSubmitTreeholePost: false,
   canTrustProfile: false,
   canUseHomeChatComposer: false
 }
@@ -61,6 +60,7 @@ const desktopUiBridge = {
   setShareQrOutputs: () => {},
   setStatus: () => {},
   setTreeholeActions: () => {},
+  setTreeholeComposerActions: () => {},
   setTreeholePosts: () => {}
 }
 
@@ -116,6 +116,9 @@ globalThis.keposDesktopUi = {
   setTreeholeActions(actions = {}) {
     desktopUiBridge.setTreeholeActions(actions)
   },
+  setTreeholeComposerActions(actions = {}) {
+    desktopUiBridge.setTreeholeComposerActions(actions)
+  },
   setTreeholePosts(posts = []) {
     desktopUiBridge.setTreeholePosts(posts)
   }
@@ -157,6 +160,9 @@ function DesktopApp() {
     commentPost: () => {},
     likePost: () => {}
   })
+  const [treeholeComposerActions, setTreeholeComposerActions] = useState({
+    postTreehole: () => {}
+  })
   const [treeholePosts, setTreeholePosts] = useState([])
   const [status, setStatus] = useState(DEFAULT_STATUS)
   const [theme, setTheme] = useState(getInitialTheme)
@@ -174,6 +180,7 @@ function DesktopApp() {
   desktopUiBridge.setShareQrOutputs = setShareQrOutputs
   desktopUiBridge.setStatus = setStatus
   desktopUiBridge.setTreeholeActions = setTreeholeActions
+  desktopUiBridge.setTreeholeComposerActions = setTreeholeComposerActions
   desktopUiBridge.setTreeholePosts = setTreeholePosts
 
   useEffect(() => {
@@ -302,29 +309,7 @@ function DesktopApp() {
           <section id='treeholePane' className={activeTab === 'treehole' ? 'pane' : 'pane hidden'}>
             <PaneLabel eyebrow='durable' title='Durable treehole' />
             <TreeholeList actions={treeholeActions} posts={treeholePosts} />
-            <form
-              id='treeholeForm'
-              className={
-                controls.canPostTreehole ? 'composer tall' : 'composer tall disabledComposer'
-              }
-            >
-              <p id='treeholePostPolicy' className='composerHint' hidden={controls.canPostTreehole}>
-                Only the owner can post here.
-              </p>
-              <textarea
-                id='treeholeInput'
-                placeholder='Post to the treehole'
-                disabled={!controls.canPostTreehole}
-              />
-              <button
-                id='treeholeSendButton'
-                type='submit'
-                disabled={!controls.canSubmitTreeholePost}
-              >
-                <Sprout size={17} />
-                Post
-              </button>
-            </form>
+            <TreeholeComposer controls={controls} onPost={treeholeComposerActions.postTreehole} />
           </section>
 
           <section id='peoplePane' className={activeTab === 'people' ? 'pane' : 'pane hidden'}>
@@ -591,6 +576,41 @@ function SectionTitle({ icon, id, text }) {
       {icon}
       <span>{text}</span>
     </p>
+  )
+}
+
+function TreeholeComposer({ controls, onPost }) {
+  const [draft, setDraft] = useState('')
+  const canPost = controls.canPostTreehole && Boolean(draft.trim())
+
+  function handleSubmit(event) {
+    event.preventDefault()
+    if (!canPost) return
+    onPost({ text: draft.trim() })
+    setDraft('')
+  }
+
+  return (
+    <form
+      id='treeholeForm'
+      className={controls.canPostTreehole ? 'composer tall' : 'composer tall disabledComposer'}
+      onSubmit={handleSubmit}
+    >
+      <p id='treeholePostPolicy' className='composerHint' hidden={controls.canPostTreehole}>
+        Only the owner can post here.
+      </p>
+      <textarea
+        id='treeholeInput'
+        placeholder='Post to the treehole'
+        disabled={!controls.canPostTreehole}
+        value={draft}
+        onChange={(event) => setDraft(event.target.value)}
+      />
+      <button id='treeholeSendButton' type='submit' disabled={!canPost}>
+        <Sprout size={17} />
+        Post
+      </button>
+    </form>
   )
 }
 

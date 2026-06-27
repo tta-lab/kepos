@@ -160,7 +160,8 @@ test('desktop React owns action and composer disabled state', async () => {
   )
   assert.match(source, /disabled=\{!canSend\}/)
   assert.match(source, /disabled=\{!controls\.canSendDirectMessage\}/)
-  assert.match(source, /disabled=\{!controls\.canSubmitTreeholePost\}/)
+  assert.match(source, /const canPost = controls\.canPostTreehole && Boolean\(draft\.trim\(\)\)/)
+  assert.match(source, /disabled=\{!canPost\}/)
   assert.match(
     source,
     /className=\{[\s\S]*controls\.canPostTreehole \? 'composer tall' : 'composer tall disabledComposer'[\s\S]*\}/
@@ -245,4 +246,26 @@ test('desktop React owns the treehole post list surface', async () => {
   assert.match(controller, /globalThis\.keposDesktopUi\?\.setTreeholePosts\(posts\)/)
   assert.match(controller, /globalThis\.keposDesktopUi\?\.setTreeholeActions\(\{/)
   assert.doesNotMatch(controller, /els\.treeholeList\.replaceChildren/)
+})
+
+test('desktop React owns the treehole main post composer draft', async () => {
+  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+
+  assert.match(source, /function TreeholeComposer\(\{ controls, onPost \}\)/)
+  assert.match(source, /const \[draft, setDraft\] = useState\(''\)/)
+  assert.match(source, /const canPost = controls\.canPostTreehole && Boolean\(draft\.trim\(\)\)/)
+  assert.match(source, /onPost\(\{ text: draft\.trim\(\) \}\)/)
+  assert.match(source, /setDraft\(''\)/)
+  assert.match(source, /value=\{draft\}/)
+  assert.match(source, /onChange=\{\(event\) => setDraft\(event\.target\.value\)\}/)
+  assert.match(source, /disabled=\{!controls\.canPostTreehole\}/)
+  assert.match(source, /disabled=\{!canPost\}/)
+  assert.match(source, /setTreeholeComposerActions\(actions = \{\}\)/)
+  assert.match(controller, /globalThis\.keposDesktopUi\?\.setTreeholeComposerActions\(\{/)
+  assert.doesNotMatch(controller, /treeholeForm: document\.querySelector/)
+  assert.doesNotMatch(controller, /treeholeInput: document\.querySelector/)
+  assert.doesNotMatch(controller, /els\.treeholeInput\.addEventListener/)
+  assert.doesNotMatch(controller, /els\.treeholeForm\.addEventListener/)
+  assert.doesNotMatch(controller, /els\.treeholeInput\.value/)
 })

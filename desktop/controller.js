@@ -58,8 +58,6 @@ const els = {
   roomKeyInput: document.querySelector('#roomKeyInput'),
   showLargeHomeQrButton: document.querySelector('#showLargeHomeQrButton'),
   showLargeProfileQrButton: document.querySelector('#showLargeProfileQrButton'),
-  treeholeForm: document.querySelector('#treeholeForm'),
-  treeholeInput: document.querySelector('#treeholeInput'),
   treeholeTab: document.querySelector('#treeholeTab'),
   trustAliasInput: document.querySelector('#trustAliasInput'),
   trustForm: document.querySelector('#trustForm'),
@@ -151,6 +149,9 @@ globalThis.keposDesktopUi?.setTreeholeActions({
   commentPost: ({ postId, text }) => dispatchCommand('commentTreehole', { postId, text }),
   likePost: (postId) => dispatchCommand('likeTreehole', { postId })
 })
+globalThis.keposDesktopUi?.setTreeholeComposerActions({
+  postTreehole: ({ text }) => dispatchCommand('postTreehole', { text })
+})
 
 backendClient.subscribe('treeholeStateChanged', (snapshot) => {
   state = setDesktopTreehole(state, snapshot)
@@ -213,7 +214,6 @@ els.nickInput.addEventListener('input', () => {
   updateQrOutputs().catch(showError)
 })
 els.dmInput.addEventListener('input', renderControls)
-els.treeholeInput.addEventListener('input', renderControls)
 els.roomKeyInput.addEventListener('input', renderControls)
 els.homeQrInput.addEventListener('input', renderControls)
 els.trustQrInput.addEventListener('input', renderControls)
@@ -227,13 +227,6 @@ els.dmForm.addEventListener('submit', (event) => {
   dispatchCommand('sendDmMessage', {
     text: els.dmInput.value.trim(),
     toProfileId: els.dmRecipientInput.value.trim()
-  })
-})
-
-els.treeholeForm.addEventListener('submit', (event) => {
-  event.preventDefault()
-  dispatchCommand('postTreehole', {
-    text: els.treeholeInput.value.trim()
   })
 })
 
@@ -476,7 +469,6 @@ async function postTreehole({ text } = {}) {
     id: createId(),
     text
   })
-  els.treeholeInput.value = ''
 }
 
 async function handleControl(message, peer) {
@@ -617,8 +609,6 @@ function renderControls() {
     canPostTreehole: Boolean(state.treeholeCanPost),
     canSendDirectMessage:
       inRoom && Boolean(els.dmInput.value.trim()) && Boolean(els.dmRecipientInput.value.trim()),
-    canSubmitTreeholePost:
-      inRoom && Boolean(state.treeholeCanPost) && Boolean(els.treeholeInput.value.trim()),
     canTrustProfile: !isActionPending && Boolean(els.trustQrInput.value.trim()),
     canUseHomeChatComposer: inRoom
   }

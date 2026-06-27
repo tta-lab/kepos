@@ -99,8 +99,9 @@ test('desktop treehole post command carries composer text as payload', async () 
 
   assert.match(
     source,
-    /dispatchCommand\('postTreehole', \{\s*text: els\.treeholeInput\.value\.trim\(\)\s*\}\)/
+    /postTreehole: \(\{ text \}\) => dispatchCommand\('postTreehole', \{ text \}\)/
   )
+  assert.match(source, /globalThis\.keposDesktopUi\?\.setTreeholeComposerActions\(\{/)
   assert.match(source, /postTreehole: \(payload\) => postTreehole\(readCommandPayload\(payload\)\)/)
   assert.match(source, /async function postTreehole\(\{ text \} = \{\}\)/)
   assert.doesNotMatch(

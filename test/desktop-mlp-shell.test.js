@@ -365,16 +365,14 @@ test('desktop composers disable unavailable sends', async () => {
   )
   assert.match(source, /disabled=\{!canSend\}/)
   assert.match(source, /disabled=\{!controls\.canSendDirectMessage\}/)
-  assert.match(source, /disabled=\{!controls\.canSubmitTreeholePost\}/)
+  assert.match(source, /const canPost = controls\.canPostTreehole && Boolean\(draft\.trim\(\)\)/)
+  assert.match(source, /disabled=\{!canPost\}/)
   assert.match(controller, /canUseHomeChatComposer: inRoom/)
   assert.match(
     controller,
     /canSendDirectMessage:\s*inRoom && Boolean\(els\.dmInput\.value\.trim\(\)\) && Boolean\(els\.dmRecipientInput\.value\.trim\(\)\)/
   )
-  assert.match(
-    controller,
-    /canSubmitTreeholePost:\s*inRoom && Boolean\(state\.treeholeCanPost\) && Boolean\(els\.treeholeInput\.value\.trim\(\)\)/
-  )
+  assert.match(controller, /canPostTreehole: Boolean\(state\.treeholeCanPost\)/)
 })
 
 test('desktop context actions disable unavailable joins and trust', async () => {
