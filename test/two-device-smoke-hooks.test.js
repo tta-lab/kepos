@@ -73,6 +73,24 @@ test('Android lobby starts with compact product choices', async () => {
   assert.equal(source.includes("label='Nick'"), false)
 })
 
+test('Android lobby disables profile-dependent actions while profile loads', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+
+  assert.match(
+    source,
+    /const profileReady = Boolean\(identity && profileId && homeRoomKey && contactBook\)/
+  )
+  assert.match(source, /profileReady={profileReady}/)
+  assert.match(source, /function QuickStartPanel\([\s\S]*profileReady[\s\S]*\) \{/)
+  assert.match(source, /Setting up your profile\.\.\./)
+  assert.match(source, /disabled={!profileReady}/)
+  assert.match(source, /!profileReady && styles\.disabledButton/)
+  assert.match(source, /canJoin={profileReady && canJoin}/)
+  assert.match(source, /function PeopleActions\([\s\S]*profileReady[\s\S]*\) \{/)
+  assert.match(source, /disabled={!profileReady \|\| !homeQrUri\.trim\(\)}/)
+  assert.match(source, /disabled={!profileReady \|\| !trustQrUri\.trim\(\)}/)
+})
+
 test('Android normal UI copy avoids backend and address language', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 

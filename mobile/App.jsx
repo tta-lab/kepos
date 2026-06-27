@@ -228,6 +228,7 @@ export default function App() {
     () => (contactBook ? listTrustedContacts(contactBook) : []),
     [contactBook]
   )
+  const profileReady = Boolean(identity && profileId && homeRoomKey && contactBook)
   const pendingMessageRequests = useMemo(
     () => (contactBook ? Array.from(contactBook.pendingRequestsByProfileId.values()) : []),
     [contactBook]
@@ -840,6 +841,7 @@ export default function App() {
                   onTreeholePost={sendTreeholePost}
                   pendingRequests={pendingMessageRequests}
                   profileId={profileId}
+                  profileReady={profileReady}
                   profileQrUri={profileQrUri}
                   session={session}
                   treeholeDraft={treeholeDraft}
@@ -850,7 +852,7 @@ export default function App() {
                 />
               ) : (
                 <Lobby
-                  canJoin={canJoin}
+                  canJoin={profileReady && canJoin}
                   homeQrUri={homeQrUri}
                   myHomeQrUri={myHomeQrUri}
                   nick={nick}
@@ -867,6 +869,7 @@ export default function App() {
                   onTrustAliasChange={setTrustAlias}
                   onTrustProfile={trustProfileQr}
                   onTrustQrChange={setTrustQrUri}
+                  profileReady={profileReady}
                   profileQrUri={profileQrUri}
                   roomKey={roomKey}
                   showAdvancedJoin={showAdvancedJoin}
@@ -972,6 +975,7 @@ function Lobby({
   onTrustAliasChange,
   onTrustProfile,
   onTrustQrChange,
+  profileReady,
   profileQrUri,
   roomKey,
   showAdvancedJoin,
@@ -994,6 +998,7 @@ function Lobby({
         onNickChange={onNickChange}
         onScanHomeQr={onScanHomeQr}
         onScanProfileQr={onScanProfileQr}
+        profileReady={profileReady}
       />
 
       <PeopleActions
@@ -1007,6 +1012,7 @@ function Lobby({
         onTrustAliasChange={onTrustAliasChange}
         onTrustProfile={onTrustProfile}
         onTrustQrChange={onTrustQrChange}
+        profileReady={profileReady}
         profileQrUri={profileQrUri}
         trustAlias={trustAlias}
         trustedContacts={trustedContacts}
@@ -1082,6 +1088,7 @@ function ChatRoom({
   onTreeholePost,
   pendingRequests,
   profileId,
+  profileReady,
   profileQrUri,
   session,
   treeholeCanPost,
@@ -1175,6 +1182,7 @@ function ChatRoom({
             onTrustQrChange={onTrustQrChange}
             pendingRequests={pendingRequests}
             profileId={profileId}
+            profileReady={profileReady}
             profileQrUri={profileQrUri}
             trustAlias={trustAlias}
             trustedContacts={dmContactOptions}
@@ -1213,36 +1221,56 @@ function ChatRoom({
   )
 }
 
-function QuickStartPanel({ nick, onCreateRoom, onNickChange, onScanHomeQr, onScanProfileQr }) {
+function QuickStartPanel({
+  nick,
+  onCreateRoom,
+  onNickChange,
+  onScanHomeQr,
+  onScanProfileQr,
+  profileReady
+}) {
   const { styles, theme } = useMobileTheme()
 
   return (
     <View style={styles.quickStartPanel}>
       <Text style={styles.panelTitle}>Start here</Text>
       <Text style={styles.panelCopy}>
-        Start a private space for trusted friends. Create, join, or trust someone nearby.
+        {profileReady
+          ? 'Start a private space for trusted friends. Create, join, or trust someone nearby.'
+          : 'Setting up your profile...'}
       </Text>
       <Field label='Name' onChangeText={onNickChange} value={nick} />
       <View style={styles.quickActions}>
-        <Pressable style={styles.primaryButton} onPress={onCreateRoom} testID='create-home-button'>
+        <Pressable
+          disabled={!profileReady}
+          style={[styles.primaryButton, !profileReady && styles.disabledButton]}
+          onPress={onCreateRoom}
+          testID='create-home-button'
+        >
           <Plus color={theme.surface} size={18} />
           <Text style={styles.primaryButtonText}>Create my home</Text>
         </Pressable>
         <Pressable
+          disabled={!profileReady}
           onPress={onScanHomeQr}
-          style={styles.secondaryButton}
+          style={[styles.secondaryButton, !profileReady && styles.disabledButton]}
           testID='quick-scan-home-qr-button'
         >
-          <ArrowRight color={theme.accentStrong} size={18} />
-          <Text style={styles.secondaryButtonText}>Scan Home QR</Text>
+          <ArrowRight color={profileReady ? theme.accentStrong : theme.placeholder} size={18} />
+          <Text style={[styles.secondaryButtonText, !profileReady && styles.disabledButtonText]}>
+            Scan Home QR
+          </Text>
         </Pressable>
         <Pressable
+          disabled={!profileReady}
           onPress={onScanProfileQr}
-          style={styles.secondaryButton}
+          style={[styles.secondaryButton, !profileReady && styles.disabledButton]}
           testID='quick-scan-profile-qr-button'
         >
-          <Plus color={theme.accentStrong} size={18} />
-          <Text style={styles.secondaryButtonText}>Scan Profile QR</Text>
+          <Plus color={profileReady ? theme.accentStrong : theme.placeholder} size={18} />
+          <Text style={[styles.secondaryButtonText, !profileReady && styles.disabledButtonText]}>
+            Scan Profile QR
+          </Text>
         </Pressable>
       </View>
     </View>
@@ -1263,6 +1291,7 @@ function PeoplePane({
   onTrustQrChange,
   pendingRequests,
   profileId,
+  profileReady,
   profileQrUri,
   trustAlias,
   trustedContacts,
@@ -1288,6 +1317,7 @@ function PeoplePane({
         onTrustAliasChange={onTrustAliasChange}
         onTrustProfile={onTrustProfile}
         onTrustQrChange={onTrustQrChange}
+        profileReady={profileReady}
         profileQrUri={profileQrUri}
         trustAlias={trustAlias}
         trustedContacts={trustedContacts}
@@ -1356,6 +1386,7 @@ function PeopleActions({
   onTrustAliasChange,
   onTrustProfile,
   onTrustQrChange,
+  profileReady,
   profileQrUri,
   trustAlias,
   trustedContacts,
@@ -1371,40 +1402,52 @@ function PeopleActions({
       <View style={styles.panel}>
         <Text style={styles.panelTitle}>My Home QR</Text>
         <Pressable
+          disabled={!profileReady}
           onPress={() => setShowHomeQr((value) => !value)}
-          style={styles.secondaryButton}
+          style={[styles.secondaryButton, !profileReady && styles.disabledButton]}
           testID='show-home-qr-button'
         >
-          <QrCode color={theme.accentStrong} size={18} />
-          <Text style={styles.secondaryButtonText}>Show My Home QR</Text>
+          <QrCode color={profileReady ? theme.accentStrong : theme.placeholder} size={18} />
+          <Text style={[styles.secondaryButtonText, !profileReady && styles.disabledButtonText]}>
+            Show My Home QR
+          </Text>
         </Pressable>
         {showHomeQr ? <QrCard value={myHomeQrUri} /> : null}
         <Pressable
+          disabled={!profileReady}
           onPress={onScanHomeQr}
-          style={styles.secondaryButton}
+          style={[styles.secondaryButton, !profileReady && styles.disabledButton]}
           testID='scan-home-qr-button'
         >
-          <Text style={styles.secondaryButtonText}>Scan Home QR</Text>
+          <Text style={[styles.secondaryButtonText, !profileReady && styles.disabledButtonText]}>
+            Scan Home QR
+          </Text>
         </Pressable>
       </View>
 
       <View style={styles.panel}>
         <Text style={styles.panelTitle}>My Profile QR</Text>
         <Pressable
+          disabled={!profileReady}
           onPress={() => setShowProfileQr((value) => !value)}
-          style={styles.secondaryButton}
+          style={[styles.secondaryButton, !profileReady && styles.disabledButton]}
           testID='show-profile-qr-button'
         >
-          <QrCode color={theme.accentStrong} size={18} />
-          <Text style={styles.secondaryButtonText}>Show My Profile QR</Text>
+          <QrCode color={profileReady ? theme.accentStrong : theme.placeholder} size={18} />
+          <Text style={[styles.secondaryButtonText, !profileReady && styles.disabledButtonText]}>
+            Show My Profile QR
+          </Text>
         </Pressable>
         {showProfileQr ? <QrCard value={profileQrUri} /> : null}
         <Pressable
+          disabled={!profileReady}
           onPress={onScanProfileQr}
-          style={styles.secondaryButton}
+          style={[styles.secondaryButton, !profileReady && styles.disabledButton]}
           testID='scan-profile-qr-button'
         >
-          <Text style={styles.secondaryButtonText}>Scan Profile QR</Text>
+          <Text style={[styles.secondaryButtonText, !profileReady && styles.disabledButtonText]}>
+            Scan Profile QR
+          </Text>
         </Pressable>
       </View>
 
@@ -1431,17 +1474,23 @@ function PeopleActions({
             value={homeQrUri}
           />
           <Pressable
-            disabled={!homeQrUri.trim()}
+            disabled={!profileReady || !homeQrUri.trim()}
             onPress={onJoinHomeQr}
-            style={[styles.secondaryButton, !homeQrUri.trim() && styles.disabledButton]}
+            style={[
+              styles.secondaryButton,
+              (!profileReady || !homeQrUri.trim()) && styles.disabledButton
+            ]}
             testID='join-home-uri-button'
           >
             <ArrowRight
-              color={homeQrUri.trim() ? theme.accentStrong : theme.placeholder}
+              color={profileReady && homeQrUri.trim() ? theme.accentStrong : theme.placeholder}
               size={18}
             />
             <Text
-              style={[styles.secondaryButtonText, !homeQrUri.trim() && styles.disabledButtonText]}
+              style={[
+                styles.secondaryButtonText,
+                (!profileReady || !homeQrUri.trim()) && styles.disabledButtonText
+              ]}
             >
               Join a home
             </Text>
@@ -1465,14 +1514,23 @@ function PeopleActions({
             value={trustAlias}
           />
           <Pressable
-            disabled={!trustQrUri.trim()}
+            disabled={!profileReady || !trustQrUri.trim()}
             onPress={onTrustProfile}
-            style={[styles.secondaryButton, !trustQrUri.trim() && styles.disabledButton]}
+            style={[
+              styles.secondaryButton,
+              (!profileReady || !trustQrUri.trim()) && styles.disabledButton
+            ]}
             testID='trust-profile-button'
           >
-            <Plus color={trustQrUri.trim() ? theme.accentStrong : theme.placeholder} size={18} />
+            <Plus
+              color={profileReady && trustQrUri.trim() ? theme.accentStrong : theme.placeholder}
+              size={18}
+            />
             <Text
-              style={[styles.secondaryButtonText, !trustQrUri.trim() && styles.disabledButtonText]}
+              style={[
+                styles.secondaryButtonText,
+                (!profileReady || !trustQrUri.trim()) && styles.disabledButtonText
+              ]}
             >
               Add trusted friend
             </Text>
