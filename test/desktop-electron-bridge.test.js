@@ -13,6 +13,14 @@ test('desktop main loads a preload script for the backend bridge', async () => {
   assert.match(source, /registerDesktopBackendIpc/)
 })
 
+test('desktop main connects Electron IPC to the main backend session', async () => {
+  const source = await readFile(new URL('../desktop/electron/main.cjs', import.meta.url), 'utf8')
+
+  assert.match(source, /createDesktopMainBackendSession/)
+  assert.match(source, /connectMainBackend/)
+  assert.match(source, /backendIpc\.connectBackend\(mainBackendSession\.backendHost\.bridge\)/)
+})
+
 test('desktop preload exposes a narrow backend bridge api', async () => {
   const source = await readFile(new URL('../desktop/electron/preload.cjs', import.meta.url), 'utf8')
 
@@ -147,6 +155,49 @@ test('desktop registered backend ipc can connect a real backend dispatch', async
   })
 
   assert.equal(await dispatch({}, 'joinHome', { mode: 'host' }), 'joinHome:host')
+})
+
+test('desktop registered backend ipc forwards connected backend events', () => {
+  const { registerDesktopBackendIpc } = require('../desktop/electron/backend-ipc.cjs')
+  const handled = new Map()
+  const sent = []
+  const backendHandlers = new Map()
+  const ipcMain = {
+    handle(channel, handler) {
+      handled.set(channel, handler)
+    },
+    on(channel, handler) {
+      handled.set(channel, handler)
+    }
+  }
+  const bridge = registerDesktopBackendIpc({
+    ipcMain,
+    webContents: { send: (channel, payload) => sent.push([channel, payload]) }
+  })
+  const subscribe = handled.get('kepos:backend:subscribe')
+
+  bridge.connectBackend({
+    dispatch: () => undefined,
+    subscribe(event, handler) {
+      backendHandlers.set(event, handler)
+      return () => backendHandlers.delete(event)
+    }
+  })
+  subscribe({}, 'listener-1', 'statusChanged')
+
+  backendHandlers.get('statusChanged')({ status: 'ready' })
+
+  assert.deepEqual(sent, [
+    ['kepos:backend:connected', true],
+    [
+      'kepos:backend:event',
+      {
+        event: 'statusChanged',
+        listenerId: 'listener-1',
+        payload: { status: 'ready' }
+      }
+    ]
+  ])
 })
 
 test('desktop electron backend ipc notifies the renderer when backend connects', () => {

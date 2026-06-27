@@ -1,15 +1,17 @@
 const path = require('node:path')
+const { pathToFileURL } = require('node:url')
 const { app, BrowserWindow, ipcMain } = require('electron')
 const { registerDesktopBackendIpc } = require('./backend-ipc.cjs')
 
 const pkg = require('../package.json')
 
 let mainWindow = null
+let mainBackendSession = null
 let backendIpc = null
 let pear = null
 
 function createWindow() {
-  process.env.KEPOS_DESKTOP_STORAGE_BASE_PATH = path.join(app.getPath('userData'), 'kepos', 'v1')
+  process.env.KEPOS_DESKTOP_STORAGE_BASE_PATH = getDesktopStorageBasePath()
 
   mainWindow = new BrowserWindow({
     height: 760,
@@ -31,12 +33,25 @@ function createWindow() {
       webContents: mainWindow.webContents
     })
   }
+  void connectMainBackend()
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show()
   })
 
   void mainWindow.loadFile(path.join(__dirname, '..', 'index.html'))
+}
+
+async function connectMainBackend() {
+  if (!backendIpc || mainBackendSession) return
+
+  const { createDesktopMainBackendSession } = await import(
+    pathToFileURL(path.join(__dirname, '..', '..', 'src', 'desktop-main-backend-session.js')).href
+  )
+  mainBackendSession = createDesktopMainBackendSession({
+    storageBasePath: getDesktopStorageBasePath()
+  })
+  backendIpc.connectBackend(mainBackendSession.backendHost.bridge)
 }
 
 async function startPearRuntime() {
@@ -67,6 +82,10 @@ function getAppPath() {
   if (process.platform === 'linux' && process.env.APPIMAGE) return process.env.APPIMAGE
   if (process.platform === 'win32') return process.execPath
   return path.join(process.resourcesPath, '..', '..')
+}
+
+function getDesktopStorageBasePath() {
+  return path.join(app.getPath('userData'), 'kepos', 'v1')
 }
 
 app.whenReady().then(() => {

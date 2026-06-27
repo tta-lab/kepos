@@ -36,6 +36,7 @@ const EVENT_SET = new Set(DESKTOP_EVENTS)
 
 function createDesktopElectronBackendBridge({ dispatch, ipcMain, webContents }) {
   const subscriptions = new Map()
+  let backendEventUnsubscribers = []
   let currentWebContents = webContents
   let currentDispatch = dispatch
   let backendConnected = false
@@ -56,6 +57,20 @@ function createDesktopElectronBackendBridge({ dispatch, ipcMain, webContents }) 
     subscriptions.delete(listenerId)
   })
 
+  function emit(event, payload) {
+    assertEvent(event)
+
+    for (const [listenerId, subscribedEvent] of subscriptions) {
+      if (subscribedEvent !== event) continue
+
+      currentWebContents.send(EVENT_CHANNEL, {
+        event,
+        listenerId,
+        payload
+      })
+    }
+  }
+
   return {
     commands: DESKTOP_COMMANDS,
     connectBackend(backend) {
@@ -63,23 +78,22 @@ function createDesktopElectronBackendBridge({ dispatch, ipcMain, webContents }) 
         throw new Error('Desktop backend dispatch must be a function')
       }
 
+      for (const unsubscribe of backendEventUnsubscribers) unsubscribe()
+      backendEventUnsubscribers = []
       currentDispatch = backend.dispatch
+
+      if (typeof backend.subscribe === 'function') {
+        for (const event of DESKTOP_EVENTS) {
+          backendEventUnsubscribers.push(
+            backend.subscribe(event, (payload) => emit(event, payload))
+          )
+        }
+      }
+
       backendConnected = true
       currentWebContents.send(CONNECTED_CHANNEL, true)
     },
-    emit(event, payload) {
-      assertEvent(event)
-
-      for (const [listenerId, subscribedEvent] of subscriptions) {
-        if (subscribedEvent !== event) continue
-
-        currentWebContents.send(EVENT_CHANNEL, {
-          event,
-          listenerId,
-          payload
-        })
-      }
-    },
+    emit,
     events: DESKTOP_EVENTS,
     setWebContents(nextWebContents) {
       currentWebContents = nextWebContents
