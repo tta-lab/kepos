@@ -177,6 +177,7 @@ els.largeQrDialog.addEventListener('click', (event) => {
 els.nickInput.addEventListener('input', () => {
   updateQrOutputs().catch(showError)
 })
+els.dmRecipientInput.addEventListener('input', renderDirectContacts)
 
 els.chatForm.addEventListener('submit', (event) => {
   event.preventDefault()
@@ -811,16 +812,18 @@ function renderDirectContacts() {
 
   const profile = getDesktopProfile(els.nickInput.value.trim() || 'Desktop')
   const contacts = listTrustedContacts(loadLocalContactBook(profile.id))
+  const selectedProfileId = els.dmRecipientInput.value.trim()
 
   els.dmContactList.replaceChildren(
     ...contacts.map((contact) => {
       const button = document.createElement('button')
       button.type = 'button'
       button.className = 'contactButton'
+      button.classList.toggle('activeContactButton', contact.profileId === selectedProfileId)
       button.textContent = contact.alias
-      button.title = contact.profileId
       button.addEventListener('click', () => {
         els.dmRecipientInput.value = contact.profileId
+        renderDirectContacts()
       })
       return button
     })

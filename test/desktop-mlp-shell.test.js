@@ -146,6 +146,7 @@ test('desktop primary panes expose short empty states before content arrives', a
 
 test('desktop panes label live and durable surfaces', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
 
   for (const text of ['Live home chat', 'Direct messages', 'Durable treehole']) {
@@ -157,9 +158,16 @@ test('desktop panes label live and durable surfaces', async () => {
   assert.equal(source.includes("<span className='railLabel'>DM</span>"), false)
   assert.match(source, /Send message/)
   assert.equal(source.includes('Send DM'), false)
+  assert.match(controller, /button\.classList\.toggle\('activeContactButton'/)
+  assert.match(
+    controller,
+    /els\.dmRecipientInput\.addEventListener\('input', renderDirectContacts\)/
+  )
+  assert.equal(controller.includes('button.title = contact.profileId'), false)
   assert.match(styles, /\.paneLabel/)
   assert.match(styles, /\.paneEyebrow/)
   assert.match(styles, /\.paneTitle/)
+  assert.match(styles, /\.activeContactButton/)
 })
 
 test('desktop treehole composer has an explicit owner-only disabled state', async () => {
