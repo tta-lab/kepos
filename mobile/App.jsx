@@ -1628,7 +1628,7 @@ function EmptyDirectMessages() {
     <View style={styles.empty}>
       <MessageCircle color='#56715f' size={34} />
       <Text style={styles.emptyTitle}>No direct messages yet</Text>
-      <Text style={styles.emptyCopy}>Choose a trusted friend and send the first DM.</Text>
+      <Text style={styles.emptyCopy}>Choose a trusted friend and send the first message.</Text>
     </View>
   )
 }

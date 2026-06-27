@@ -183,6 +183,13 @@ test('Android room panes label live and durable surfaces', async () => {
   assert.match(source, /paneTitle:/)
 })
 
+test('Android direct message empty state avoids DM shorthand', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+
+  assert.match(source, /Choose a trusted friend and send the first message\./)
+  assert.equal(source.includes('send the first DM.'), false)
+})
+
 test('Android treehole empty state talks about posts', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 
