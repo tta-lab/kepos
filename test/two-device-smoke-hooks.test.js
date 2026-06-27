@@ -91,6 +91,14 @@ test('Android room has a People tab for QR and trusted contacts', async () => {
   assert.match(source, /ContactManager/)
 })
 
+test('Android lobby and room reuse the same people action UI', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+
+  assert.match(source, /function PeopleActions\(/)
+  assert.match(source, /function Lobby[\s\S]*<PeopleActions/)
+  assert.match(source, /function PeoplePane[\s\S]*<PeopleActions/)
+})
+
 test('Android QR scanner keeps the camera preview visible', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 

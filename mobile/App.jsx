@@ -865,108 +865,22 @@ function Lobby({
         </Pressable>
       </View>
 
-      <View style={styles.panel}>
-        <Text style={styles.panelTitle}>My Home QR</Text>
-        <QrCard value={myHomeQrUri} />
-        <TextInput
-          autoCapitalize='none'
-          autoCorrect={false}
-          editable={false}
-          multiline
-          placeholder='My home QR text'
-          placeholderTextColor='#8b9188'
-          style={styles.keyInput}
-          testID='home-address-uri'
-          value={myHomeQrUri}
-        />
-        <TextInput
-          autoCapitalize='none'
-          autoCorrect={false}
-          multiline
-          onChangeText={onHomeQrChange}
-          placeholder='Paste Home QR text'
-          placeholderTextColor='#8b9188'
-          style={styles.keyInput}
-          testID='join-home-uri-input'
-          value={homeQrUri}
-        />
-        <Pressable
-          disabled={!homeQrUri.trim()}
-          onPress={onJoinHomeQr}
-          style={[styles.secondaryButton, !homeQrUri.trim() && styles.disabledButton]}
-          testID='join-home-uri-button'
-        >
-          <ArrowRight color={homeQrUri.trim() ? '#143d2b' : '#8b9188'} size={18} />
-          <Text
-            style={[styles.secondaryButtonText, !homeQrUri.trim() && styles.disabledButtonText]}
-          >
-            Join a home
-          </Text>
-        </Pressable>
-        <Pressable
-          onPress={onScanHomeQr}
-          style={styles.secondaryButton}
-          testID='scan-home-qr-button'
-        >
-          <Text style={styles.secondaryButtonText}>Scan Home QR</Text>
-        </Pressable>
-      </View>
-
-      <View style={styles.panel}>
-        <Text style={styles.panelTitle}>My Profile QR</Text>
-        <QrCard value={profileQrUri} />
-        <TextInput
-          autoCapitalize='none'
-          autoCorrect={false}
-          editable={false}
-          multiline
-          placeholder='My profile QR text'
-          placeholderTextColor='#8b9188'
-          style={styles.keyInput}
-          testID='home-profile-uri'
-          value={profileQrUri}
-        />
-        <Text style={styles.panelCopy}>Friend profile</Text>
-        <TextInput
-          autoCapitalize='none'
-          autoCorrect={false}
-          multiline
-          onChangeText={onTrustQrChange}
-          placeholder='Paste Profile QR text'
-          placeholderTextColor='#8b9188'
-          style={styles.keyInput}
-          testID='trust-profile-uri-input'
-          value={trustQrUri}
-        />
-        <Field
-          label='Alias'
-          onChangeText={onTrustAliasChange}
-          testID='trust-profile-alias-input'
-          value={trustAlias}
-        />
-        <Pressable
-          disabled={!trustQrUri.trim()}
-          onPress={onTrustProfile}
-          style={[styles.secondaryButton, !trustQrUri.trim() && styles.disabledButton]}
-          testID='trust-profile-button'
-        >
-          <Plus color={trustQrUri.trim() ? '#143d2b' : '#8b9188'} size={18} />
-          <Text
-            style={[styles.secondaryButtonText, !trustQrUri.trim() && styles.disabledButtonText]}
-          >
-            Add trusted friend
-          </Text>
-        </Pressable>
-        <Pressable
-          onPress={onScanProfileQr}
-          style={styles.secondaryButton}
-          testID='scan-profile-qr-button'
-        >
-          <Text style={styles.secondaryButtonText}>Scan Profile QR</Text>
-        </Pressable>
-      </View>
-
-      <ContactManager contacts={trustedContacts} onRevokeContact={onRevokeContact} />
+      <PeopleActions
+        homeQrUri={homeQrUri}
+        myHomeQrUri={myHomeQrUri}
+        onHomeQrChange={onHomeQrChange}
+        onJoinHomeQr={onJoinHomeQr}
+        onRevokeContact={onRevokeContact}
+        onScanHomeQr={onScanHomeQr}
+        onScanProfileQr={onScanProfileQr}
+        onTrustAliasChange={onTrustAliasChange}
+        onTrustProfile={onTrustProfile}
+        onTrustQrChange={onTrustQrChange}
+        profileQrUri={profileQrUri}
+        trustAlias={trustAlias}
+        trustedContacts={trustedContacts}
+        trustQrUri={trustQrUri}
+      />
 
       <Pressable
         onPress={onToggleAdvancedJoin}
@@ -1158,16 +1072,58 @@ function PeoplePane({
 }) {
   return (
     <ScrollView contentContainerStyle={styles.peoplePane} keyboardShouldPersistTaps='handled'>
+      <PeopleActions
+        homeQrUri={homeQrUri}
+        myHomeQrUri={myHomeQrUri}
+        onHomeQrChange={onHomeQrChange}
+        onJoinHomeQr={onJoinHomeQr}
+        onRevokeContact={onRevokeContact}
+        onScanHomeQr={onScanHomeQr}
+        onScanProfileQr={onScanProfileQr}
+        onTrustAliasChange={onTrustAliasChange}
+        onTrustProfile={onTrustProfile}
+        onTrustQrChange={onTrustQrChange}
+        profileQrUri={profileQrUri}
+        trustAlias={trustAlias}
+        trustedContacts={trustedContacts}
+        trustQrUri={trustQrUri}
+      />
+    </ScrollView>
+  )
+}
+
+function PeopleActions({
+  homeQrUri,
+  myHomeQrUri,
+  onHomeQrChange,
+  onJoinHomeQr,
+  onRevokeContact,
+  onScanHomeQr,
+  onScanProfileQr,
+  onTrustAliasChange,
+  onTrustProfile,
+  onTrustQrChange,
+  profileQrUri,
+  trustAlias,
+  trustedContacts,
+  trustQrUri
+}) {
+  return (
+    <>
       <View style={styles.panel}>
         <Text style={styles.panelTitle}>My Home QR</Text>
         <QrCard value={myHomeQrUri} />
-        <Pressable
-          onPress={onScanHomeQr}
-          style={styles.secondaryButton}
-          testID='scan-home-qr-button'
-        >
-          <Text style={styles.secondaryButtonText}>Scan Home QR</Text>
-        </Pressable>
+        <TextInput
+          autoCapitalize='none'
+          autoCorrect={false}
+          editable={false}
+          multiline
+          placeholder='My home QR text'
+          placeholderTextColor='#8b9188'
+          style={styles.keyInput}
+          testID='home-address-uri'
+          value={myHomeQrUri}
+        />
         <TextInput
           autoCapitalize='none'
           autoCorrect={false}
@@ -1192,18 +1148,29 @@ function PeoplePane({
             Join a home
           </Text>
         </Pressable>
+        <Pressable
+          onPress={onScanHomeQr}
+          style={styles.secondaryButton}
+          testID='scan-home-qr-button'
+        >
+          <Text style={styles.secondaryButtonText}>Scan Home QR</Text>
+        </Pressable>
       </View>
 
       <View style={styles.panel}>
         <Text style={styles.panelTitle}>My Profile QR</Text>
         <QrCard value={profileQrUri} />
-        <Pressable
-          onPress={onScanProfileQr}
-          style={styles.secondaryButton}
-          testID='scan-profile-qr-button'
-        >
-          <Text style={styles.secondaryButtonText}>Scan Profile QR</Text>
-        </Pressable>
+        <TextInput
+          autoCapitalize='none'
+          autoCorrect={false}
+          editable={false}
+          multiline
+          placeholder='My profile QR text'
+          placeholderTextColor='#8b9188'
+          style={styles.keyInput}
+          testID='home-profile-uri'
+          value={profileQrUri}
+        />
         <Text style={styles.panelCopy}>Friend profile</Text>
         <TextInput
           autoCapitalize='none'
@@ -1235,10 +1202,17 @@ function PeoplePane({
             Add trusted friend
           </Text>
         </Pressable>
+        <Pressable
+          onPress={onScanProfileQr}
+          style={styles.secondaryButton}
+          testID='scan-profile-qr-button'
+        >
+          <Text style={styles.secondaryButtonText}>Scan Profile QR</Text>
+        </Pressable>
       </View>
 
       <ContactManager contacts={trustedContacts} onRevokeContact={onRevokeContact} />
-    </ScrollView>
+    </>
   )
 }
 
