@@ -36,6 +36,24 @@ test('desktop context panel uses product actions for home and people flows', asy
   assert.match(styles, /\.contextHint/)
 })
 
+test('desktop keeps inline QR codes as advanced share detail', async () => {
+  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+
+  assert.equal(source.indexOf("id='homeQrCode'") > source.indexOf("id='advancedHomeShare'"), true)
+  assert.equal(
+    source.indexOf("id='profileQrCode'") > source.indexOf("id='advancedProfileShare'"),
+    true
+  )
+  assert.equal(
+    source.indexOf("id='showLargeHomeQrButton'") < source.indexOf("id='homeQrCode'"),
+    true
+  )
+  assert.equal(
+    source.indexOf("id='showLargeProfileQrButton'") < source.indexOf("id='profileQrCode'"),
+    true
+  )
+})
+
 test('desktop normal UI copy avoids raw home address language', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
 

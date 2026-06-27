@@ -186,13 +186,13 @@ function DesktopApp() {
             </form>
 
             <form id='homeQrForm' className='panel qrPanel'>
-              <div id='homeQrCode' className='qrCode' aria-label='My home QR code' />
               <button id='showLargeHomeQrButton' type='button'>
                 <QrCode size={17} />
                 Invite a friend
               </button>
               <details id='advancedHomeShare' className='advanced'>
                 <summary>Advanced</summary>
+                <div id='homeQrCode' className='qrCode' aria-label='My home QR code' />
                 <label>
                   My home URI
                   <textarea id='homeQrOutput' className='compactArea' readOnly spellCheck='false' />
@@ -225,13 +225,13 @@ function DesktopApp() {
             </div>
 
             <form id='trustForm' className='panel qrPanel'>
-              <div id='profileQrCode' className='qrCode' aria-label='My profile QR code' />
               <button id='showLargeProfileQrButton' type='button'>
                 <QrCode size={17} />
                 Show my profile
               </button>
               <details id='advancedProfileShare' className='advanced'>
                 <summary>Advanced</summary>
+                <div id='profileQrCode' className='qrCode' aria-label='My profile QR code' />
                 <label>
                   My profile URI
                   <textarea
