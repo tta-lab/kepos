@@ -160,11 +160,18 @@ test('desktop QR sharing exposes copy actions without surfacing raw URI copy', a
 
 test('desktop normal UI copy avoids raw home address language', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const state = await readFile(new URL('../src/desktop-state.js', import.meta.url), 'utf8')
+  const desktopCopy = `${source}\n${controller}\n${state}`
 
   assert.match(source, /Create my home/)
+  assert.match(desktopCopy, /Create or join a home\./)
+  assert.match(desktopCopy, /Joining home\.\.\./)
   assert.match(source, /<p className='label'>Home<\/p>/)
   assert.equal(source.includes('Create Home'), false)
   assert.equal(source.includes("<p className='label'>Home address</p>"), false)
+  assert.equal(desktopCopy.includes('Create or join a room.'), false)
+  assert.equal(desktopCopy.includes('Joining home room...'), false)
 })
 
 test('desktop status panel keeps raw ids in advanced details', async () => {

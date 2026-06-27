@@ -7,7 +7,7 @@ export function createDesktopState() {
     lastError: '',
     mode: null,
     nick: 'Desktop',
-    notice: 'Create or join a room.',
+    notice: 'Create or join a home.',
     peers: 0,
     roomKey: '',
     treeholeCanPost: true,

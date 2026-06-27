@@ -316,7 +316,7 @@ async function joinRoom({ createTreehole, homeAddress = null, mode, roomKey }) {
       })
   })
   state = setDesktopRoom(state, { mode, nick, peers: 0, roomKey: homeJoin.roomKey })
-  state = { ...state, notice: 'Joining home room...' }
+  state = { ...state, notice: 'Joining home...' }
   render()
 
   room = createP2PRoom({
