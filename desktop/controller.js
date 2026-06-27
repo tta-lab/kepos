@@ -7,6 +7,10 @@ import {
   createDesktopTreeholeControlSendResult
 } from '../src/desktop-control-service.js'
 import { createDesktopHomeJoinDetails } from '../src/desktop-home-join-service.js'
+import {
+  createDesktopPeopleViewModel,
+  formatDesktopMessageRequestTitle
+} from '../src/desktop-people-view-model.js'
 import { createDesktopProfileContext } from '../src/desktop-profile-context.js'
 import {
   createDesktopMessageRequestAcceptance,
@@ -735,9 +739,12 @@ function renderContacts() {
   if (!els.contactList) return
 
   const { contactBook } = getProfileContext()
-  const contacts = listTrustedContacts(contactBook)
+  const { trustedContacts } = createDesktopPeopleViewModel({
+    contactBook,
+    shortenProfileId: shorten
+  })
 
-  if (contacts.length === 0) {
+  if (trustedContacts.length === 0) {
     const empty = document.createElement('p')
     empty.className = 'muted smallText'
     empty.textContent = 'No trusted friends yet'
@@ -746,7 +753,7 @@ function renderContacts() {
   }
 
   els.contactList.replaceChildren(
-    ...contacts.map((contact) => {
+    ...trustedContacts.map((contact) => {
       const row = document.createElement('div')
       const label = document.createElement('div')
       const alias = document.createElement('p')
@@ -760,11 +767,11 @@ function renderContacts() {
       row.className = 'managedContact'
       alias.textContent = contact.alias
       profileId.className = 'mono muted smallText'
-      profileId.textContent = shorten(contact.profileId)
+      profileId.textContent = contact.shortProfileId
       meta.className = 'trustMeta'
-      status.textContent = 'Trusted'
-      source.textContent = `From ${formatTrustSource(contact.source)}`
-      trustedAt.textContent = `Trusted ${formatTrustTime(contact.trustedAt)}`
+      status.textContent = contact.statusLabel
+      source.textContent = contact.sourceLabel
+      trustedAt.textContent = contact.trustedAtLabel
       meta.append(status, source, trustedAt)
       label.append(alias, profileId, meta)
       button.type = 'button'
@@ -779,25 +786,16 @@ function renderContacts() {
   )
 }
 
-function formatTrustSource(source) {
-  if (source === 'profile_qr' || source === 'person_qr') return 'Profile QR'
-  if (source === 'home_room') return 'Home room'
-  if (source === 'message_request') return 'Message request'
-  return 'local trust'
-}
-
-function formatTrustTime(trustedAt) {
-  if (!Number.isFinite(trustedAt)) return 'recently'
-  return new Date(trustedAt).toLocaleDateString()
-}
-
 function renderMessageRequests() {
   if (!els.requestList) return
 
   const { contactBook } = getProfileContext()
-  const requests = Array.from(contactBook.pendingRequestsByProfileId.values())
+  const { messageRequests } = createDesktopPeopleViewModel({
+    contactBook,
+    shortenProfileId: shorten
+  })
 
-  if (requests.length === 0) {
+  if (messageRequests.length === 0) {
     const empty = document.createElement('p')
     empty.className = 'muted smallText'
     empty.textContent = 'No message requests'
@@ -806,7 +804,7 @@ function renderMessageRequests() {
   }
 
   els.requestList.replaceChildren(
-    ...requests.map((request) => {
+    ...messageRequests.map((request) => {
       const row = document.createElement('div')
       const label = document.createElement('div')
       const title = document.createElement('p')
@@ -817,11 +815,11 @@ function renderMessageRequests() {
       const button = document.createElement('button')
 
       row.className = 'managedContact'
-      title.textContent = formatMessageRequestTitle(request)
+      title.textContent = request.title
       profileId.className = 'mono muted smallText'
-      profileId.textContent = request.alias || shorten(request.profileId)
+      profileId.textContent = request.profileLabel
       preview.className = 'muted smallText'
-      preview.textContent = formatRequestPreview(request.text)
+      preview.textContent = request.preview
       label.append(title, profileId, preview)
       actions.className = 'inlineActions'
       ignoreButton.type = 'button'
@@ -835,11 +833,7 @@ function renderMessageRequests() {
       button.textContent = 'Accept'
       button.addEventListener('click', () =>
         dispatchCommand('acceptMessageRequest', {
-          message: {
-            fromProfileId: request.profileId,
-            nick: request.alias || '',
-            type: 'kepos.message.request.v1'
-          }
+          message: request.acceptMessage
         })
       )
       actions.append(ignoreButton, button)
@@ -847,15 +841,6 @@ function renderMessageRequests() {
       return row
     })
   )
-}
-
-function formatRequestPreview(text) {
-  return text?.trim() || 'No message yet'
-}
-
-function formatMessageRequestTitle(request) {
-  const name = request?.alias?.trim() || 'Someone'
-  return `${name} wants to start a DM.`
 }
 
 async function revokeLocalContact(profileId) {
@@ -928,7 +913,7 @@ function displayDirectMessageMeta(message) {
   if (message.type === 'kepos.message.request.v1') {
     return message.direction === 'out'
       ? 'You asked someone to start a DM'
-      : formatMessageRequestTitle(message)
+      : formatDesktopMessageRequestTitle(message)
   }
 
   return message.direction === 'out'

@@ -224,17 +224,22 @@ test('Android paste QR fallback stays behind advanced people controls', async ()
 test('DM request copy reads as a social action', async () => {
   const mobile = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
   const desktop = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const desktopPeopleViewModel = await readFile(
+    new URL('../src/desktop-people-view-model.js', import.meta.url),
+    'utf8'
+  )
 
   assert.match(mobile, /: formatMessageRequestTitle\(message\)/)
-  assert.match(desktop, /: formatMessageRequestTitle\(message\)/)
+  assert.match(desktop, /: formatDesktopMessageRequestTitle\(message\)/)
   assert.match(mobile, /You asked someone to start a DM/)
   assert.match(desktop, /You asked someone to start a DM/)
+  assert.match(desktopPeopleViewModel, /wants to start a DM/)
   assert.match(mobile, /testID='message-request-ignore-button'/)
   assert.match(mobile, /onIgnoreRequest\(message\)/)
   assert.match(desktop, /ignoreButton\.textContent = 'Ignore'/)
   assert.match(desktop, /dispatchCommand\('ignoreMessageRequest', \{ message \}\)/)
   assert.match(mobile, /wants to start a DM/)
-  assert.match(desktop, /wants to start a DM/)
+  assert.match(desktopPeopleViewModel, /wants to start a DM/)
   assert.equal(mobile.includes('asked Profile'), false)
   assert.equal(desktop.includes('asked Profile'), false)
   assert.equal(mobile.includes('Profile ${shortenProfileId(peer)} wants to start a DM'), false)

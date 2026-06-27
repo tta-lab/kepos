@@ -65,17 +65,10 @@ test('desktop people UI uses trusted friends copy', async () => {
   assert.match(source, /<PaneLabel eyebrow='trusted' title='People' \/>/)
   assert.match(source, /Trusted friends/)
   assert.match(controller, /empty\.textContent = 'No trusted friends yet'/)
-  assert.match(controller, /status\.textContent = 'Trusted'/)
-  assert.match(
-    controller,
-    /source\.textContent = `From \$\{formatTrustSource\(contact\.source\)\}`/
-  )
-  assert.match(
-    controller,
-    /trustedAt\.textContent = `Trusted \$\{formatTrustTime\(contact\.trustedAt\)\}`/
-  )
-  assert.match(controller, /function formatTrustSource\(source\)/)
-  assert.match(controller, /function formatTrustTime\(trustedAt\)/)
+  assert.match(controller, /createDesktopPeopleViewModel/)
+  assert.match(controller, /status\.textContent = contact\.statusLabel/)
+  assert.match(controller, /source\.textContent = contact\.sourceLabel/)
+  assert.match(controller, /trustedAt\.textContent = contact\.trustedAtLabel/)
   assert.equal(source.indexOf("id='contactList'") > source.indexOf("id='peoplePane'"), true)
   assert.match(
     controller,
@@ -103,14 +96,11 @@ test('desktop people pane surfaces pending message requests', async () => {
   assert.match(source, /Message requests/)
   assert.match(controller, /requestList: document\.querySelector\('#requestList'\)/)
   assert.match(controller, /renderMessageRequests\(\)/)
-  assert.match(controller, /pendingRequestsByProfileId\.values\(\)/)
+  assert.match(controller, /messageRequests/)
   assert.match(controller, /empty\.textContent = 'No message requests'/)
-  assert.match(controller, /title\.textContent = formatMessageRequestTitle\(request\)/)
-  assert.match(controller, /function formatMessageRequestTitle\(request\)/)
-  assert.match(controller, /return `\$\{name\} wants to start a DM\.`/)
-  assert.match(controller, /preview\.textContent = formatRequestPreview\(request\.text\)/)
-  assert.match(controller, /function formatRequestPreview\(text\)/)
-  assert.match(controller, /return text\?\.trim\(\) \|\| 'No message yet'/)
+  assert.match(controller, /title\.textContent = request\.title/)
+  assert.match(controller, /preview\.textContent = request\.preview/)
+  assert.match(controller, /message: request\.acceptMessage/)
   assert.match(controller, /button\.textContent = 'Accept'/)
   assert.match(controller, /ignoreButton\.textContent = 'Ignore'/)
   assert.match(controller, /dispatchCommand\('acceptMessageRequest'/)
