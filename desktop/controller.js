@@ -2,10 +2,8 @@
 
 import QRCode from 'qrcode'
 import { applyMessageRequestToContactBook } from '../src/message-request.ts'
-import { createTreeholePolicyFromContactBook } from '../src/contact-book-storage.js'
 import { ignoreMessageRequest, listTrustedContacts } from '../src/contact-book.ts'
 import { applyLocalContactRevoke } from '../src/revoke-state.js'
-import { applySignedQrUriToContactBook } from '../src/signed-qr-scan.js'
 import {
   createSignedHomeAddressPayload,
   createSignedTrustInvitePayload,
@@ -13,6 +11,7 @@ import {
 } from '../src/signed-qr-payload.ts'
 import { createDesktopBackendRuntime } from '../src/desktop-backend-runtime.js'
 import { createDesktopHomeJoinDetails } from '../src/desktop-home-join-service.js'
+import { applyDesktopHomeQr, applyDesktopProfileTrustQr } from '../src/desktop-qr-service.js'
 import {
   getDesktopLocalProfile,
   loadDesktopContactBook,
@@ -325,24 +324,16 @@ async function joinHomeQr() {
   if (!uri) return
 
   const profile = getDesktopProfile(els.nickInput.value.trim() || 'Desktop')
-  const result = applySignedQrUriToContactBook({
+  const homeAddress = applyDesktopHomeQr({
     book: loadLocalContactBook(profile.id),
     localProfileId: profile.id,
     uri
   })
 
-  if (result.kind !== 'home') {
-    throw new Error('Home QR is required')
-  }
-
-  if (!result.canEnter) {
-    throw new Error('This trusted-only home is not trusted locally')
-  }
-
   els.homeQrInput.value = ''
   await joinRoom({
     createTreehole: false,
-    homeAddress: result,
+    homeAddress,
     mode: 'peer'
   })
 }
@@ -352,25 +343,20 @@ function trustProfileQr() {
   if (!uri) return
 
   const profile = getDesktopProfile(els.nickInput.value.trim() || 'Desktop')
-  const result = applySignedQrUriToContactBook({
+  const result = applyDesktopProfileTrustQr({
     alias: els.trustAliasInput.value,
     book: loadLocalContactBook(profile.id),
     localIdentity: profile.identity,
-    source: 'profile_qr',
+    localProfileId: profile.id,
     uri
   })
 
-  if (result.kind !== 'trust') {
-    throw new Error('Profile QR is required')
-  }
-
   saveDesktopContactBook({ book: result.book })
 
-  const treeholePolicy = createTreeholePolicyFromContactBook(result.book)
   if (homeJoinDetails?.profileId === profile.id) {
     homeJoinDetails = {
       ...homeJoinDetails,
-      treeholePolicy
+      treeholePolicy: result.treeholePolicy
     }
     configureTreeholeRuntime()
   }
