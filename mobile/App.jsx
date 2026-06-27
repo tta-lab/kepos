@@ -1036,6 +1036,7 @@ function Lobby({
       testID='lobby-scroll'
     >
       <QuickStartPanel
+        myHomeQrUri={myHomeQrUri}
         nick={nick}
         onCreateRoom={onCreateRoom}
         onNickChange={onNickChange}
@@ -1283,6 +1284,7 @@ function ChatRoom({
 }
 
 function QuickStartPanel({
+  myHomeQrUri,
   nick,
   onCreateRoom,
   onNickChange,
@@ -1291,6 +1293,7 @@ function QuickStartPanel({
   profileReady
 }) {
   const { styles, theme } = useMobileTheme()
+  const [showQuickHomeQr, setShowQuickHomeQr] = useState(false)
 
   return (
     <View style={styles.quickStartPanel}>
@@ -1311,6 +1314,18 @@ function QuickStartPanel({
           <Plus color={theme.surface} size={18} />
           <Text style={styles.primaryButtonText}>Create my home</Text>
         </Pressable>
+        <Pressable
+          disabled={!profileReady}
+          onPress={() => setShowQuickHomeQr((value) => !value)}
+          style={[styles.secondaryButton, !profileReady && styles.disabledButton]}
+          testID='quick-show-home-qr-button'
+        >
+          <QrCode color={profileReady ? theme.accentStrong : theme.placeholder} size={18} />
+          <Text style={[styles.secondaryButtonText, !profileReady && styles.disabledButtonText]}>
+            Invite a friend
+          </Text>
+        </Pressable>
+        {showQuickHomeQr ? <QrCard value={myHomeQrUri} /> : null}
         <Pressable
           disabled={!profileReady}
           onPress={onScanHomeQr}

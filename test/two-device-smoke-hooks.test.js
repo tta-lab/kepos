@@ -67,6 +67,8 @@ test('Android lobby starts with compact product choices', async () => {
   assert.match(source, /Start here/)
   assert.match(source, /<Field label='Name' onChangeText={onNickChange} value={nick} \/>/)
   assert.match(source, /Create my home/)
+  assert.match(source, /testID='quick-show-home-qr-button'[\s\S]*Invite a friend/)
+  assert.match(source, /showQuickHomeQr \? <QrCard value={myHomeQrUri} \/> : null/)
   assert.match(source, /testID='quick-scan-home-qr-button'[\s\S]*Join a home/)
   assert.match(source, /testID='quick-scan-profile-qr-button'[\s\S]*Trust a friend/)
   assert.equal(source.indexOf('Scan Home QR') > source.indexOf('function PeopleActions'), true)
