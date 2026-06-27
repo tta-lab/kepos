@@ -1056,6 +1056,7 @@ function Lobby({
       </Pressable>
       {showPeopleSetup ? (
         <PeopleActions
+          canJoinHome={true}
           homeQrUri={homeQrUri}
           myHomeQrUri={myHomeQrUri}
           onHomeQrChange={onHomeQrChange}
@@ -1385,6 +1386,7 @@ function PeoplePane({
         profileId={profileId}
       />
       <PeopleActions
+        canJoinHome={false}
         homeQrUri={homeQrUri}
         myHomeQrUri={myHomeQrUri}
         onHomeQrChange={onHomeQrChange}
@@ -1464,6 +1466,7 @@ function MessageRequestManager({ onAcceptRequest, onIgnoreRequest, pendingReques
 }
 
 function PeopleActions({
+  canJoinHome,
   homeQrUri,
   myHomeQrUri,
   onHomeQrChange,
@@ -1484,6 +1487,7 @@ function PeopleActions({
   const [showAdvancedShare, setShowAdvancedShare] = useState(false)
   const [showHomeQr, setShowHomeQr] = useState(false)
   const [showProfileQr, setShowProfileQr] = useState(false)
+  const canUseHomeJoin = profileReady && canJoinHome
 
   return (
     <>
@@ -1502,15 +1506,18 @@ function PeopleActions({
         </Pressable>
         {showHomeQr ? <QrCard value={myHomeQrUri} /> : null}
         <Pressable
-          disabled={!profileReady}
+          disabled={!canUseHomeJoin}
           onPress={onScanHomeQr}
-          style={[styles.secondaryButton, !profileReady && styles.disabledButton]}
+          style={[styles.secondaryButton, !canUseHomeJoin && styles.disabledButton]}
           testID='scan-home-qr-button'
         >
-          <Text style={[styles.secondaryButtonText, !profileReady && styles.disabledButtonText]}>
+          <Text style={[styles.secondaryButtonText, !canUseHomeJoin && styles.disabledButtonText]}>
             Scan Home QR
           </Text>
         </Pressable>
+        {!canJoinHome ? (
+          <Text style={styles.panelCopy}>Leave this home before joining another one.</Text>
+        ) : null}
       </View>
 
       <View style={styles.panel}>
@@ -1562,22 +1569,22 @@ function PeopleActions({
             value={homeQrUri}
           />
           <Pressable
-            disabled={!profileReady || !homeQrUri.trim()}
+            disabled={!canUseHomeJoin || !homeQrUri.trim()}
             onPress={onJoinHomeQr}
             style={[
               styles.secondaryButton,
-              (!profileReady || !homeQrUri.trim()) && styles.disabledButton
+              (!canUseHomeJoin || !homeQrUri.trim()) && styles.disabledButton
             ]}
             testID='join-home-uri-button'
           >
             <ArrowRight
-              color={profileReady && homeQrUri.trim() ? theme.accentStrong : theme.placeholder}
+              color={canUseHomeJoin && homeQrUri.trim() ? theme.accentStrong : theme.placeholder}
               size={18}
             />
             <Text
               style={[
                 styles.secondaryButtonText,
-                (!profileReady || !homeQrUri.trim()) && styles.disabledButtonText
+                (!canUseHomeJoin || !homeQrUri.trim()) && styles.disabledButtonText
               ]}
             >
               Join a home

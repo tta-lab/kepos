@@ -99,7 +99,8 @@ test('Android lobby disables profile-dependent actions while profile loads', asy
   assert.match(source, /!profileReady && styles\.disabledButton/)
   assert.match(source, /canJoin={profileReady && canJoin}/)
   assert.match(source, /function PeopleActions\([\s\S]*profileReady[\s\S]*\) \{/)
-  assert.match(source, /disabled={!profileReady \|\| !homeQrUri\.trim\(\)}/)
+  assert.match(source, /const canUseHomeJoin = profileReady && canJoinHome/)
+  assert.match(source, /disabled=\{!canUseHomeJoin \|\| !homeQrUri\.trim\(\)\}/)
   assert.match(source, /disabled={!profileReady \|\| !trustQrUri\.trim\(\)}/)
 })
 
@@ -486,6 +487,29 @@ test('Android lobby and room reuse the same people action UI', async () => {
   assert.match(source, /function PeopleActions\(/)
   assert.match(source, /function Lobby[\s\S]*<PeopleActions/)
   assert.match(source, /function PeoplePane[\s\S]*<PeopleActions/)
+})
+
+test('Android room people pane does not offer joining another home', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const lobby = source.slice(
+    source.indexOf('function Lobby('),
+    source.indexOf('function ChatRoom(')
+  )
+  const peoplePane = source.slice(
+    source.indexOf('function PeoplePane('),
+    source.indexOf('function MessageRequestManager(')
+  )
+  const peopleActions = source.slice(
+    source.indexOf('function PeopleActions('),
+    source.indexOf('function DirectPane(')
+  )
+
+  assert.match(lobby, /canJoinHome=\{true\}/)
+  assert.match(peoplePane, /canJoinHome=\{false\}/)
+  assert.match(peopleActions, /const canUseHomeJoin = profileReady && canJoinHome/)
+  assert.match(peopleActions, /disabled=\{!canUseHomeJoin\}/)
+  assert.match(peopleActions, /disabled=\{!canUseHomeJoin \|\| !homeQrUri\.trim\(\)\}/)
+  assert.match(peopleActions, /Leave this home before joining another one\./)
 })
 
 test('Android QR scanner keeps the camera preview visible', async () => {
