@@ -81,6 +81,21 @@ test('desktop people UI uses trusted friends copy', async () => {
   assert.match(controller, /notice: 'Trust revoked\.'/)
 })
 
+test('desktop people pane surfaces pending message requests', async () => {
+  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+
+  assert.match(source, /id='requestList'/)
+  assert.match(source, /Message requests/)
+  assert.match(controller, /requestList: document\.querySelector\('#requestList'\)/)
+  assert.match(controller, /renderMessageRequests\(\)/)
+  assert.match(controller, /pendingRequestsByProfileId\.values\(\)/)
+  assert.match(controller, /empty\.textContent = 'No message requests'/)
+  assert.match(controller, /title\.textContent = 'Message request'/)
+  assert.match(controller, /button\.textContent = 'Accept'/)
+  assert.match(controller, /dispatchCommand\('acceptMessageRequest'/)
+})
+
 test('desktop keeps inline QR codes as advanced share detail', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
 

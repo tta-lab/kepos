@@ -98,6 +98,7 @@ const els = {
   profileQrCode: document.querySelector('#profileQrCode'),
   profileQrOutput: document.querySelector('#profileQrOutput'),
   profileIdLabel: document.querySelector('#profileIdLabel'),
+  requestList: document.querySelector('#requestList'),
   roomKeyInput: document.querySelector('#roomKeyInput'),
   roomKeyLabel: document.querySelector('#roomKeyLabel'),
   showLargeHomeQrButton: document.querySelector('#showLargeHomeQrButton'),
@@ -792,6 +793,7 @@ function render() {
   renderMessages()
   renderDirectMessages()
   renderDirectContacts()
+  renderMessageRequests()
   renderContacts()
   renderPosts()
 }
@@ -895,6 +897,51 @@ function renderContacts() {
       button.textContent = 'Revoke'
       button.addEventListener('click', () =>
         dispatchCommand('revokeContact', { profileId: contact.profileId })
+      )
+      row.append(label, button)
+      return row
+    })
+  )
+}
+
+function renderMessageRequests() {
+  if (!els.requestList) return
+
+  const profile = getDesktopProfile(els.nickInput.value.trim() || 'Desktop')
+  const requests = Array.from(loadLocalContactBook(profile.id).pendingRequestsByProfileId.values())
+
+  if (requests.length === 0) {
+    const empty = document.createElement('p')
+    empty.className = 'muted smallText'
+    empty.textContent = 'No message requests'
+    els.requestList.replaceChildren(empty)
+    return
+  }
+
+  els.requestList.replaceChildren(
+    ...requests.map((request) => {
+      const row = document.createElement('div')
+      const label = document.createElement('div')
+      const title = document.createElement('p')
+      const profileId = document.createElement('p')
+      const button = document.createElement('button')
+
+      row.className = 'managedContact'
+      title.textContent = 'Message request'
+      profileId.className = 'mono muted smallText'
+      profileId.textContent = request.alias || shorten(request.profileId)
+      label.append(title, profileId)
+      button.type = 'button'
+      button.className = 'smallButton'
+      button.textContent = 'Accept'
+      button.addEventListener('click', () =>
+        dispatchCommand('acceptMessageRequest', {
+          message: {
+            fromProfileId: request.profileId,
+            nick: request.alias || '',
+            type: 'kepos.message.request.v1'
+          }
+        })
       )
       row.append(label, button)
       return row

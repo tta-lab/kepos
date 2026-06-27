@@ -164,6 +164,10 @@ function DesktopApp() {
           <section id='peoplePane' className='pane hidden'>
             <PaneLabel eyebrow='trusted' title='People' />
             <section className='panel contactsPanel'>
+              <SectionTitle icon={<MessageCircle size={15} />} text='Message requests' />
+              <div id='requestList' className='managedContacts' />
+            </section>
+            <section className='panel contactsPanel'>
               <SectionTitle icon={<Users size={15} />} text='Trusted friends' />
               <div id='contactList' className='managedContacts' />
             </section>
