@@ -1765,7 +1765,7 @@ function formatPostTime(value) {
 
 function treeholeStatusText(status) {
   if (status === 'waiting' || status === 'waiting-for-bootstrap') {
-    return 'Waiting for a home peer to share the treehole log.'
+    return 'Waiting for the home owner to share the treehole.'
   }
 
   if (status === 'starting') {

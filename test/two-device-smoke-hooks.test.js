@@ -222,7 +222,9 @@ test('Android treehole empty state talks about posts', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 
   assert.match(source, /No posts yet/)
+  assert.match(source, /Waiting for the home owner to share the treehole\./)
   assert.equal(source.includes('No treeholes yet'), false)
+  assert.equal(source.includes('Waiting for a home peer to share the treehole log.'), false)
 })
 
 test('Android room has a People tab for QR and trusted contacts', async () => {
