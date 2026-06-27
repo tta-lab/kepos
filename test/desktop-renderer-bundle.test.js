@@ -9,7 +9,11 @@ async function readDesktopUiSource() {
     new URL('../desktop/context-components.jsx', import.meta.url),
     'utf8'
   )
-  return `${app}\n${shell}\n${context}`
+  const people = await readFile(
+    new URL('../desktop/people-components.jsx', import.meta.url),
+    'utf8'
+  )
+  return `${app}\n${shell}\n${context}\n${people}`
 }
 
 test('desktop renderer loads the bundled CommonJS entrypoint', async () => {

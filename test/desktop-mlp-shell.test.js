@@ -13,7 +13,11 @@ async function readDesktopUiSource() {
     new URL('../desktop/context-components.jsx', import.meta.url),
     'utf8'
   )
-  return `${app}\n${shell}\n${context}`
+  const people = await readFile(
+    new URL('../desktop/people-components.jsx', import.meta.url),
+    'utf8'
+  )
+  return `${app}\n${shell}\n${context}\n${people}`
 }
 
 test('desktop React shell separates navigation, workspace, and context panels', async () => {
@@ -131,6 +135,21 @@ test('desktop people UI uses trusted friends copy', async () => {
   assert.equal(controller.includes('No trusted contacts'), false)
   assert.equal(controller.includes('notice: `Revoked ${shorten(profileId)}.`'), false)
   assert.match(actions, /setNotice\('Trust revoked\.'\)/)
+})
+
+test('desktop People lists live behind a dedicated component boundary', async () => {
+  const source = await readDesktopAppSource()
+  const people = await readFile(
+    new URL('../desktop/people-components.jsx', import.meta.url),
+    'utf8'
+  )
+
+  assert.match(source, /import \{ PeopleLists \} from '\.\/people-components\.jsx'/)
+  assert.match(source, /<PeopleLists[\s\S]*trustedContacts=\{people\.trustedContacts\}/)
+  assert.match(people, /export function PeopleLists\(/)
+  assert.match(people, /function SectionTitle\(/)
+  assert.doesNotMatch(source, /function PeopleLists\(/)
+  assert.doesNotMatch(source, /function SectionTitle\(/)
 })
 
 test('desktop people pane surfaces pending message requests', async () => {
