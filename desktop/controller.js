@@ -933,7 +933,13 @@ function displayDirectMessageMeta(message) {
       : `Profile ${shorten(peer)} wants to start a DM`
   }
 
-  return `${message.nick || 'DM'} to ${shorten(message.toProfileId)}`
+  return message.direction === 'out'
+    ? `You to ${displayDirectPeer(message.toProfileId)}`
+    : `${displayDirectPeer(message.fromProfileId, message.nick)} to you`
+}
+
+function displayDirectPeer(profileId, displayName = '') {
+  return displayName?.trim() || `Profile ${shorten(profileId)}`
 }
 
 function acceptIncomingMessageRequest(message) {

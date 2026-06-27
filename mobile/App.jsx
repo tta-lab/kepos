@@ -1597,6 +1597,10 @@ function displayPostAuthor(post) {
   return post.authorDisplayName || post.author || shortenProfileId(post.authorProfileId) || 'anon'
 }
 
+function displayDirectPeer(profileId, displayName = '') {
+  return displayName?.trim() || `Profile ${shortenProfileId(profileId)}`
+}
+
 function shortenProfileId(value) {
   return value ? `${value.slice(0, 8)}...${value.slice(-8)}` : ''
 }
@@ -1645,7 +1649,9 @@ function DirectBubble({ message, onAcceptRequest }) {
           ? outgoing
             ? `You asked Profile ${shortenProfileId(peer)} to start a DM`
             : `Profile ${shortenProfileId(peer)} wants to start a DM`
-          : `${message.nick || 'DM'} to ${shortenProfileId(message.toProfileId)}`}
+          : outgoing
+            ? `You to ${displayDirectPeer(message.toProfileId)}`
+            : `${displayDirectPeer(message.fromProfileId, message.nick)} to you`}
       </Text>
       <Text style={[styles.bubbleText, !outgoing && styles.inBubbleText]}>{message.text}</Text>
       {isRequest && !outgoing ? (
