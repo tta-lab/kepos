@@ -120,6 +120,25 @@ test('Android raw own QR text stays behind advanced people controls', async () =
   assert.equal(source.includes("placeholder='My profile QR text'"), false)
 })
 
+test('Android own QR cards are reveal actions, not default dashboard blocks', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+
+  assert.match(source, /const \[showHomeQr, setShowHomeQr\] = useState\(false\)/)
+  assert.match(source, /const \[showProfileQr, setShowProfileQr\] = useState\(false\)/)
+  assert.match(source, /Show My Home QR/)
+  assert.match(source, /Show My Profile QR/)
+  assert.match(source, /showHomeQr \? <QrCard value={myHomeQrUri} \/> : null/)
+  assert.match(source, /showProfileQr \? <QrCard value={profileQrUri} \/> : null/)
+  assert.equal(
+    source.includes('<Text style={styles.panelTitle}>My Home QR</Text>\\n        <QrCard'),
+    false
+  )
+  assert.equal(
+    source.includes('<Text style={styles.panelTitle}>My Profile QR</Text>\\n        <QrCard'),
+    false
+  )
+})
+
 test('Android paste QR fallback stays behind advanced people controls', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 

@@ -20,6 +20,7 @@ import {
   LogOut,
   MessageCircle,
   Plus,
+  QrCode,
   Send,
   Sprout,
   UserMinus
@@ -1169,12 +1170,22 @@ function PeopleActions({
   trustQrUri
 }) {
   const [showAdvancedShare, setShowAdvancedShare] = useState(false)
+  const [showHomeQr, setShowHomeQr] = useState(false)
+  const [showProfileQr, setShowProfileQr] = useState(false)
 
   return (
     <>
       <View style={styles.panel}>
         <Text style={styles.panelTitle}>My Home QR</Text>
-        <QrCard value={myHomeQrUri} />
+        <Pressable
+          onPress={() => setShowHomeQr((value) => !value)}
+          style={styles.secondaryButton}
+          testID='show-home-qr-button'
+        >
+          <QrCode color='#143d2b' size={18} />
+          <Text style={styles.secondaryButtonText}>Show My Home QR</Text>
+        </Pressable>
+        {showHomeQr ? <QrCard value={myHomeQrUri} /> : null}
         <Pressable
           onPress={onScanHomeQr}
           style={styles.secondaryButton}
@@ -1186,7 +1197,15 @@ function PeopleActions({
 
       <View style={styles.panel}>
         <Text style={styles.panelTitle}>My Profile QR</Text>
-        <QrCard value={profileQrUri} />
+        <Pressable
+          onPress={() => setShowProfileQr((value) => !value)}
+          style={styles.secondaryButton}
+          testID='show-profile-qr-button'
+        >
+          <QrCode color='#143d2b' size={18} />
+          <Text style={styles.secondaryButtonText}>Show My Profile QR</Text>
+        </Pressable>
+        {showProfileQr ? <QrCard value={profileQrUri} /> : null}
         <Pressable
           onPress={onScanProfileQr}
           style={styles.secondaryButton}
