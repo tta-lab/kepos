@@ -1837,6 +1837,8 @@ function TabButton({ active, label, onPress, testID }) {
 
   return (
     <Pressable
+      accessibilityRole='tab'
+      accessibilityState={{ selected: active }}
       onPress={onPress}
       style={[styles.tabButton, active && styles.activeTabButton]}
       testID={testID}

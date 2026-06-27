@@ -417,6 +417,17 @@ test('Android room tabs are bottom navigation', async () => {
   assert.doesNotMatch(source, /tabs: \{\s*borderBottomColor: theme\.border,/)
 })
 
+test('Android room tabs expose selected accessibility state', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const tabButton = source.slice(
+    source.indexOf('function TabButton('),
+    source.indexOf('function ChatPane(')
+  )
+
+  assert.match(tabButton, /accessibilityRole='tab'/)
+  assert.match(tabButton, /accessibilityState=\{\{ selected: active \}\}/)
+})
+
 test('Android direct message empty state avoids DM shorthand', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 
