@@ -58,6 +58,8 @@ import {
 } from '../src/desktop-state.js'
 import { createDesktopCommandRegistry } from '../src/desktop-command-registry.ts'
 
+const ROOM_KEY_PATTERN = /^[0-9a-f]{64}$/
+
 const els = {
   chatForm: document.querySelector('#chatForm'),
   chatInput: document.querySelector('#chatInput'),
@@ -109,6 +111,7 @@ const els = {
   treeholeStatusLabel: document.querySelector('#treeholeStatusLabel'),
   treeholeTab: document.querySelector('#treeholeTab'),
   trustAliasInput: document.querySelector('#trustAliasInput'),
+  trustButton: document.querySelector('#trustButton'),
   trustForm: document.querySelector('#trustForm'),
   trustQrInput: document.querySelector('#trustQrInput')
 }
@@ -183,6 +186,9 @@ els.nickInput.addEventListener('input', () => {
 els.chatInput.addEventListener('input', updateComposerButtons)
 els.dmInput.addEventListener('input', updateComposerButtons)
 els.treeholeInput.addEventListener('input', updateComposerButtons)
+els.roomKeyInput.addEventListener('input', updateActionButtons)
+els.homeQrInput.addEventListener('input', updateActionButtons)
+els.trustQrInput.addEventListener('input', updateActionButtons)
 els.dmRecipientInput.addEventListener('input', () => {
   renderDirectContacts()
   updateComposerButtons()
@@ -761,8 +767,8 @@ function setTab(tab) {
 function render() {
   const inRoom = state.view === 'room'
   els.leaveButton.disabled = !inRoom
-  els.joinButton.disabled = inRoom
   els.createButton.disabled = inRoom
+  updateActionButtons()
   els.homeStatusLabel.textContent = getDesktopHomeStatus(state)
   els.roomKeyLabel.textContent = inRoom ? shorten(state.roomKey) : 'not joined'
   els.profileIdLabel.textContent = session?.profileId ? shorten(session.profileId) : 'not ready'
@@ -788,6 +794,13 @@ function render() {
   renderDirectContacts()
   renderContacts()
   renderPosts()
+}
+
+function updateActionButtons() {
+  const inRoom = state.view === 'room'
+  els.joinButton.disabled = inRoom || !ROOM_KEY_PATTERN.test(els.roomKeyInput.value.trim())
+  els.joinHomeQrButton.disabled = inRoom || !els.homeQrInput.value.trim()
+  els.trustButton.disabled = !els.trustQrInput.value.trim()
 }
 
 function updateComposerButtons() {

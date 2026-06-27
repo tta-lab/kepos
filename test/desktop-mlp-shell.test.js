@@ -205,6 +205,25 @@ test('desktop composers disable unavailable sends', async () => {
   )
 })
 
+test('desktop context actions disable unavailable joins and trust', async () => {
+  const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+
+  assert.match(controller, /const ROOM_KEY_PATTERN = \/\^\[0-9a-f\]\{64\}\$\//)
+  assert.match(controller, /function updateActionButtons\(\)/)
+  assert.match(controller, /els\.roomKeyInput\.addEventListener\('input', updateActionButtons\)/)
+  assert.match(controller, /els\.homeQrInput\.addEventListener\('input', updateActionButtons\)/)
+  assert.match(controller, /els\.trustQrInput\.addEventListener\('input', updateActionButtons\)/)
+  assert.match(
+    controller,
+    /els\.joinButton\.disabled =\s*inRoom \|\| !ROOM_KEY_PATTERN\.test\(els\.roomKeyInput\.value\.trim\(\)\)/
+  )
+  assert.match(
+    controller,
+    /els\.joinHomeQrButton\.disabled = inRoom \|\| !els\.homeQrInput\.value\.trim\(\)/
+  )
+  assert.match(controller, /els\.trustButton\.disabled = !els\.trustQrInput\.value\.trim\(\)/)
+})
+
 test('desktop shell exposes Neo Cozy light and Indie Console dark themes', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
