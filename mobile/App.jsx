@@ -1087,7 +1087,7 @@ function QuickStartPanel({ nick, onCreateRoom, onNickChange, onScanHomeQr, onSca
       <Text style={styles.panelCopy}>
         Start a private space for trusted friends. Create, join, or trust someone nearby.
       </Text>
-      <Field label='Nick' onChangeText={onNickChange} value={nick} />
+      <Field label='Name' onChangeText={onNickChange} value={nick} />
       <View style={styles.quickActions}>
         <Pressable style={styles.primaryButton} onPress={onCreateRoom} testID='create-home-button'>
           <Plus color='#fffaf0' size={18} />

@@ -59,10 +59,12 @@ test('Android lobby starts with compact product choices', async () => {
 
   assert.match(source, /function QuickStartPanel\(/)
   assert.match(source, /Start here/)
+  assert.match(source, /<Field label='Name' onChangeText={onNickChange} value={nick} \/>/)
   assert.match(source, /Create my home/)
   assert.match(source, /Scan Home QR/)
   assert.match(source, /Scan Profile QR/)
   assert.equal(source.indexOf('<QuickStartPanel') < source.indexOf('<PeopleActions'), true)
+  assert.equal(source.includes("label='Nick'"), false)
 })
 
 test('Android normal UI copy avoids backend and address language', async () => {

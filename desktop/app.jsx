@@ -167,7 +167,7 @@ function DesktopApp() {
 
             <form id='lobbyForm' className='panel compactPanel'>
               <label>
-                Nick
+                Name
                 <input id='nickInput' autoComplete='off' defaultValue='Desktop' />
               </label>
               <div className='actions singleAction'>
