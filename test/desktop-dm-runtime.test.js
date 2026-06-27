@@ -1,0 +1,172 @@
+import assert from 'node:assert/strict'
+import test from 'node:test'
+import { createDesktopDmRuntime } from '../src/desktop-dm-runtime.js'
+
+const localProfileId = 'a'.repeat(64)
+const remoteProfileId = 'b'.repeat(64)
+const thread = {
+  acceptedAt: 1,
+  channelDiscoveryKey: 'c'.repeat(64),
+  channelPublicKey: 'd'.repeat(64),
+  createdAt: 1,
+  localProfileId,
+  remoteProfileId,
+  requestId: 'request-1',
+  state: 'accepted',
+  threadId: 'thread-1'
+}
+const profile = {
+  dmEncryptionKeyPair: { publicKey: 'e'.repeat(64), secretKey: 'f'.repeat(64) },
+  identity: { publicKey: localProfileId, secretKey: '1'.repeat(128) },
+  id: localProfileId
+}
+
+function createRuntime({ threads = [] } = {}) {
+  const calls = []
+  const sessions = []
+  let threadRuntimeOptions = null
+  const threadRuntime = {
+    closeAll: () => calls.push(['closeAll']),
+    closeThread: (threadId) => calls.push(['closeThread', threadId]),
+    openThread: (thread) => calls.push(['openThread', thread.threadId]),
+    sendMessage: (message) => {
+      calls.push(['sendMessage', message])
+      return {
+        ...message,
+        fromProfileId: localProfileId,
+        messageId: message.messageId,
+        threadId: message.threadId
+      }
+    }
+  }
+  const runtime = createDesktopDmRuntime({
+    acceptInvite: ({ invite }) => ({ ...thread, remoteProfileId: invite.fromProfileId }),
+    acceptRequestWithInvite: () => ({
+      book: { accepted: true },
+      invite: { type: 'kepos.dm.invite.v1' },
+      thread
+    }),
+    createRequest: (payload) => ({
+      ...payload,
+      fromProfileId: payload.fromIdentity.publicKey,
+      requestId: payload.requestId,
+      type: 'kepos.message.request.v1'
+    }),
+    createThreadRuntime: (options) => {
+      threadRuntimeOptions = options
+      return threadRuntime
+    },
+    loadMessages: (thread) => {
+      calls.push(['loadMessages', thread.threadId])
+      return []
+    },
+    loadThreads: () => threads,
+    onSessionChanged: (session) => sessions.push(session),
+    saveMessages: (thread, messages) => calls.push(['saveMessages', thread.threadId, messages]),
+    saveThreads: ({ threads }) =>
+      calls.push(['saveThreads', threads.map((thread) => thread.threadId)])
+  })
+
+  return {
+    calls,
+    runtime,
+    sessions,
+    threadRuntimeOptions: () => threadRuntimeOptions
+  }
+}
+
+test('desktop DM runtime starts session and opens saved threads', async () => {
+  const { calls, runtime } = createRuntime({ threads: [thread] })
+
+  await runtime.start({ nick: 'Owner', profile, storage: {} })
+
+  assert.equal(runtime.getSession().localProfileId, localProfileId)
+  assert.deepEqual(calls, [['openThread', 'thread-1']])
+})
+
+test('desktop DM runtime applies thread messages to the UI session', async () => {
+  const { runtime, sessions, threadRuntimeOptions } = createRuntime({ threads: [thread] })
+
+  await runtime.start({ nick: 'Owner', profile, storage: {} })
+  threadRuntimeOptions().onMessage(
+    thread,
+    {
+      createdAt: 2,
+      fromProfileId: remoteProfileId,
+      messageId: 'message-1',
+      text: 'hello',
+      threadId: thread.threadId
+    },
+    'in'
+  )
+
+  assert.equal(sessions.at(-1).messages[0].direction, 'in')
+  assert.equal(sessions.at(-1).messages[0].text, 'hello')
+})
+
+test('desktop DM runtime sends over an accepted local thread', async () => {
+  const { calls, runtime } = createRuntime({ threads: [thread] })
+
+  await runtime.start({ nick: 'Owner', profile, storage: {} })
+  const result = runtime.sendMessageOrRequest({
+    createdAt: 2,
+    messageId: 'message-1',
+    requestId: 'request-2',
+    text: 'hello',
+    toProfileId: remoteProfileId
+  })
+
+  assert.equal(result.kind, 'message')
+  assert.deepEqual(calls.at(-1), [
+    'sendMessage',
+    { createdAt: 2, messageId: 'message-1', text: 'hello', threadId: 'thread-1' }
+  ])
+})
+
+test('desktop DM runtime creates and appends a message request without a thread', async () => {
+  const { runtime, sessions } = createRuntime()
+  const broadcasts = []
+
+  await runtime.start({ nick: 'Owner', profile, storage: {} })
+  const result = runtime.sendMessageOrRequest({
+    broadcastControl: (request) => broadcasts.push(request),
+    createdAt: 2,
+    messageId: 'message-1',
+    requestId: 'request-2',
+    text: 'hello',
+    toProfileId: remoteProfileId
+  })
+
+  assert.equal(result.kind, 'request')
+  assert.equal(broadcasts[0].type, 'kepos.message.request.v1')
+  assert.equal(sessions.at(-1).messages[0].direction, 'out')
+})
+
+test('desktop DM runtime accepts requests and invites into saved open threads', async () => {
+  const { calls, runtime } = createRuntime()
+
+  await runtime.start({ nick: 'Owner', profile, storage: {} })
+  const accepted = await runtime.acceptMessageRequest({
+    acceptedAt: 3,
+    book: {},
+    remoteProfileId,
+    threadId: 'thread-1'
+  })
+  const received = await runtime.acceptInviteAsRecipient({
+    acceptedAt: 4,
+    contactBook: {},
+    invite: { fromProfileId: remoteProfileId },
+    recipientEncryptionKeyPair: profile.dmEncryptionKeyPair
+  })
+
+  assert.deepEqual(accepted.invite, { type: 'kepos.dm.invite.v1' })
+  assert.equal(received.threadId, 'thread-1')
+  assert.deepEqual(
+    calls.filter(([name]) => name === 'saveThreads'),
+    [
+      ['saveThreads', ['thread-1']],
+      ['saveThreads', ['thread-1']]
+    ]
+  )
+  assert.equal(calls.filter(([name]) => name === 'openThread').length, 2)
+})

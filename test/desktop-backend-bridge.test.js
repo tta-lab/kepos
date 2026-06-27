@@ -78,3 +78,15 @@ test('desktop controller delegates home transport to a runtime boundary', async 
   assert.doesNotMatch(source, /from '..\/src\/chat-session\.js'/)
   assert.doesNotMatch(source, /from '..\/src\/home-presence\.ts'/)
 })
+
+test('desktop controller delegates direct message runtime and storage to a boundary', async () => {
+  const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+
+  assert.match(source, /createDesktopDmRuntime/)
+  assert.match(source, /const dmRuntime = createDesktopDmRuntime/)
+  assert.match(source, /dmRuntime\.start/)
+  assert.match(source, /dmRuntime\.sendMessageOrRequest/)
+  assert.doesNotMatch(source, /from '..\/src\/dm-thread-runtime\.js'/)
+  assert.doesNotMatch(source, /from '..\/src\/dm-message-storage\.ts'/)
+  assert.doesNotMatch(source, /from '..\/src\/dm-thread-storage\.js'/)
+})

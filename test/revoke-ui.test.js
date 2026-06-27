@@ -9,7 +9,8 @@ test('desktop exposes contact revoke controls that update trust and DM threads',
   assert.match(app, /id='contactList'/)
   assert.match(controller, /applyLocalContactRevoke/)
   assert.match(controller, /async function revokeLocalContact/)
-  assert.match(controller, /dmRuntime\?\.closeThread/)
+  assert.match(controller, /dmRuntime\.closeThreads/)
+  assert.doesNotMatch(controller, /from '..\/src\/dm-thread-storage\.js'/)
 })
 
 test('android exposes contact revoke controls and notifies Bare backend', async () => {

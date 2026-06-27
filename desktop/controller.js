@@ -1,20 +1,7 @@
 /* global document, navigator */
 
 import QRCode from 'qrcode'
-import {
-  appendLocalMessageRequest,
-  appendLocalSignedDirectMessage,
-  appendRemoteMessageRequest,
-  appendRemoteSignedDirectMessage,
-  createDirectMessageSession,
-  dismissDirectMessage
-} from '../src/dm-session.js'
-import { acceptDmInviteAsRecipient } from '../src/dm-invite-acceptance.js'
-import { loadDmMessagesFromStorage, saveDmMessagesToStorage } from '../src/dm-message-storage.ts'
-import { createDmThreadRuntime } from '../src/dm-thread-runtime.js'
-import { loadDmThreadsFromStorage, saveDmThreadsToStorage } from '../src/dm-thread-storage.js'
-import { applyMessageRequestToContactBook, createMessageRequest } from '../src/message-request.ts'
-import { acceptMessageRequestWithInvite } from '../src/message-request-acceptance.js'
+import { applyMessageRequestToContactBook } from '../src/message-request.ts'
 import { createTreeholePolicyFromContactBook } from '../src/contact-book-storage.js'
 import { ignoreMessageRequest, listTrustedContacts } from '../src/contact-book.ts'
 import {
@@ -29,6 +16,7 @@ import {
   createSignedTrustInvitePayload,
   encodeQrUri
 } from '../src/signed-qr-payload.ts'
+import { createDesktopDmRuntime } from '../src/desktop-dm-runtime.js'
 import { createDesktopHomeRuntime } from '../src/desktop-home-runtime.js'
 import { createDesktopTreeholeRuntime } from '../src/desktop-treehole-runtime.js'
 import {
@@ -113,7 +101,6 @@ const els = {
 let state = createDesktopState()
 let session = null
 let dmSession = null
-let dmRuntime = null
 let homeJoinDetails = null
 let largeQrReturnFocus = null
 let pendingCommand = null
@@ -121,7 +108,7 @@ const commands = createDesktopCommandRegistry({
   handlers: {
     acceptMessageRequest: (payload) => {
       const { message } = readCommandPayload(payload)
-      if (message) acceptIncomingMessageRequest(message)
+      if (message) return acceptIncomingMessageRequest(message)
     },
     commentTreehole: (payload) => commentTreeholePost(readCommandPayload(payload)),
     ignoreMessageRequest: (payload) => {
@@ -148,6 +135,12 @@ const commands = createDesktopCommandRegistry({
 })
 const backendBridge = createDesktopBackendBridge({
   dispatch: (command, payload) => commands.dispatch(command, payload)
+})
+const dmRuntime = createDesktopDmRuntime({
+  onSessionChanged: (nextSession) => {
+    dmSession = nextSession
+    render()
+  }
 })
 const homeRuntime = createDesktopHomeRuntime({
   onControl: (message, peer) => handleControl(message, peer).catch(showError),
@@ -320,39 +313,12 @@ async function joinRoom({ createTreehole, homeAddress = null, mode, roomKey }) {
   homeJoinDetails = { ...homeJoin, treeholePolicy }
   session = homeJoin.session
   configureTreeholeRuntime()
-  dmSession = createDirectMessageSession({ localProfileId: profile.id, nick })
-  dmRuntime = createDmThreadRuntime({
-    identity: profile.identity,
-    loadMessages: (thread) =>
-      loadDmMessagesFromStorage({
-        ownerProfileId: profile.id,
-        storage: globalThis.localStorage,
-        threadId: thread.threadId
-      }),
-    localProfileId: profile.id,
-    onMessage: (thread, message, direction) => {
-      dmSession =
-        direction === 'out'
-          ? appendLocalSignedDirectMessage(dmSession, message, {
-              remoteProfileId: thread.remoteProfileId
-            })
-          : appendRemoteSignedDirectMessage(dmSession, message)
-      render()
-    },
-    saveMessages: (thread, messages) =>
-      saveDmMessagesToStorage({
-        messages,
-        ownerProfileId: profile.id,
-        storage: globalThis.localStorage,
-        threadId: thread.threadId
-      })
-  })
+  dmSession = await dmRuntime.start({ nick, profile, storage: globalThis.localStorage })
   state = setDesktopRoom(state, { mode, nick, peers: 0, roomKey: homeJoin.roomKey })
   state = { ...state, notice: 'Joining home...' }
   render()
 
   await homeRuntime.join({ homeJoinDetails })
-  await openLocalDmThreads(profile.id)
 
   if (createTreehole) {
     await openTreehole()
@@ -501,8 +467,7 @@ function getDesktopProfile(displayName) {
 }
 
 async function leaveRoom() {
-  await dmRuntime?.closeAll()
-  dmRuntime = null
+  await dmRuntime.closeAll()
   await homeRuntime.leave()
   await treeholeRuntime.close()
   session = null
@@ -537,32 +502,18 @@ function sendMessageRequest() {
   const toProfileId = els.dmRecipientInput.value.trim()
   const text = els.dmInput.value.trim()
   if (!homeRuntime.isJoined() || !dmSession || !toProfileId || !text) return
-  const profile = getDesktopProfile(els.nickInput.value.trim() || 'Desktop')
-  const thread = findLocalDmThread(profile.id, toProfileId)
 
-  if (thread && dmRuntime) {
-    dmRuntime.sendMessage({
-      createdAt: Date.now(),
-      messageId: createId(),
-      text,
-      threadId: thread.threadId
-    })
-    els.dmInput.value = ''
-    render()
-    return
-  }
-
-  const request = createMessageRequest({
+  const result = dmRuntime.sendMessageOrRequest({
+    broadcastControl: (request) => homeRuntime.broadcastControl(request),
     createdAt: Date.now(),
-    fromIdentity: profile.identity,
+    messageId: createId(),
     requestId: createId(),
-    senderEncryptionPublicKey: profile.dmEncryptionKeyPair.publicKey,
     text,
     toProfileId
   })
 
-  dmSession = appendLocalMessageRequest(dmSession, request)
-  homeRuntime.broadcastControl(request)
+  if (!result) return
+
   els.dmInput.value = ''
   render()
 }
@@ -581,9 +532,10 @@ async function postTreehole() {
 
 async function handleControl(message, peer) {
   if (message.type === 'kepos.message.request.v1') {
-    if (!dmSession || message.toProfileId !== dmSession.localProfileId) return
+    const currentDmSession = dmRuntime.getSession()
+    if (!currentDmSession || message.toProfileId !== currentDmSession.localProfileId) return
 
-    const book = loadLocalContactBook(dmSession.localProfileId)
+    const book = loadLocalContactBook(currentDmSession.localProfileId)
     const nextBook = applyMessageRequestToContactBook(book, {
       alias: shorten(message.fromProfileId),
       request: message,
@@ -591,27 +543,25 @@ async function handleControl(message, peer) {
     })
 
     saveDesktopContactBook({ book: nextBook })
-    dmSession = appendRemoteMessageRequest(dmSession, message)
+    dmRuntime.appendIncomingRequest(message)
     state = { ...state, notice: 'Message request received.' }
     render()
     return
   }
 
   if (message.type === 'kepos.dm.invite.v1') {
-    if (!dmSession || message.toProfileId !== dmSession.localProfileId) return
+    const currentDmSession = dmRuntime.getSession()
+    if (!currentDmSession || message.toProfileId !== currentDmSession.localProfileId) return
 
     const profile = getDesktopProfile(els.nickInput.value.trim() || 'Desktop')
     const book = loadLocalContactBook(profile.id)
-    const thread = acceptDmInviteAsRecipient({
+    await dmRuntime.acceptInviteAsRecipient({
       acceptedAt: Date.now(),
       contactBook: book,
       invite: message,
-      localProfileId: profile.id,
       recipientEncryptionKeyPair: profile.dmEncryptionKeyPair
     })
 
-    saveLocalDmThread(profile.id, thread)
-    openLocalDmThread(thread).catch(showError)
     state = { ...state, notice: 'Direct message ready.' }
     render()
     return
@@ -919,10 +869,7 @@ function formatMessageRequestTitle(request) {
 
 async function revokeLocalContact(profileId) {
   const profile = getDesktopProfile(els.nickInput.value.trim() || 'Desktop')
-  const threads = loadDmThreadsFromStorage({
-    ownerProfileId: profile.id,
-    storage: globalThis.localStorage
-  })
+  const threads = dmRuntime.loadThreads()
   const result = applyLocalContactRevoke({
     book: loadLocalContactBook(profile.id),
     profileId,
@@ -930,13 +877,9 @@ async function revokeLocalContact(profileId) {
   })
 
   saveDesktopContactBook({ book: result.book })
-  saveDmThreadsToStorage({
-    ownerProfileId: profile.id,
-    storage: globalThis.localStorage,
-    threads: result.nextThreads
-  })
+  dmRuntime.replaceThreads(result.nextThreads)
 
-  await Promise.all(result.revokedThreadIds.map((threadId) => dmRuntime?.closeThread(threadId)))
+  await dmRuntime.closeThreads(result.revokedThreadIds)
 
   if (homeJoinDetails?.profileId === profile.id) {
     homeJoinDetails = {
@@ -1004,21 +947,20 @@ function displayDirectPeer(profileId, displayName = '') {
   return displayName?.trim() || `Profile ${shorten(profileId)}`
 }
 
-function acceptIncomingMessageRequest(message) {
+async function acceptIncomingMessageRequest(message) {
   if (!homeRuntime.isJoined() || !dmSession) return
 
   const profile = getDesktopProfile(els.nickInput.value.trim() || 'Desktop')
-  const result = acceptMessageRequestWithInvite({
+  const result = await dmRuntime.acceptMessageRequest({
     acceptedAt: Date.now(),
-    acceptorIdentity: profile.identity,
     book: loadLocalContactBook(profile.id),
     remoteProfileId: message.fromProfileId,
     threadId: createId()
   })
 
+  if (!result) return
+
   saveDesktopContactBook({ book: result.book })
-  saveLocalDmThread(profile.id, result.thread)
-  openLocalDmThread(result.thread).catch(showError)
   homeRuntime.broadcastControl(result.invite)
   state = { ...state, notice: 'Message request accepted.' }
   render()
@@ -1036,57 +978,11 @@ function ignoreIncomingMessageRequest({ message = null, profileId = '' }) {
   saveDesktopContactBook({ book })
 
   if (dmSession && message?.id) {
-    dmSession = dismissDirectMessage(dmSession, { id: message.id })
+    dmRuntime.dismissMessage({ id: message.id })
   }
 
   state = { ...state, notice: 'Message request ignored.' }
   render()
-}
-
-function saveLocalDmThread(ownerProfileId, thread) {
-  const threads = loadDmThreadsFromStorage({
-    ownerProfileId,
-    storage: globalThis.localStorage
-  })
-  const nextThreads = [
-    ...threads.filter((existing) => existing.threadId !== thread.threadId),
-    thread
-  ]
-
-  saveDmThreadsToStorage({
-    ownerProfileId,
-    storage: globalThis.localStorage,
-    threads: nextThreads
-  })
-}
-
-function findLocalDmThread(ownerProfileId, remoteProfileId) {
-  return loadDmThreadsFromStorage({
-    ownerProfileId,
-    storage: globalThis.localStorage
-  }).find(
-    (thread) =>
-      thread.remoteProfileId === remoteProfileId &&
-      thread.state === 'accepted' &&
-      thread.revokedAt === undefined
-  )
-}
-
-async function openLocalDmThreads(ownerProfileId) {
-  const threads = loadDmThreadsFromStorage({
-    ownerProfileId,
-    storage: globalThis.localStorage
-  })
-
-  await Promise.all(threads.map((thread) => openLocalDmThread(thread)))
-}
-
-async function openLocalDmThread(thread) {
-  if (thread.state !== 'accepted' || thread.revokedAt !== undefined) {
-    return
-  }
-
-  await dmRuntime?.openThread(thread)
 }
 
 function renderPosts() {
