@@ -25,8 +25,8 @@ This is the map of content for Kepos architecture docs.
    - Use this before implementing the desktop React renderer.
 
 6. `docs/v1.14-mlp-style-directions.html`
-   - Visual style board for the selected default: Neo Cozy base plus Indie Console interaction language.
-   - Quiet Cyber is recorded there as rejected for the default product style.
+   - Visual style board for the selected theme pair: Neo Cozy for light, Indie Console for dark.
+   - Quiet Cyber is not included as a V1 MLP style candidate.
 
 7. `docs/v1.20-smoke-guide.md`
    - Desktop and Android manual smoke checklist for V1 parity.
