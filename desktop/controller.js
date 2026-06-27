@@ -60,6 +60,7 @@ import {
 import { createDesktopCommandRegistry } from '../src/desktop-command-registry.ts'
 
 const ROOM_KEY_PATTERN = /^[0-9a-f]{64}$/
+const BLOCKING_COMMANDS = new Set(['joinHome', 'joinHomeUri', 'leaveHome', 'trustProfileUri'])
 
 const els = {
   chatForm: document.querySelector('#chatForm'),
@@ -131,6 +132,7 @@ let treeholeSwarm = null
 let treeholeStatePublisher = null
 let homeJoinDetails = null
 let largeQrReturnFocus = null
+let pendingCommand = null
 const addedWriters = new Set()
 const commands = createDesktopCommandRegistry({
   handlers: {
@@ -251,8 +253,28 @@ els.homeQrForm.addEventListener('submit', (event) => {
 updateQrOutputs().catch(showError)
 render()
 
-function dispatchCommand(command, payload) {
-  commands.dispatch(command, payload).catch(showError)
+async function dispatchCommand(command, payload) {
+  if (isBlockingCommand(command) && pendingCommand) return
+
+  if (isBlockingCommand(command)) {
+    pendingCommand = command
+    render()
+  }
+
+  try {
+    await commands.dispatch(command, payload)
+  } catch (error) {
+    showError(error)
+  } finally {
+    if (pendingCommand === command) {
+      pendingCommand = null
+      render()
+    }
+  }
+}
+
+function isBlockingCommand(command) {
+  return BLOCKING_COMMANDS.has(command)
 }
 
 function readCommandPayload(payload) {
@@ -807,8 +829,10 @@ function setTab(tab) {
 
 function render() {
   const inRoom = state.view === 'room'
-  els.leaveButton.disabled = !inRoom
-  els.createButton.disabled = inRoom
+  const isActionPending = Boolean(pendingCommand)
+  document.body.setAttribute('aria-busy', String(isActionPending))
+  els.leaveButton.disabled = !inRoom || isActionPending
+  els.createButton.disabled = inRoom || isActionPending
   updateActionButtons()
   els.homeStatusLabel.textContent = getDesktopHomeStatus(state)
   els.roomKeyLabel.textContent = inRoom ? shorten(state.roomKey) : 'not joined'
@@ -841,9 +865,11 @@ function render() {
 
 function updateActionButtons() {
   const inRoom = state.view === 'room'
-  els.joinButton.disabled = inRoom || !ROOM_KEY_PATTERN.test(els.roomKeyInput.value.trim())
-  els.joinHomeQrButton.disabled = inRoom || !els.homeQrInput.value.trim()
-  els.trustButton.disabled = !els.trustQrInput.value.trim()
+  const isActionPending = Boolean(pendingCommand)
+  els.joinButton.disabled =
+    isActionPending || inRoom || !ROOM_KEY_PATTERN.test(els.roomKeyInput.value.trim())
+  els.joinHomeQrButton.disabled = isActionPending || inRoom || !els.homeQrInput.value.trim()
+  els.trustButton.disabled = isActionPending || !els.trustQrInput.value.trim()
 }
 
 function updateComposerButtons() {

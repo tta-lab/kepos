@@ -340,13 +340,47 @@ test('desktop context actions disable unavailable joins and trust', async () => 
   assert.match(controller, /els\.trustQrInput\.addEventListener\('input', updateActionButtons\)/)
   assert.match(
     controller,
-    /els\.joinButton\.disabled =\s*inRoom \|\| !ROOM_KEY_PATTERN\.test\(els\.roomKeyInput\.value\.trim\(\)\)/
+    /els\.joinButton\.disabled =\s*isActionPending \|\| inRoom \|\| !ROOM_KEY_PATTERN\.test\(els\.roomKeyInput\.value\.trim\(\)\)/
   )
   assert.match(
     controller,
-    /els\.joinHomeQrButton\.disabled = inRoom \|\| !els\.homeQrInput\.value\.trim\(\)/
+    /els\.joinHomeQrButton\.disabled = isActionPending \|\| inRoom \|\| !els\.homeQrInput\.value\.trim\(\)/
   )
-  assert.match(controller, /els\.trustButton\.disabled = !els\.trustQrInput\.value\.trim\(\)/)
+  assert.match(
+    controller,
+    /els\.trustButton\.disabled = isActionPending \|\| !els\.trustQrInput\.value\.trim\(\)/
+  )
+})
+
+test('desktop context actions expose a pending lock during blocking commands', async () => {
+  const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+
+  assert.match(controller, /const BLOCKING_COMMANDS = new Set\(\[/)
+  for (const command of ['joinHome', 'joinHomeUri', 'leaveHome', 'trustProfileUri']) {
+    assert.match(controller, new RegExp(`'${command}'`), `${command} is not pending-locked`)
+  }
+  assert.match(controller, /let pendingCommand = null/)
+  assert.match(controller, /if \(isBlockingCommand\(command\) && pendingCommand\) return/)
+  assert.match(controller, /pendingCommand = command/)
+  assert.match(
+    controller,
+    /finally \{\s*if \(pendingCommand === command\) \{\s*pendingCommand = null/
+  )
+  assert.match(controller, /document\.body\.setAttribute\('aria-busy', String\(isActionPending\)\)/)
+  assert.match(controller, /els\.leaveButton\.disabled = !inRoom \|\| isActionPending/)
+  assert.match(controller, /els\.createButton\.disabled = inRoom \|\| isActionPending/)
+  assert.match(
+    controller,
+    /els\.joinButton\.disabled =\s*isActionPending \|\| inRoom \|\| !ROOM_KEY_PATTERN\.test\(els\.roomKeyInput\.value\.trim\(\)\)/
+  )
+  assert.match(
+    controller,
+    /els\.joinHomeQrButton\.disabled = isActionPending \|\| inRoom \|\| !els\.homeQrInput\.value\.trim\(\)/
+  )
+  assert.match(
+    controller,
+    /els\.trustButton\.disabled = isActionPending \|\| !els\.trustQrInput\.value\.trim\(\)/
+  )
 })
 
 test('desktop shell exposes Neo Cozy light and Indie Console dark themes', async () => {
