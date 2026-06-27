@@ -27,6 +27,36 @@ test('Android UI exposes stable hooks for two-device smoke', async () => {
   }
 })
 
+test('Android lucide icons used in JSX are imported', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const lucideImport = source.match(/import\s+\{([^}]+)\}\s+from 'lucide-react-native'/)
+
+  assert.ok(lucideImport, 'lucide-react-native import is missing')
+
+  const importedIcons = new Set(
+    lucideImport[1]
+      .split(',')
+      .map((name) => name.trim())
+      .filter(Boolean)
+  )
+
+  for (const icon of [
+    'ArrowRight',
+    'Heart',
+    'LogOut',
+    'MessageCircle',
+    'Plus',
+    'QrCode',
+    'Send',
+    'Sprout',
+    'UserMinus',
+    'Users'
+  ]) {
+    assert.equal(importedIcons.has(icon), true, `${icon} is not imported`)
+    assert.match(source, new RegExp(`<${icon}\\b`), `${icon} is not rendered`)
+  }
+})
+
 test('Android lobby is scrollable so QR and trust controls are reachable', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 
@@ -487,26 +517,32 @@ test('Android people UI uses trusted friends copy', async () => {
 
 test('Android people pane surfaces pending message requests', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const messageRequestManager = source.slice(
+    source.indexOf('function MessageRequestManager('),
+    source.indexOf('function PeopleActions(')
+  )
 
   assert.match(source, /pendingRequestsByProfileId\.values\(\)/)
   assert.match(source, /pendingRequests={pendingMessageRequests}/)
-  assert.match(source, /function MessageRequestManager\(/)
-  assert.match(source, /Message requests/)
-  assert.match(source, /\{formatMessageRequestTitle\(request\)\}/)
+  assert.match(messageRequestManager, /Message requests/)
+  assert.match(messageRequestManager, /\{formatMessageRequestTitle\(request\)\}/)
   assert.match(source, /function formatMessageRequestTitle\(request\)/)
   assert.match(source, /return `\$\{name\} wants to start a DM\.`/)
-  assert.match(source, /\{formatRequestPreview\(request\.text\)\}/)
+  assert.match(messageRequestManager, /\{formatRequestPreview\(request\.text\)\}/)
   assert.match(source, /function formatRequestPreview\(text\)/)
   assert.match(source, /return text\?\.trim\(\) \|\| 'No message yet'/)
-  assert.match(source, /text: request\.text/)
-  assert.match(source, /testID='people-message-request-accept-button'/)
-  assert.match(source, /testID='people-message-request-ignore-button'/)
-  assert.match(source, /Ignore/)
+  assert.match(messageRequestManager, /text: request\.text/)
+  assert.match(messageRequestManager, /testID='people-message-request-accept-button'/)
+  assert.match(messageRequestManager, /testID='people-message-request-ignore-button'/)
+  assert.match(messageRequestManager, /Ignore/)
   assert.match(source, /function ignoreIncomingMessageRequest\(request\)/)
   assert.match(source, /ignoreMessageRequest\(contactBook, \{/)
-  assert.match(source, /fromProfileId: request\.profileId/)
-  assert.match(source, /toProfileId: profileId/)
-  assert.match(source, /senderEncryptionPublicKey: request\.senderEncryptionPublicKey/)
+  assert.match(messageRequestManager, /fromProfileId: request\.profileId/)
+  assert.match(messageRequestManager, /toProfileId: profileId/)
+  assert.match(
+    messageRequestManager,
+    /senderEncryptionPublicKey: request\.senderEncryptionPublicKey/
+  )
 })
 
 test('Android people pane keeps visible empty states', async () => {

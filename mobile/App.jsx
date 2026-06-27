@@ -24,7 +24,8 @@ import {
   QrCode,
   Send,
   Sprout,
-  UserMinus
+  UserMinus,
+  Users
 } from 'lucide-react-native'
 import QRCode from 'react-native-qrcode-svg'
 import { appendLocalMessage, appendRemoteMessage } from '../src/chat-session.js'
@@ -1452,7 +1453,7 @@ function MessageRequestManager({ onAcceptRequest, onIgnoreRequest, pendingReques
                     fromProfileId: request.profileId,
                     requestId: request.requestId,
                     senderEncryptionPublicKey: request.senderEncryptionPublicKey,
-                    text: '',
+                    text: request.text,
                     toProfileId: profileId,
                     type: 'kepos.message.request.v1'
                   })
