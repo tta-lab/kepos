@@ -1205,7 +1205,7 @@ function PeopleActions({
       </Pressable>
       {showAdvancedShare ? (
         <View style={styles.panel}>
-          <Text style={styles.panelTitle}>QR text</Text>
+          <Text style={styles.panelTitle}>QR details</Text>
           <Text style={styles.panelCopy}>Join a home</Text>
           <TextInput
             autoCapitalize='none'
@@ -1267,7 +1267,7 @@ function PeopleActions({
             autoCorrect={false}
             editable={false}
             multiline
-            placeholder='My home QR text'
+            placeholder='Home QR details'
             placeholderTextColor='#8b9188'
             style={styles.keyInput}
             testID='home-address-uri'
@@ -1278,7 +1278,7 @@ function PeopleActions({
             autoCorrect={false}
             editable={false}
             multiline
-            placeholder='My profile QR text'
+            placeholder='Profile QR details'
             placeholderTextColor='#8b9188'
             style={styles.keyInput}
             testID='home-profile-uri'

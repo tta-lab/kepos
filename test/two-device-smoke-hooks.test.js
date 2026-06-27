@@ -104,6 +104,9 @@ test('Android raw own QR text stays behind advanced people controls', async () =
   assert.match(source, /const \[showAdvancedShare, setShowAdvancedShare\] = useState\(false\)/)
   assert.match(source, /testID='advanced-share-toggle'/)
   assert.match(source, /showAdvancedShare \? \(/)
+  assert.match(source, /<Text style={styles\.panelTitle}>QR details<\/Text>/)
+  assert.match(source, /placeholder='Home QR details'/)
+  assert.match(source, /placeholder='Profile QR details'/)
   assert.equal(
     source.indexOf("testID='home-address-uri'") > source.indexOf('showAdvancedShare ? ('),
     true
@@ -112,6 +115,9 @@ test('Android raw own QR text stays behind advanced people controls', async () =
     source.indexOf("testID='home-profile-uri'") > source.indexOf('showAdvancedShare ? ('),
     true
   )
+  assert.equal(source.includes('<Text style={styles.panelTitle}>QR text</Text>'), false)
+  assert.equal(source.includes("placeholder='My home QR text'"), false)
+  assert.equal(source.includes("placeholder='My profile QR text'"), false)
 })
 
 test('Android paste QR fallback stays behind advanced people controls', async () => {
