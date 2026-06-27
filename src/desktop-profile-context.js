@@ -3,6 +3,7 @@ import {
   loadDesktopContactBook,
   saveDesktopContactBook
 } from './desktop-local-adapters.js'
+import { createDesktopFileStorage } from './desktop-file-storage.js'
 
 export function createDesktopProfileContext({
   displayName = 'Desktop',
@@ -25,4 +26,18 @@ export function createDesktopProfileContext({
     },
     storage
   }
+}
+
+export function createDesktopFileProfileContext({
+  displayName = 'Desktop',
+  storageBasePath,
+  storageOptions = {}
+} = {}) {
+  return createDesktopProfileContext({
+    displayName,
+    storage: createDesktopFileStorage({
+      basePath: storageBasePath,
+      ...storageOptions
+    })
+  })
 }

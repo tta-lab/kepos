@@ -2,7 +2,10 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 import { upsertContact } from '../src/contact-book.ts'
-import { createDesktopProfileContext } from '../src/desktop-profile-context.js'
+import {
+  createDesktopFileProfileContext,
+  createDesktopProfileContext
+} from '../src/desktop-profile-context.js'
 
 function createMemoryStorage() {
   const values = new Map()
@@ -38,6 +41,32 @@ test('desktop profile context saves contact book through the same storage', () =
   assert.equal(restored.contactBook.contactsByProfileId.get('b'.repeat(64))?.alias, 'Friend')
 })
 
+test('desktop file profile context persists profile and contacts outside localStorage', () => {
+  const files = new Map()
+  const first = createDesktopFileProfileContext({
+    displayName: 'Desktop',
+    storageBasePath: '/user-data/kepos/v1',
+    storageOptions: { fs: createMemoryFs(files) }
+  })
+  const book = upsertContact(first.contactBook, {
+    alias: 'Friend',
+    profileId: 'b'.repeat(64),
+    source: 'profile_qr',
+    trustedAt: 123
+  })
+
+  first.saveContactBook(book)
+
+  const restored = createDesktopFileProfileContext({
+    displayName: 'Renamed',
+    storageBasePath: '/user-data/kepos/v1',
+    storageOptions: { fs: createMemoryFs(files) }
+  })
+
+  assert.equal(restored.profile.id, first.profile.id)
+  assert.equal(restored.contactBook.contactsByProfileId.get('b'.repeat(64))?.alias, 'Friend')
+})
+
 test('desktop controller uses profile context instead of direct local adapters', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
 
@@ -47,3 +76,18 @@ test('desktop controller uses profile context instead of direct local adapters',
   assert.doesNotMatch(source, /loadDesktopContactBook/)
   assert.doesNotMatch(source, /saveDesktopContactBook/)
 })
+
+function createMemoryFs(files) {
+  return {
+    existsSync(path) {
+      return files.has(path)
+    },
+    mkdirSync() {},
+    readFileSync(path) {
+      return files.get(path)
+    },
+    writeFileSync(path, value) {
+      files.set(path, value)
+    }
+  }
+}
