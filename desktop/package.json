@@ -7,6 +7,7 @@
   "type": "module",
   "main": "electron/main.cjs",
   "scripts": {
+    "prestart": "npm run desktop:bundle --prefix ..",
     "start": "electron ."
   },
   "dependencies": {

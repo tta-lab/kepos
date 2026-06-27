@@ -9,16 +9,20 @@ test('desktop renderer loads the bundled CommonJS entrypoint', async () => {
   assert.doesNotMatch(html, /src="\.\/app\.js" type="module"/)
 })
 
-test('desktop script builds the renderer bundle before launch', async () => {
+test('desktop scripts build the renderer bundle before launch', async () => {
   const packageJson = JSON.parse(
     await readFile(new URL('../package.json', import.meta.url), 'utf8')
+  )
+  const desktopPackageJson = JSON.parse(
+    await readFile(new URL('../desktop/package.json', import.meta.url), 'utf8')
   )
 
   assert.equal(
     packageJson.scripts['desktop:bundle'],
     'esbuild desktop/app.jsx --bundle --platform=node --format=cjs --packages=external --outfile=desktop/app.bundle.cjs'
   )
-  assert.match(packageJson.scripts.desktop, /^npm run desktop:bundle && /)
+  assert.equal(packageJson.scripts.desktop, 'npm run start --prefix desktop')
+  assert.equal(desktopPackageJson.scripts.prestart, 'npm run desktop:bundle --prefix ..')
   assert.match(packageJson.scripts['smoke:desktop'], /^npm run desktop:bundle && /)
 })
 
