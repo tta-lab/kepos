@@ -225,6 +225,10 @@ test('DM request copy reads as a social action', async () => {
   const mobile = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
   const desktopApp = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const desktop = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const desktopBindings = await readFile(
+    new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
+    'utf8'
+  )
   const desktopPeopleViewModel = await readFile(
     new URL('../src/desktop-people-view-model.js', import.meta.url),
     'utf8'
@@ -242,7 +246,10 @@ test('DM request copy reads as a social action', async () => {
   assert.match(mobile, /testID='message-request-ignore-button'/)
   assert.match(mobile, /onIgnoreRequest\(message\)/)
   assert.match(desktopApp, /onClick=\{\(\) => onIgnore\(message\.actions\.ignoreMessage\)\}/)
-  assert.match(desktop, /ignoreMessage: \(message\) => dispatchCommand\('ignoreMessageRequest'/)
+  assert.match(
+    desktopBindings,
+    /ignoreMessage: \(message\) => dispatchCommand\('ignoreMessageRequest'/
+  )
   assert.match(mobile, /wants to start a DM/)
   assert.match(desktopPeopleViewModel, /wants to start a DM/)
   assert.equal(mobile.includes('asked Profile'), false)
@@ -759,7 +766,10 @@ test('desktop large QR dialog renders scan-sized QR codes', async () => {
 
 test('desktop large QR dialog is keyboard reachable', async () => {
   const app = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
-  const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const bindings = await readFile(
+    new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
+    'utf8'
+  )
   const actions = await readFile(new URL('../src/desktop-qr-actions.js', import.meta.url), 'utf8')
 
   assert.match(app, /aria-labelledby='largeQrTitle'/)
@@ -767,11 +777,11 @@ test('desktop large QR dialog is keyboard reachable', async () => {
   assert.match(app, /actions\.showLargeHomeQr\(\{ returnFocus: event\.currentTarget \}\)/)
   assert.match(app, /actions\.showLargeProfileQr\(\{ returnFocus: event\.currentTarget \}\)/)
   assert.match(
-    controller,
+    bindings,
     /showLargeHomeQr: \(\{ returnFocus \}\) =>[\s\S]*qrActions[\s\S]*\.showLargeQr\(\{[\s\S]*title: 'Home QR'/
   )
   assert.match(
-    controller,
+    bindings,
     /showLargeProfileQr: \(\{ returnFocus \}\) =>[\s\S]*qrActions[\s\S]*\.showLargeQr\(\{[\s\S]*title: 'Profile QR'/
   )
   assert.match(actions, /largeQrReturnFocus = returnFocus/)
@@ -779,7 +789,7 @@ test('desktop large QR dialog is keyboard reachable', async () => {
   assert.match(actions, /largeQrReturnFocus\?\.focus\(\)/)
   assert.match(app, /event\.key === 'Escape'/)
   assert.match(app, /event\.target === event\.currentTarget/)
-  assert.match(controller, /hideLargeQr: \(\) => qrActions\.hideLargeQr\(\)/)
+  assert.match(bindings, /hideLargeQr: \(\) => qrActions\.hideLargeQr\(\)/)
 })
 
 test('debug two-device smoke covers live DM exchange and restart persistence', async () => {

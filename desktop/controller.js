@@ -15,6 +15,7 @@ import { createDesktopLocalBackendHost } from '../src/desktop-local-backend-host
 import { createDesktopRendererBackendClient } from '../src/desktop-renderer-backend-client.js'
 import { getDesktopStorageBasePath } from '../src/desktop-storage-base.js'
 import { createDesktopTrustActions } from '../src/desktop-trust-actions.js'
+import { createDesktopUiActionBindings } from '../src/desktop-ui-action-bindings.js'
 
 const BLOCKING_COMMANDS = new Set(['joinHome', 'joinHomeUri', 'leaveHome', 'trustProfileUri'])
 
@@ -149,74 +150,15 @@ const dmRuntime = backendHost.dmRuntime
 const homeRuntime = backendHost.homeRuntime
 const treeholeRuntime = backendHost.treeholeRuntime
 
-globalThis.keposDesktopUi?.setContextFormActions({
-  copyHomeQr: () =>
-    qrActions
-      .copyQrValue({ notice: 'Home QR copied.', value: qrActions.getShareQrOutputs().homeUri })
-      .catch(showError),
-  copyProfileQr: () =>
-    qrActions
-      .copyQrValue({
-        notice: 'Profile QR copied.',
-        value: qrActions.getShareQrOutputs().profileUri
-      })
-      .catch(showError),
-  createHome: () => dispatchCommand('joinHome', { createTreehole: true, mode: 'host' }),
-  joinHomeQr: ({ displayName, uri }) => dispatchCommand('joinHomeUri', { displayName, uri }),
-  joinManualHome: ({ roomKey }) =>
-    dispatchCommand('joinHome', { createTreehole: false, mode: 'peer', roomKey }),
-  showLargeHomeQr: ({ returnFocus }) =>
-    qrActions
-      .showLargeQr({
-        returnFocus,
-        title: 'Home QR',
-        uri: qrActions.getShareQrOutputs().homeUri
-      })
-      .catch(showError),
-  showLargeProfileQr: ({ returnFocus }) =>
-    qrActions
-      .showLargeQr({
-        returnFocus,
-        title: 'Profile QR',
-        uri: qrActions.getShareQrOutputs().profileUri
-      })
-      .catch(showError),
-  trustProfileQr: ({ alias, displayName, uri }) =>
-    dispatchCommand('trustProfileUri', { alias, displayName, uri }),
-  updateDisplayName: ({ displayName }) => updateDisplayName(displayName)
-})
-globalThis.keposDesktopUi?.setDirectContactPickerActions({
-  openPeople: () => setTab('people'),
-  selectContact: (profileId) => selectDirectContact(profileId)
-})
-globalThis.keposDesktopUi?.setDirectComposerActions({
-  sendDirectMessage: ({ text, toProfileId }) =>
-    dispatchCommand('sendDmMessage', { text, toProfileId }),
-  updateRecipient: ({ toProfileId }) => updateDirectComposerRecipient(toProfileId)
-})
-globalThis.keposDesktopUi?.setDirectMessageActions({
-  acceptMessage: (message) => dispatchCommand('acceptMessageRequest', { message }),
-  ignoreMessage: (message) => dispatchCommand('ignoreMessageRequest', { message })
-})
-globalThis.keposDesktopUi?.setHomeComposerActions({
-  sendHomeMessage: ({ text }) => dispatchCommand('sendHomeMessage', { text })
-})
-globalThis.keposDesktopUi?.setPeopleActions({
-  acceptMessageRequest: (message) => dispatchCommand('acceptMessageRequest', { message }),
-  ignoreMessageRequest: (profileId) => dispatchCommand('ignoreMessageRequest', { profileId }),
-  revokeContact: (profileId) => dispatchCommand('revokeContact', { profileId })
-})
-globalThis.keposDesktopUi?.setShellActions({
-  hideLargeQr: () => qrActions.hideLargeQr(),
-  leaveHome: () => dispatchCommand('leaveHome'),
-  setTab: (tab) => setTab(tab)
-})
-globalThis.keposDesktopUi?.setTreeholeActions({
-  commentPost: ({ postId, text }) => dispatchCommand('commentTreehole', { postId, text }),
-  likePost: (postId) => dispatchCommand('likeTreehole', { postId })
-})
-globalThis.keposDesktopUi?.setTreeholeComposerActions({
-  postTreehole: ({ text }) => dispatchCommand('postTreehole', { text })
+createDesktopUiActionBindings({
+  dispatchCommand,
+  onError: showError,
+  qrActions,
+  selectDirectContact,
+  setTab,
+  ui: globalThis.keposDesktopUi,
+  updateDirectComposerRecipient,
+  updateDisplayName
 })
 
 createDesktopBackendSubscriptions({

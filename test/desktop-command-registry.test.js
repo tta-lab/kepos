@@ -42,10 +42,15 @@ test('desktop controller routes UI actions through the command host', async () =
     new URL('../src/desktop-local-backend-host.js', import.meta.url),
     'utf8'
   )
+  const bindings = await readFile(
+    new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
+    'utf8'
+  )
 
   assert.match(source, /createDesktopLocalBackendHost/)
   assert.match(host, /createDesktopCommandHost/)
   assert.doesNotMatch(source, /createDesktopCommandRegistry/)
+  assert.match(source, /createDesktopUiActionBindings/)
   assert.match(source, /function dispatchCommand/)
 
   for (const command of [
@@ -62,12 +67,16 @@ test('desktop controller routes UI actions through the command host', async () =
     'likeTreehole',
     'commentTreehole'
   ]) {
-    assert.match(source, new RegExp(`dispatchCommand\\('${command}'`), `${command} is not routed`)
+    assert.match(bindings, new RegExp(`dispatchCommand\\('${command}'`), `${command} is not routed`)
   }
 })
 
 test('desktop home message command carries composer text as payload', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const bindings = await readFile(
+    new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
+    'utf8'
+  )
   const host = await readFile(new URL('../src/desktop-command-host.js', import.meta.url), 'utf8')
   const backendActions = await readFile(
     new URL('../src/desktop-backend-actions.js', import.meta.url),
@@ -79,10 +88,10 @@ test('desktop home message command carries composer text as payload', async () =
   )
 
   assert.match(
-    source,
+    bindings,
     /sendHomeMessage: \(\{ text \}\) => dispatchCommand\('sendHomeMessage', \{ text \}\)/
   )
-  assert.match(source, /globalThis\.keposDesktopUi\?\.setHomeComposerActions\(\{/)
+  assert.match(bindings, /ui\?\.setHomeComposerActions\(\{/)
   assert.match(
     host,
     /sendHomeMessage: \(payload\) => actions\.sendHomeMessage\(readCommandPayload\(payload\)\)/
@@ -98,6 +107,10 @@ test('desktop home message command carries composer text as payload', async () =
 
 test('desktop direct message command carries composer fields as payload', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const bindings = await readFile(
+    new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
+    'utf8'
+  )
   const host = await readFile(new URL('../src/desktop-command-host.js', import.meta.url), 'utf8')
   const backendActions = await readFile(
     new URL('../src/desktop-backend-actions.js', import.meta.url),
@@ -109,10 +122,10 @@ test('desktop direct message command carries composer fields as payload', async 
   )
 
   assert.match(
-    source,
+    bindings,
     /sendDirectMessage: \(\{ text, toProfileId \}\) =>\s*dispatchCommand\('sendDmMessage', \{ text, toProfileId \}\)/
   )
-  assert.match(source, /globalThis\.keposDesktopUi\?\.setDirectComposerActions\(\{/)
+  assert.match(bindings, /ui\?\.setDirectComposerActions\(\{/)
   assert.match(
     host,
     /sendDmMessage: \(payload\) => actions\.sendDmMessage\(readCommandPayload\(payload\)\)/
@@ -130,6 +143,10 @@ test('desktop direct message command carries composer fields as payload', async 
 
 test('desktop treehole post command carries composer text as payload', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const bindings = await readFile(
+    new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
+    'utf8'
+  )
   const host = await readFile(new URL('../src/desktop-command-host.js', import.meta.url), 'utf8')
   const backendActions = await readFile(
     new URL('../src/desktop-backend-actions.js', import.meta.url),
@@ -141,10 +158,10 @@ test('desktop treehole post command carries composer text as payload', async () 
   )
 
   assert.match(
-    source,
+    bindings,
     /postTreehole: \(\{ text \}\) => dispatchCommand\('postTreehole', \{ text \}\)/
   )
-  assert.match(source, /globalThis\.keposDesktopUi\?\.setTreeholeComposerActions\(\{/)
+  assert.match(bindings, /ui\?\.setTreeholeComposerActions\(\{/)
   assert.match(
     host,
     /postTreehole: \(payload\) => actions\.postTreehole\(readCommandPayload\(payload\)\)/
@@ -159,6 +176,10 @@ test('desktop treehole post command carries composer text as payload', async () 
 
 test('desktop Home QR join command carries QR text and display name as payload', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const bindings = await readFile(
+    new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
+    'utf8'
+  )
   const host = await readFile(new URL('../src/desktop-command-host.js', import.meta.url), 'utf8')
   const backendActions = await readFile(
     new URL('../src/desktop-backend-actions.js', import.meta.url),
@@ -167,10 +188,10 @@ test('desktop Home QR join command carries QR text and display name as payload',
   const actions = await readFile(new URL('../src/desktop-room-actions.js', import.meta.url), 'utf8')
 
   assert.match(
-    source,
+    bindings,
     /joinHomeQr: \(\{ displayName, uri \}\) =>\s*dispatchCommand\('joinHomeUri', \{ displayName, uri \}\)/
   )
-  assert.match(source, /globalThis\.keposDesktopUi\?\.setContextFormActions\(\{/)
+  assert.match(bindings, /ui\?\.setContextFormActions\(\{/)
   assert.match(
     host,
     /joinHomeUri: \(payload\) => actions\.joinHomeUri\(readCommandPayload\(payload\)\)/
@@ -189,6 +210,10 @@ test('desktop Home QR join command carries QR text and display name as payload',
 
 test('desktop Profile QR trust command carries QR text alias and display name as payload', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const bindings = await readFile(
+    new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
+    'utf8'
+  )
   const host = await readFile(new URL('../src/desktop-command-host.js', import.meta.url), 'utf8')
   const backendActions = await readFile(
     new URL('../src/desktop-backend-actions.js', import.meta.url),
@@ -200,10 +225,10 @@ test('desktop Profile QR trust command carries QR text alias and display name as
   )
 
   assert.match(
-    source,
+    bindings,
     /trustProfileQr: \(\{ alias, displayName, uri \}\) =>\s*dispatchCommand\('trustProfileUri', \{ alias, displayName, uri \}\)/
   )
-  assert.match(source, /globalThis\.keposDesktopUi\?\.setContextFormActions\(\{/)
+  assert.match(bindings, /ui\?\.setContextFormActions\(\{/)
   assert.match(
     host,
     /trustProfileUri: \(payload\) => actions\.trustProfileUri\(readCommandPayload\(payload\)\)/

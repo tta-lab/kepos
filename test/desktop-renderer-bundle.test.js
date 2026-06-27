@@ -66,7 +66,7 @@ test('desktop React owns the home chat composer draft', async () => {
   assert.match(source, /onChange=\{\(event\) => setDraft\(event\.target\.value\)\}/)
   assert.match(source, /disabled=\{!canSend\}/)
   assert.match(source, /setHomeComposerActions\(actions = \{\}\)/)
-  assert.match(controller, /globalThis\.keposDesktopUi\?\.setHomeComposerActions\(\{/)
+  assert.match(controller, /createDesktopUiActionBindings/)
   assert.doesNotMatch(controller, /chatForm: document\.querySelector/)
   assert.doesNotMatch(controller, /chatInput: document\.querySelector/)
   assert.doesNotMatch(controller, /els\.chatInput\.addEventListener/)
@@ -89,7 +89,7 @@ test('desktop React owns the direct message list surface', async () => {
   assert.match(source, /onClick=\{\(\) => onIgnore\(message\.actions\.ignoreMessage\)\}/)
   assert.match(source, /onClick=\{\(\) => onAccept\(message\.actions\.acceptMessage\)\}/)
   assert.match(presenter, /ui\?\.setDirectMessages\(/)
-  assert.match(controller, /globalThis\.keposDesktopUi\?\.setDirectMessageActions\(\{/)
+  assert.match(controller, /createDesktopUiActionBindings/)
   assert.doesNotMatch(controller, /els\.dmList\.replaceChildren/)
 })
 
@@ -114,7 +114,7 @@ test('desktop React owns the direct contact picker surface', async () => {
   assert.match(source, /onClick=\{actions\.openPeople\}/)
   assert.match(presenter, /createDesktopDirectContactPickerViewModel/)
   assert.match(presenter, /ui\?\.setDirectContactPicker\(/)
-  assert.match(controller, /globalThis\.keposDesktopUi\?\.setDirectContactPickerActions\(\{/)
+  assert.match(controller, /createDesktopUiActionBindings/)
   assert.doesNotMatch(controller, /els\.dmContactList\.replaceChildren/)
 })
 
@@ -161,7 +161,7 @@ test('desktop React owns tab and pane active state', async () => {
   assert.match(source, /className=\{isActive \? 'railButton active' : 'railButton'\}/)
   assert.match(source, /className=\{activeTab === 'chat' \? 'pane' : 'pane hidden'\}/)
   assert.match(presenter, /ui\?\.setActiveTab\(state\.activeTab\)/)
-  assert.match(controller, /globalThis\.keposDesktopUi\?\.setShellActions\(\{/)
+  assert.match(controller, /createDesktopUiActionBindings/)
   assert.doesNotMatch(controller, /chatTab: document\.querySelector/)
   assert.doesNotMatch(controller, /dmTab: document\.querySelector/)
   assert.doesNotMatch(controller, /treeholeTab: document\.querySelector/)
@@ -256,6 +256,10 @@ test('desktop React owns the large QR dialog surface', async () => {
 test('desktop React owns shell busy and leave action', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const bindings = await readFile(
+    new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
+    'utf8'
+  )
   const presenter = await readFile(
     new URL('../src/desktop-render-presenter.js', import.meta.url),
     'utf8'
@@ -266,7 +270,7 @@ test('desktop React owns shell busy and leave action', async () => {
   assert.match(source, /document\.body\.setAttribute\('aria-busy', String\(isShellBusy\)\)/)
   assert.match(source, /onClick=\{shellActions\.leaveHome\}/)
   assert.match(presenter, /ui\?\.setShellBusy\(isActionPending\)/)
-  assert.match(controller, /leaveHome: \(\) => dispatchCommand\('leaveHome'\)/)
+  assert.match(bindings, /leaveHome: \(\) => dispatchCommand\('leaveHome'\)/)
   assert.doesNotMatch(controller, /leaveButton: document\.querySelector/)
   assert.doesNotMatch(controller, /els\.leaveButton\.addEventListener/)
   assert.doesNotMatch(controller, /document\.body\.setAttribute\('aria-busy'/)
@@ -316,7 +320,7 @@ test('desktop React owns context form drafts and QR actions', async () => {
   assert.match(source, /value=\{form\.homeQrUri\}/)
   assert.match(source, /value=\{form\.trustQrUri\}/)
   assert.match(source, /value=\{form\.trustAlias\}/)
-  assert.match(controller, /globalThis\.keposDesktopUi\?\.setContextFormActions\(\{/)
+  assert.match(controller, /createDesktopUiActionBindings/)
   assert.doesNotMatch(controller, /lobbyForm: document\.querySelector/)
   assert.doesNotMatch(controller, /homeQrForm: document\.querySelector/)
   assert.doesNotMatch(controller, /trustForm: document\.querySelector/)
@@ -351,7 +355,7 @@ test('desktop React owns the people list surfaces', async () => {
     /onClick=\{\(\) => actions\.acceptMessageRequest\(request\.acceptMessage\)\}/
   )
   assert.match(presenter, /ui\?\.setPeople\(/)
-  assert.match(controller, /globalThis\.keposDesktopUi\?\.setPeopleActions\(\{/)
+  assert.match(controller, /createDesktopUiActionBindings/)
   assert.doesNotMatch(controller, /els\.contactList\.replaceChildren/)
   assert.doesNotMatch(controller, /els\.requestList\.replaceChildren/)
 })
@@ -374,7 +378,7 @@ test('desktop React owns the treehole post list surface', async () => {
     /actions\.commentPost\(\{ postId: post\.actions\.commentPostId, text: draft\.trim\(\) \}\)/
   )
   assert.match(presenter, /ui\?\.setTreeholePosts\(/)
-  assert.match(controller, /globalThis\.keposDesktopUi\?\.setTreeholeActions\(\{/)
+  assert.match(controller, /createDesktopUiActionBindings/)
   assert.doesNotMatch(controller, /els\.treeholeList\.replaceChildren/)
 })
 
@@ -392,7 +396,7 @@ test('desktop React owns the treehole main post composer draft', async () => {
   assert.match(source, /disabled=\{!controls\.canPostTreehole\}/)
   assert.match(source, /disabled=\{!canPost\}/)
   assert.match(source, /setTreeholeComposerActions\(actions = \{\}\)/)
-  assert.match(controller, /globalThis\.keposDesktopUi\?\.setTreeholeComposerActions\(\{/)
+  assert.match(controller, /createDesktopUiActionBindings/)
   assert.doesNotMatch(controller, /treeholeForm: document\.querySelector/)
   assert.doesNotMatch(controller, /treeholeInput: document\.querySelector/)
   assert.doesNotMatch(controller, /els\.treeholeInput\.addEventListener/)
@@ -422,7 +426,7 @@ test('desktop React owns the direct message composer draft and recipient', async
   )
   assert.match(source, /value=\{composer\.toProfileId\}/)
   assert.match(source, /value=\{composer\.text\}/)
-  assert.match(controller, /globalThis\.keposDesktopUi\?\.setDirectComposerActions\(\{/)
+  assert.match(controller, /createDesktopUiActionBindings/)
   assert.doesNotMatch(controller, /dmForm: document\.querySelector/)
   assert.doesNotMatch(controller, /dmInput: document\.querySelector/)
   assert.doesNotMatch(controller, /dmRecipientInput: document\.querySelector/)

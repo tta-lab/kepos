@@ -74,6 +74,10 @@ test('desktop people UI uses trusted friends copy', async () => {
     new URL('../src/desktop-trust-actions.js', import.meta.url),
     'utf8'
   )
+  const bindings = await readFile(
+    new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
+    'utf8'
+  )
 
   assert.match(source, /id='peopleTab'[\s\S]*title='People'/)
   assert.match(source, /label='People'/)
@@ -87,10 +91,10 @@ test('desktop people UI uses trusted friends copy', async () => {
   assert.match(source, /\{contact\.sourceLabel\}/)
   assert.match(source, /\{contact\.trustedAtLabel\}/)
   assert.match(presenter, /ui\?\.setPeople\(/)
-  assert.match(controller, /revokeContact: \(profileId\) => dispatchCommand\('revokeContact'/)
+  assert.match(bindings, /revokeContact: \(profileId\) => dispatchCommand\('revokeContact'/)
   assert.equal(source.indexOf("id='contactList'") > source.indexOf("id='peoplePane'"), true)
   assert.match(source, /onSelect=\{\(\) => shellActions\.setTab\('people'\)\}/)
-  assert.match(controller, /globalThis\.keposDesktopUi\?\.setShellActions\(\{/)
+  assert.match(controller, /createDesktopUiActionBindings/)
   assert.doesNotMatch(controller, /els\.peopleTab\.addEventListener/)
   assert.match(source, /className=\{activeTab === 'people' \? 'pane' : 'pane hidden'\}/)
   assert.match(source, /isActive=\{activeTab === 'people'\}/)
@@ -115,6 +119,10 @@ test('desktop people pane surfaces pending message requests', async () => {
     new URL('../src/desktop-message-request-actions.js', import.meta.url),
     'utf8'
   )
+  const bindings = await readFile(
+    new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
+    'utf8'
+  )
 
   assert.match(source, /id='requestList'/)
   assert.match(source, /Message requests/)
@@ -126,11 +134,11 @@ test('desktop people pane surfaces pending message requests', async () => {
   assert.match(source, /actions\.acceptMessageRequest\(request\.acceptMessage\)/)
   assert.match(source, /actions\.ignoreMessageRequest\(request\.profileId\)/)
   assert.match(
-    controller,
+    bindings,
     /acceptMessageRequest: \(message\) => dispatchCommand\('acceptMessageRequest'/
   )
   assert.match(
-    controller,
+    bindings,
     /ignoreMessageRequest: \(profileId\) => dispatchCommand\('ignoreMessageRequest'/
   )
   assert.match(controller, /createDesktopMessageRequestActions/)
@@ -177,6 +185,10 @@ test('desktop QR sharing exposes copy actions without surfacing raw URI copy', a
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const actions = await readFile(new URL('../src/desktop-qr-actions.js', import.meta.url), 'utf8')
+  const bindings = await readFile(
+    new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
+    'utf8'
+  )
 
   assert.match(source, /Copy Home QR/)
   assert.match(source, /Copy Profile QR/)
@@ -185,11 +197,11 @@ test('desktop QR sharing exposes copy actions without surfacing raw URI copy', a
     source,
     /id='copyProfileQrButton'[\s\S]*onClick=\{\(\) => actions\.copyProfileQr\(\)\}/
   )
-  assert.match(controller, /copyHomeQr: \(\) =>/)
-  assert.match(controller, /copyProfileQr: \(\) =>/)
+  assert.match(bindings, /copyHomeQr: \(\) =>/)
+  assert.match(bindings, /copyProfileQr: \(\) =>/)
   assert.match(controller, /copyText: \(value\) => navigator\.clipboard\.writeText\(value\)/)
-  assert.match(controller, /notice: 'Home QR copied\.'/)
-  assert.match(controller, /notice: 'Profile QR copied\.'/)
+  assert.match(bindings, /notice: 'Home QR copied\.'/)
+  assert.match(bindings, /notice: 'Profile QR copied\.'/)
   assert.match(actions, /setNotice\(notice\)/)
   assert.equal(source.includes('Copy URI'), false)
 })
@@ -363,6 +375,10 @@ test('desktop MLP shell has responsive polish for narrow screens', async () => {
 test('desktop direct messages links zero-contact state to People', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const bindings = await readFile(
+    new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
+    'utf8'
+  )
   const presenter = await readFile(
     new URL('../src/desktop-render-presenter.js', import.meta.url),
     'utf8'
@@ -374,7 +390,7 @@ test('desktop direct messages links zero-contact state to People', async () => {
   assert.match(source, /\{empty\.copy\}/)
   assert.match(source, /\{empty\.actionLabel\}/)
   assert.match(source, /onClick=\{actions\.openPeople\}/)
-  assert.match(controller, /openPeople: \(\) => setTab\('people'\)/)
+  assert.match(bindings, /openPeople: \(\) => setTab\('people'\)/)
   assert.match(presenter, /createDesktopDirectContactPickerViewModel/)
   assert.match(styles, /\.contactEmpty/)
 })
@@ -406,6 +422,10 @@ test('desktop treehole composer has an explicit owner-only disabled state', asyn
 test('desktop treehole comment composer disables empty comments', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const bindings = await readFile(
+    new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
+    'utf8'
+  )
 
   assert.match(source, /function TreeholePostActions\(\{ actions, post \}\)/)
   assert.match(source, /const \[draft, setDraft\] = useState\(''\)/)
@@ -417,7 +437,7 @@ test('desktop treehole comment composer disables empty comments', async () => {
   assert.match(source, /setDraft\(''\)/)
   assert.match(source, /disabled=\{!hasDraft\}/)
   assert.match(
-    controller,
+    bindings,
     /commentPost: \(\{ postId, text \}\) => dispatchCommand\('commentTreehole'/
   )
 })
