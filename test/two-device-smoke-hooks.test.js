@@ -259,6 +259,14 @@ test('Android room panes label live and durable surfaces', async () => {
   assert.match(source, /paneTitle:/)
 })
 
+test('Android home chat disables empty sends like other composers', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+
+  assert.match(source, /testID='chat-send-button'/)
+  assert.match(source, /disabled=\{!draft\.trim\(\)\}/)
+  assert.match(source, /\[styles\.sendButton, !draft\.trim\(\) && styles\.disabledSendButton\]/)
+})
+
 test('Android room tabs use product labels', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 

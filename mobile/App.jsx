@@ -1481,7 +1481,12 @@ function ChatPane({ draft, messages, onDraftChange, onSend }) {
           testID='chat-message-input'
           value={draft}
         />
-        <Pressable style={styles.sendButton} onPress={onSend} testID='chat-send-button'>
+        <Pressable
+          disabled={!draft.trim()}
+          onPress={onSend}
+          style={[styles.sendButton, !draft.trim() && styles.disabledSendButton]}
+          testID='chat-send-button'
+        >
           <Send color='#fffaf0' size={18} />
         </Pressable>
       </View>
