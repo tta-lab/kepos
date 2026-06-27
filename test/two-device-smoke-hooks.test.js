@@ -117,6 +117,17 @@ test('normal error notices avoid raw exception text', async () => {
   assert.match(desktop, /Something went wrong\./)
 })
 
+test('Android header shows product home status instead of raw peer count', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+
+  assert.match(source, /function getMobileHomeStatus\(/)
+  assert.match(source, /getMobileHomeStatus\(\{ online: peerCount, session \}\)/)
+  assert.match(source, /Connected/)
+  assert.match(source, /Looking for peers/)
+  assert.match(source, /Offline/)
+  assert.equal(source.includes('{online} peer'), false)
+})
+
 test('Android room has a People tab for QR and trusted contacts', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 

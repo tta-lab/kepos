@@ -150,6 +150,7 @@ export default function App() {
     () => (contactBook ? listTrustedContacts(contactBook) : []),
     [contactBook]
   )
+  const homeStatusLabel = getMobileHomeStatus({ online: peerCount, session })
 
   useEffect(() => {
     let cancelled = false
@@ -703,7 +704,11 @@ export default function App() {
           <QrScanner onCancel={() => setScanTarget(null)} onScanned={handleQrScanned} />
         ) : (
           <>
-            <Header notice={notice} online={peerCount} title={session ? 'Home' : 'Kepos'} />
+            <Header
+              notice={notice}
+              statusLabel={homeStatusLabel}
+              title={session ? 'Home' : 'Kepos'}
+            />
             {session ? (
               <ChatRoom
                 draft={draft}
@@ -776,7 +781,7 @@ export default function App() {
   )
 }
 
-function Header({ title, notice, online }) {
+function Header({ title, notice, statusLabel }) {
   return (
     <View style={styles.header}>
       <View style={styles.brandRow}>
@@ -792,7 +797,7 @@ function Header({ title, notice, online }) {
       </View>
       <View style={styles.statusPill}>
         <View style={styles.statusDot} />
-        <Text style={styles.statusText}>{online} peer</Text>
+        <Text style={styles.statusText}>{statusLabel}</Text>
       </View>
       <Text style={styles.notice} testID='app-notice'>
         {notice}
@@ -1534,6 +1539,18 @@ function displayPostAuthor(post) {
 
 function shortenProfileId(value) {
   return value ? `${value.slice(0, 8)}...${value.slice(-8)}` : ''
+}
+
+function getMobileHomeStatus({ online, session }) {
+  if (!session) {
+    return 'Offline'
+  }
+
+  if (online > 0) {
+    return 'Connected'
+  }
+
+  return 'Looking for peers'
 }
 
 function EmptyMessages() {
