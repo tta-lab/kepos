@@ -107,3 +107,39 @@ test('desktop treehole post command carries composer text as payload', async () 
     /async function postTreehole\(\) \{\s*const text = els\.treeholeInput\.value\.trim\(\)/
   )
 })
+
+test('desktop Home QR join command carries QR text and display name as payload', async () => {
+  const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+
+  assert.match(
+    source,
+    /dispatchCommand\('joinHomeUri', \{\s*displayName: els\.nickInput\.value\.trim\(\) \|\| 'Desktop',\s*uri: els\.homeQrInput\.value\.trim\(\)\s*\}\)/
+  )
+  assert.match(source, /joinHomeUri: \(payload\) => joinHomeQr\(readCommandPayload\(payload\)\)/)
+  assert.match(source, /async function joinHomeQr\(\{ displayName = 'Desktop', uri \} = \{\}\)/)
+  assert.doesNotMatch(
+    source,
+    /async function joinHomeQr\(\) \{\s*const uri = els\.homeQrInput\.value\.trim\(\)/
+  )
+})
+
+test('desktop Profile QR trust command carries QR text alias and display name as payload', async () => {
+  const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+
+  assert.match(
+    source,
+    /dispatchCommand\('trustProfileUri', \{\s*alias: els\.trustAliasInput\.value,\s*displayName: els\.nickInput\.value\.trim\(\) \|\| 'Desktop',\s*uri: els\.trustQrInput\.value\.trim\(\)\s*\}\)/
+  )
+  assert.match(
+    source,
+    /trustProfileUri: \(payload\) => trustProfileQr\(readCommandPayload\(payload\)\)/
+  )
+  assert.match(
+    source,
+    /function trustProfileQr\(\{ alias = '', displayName = 'Desktop', uri \} = \{\}\)/
+  )
+  assert.doesNotMatch(
+    source,
+    /function trustProfileQr\(\) \{\s*const uri = els\.trustQrInput\.value\.trim\(\)/
+  )
+})

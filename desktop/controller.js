@@ -111,7 +111,7 @@ const commands = createDesktopCommandRegistry({
       return ignoreIncomingMessageRequest({ message, profileId })
     },
     joinHome: (payload) => joinRoom(readCommandPayload(payload)),
-    joinHomeUri: () => joinHomeQr(),
+    joinHomeUri: (payload) => joinHomeQr(readCommandPayload(payload)),
     leaveHome: () => leaveRoom(),
     likeTreehole: (payload) => {
       const { postId } = readCommandPayload(payload)
@@ -125,7 +125,7 @@ const commands = createDesktopCommandRegistry({
     sendDmMessage: (payload) => sendMessageRequest(readCommandPayload(payload)),
     sendHomeMessage: (payload) => sendChat(readCommandPayload(payload)),
     sendMessageRequest: () => sendMessageRequest(),
-    trustProfileUri: () => trustProfileQr()
+    trustProfileUri: (payload) => trustProfileQr(readCommandPayload(payload))
   }
 })
 const backendBridge = createDesktopBackendBridge({
@@ -247,12 +247,19 @@ els.treeholeForm.addEventListener('submit', (event) => {
 
 els.trustForm.addEventListener('submit', (event) => {
   event.preventDefault()
-  dispatchCommand('trustProfileUri')
+  dispatchCommand('trustProfileUri', {
+    alias: els.trustAliasInput.value,
+    displayName: els.nickInput.value.trim() || 'Desktop',
+    uri: els.trustQrInput.value.trim()
+  })
 })
 
 els.homeQrForm.addEventListener('submit', (event) => {
   event.preventDefault()
-  dispatchCommand('joinHomeUri')
+  dispatchCommand('joinHomeUri', {
+    displayName: els.nickInput.value.trim() || 'Desktop',
+    uri: els.homeQrInput.value.trim()
+  })
 })
 
 updateQrOutputs().catch(showError)
@@ -332,11 +339,10 @@ async function joinRoom({ createTreehole, homeAddress = null, mode, roomKey }) {
   render()
 }
 
-async function joinHomeQr() {
-  const uri = els.homeQrInput.value.trim()
+async function joinHomeQr({ displayName = 'Desktop', uri } = {}) {
   if (!uri) return
 
-  const profile = getDesktopProfile(els.nickInput.value.trim() || 'Desktop')
+  const profile = getDesktopProfile(displayName)
   const homeAddress = applyDesktopHomeQr({
     book: loadLocalContactBook(profile.id),
     localProfileId: profile.id,
@@ -351,13 +357,12 @@ async function joinHomeQr() {
   })
 }
 
-function trustProfileQr() {
-  const uri = els.trustQrInput.value.trim()
+function trustProfileQr({ alias = '', displayName = 'Desktop', uri } = {}) {
   if (!uri) return
 
-  const profile = getDesktopProfile(els.nickInput.value.trim() || 'Desktop')
+  const profile = getDesktopProfile(displayName)
   const result = applyDesktopProfileTrustQr({
-    alias: els.trustAliasInput.value,
+    alias,
     book: loadLocalContactBook(profile.id),
     localIdentity: profile.identity,
     localProfileId: profile.id,
