@@ -1312,8 +1312,26 @@ async function likeTreeholePost(postId) {
 
 function showError(error) {
   console.error(error)
-  state = { ...state, lastError: error.message, notice: 'Something went wrong.' }
+  state = { ...state, lastError: error.message, notice: getDesktopErrorNotice(error) }
   render()
+}
+
+function getDesktopErrorNotice(error) {
+  const message = error?.message || ''
+
+  if (message.includes('This trusted-only home is not trusted locally')) {
+    return 'Could not join this home. Trust this friend on this device first.'
+  }
+
+  if (message.includes('Home QR is required') || message.includes('Invalid signed home QR')) {
+    return 'Could not read this Home QR.'
+  }
+
+  if (message.includes('Profile QR is required') || message.includes('Invalid signed profile QR')) {
+    return 'Could not read this Profile QR.'
+  }
+
+  return 'Something went wrong.'
 }
 
 function displayPostAuthor(post) {

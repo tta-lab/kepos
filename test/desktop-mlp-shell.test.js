@@ -205,10 +205,12 @@ test('desktop error handling keeps raw exception detail advanced', async () => {
 
   assert.match(state, /lastError: ''/)
   assert.match(controller, /errorDetailLabel: document\.querySelector\('#errorDetailLabel'\)/)
-  assert.match(
-    controller,
-    /state = \{ \.\.\.state, lastError: error\.message, notice: 'Something went wrong\.' \}/
-  )
+  assert.match(controller, /notice: getDesktopErrorNotice\(error\)/)
+  assert.match(controller, /function getDesktopErrorNotice\(error\)/)
+  assert.match(controller, /Could not read this Home QR\./)
+  assert.match(controller, /Could not read this Profile QR\./)
+  assert.match(controller, /Could not join this home\. Trust this friend on this device first\./)
+  assert.match(controller, /return 'Something went wrong\.'/)
   assert.equal(controller.includes('notice: error.message'), false)
 })
 
