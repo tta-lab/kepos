@@ -54,6 +54,17 @@ test('Android lobby uses product action words for QR and trust flows', async () 
   assert.equal(source.includes('Trust Profile'), false)
 })
 
+test('Android lobby starts with compact product choices', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+
+  assert.match(source, /function QuickStartPanel\(/)
+  assert.match(source, /Start here/)
+  assert.match(source, /Create my home/)
+  assert.match(source, /Scan Home QR/)
+  assert.match(source, /Scan Profile QR/)
+  assert.equal(source.indexOf('<QuickStartPanel') < source.indexOf('<PeopleActions'), true)
+})
+
 test('Android normal UI copy avoids backend and address language', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 

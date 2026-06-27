@@ -868,15 +868,13 @@ function Lobby({
       style={styles.lobbyScroll}
       testID='lobby-scroll'
     >
-      <View style={styles.panel}>
-        <Text style={styles.panelTitle}>Create my home</Text>
-        <Text style={styles.panelCopy}>Start a private space for trusted friends.</Text>
-        <Field label='Nick' onChangeText={onNickChange} value={nick} />
-        <Pressable style={styles.primaryButton} onPress={onCreateRoom} testID='create-home-button'>
-          <Plus color='#fffaf0' size={18} />
-          <Text style={styles.primaryButtonText}>Create Home</Text>
-        </Pressable>
-      </View>
+      <QuickStartPanel
+        nick={nick}
+        onCreateRoom={onCreateRoom}
+        onNickChange={onNickChange}
+        onScanHomeQr={onScanHomeQr}
+        onScanProfileQr={onScanProfileQr}
+      />
 
       <PeopleActions
         homeQrUri={homeQrUri}
@@ -1063,6 +1061,40 @@ function ChatRoom({
           trustQrUri={trustQrUri}
         />
       )}
+    </View>
+  )
+}
+
+function QuickStartPanel({ nick, onCreateRoom, onNickChange, onScanHomeQr, onScanProfileQr }) {
+  return (
+    <View style={styles.quickStartPanel}>
+      <Text style={styles.panelTitle}>Start here</Text>
+      <Text style={styles.panelCopy}>
+        Start a private space for trusted friends. Create, join, or trust someone nearby.
+      </Text>
+      <Field label='Nick' onChangeText={onNickChange} value={nick} />
+      <View style={styles.quickActions}>
+        <Pressable style={styles.primaryButton} onPress={onCreateRoom} testID='create-home-button'>
+          <Plus color='#fffaf0' size={18} />
+          <Text style={styles.primaryButtonText}>Create my home</Text>
+        </Pressable>
+        <Pressable
+          onPress={onScanHomeQr}
+          style={styles.secondaryButton}
+          testID='quick-scan-home-qr-button'
+        >
+          <ArrowRight color='#143d2b' size={18} />
+          <Text style={styles.secondaryButtonText}>Scan Home QR</Text>
+        </Pressable>
+        <Pressable
+          onPress={onScanProfileQr}
+          style={styles.secondaryButton}
+          testID='quick-scan-profile-qr-button'
+        >
+          <Plus color='#143d2b' size={18} />
+          <Text style={styles.secondaryButtonText}>Scan Profile QR</Text>
+        </Pressable>
+      </View>
     </View>
   )
 }
@@ -1832,6 +1864,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     marginTop: 6
+  },
+  quickStartPanel: {
+    backgroundColor: '#dfe9ce',
+    borderColor: '#b9caa6',
+    borderRadius: 8,
+    borderWidth: 1,
+    padding: 16
+  },
+  quickActions: {
+    gap: 10,
+    marginTop: 16
   },
   field: {
     marginTop: 16
