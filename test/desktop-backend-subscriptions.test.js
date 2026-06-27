@@ -27,6 +27,7 @@ test('desktop backend subscriptions update renderer snapshots from backend event
   const { backendClient, emit, subscriptions } = createBackendClient()
   const renders = []
   const errors = []
+  let contactBook = null
   let dmSession = null
   let homeSession = null
   let state = createDesktopState()
@@ -36,6 +37,9 @@ test('desktop backend subscriptions update renderer snapshots from backend event
     getState: () => state,
     onError: (error) => errors.push(error),
     onRender: () => renders.push('render'),
+    setContactBook: (nextContactBook) => {
+      contactBook = nextContactBook
+    },
     setDmSession: (nextSession) => {
       dmSession = nextSession
     },
@@ -48,6 +52,7 @@ test('desktop backend subscriptions update renderer snapshots from backend event
   })
 
   emit('homeMessageReceived', { messages: ['home'] })
+  emit('contactBookChanged', { ownerProfileId: 'owner-1' })
   emit('desktopStateChanged', { ...state, mode: 'host', notice: 'Home joined.', view: 'room' })
   emit('dmMessageReceived', { messages: ['dm'] })
   emit('treeholeStateChanged', { canPost: false, posts: [], status: 'ready' })
@@ -55,6 +60,7 @@ test('desktop backend subscriptions update renderer snapshots from backend event
   emit('errorReceived', new Error('failed'))
   unsubscribe()
 
+  assert.deepEqual(contactBook, { ownerProfileId: 'owner-1' })
   assert.deepEqual(homeSession, { messages: ['home'] })
   assert.deepEqual(dmSession, { messages: ['dm'] })
   assert.equal(state.mode, 'host')
@@ -64,15 +70,17 @@ test('desktop backend subscriptions update renderer snapshots from backend event
   assert.equal(state.treeholeCanPost, false)
   assert.equal(state.peers, 3)
   assert.equal(errors[0].message, 'failed')
-  assert.deepEqual(renders, ['render', 'render', 'render', 'render', 'render'])
+  assert.deepEqual(renders, ['render', 'render', 'render', 'render', 'render', 'render'])
   assert.deepEqual(subscriptions, [
     ['subscribe', 'homeMessageReceived'],
+    ['subscribe', 'contactBookChanged'],
     ['subscribe', 'desktopStateChanged'],
     ['subscribe', 'dmMessageReceived'],
     ['subscribe', 'treeholeStateChanged'],
     ['subscribe', 'peerCountChanged'],
     ['subscribe', 'errorReceived'],
     ['unsubscribe', 'homeMessageReceived'],
+    ['unsubscribe', 'contactBookChanged'],
     ['unsubscribe', 'desktopStateChanged'],
     ['unsubscribe', 'dmMessageReceived'],
     ['unsubscribe', 'treeholeStateChanged'],

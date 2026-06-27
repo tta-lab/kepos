@@ -22,7 +22,7 @@ test('desktop main backend session uses file profile context and local backend b
     createId: () => 'id-1',
     createProfileContext: (options) => {
       calls.push(['profileContext', options])
-      return { contactBook: {}, profile: {}, saveContactBook: () => {} }
+      return { contactBook: { ownerProfileId: 'owner-1' }, profile: {}, saveContactBook: () => {} }
     },
     storageBasePath: '/user-data/kepos/v1'
   })
@@ -38,9 +38,13 @@ test('desktop main backend session uses file profile context and local backend b
   assert.deepEqual(calls.slice(1), [
     ['profileContext', { displayName: 'Ada', storageBasePath: '/user-data/kepos/v1' }],
     ['setDirectComposerRecipient', 'friend-1'],
-    ['updateState']
+    ['updateState'],
+    ['profileContext', { displayName: 'Desktop', storageBasePath: '/user-data/kepos/v1' }]
   ])
-  assert.deepEqual(emitted, [['desktopStateChanged', { notice: 'Ready.' }]])
+  assert.deepEqual(emitted, [
+    ['desktopStateChanged', { notice: 'Ready.' }],
+    ['contactBookChanged', { ownerProfileId: 'owner-1' }]
+  ])
 })
 
 function createControllerState(calls) {

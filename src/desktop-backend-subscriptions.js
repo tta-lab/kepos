@@ -5,6 +5,7 @@ export function createDesktopBackendSubscriptions({
   getState,
   onError,
   onRender,
+  setContactBook,
   setDmSession,
   setHomeSession,
   setState
@@ -12,6 +13,10 @@ export function createDesktopBackendSubscriptions({
   const unsubscribers = [
     backendClient.subscribe('homeMessageReceived', (nextSession) => {
       setHomeSession(nextSession)
+      onRender()
+    }),
+    backendClient.subscribe('contactBookChanged', (nextContactBook) => {
+      setContactBook(nextContactBook)
       onRender()
     }),
     backendClient.subscribe('desktopStateChanged', (nextState) => {

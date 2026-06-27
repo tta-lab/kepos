@@ -15,6 +15,7 @@ import { createDesktopUiActionBindings } from '../src/desktop-ui-action-bindings
 const BLOCKING_COMMANDS = new Set(['joinHome', 'joinHomeUri', 'leaveHome', 'trustProfileUri'])
 
 const controllerState = createDesktopControllerState()
+let backendContactBook = null
 const renderPresenter = createDesktopRenderPresenter({
   formatTime,
   shortenProfileId: shorten,
@@ -77,6 +78,9 @@ createDesktopBackendSubscriptions({
   getState: () => controllerState.getState(),
   onError: showError,
   onRender: () => render(),
+  setContactBook: (nextContactBook) => {
+    backendContactBook = nextContactBook
+  },
   setDmSession: (nextSession) => {
     controllerState.setDmSession(nextSession)
   },
@@ -116,7 +120,7 @@ function setTab(tab) {
 function render() {
   const { contactBook } = getProfileContext()
   renderPresenter.render({
-    contactBook,
+    contactBook: backendContactBook || contactBook,
     directComposerRecipientProfileId: controllerState.getDirectComposerRecipientProfileId(),
     dmSession: controllerState.getDmSession(),
     pendingCommand: commandDispatcher.getPendingCommand(),

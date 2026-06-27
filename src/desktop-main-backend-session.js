@@ -21,6 +21,13 @@ export function createDesktopMainBackendSession({
       createProfileContext({ displayName, storageBasePath }),
     onChanged: () => {
       backendSession?.backendHost.bridge.emit('desktopStateChanged', controllerState.getState())
+      backendSession?.backendHost.bridge.emit(
+        'contactBookChanged',
+        createProfileContext({
+          displayName: controllerState.getCurrentDisplayName(),
+          storageBasePath
+        }).contactBook
+      )
     },
     setContextFormDraft: () => {},
     setDirectComposerRecipient: (profileId) => {

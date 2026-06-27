@@ -120,6 +120,19 @@ test('desktop controller routes Home and Direct sessions through backend bridge 
   assert.doesNotMatch(source, /onDmSessionChanged:/)
 })
 
+test('desktop controller renders backend contact book snapshots from the bridge', async () => {
+  const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const subscriptions = await readFile(
+    new URL('../src/desktop-backend-subscriptions.js', import.meta.url),
+    'utf8'
+  )
+
+  assert.match(subscriptions, /backendClient\.subscribe\('contactBookChanged'/)
+  assert.match(source, /let backendContactBook = null/)
+  assert.match(source, /setContactBook: \(nextContactBook\) =>/)
+  assert.match(source, /contactBook: backendContactBook \|\| contactBook/)
+})
+
 test('desktop controller delegates home transport to a runtime boundary', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const session = await readFile(
