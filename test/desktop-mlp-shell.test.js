@@ -25,6 +25,7 @@ test('desktop context panel uses product actions for home and people flows', asy
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
 
+  assert.match(source, /<h1>Kepos Home<\/h1>/)
   assert.match(source, /className='contextGroup homeActions'/)
   assert.match(source, /Start your home, invite a friend, or join theirs\./)
   assert.match(source, /Invite a friend/)
@@ -36,6 +37,7 @@ test('desktop context panel uses product actions for home and people flows', asy
   assert.equal(source.includes('Trust a profile before private home access or DM.'), false)
   assert.equal(source.includes('Trust Profile'), false)
   assert.equal(source.includes('Join Home URI'), false)
+  assert.equal(source.includes('Kepos Peer'), false)
   assert.match(styles, /\.contextGroup/)
   assert.match(styles, /\.contextHint/)
 })

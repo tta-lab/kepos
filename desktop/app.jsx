@@ -56,7 +56,7 @@ function DesktopApp() {
           <header className='topbar'>
             <div>
               <p className='kicker'>private garden</p>
-              <h1>Kepos Peer</h1>
+              <h1>Kepos Home</h1>
               <p id='noticeLabel' className='notice'>
                 Create or join a home.
               </p>
