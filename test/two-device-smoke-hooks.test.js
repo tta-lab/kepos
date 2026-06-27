@@ -224,6 +224,19 @@ test('mobile success notices avoid profile id snippets', async () => {
   )
 })
 
+test('desktop success notices avoid profile id snippets', async () => {
+  const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+
+  assert.match(source, /notice: 'Trusted friend added\.'/)
+  assert.match(source, /notice: 'Message request accepted\.'/)
+  assert.match(source, /notice: 'Trust revoked\.'/)
+  assert.equal(source.includes('notice: `Trusted ${shorten(result.profileId)}.`'), false)
+  assert.equal(
+    source.includes('notice: `Accepted message request from ${shorten(message.fromProfileId)}.`'),
+    false
+  )
+})
+
 test('Android header shows product home status instead of raw peer count', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 

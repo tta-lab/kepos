@@ -386,7 +386,7 @@ function trustProfileQr() {
   }
   els.trustQrInput.value = ''
   els.trustAliasInput.value = ''
-  state = { ...state, notice: `Trusted ${shorten(result.profileId)}.` }
+  state = { ...state, notice: 'Trusted friend added.' }
   render()
 }
 
@@ -1000,7 +1000,7 @@ function acceptIncomingMessageRequest(message) {
   saveLocalDmThread(profile.id, result.thread)
   openLocalDmThread(result.thread).catch(showError)
   room.broadcastControl(result.invite)
-  state = { ...state, notice: `Accepted message request from ${shorten(message.fromProfileId)}.` }
+  state = { ...state, notice: 'Message request accepted.' }
   render()
 }
 
