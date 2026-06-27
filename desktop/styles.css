@@ -354,6 +354,10 @@ textarea {
   grid-column: 1 / -1;
 }
 
+.advancedComposer {
+  grid-column: 1 / -1;
+}
+
 .contactList {
   display: flex;
   flex-wrap: wrap;

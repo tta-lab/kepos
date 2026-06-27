@@ -189,12 +189,18 @@ function DesktopApp() {
             <ol id='dmList' className='list' />
             <form id='dmForm' className='composer tall'>
               <div id='dmContactList' className='contactList' />
-              <input
-                id='dmRecipientInput'
-                placeholder='Recipient profile id'
-                autoComplete='off'
-                spellCheck='false'
-              />
+              <details id='advancedDmRecipient' className='advanced advancedComposer'>
+                <summary>Advanced</summary>
+                <label>
+                  Recipient profile id
+                  <input
+                    id='dmRecipientInput'
+                    placeholder='Recipient profile id'
+                    autoComplete='off'
+                    spellCheck='false'
+                  />
+                </label>
+              </details>
               <textarea id='dmInput' placeholder='Write a direct message' />
               <button type='submit'>
                 <Send size={17} />

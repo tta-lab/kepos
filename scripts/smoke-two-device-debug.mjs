@@ -325,6 +325,9 @@ async function sendAndroidDirectMessage({ fileName, text }) {
 
 async function sendDesktopDmBody(page, toProfileId, text) {
   await page.click('#dmTab')
+  await page.locator('#advancedDmRecipient').evaluate((node) => {
+    node.open = true
+  })
   await page.fill('#dmRecipientInput', toProfileId)
   await page.fill('#dmInput', text)
   await page.click('#dmForm button[type="submit"]')
