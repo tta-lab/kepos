@@ -45,7 +45,7 @@ test('Android QR scanner keeps the camera preview visible', async () => {
 })
 
 test('desktop UI exposes stable hooks for two-device smoke', async () => {
-  const html = await readFile(new URL('../desktop/index.html', import.meta.url), 'utf8')
+  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
 
   for (const id of [
     'homeQrOutput',
@@ -65,12 +65,12 @@ test('desktop UI exposes stable hooks for two-device smoke', async () => {
     'dmInput',
     'treeholeInput'
   ]) {
-    assert.match(html, new RegExp(`id="${id}"`), `${id} is missing`)
+    assert.match(source, new RegExp(`id=['"]${id}['"]`), `${id} is missing`)
   }
 })
 
 test('desktop large QR dialog renders scan-sized QR codes', async () => {
-  const source = await readFile(new URL('../desktop/app.js', import.meta.url), 'utf8')
+  const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
 
   for (const marker of [

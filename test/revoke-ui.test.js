@@ -3,13 +3,13 @@ import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 
 test('desktop exposes contact revoke controls that update trust and DM threads', async () => {
-  const html = await readFile(new URL('../desktop/index.html', import.meta.url), 'utf8')
-  const app = await readFile(new URL('../desktop/app.js', import.meta.url), 'utf8')
+  const app = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
 
-  assert.match(html, /id="contactList"/)
-  assert.match(app, /applyLocalContactRevoke/)
-  assert.match(app, /function revokeLocalContact/)
-  assert.match(app, /dmRuntime\?\.closeThread/)
+  assert.match(app, /id='contactList'/)
+  assert.match(controller, /applyLocalContactRevoke/)
+  assert.match(controller, /async function revokeLocalContact/)
+  assert.match(controller, /dmRuntime\?\.closeThread/)
 })
 
 test('android exposes contact revoke controls and notifies Bare backend', async () => {

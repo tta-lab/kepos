@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 
 test('desktop shares treehole capabilities only after signed home hello', async () => {
-  const source = await readFile(new URL('../desktop/app.js', import.meta.url), 'utf8')
+  const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
 
   assert.match(source, /createHomeHello/)
   assert.match(source, /verifyHomeHello/)

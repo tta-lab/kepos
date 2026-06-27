@@ -9,6 +9,10 @@ body {
   margin: 0;
 }
 
+#root {
+  min-height: 100vh;
+}
+
 button,
 input,
 textarea {
@@ -16,13 +20,21 @@ textarea {
 }
 
 button {
+  align-items: center;
   background: #143d2b;
   border: 1px solid #143d2b;
   border-radius: 6px;
   color: #fffaf0;
   cursor: pointer;
+  display: inline-flex;
+  gap: 8px;
+  justify-content: center;
   min-height: 38px;
   padding: 0 14px;
+}
+
+button svg {
+  flex: 0 0 auto;
 }
 
 button:disabled {
@@ -187,6 +199,16 @@ textarea {
   display: grid;
   gap: 8px;
   grid-template-columns: 1fr 1fr;
+}
+
+.singleAction {
+  grid-template-columns: 1fr;
+}
+
+.sectionTitle {
+  align-items: center;
+  display: inline-flex;
+  gap: 6px;
 }
 
 .roomMeta {

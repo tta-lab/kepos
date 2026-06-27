@@ -83,7 +83,7 @@ Do not use `react-qr-code` for current desktop unless the desktop app moves to R
 ## Sources
 
 - `package.json` in this repo: verified Expo SDK 56, React Native 0.85, and `react-native-svg` 15.15.4.
-- `desktop/package.json` and `desktop/app.js` in this repo: verified Electron desktop app and plain DOM UI.
+- `desktop/package.json`, `desktop/app.jsx`, and `desktop/controller.js` in this repo: verified Electron desktop app with React renderer shell and desktop runtime controller.
 - Expo Camera docs: https://docs.expo.dev/versions/latest/sdk/camera/ and https://docs.expo.dev/versions/latest/sdk/camera.md
 - Expo Camera npm metadata: https://www.npmjs.com/package/expo-camera
 - `react-native-qrcode-svg` npm metadata and README: https://www.npmjs.com/package/react-native-qrcode-svg
