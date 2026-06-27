@@ -192,6 +192,13 @@ test('Android room panes label live and durable surfaces', async () => {
   assert.match(source, /paneTitle:/)
 })
 
+test('Android room tabs use product labels', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+
+  assert.match(source, /label='Direct'[\s\S]*testID='dm-tab'/)
+  assert.equal(source.includes("label='DM'"), false)
+})
+
 test('Android direct message empty state avoids DM shorthand', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 

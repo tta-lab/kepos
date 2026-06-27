@@ -1011,7 +1011,7 @@ function ChatRoom({
         />
         <TabButton
           active={activeTab === 'dm'}
-          label='DM'
+          label='Direct'
           onPress={() => onTabChange('dm')}
           testID='dm-tab'
         />
