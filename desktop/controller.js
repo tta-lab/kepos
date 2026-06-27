@@ -3,7 +3,6 @@
 import QRCode from 'qrcode'
 import { applyMessageRequestToContactBook } from '../src/message-request.ts'
 import { ignoreMessageRequest, listTrustedContacts } from '../src/contact-book.ts'
-import { applyLocalContactRevoke } from '../src/revoke-state.js'
 import {
   createSignedHomeAddressPayload,
   createSignedTrustInvitePayload,
@@ -12,6 +11,7 @@ import {
 import { createDesktopBackendRuntime } from '../src/desktop-backend-runtime.js'
 import { createDesktopHomeJoinDetails } from '../src/desktop-home-join-service.js'
 import { applyDesktopHomeQr, applyDesktopProfileTrustQr } from '../src/desktop-qr-service.js'
+import { createDesktopContactRevoke } from '../src/desktop-revoke-service.js'
 import {
   getDesktopLocalProfile,
   loadDesktopContactBook,
@@ -838,9 +838,10 @@ function formatMessageRequestTitle(request) {
 async function revokeLocalContact(profileId) {
   const profile = getDesktopProfile(els.nickInput.value.trim() || 'Desktop')
   const threads = dmRuntime.loadThreads()
-  const result = applyLocalContactRevoke({
+  const result = createDesktopContactRevoke({
     book: loadLocalContactBook(profile.id),
     profileId,
+    selectedRecipientProfileId: els.dmRecipientInput.value.trim(),
     threads
   })
 
@@ -857,7 +858,7 @@ async function revokeLocalContact(profileId) {
     configureTreeholeRuntime()
   }
 
-  if (els.dmRecipientInput.value.trim() === profileId) {
+  if (result.shouldClearRecipient) {
     els.dmRecipientInput.value = ''
   }
 

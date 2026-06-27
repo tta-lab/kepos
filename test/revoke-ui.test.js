@@ -7,9 +7,10 @@ test('desktop exposes contact revoke controls that update trust and DM threads',
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
 
   assert.match(app, /id='contactList'/)
-  assert.match(controller, /applyLocalContactRevoke/)
+  assert.match(controller, /createDesktopContactRevoke/)
   assert.match(controller, /async function revokeLocalContact/)
   assert.match(controller, /dmRuntime\.closeThreads/)
+  assert.doesNotMatch(controller, /from '..\/src\/revoke-state\.js'/)
   assert.doesNotMatch(controller, /from '..\/src\/dm-thread-storage\.js'/)
 })
 

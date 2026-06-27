@@ -81,6 +81,9 @@ async function restartDesktopApp() {
 }
 
 async function trustContact(page) {
+  await page.locator('.peopleActions').evaluate((details) => {
+    details.open = true
+  })
   await page.fill('#trustQrInput', contactProfileUri)
   await page.fill('#trustAliasInput', contactAlias)
   await page.click('#trustButton')

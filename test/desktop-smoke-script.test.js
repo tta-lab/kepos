@@ -41,6 +41,7 @@ test('desktop contact persistence smoke restarts with the same user data', async
     'Trust Contact',
     'Persistent smoke',
     'contact persists after desktop restart',
+    'peopleActions',
     '--user-data-dir='
   ]) {
     assert.match(source, new RegExp(marker), `${marker} is missing`)
