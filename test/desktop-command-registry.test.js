@@ -119,10 +119,14 @@ test('desktop Home QR join command carries QR text and display name as payload',
 
   assert.match(
     source,
-    /dispatchCommand\('joinHomeUri', \{\s*displayName: els\.nickInput\.value\.trim\(\) \|\| 'Desktop',\s*uri: els\.homeQrInput\.value\.trim\(\)\s*\}\)/
+    /joinHomeQr: \(\{ displayName, uri \}\) =>\s*dispatchCommand\('joinHomeUri', \{ displayName, uri \}\)/
   )
+  assert.match(source, /globalThis\.keposDesktopUi\?\.setContextFormActions\(\{/)
   assert.match(source, /joinHomeUri: \(payload\) => joinHomeQr\(readCommandPayload\(payload\)\)/)
   assert.match(source, /async function joinHomeQr\(\{ displayName = 'Desktop', uri \} = \{\}\)/)
+  assert.doesNotMatch(source, /homeQrForm: document\.querySelector/)
+  assert.doesNotMatch(source, /homeQrInput: document\.querySelector/)
+  assert.doesNotMatch(source, /nickInput: document\.querySelector/)
   assert.doesNotMatch(
     source,
     /async function joinHomeQr\(\) \{\s*const uri = els\.homeQrInput\.value\.trim\(\)/
@@ -134,8 +138,9 @@ test('desktop Profile QR trust command carries QR text alias and display name as
 
   assert.match(
     source,
-    /dispatchCommand\('trustProfileUri', \{\s*alias: els\.trustAliasInput\.value,\s*displayName: els\.nickInput\.value\.trim\(\) \|\| 'Desktop',\s*uri: els\.trustQrInput\.value\.trim\(\)\s*\}\)/
+    /trustProfileQr: \(\{ alias, displayName, uri \}\) =>\s*dispatchCommand\('trustProfileUri', \{ alias, displayName, uri \}\)/
   )
+  assert.match(source, /globalThis\.keposDesktopUi\?\.setContextFormActions\(\{/)
   assert.match(
     source,
     /trustProfileUri: \(payload\) => trustProfileQr\(readCommandPayload\(payload\)\)/
@@ -144,6 +149,9 @@ test('desktop Profile QR trust command carries QR text alias and display name as
     source,
     /function trustProfileQr\(\{ alias = '', displayName = 'Desktop', uri \} = \{\}\)/
   )
+  assert.doesNotMatch(source, /trustForm: document\.querySelector/)
+  assert.doesNotMatch(source, /trustQrInput: document\.querySelector/)
+  assert.doesNotMatch(source, /trustAliasInput: document\.querySelector/)
   assert.doesNotMatch(
     source,
     /function trustProfileQr\(\) \{\s*const uri = els\.trustQrInput\.value\.trim\(\)/

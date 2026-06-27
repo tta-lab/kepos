@@ -35,30 +35,16 @@ import { createDesktopCommandRegistry } from '../src/desktop-command-registry.ts
 import { createDesktopRendererBackendClient } from '../src/desktop-renderer-backend-client.js'
 import { getDesktopStorageBasePath } from '../src/desktop-storage-base.js'
 
-const ROOM_KEY_PATTERN = /^[0-9a-f]{64}$/
 const BLOCKING_COMMANDS = new Set(['joinHome', 'joinHomeUri', 'leaveHome', 'trustProfileUri'])
 
 const els = {
   chatTab: document.querySelector('#chatTab'),
-  copyHomeQrButton: document.querySelector('#copyHomeQrButton'),
-  copyProfileQrButton: document.querySelector('#copyProfileQrButton'),
-  createButton: document.querySelector('#createButton'),
   dmTab: document.querySelector('#dmTab'),
-  homeQrForm: document.querySelector('#homeQrForm'),
-  homeQrInput: document.querySelector('#homeQrInput'),
   largeQrCloseButton: document.querySelector('#largeQrCloseButton'),
   largeQrDialog: document.querySelector('#largeQrDialog'),
   leaveButton: document.querySelector('#leaveButton'),
-  lobbyForm: document.querySelector('#lobbyForm'),
-  nickInput: document.querySelector('#nickInput'),
   peopleTab: document.querySelector('#peopleTab'),
-  roomKeyInput: document.querySelector('#roomKeyInput'),
-  showLargeHomeQrButton: document.querySelector('#showLargeHomeQrButton'),
-  showLargeProfileQrButton: document.querySelector('#showLargeProfileQrButton'),
-  treeholeTab: document.querySelector('#treeholeTab'),
-  trustAliasInput: document.querySelector('#trustAliasInput'),
-  trustForm: document.querySelector('#trustForm'),
-  trustQrInput: document.querySelector('#trustQrInput')
+  treeholeTab: document.querySelector('#treeholeTab')
 }
 
 let state = createDesktopState()
@@ -68,6 +54,7 @@ let homeJoinDetails = null
 let largeQrReturnFocus = null
 let pendingCommand = null
 let directComposerRecipientProfileId = ''
+let currentDisplayName = 'Desktop'
 let shareQrOutputs = {
   homeSvg: '',
   homeUri: '',
@@ -127,6 +114,27 @@ const dmRuntime = backendRuntime.dm
 const homeRuntime = backendRuntime.home
 const treeholeRuntime = backendRuntime.treehole
 
+globalThis.keposDesktopUi?.setContextFormActions({
+  copyHomeQr: () =>
+    copyQrValue({ notice: 'Home QR copied.', value: shareQrOutputs.homeUri }).catch(showError),
+  copyProfileQr: () =>
+    copyQrValue({ notice: 'Profile QR copied.', value: shareQrOutputs.profileUri }).catch(
+      showError
+    ),
+  createHome: () => dispatchCommand('joinHome', { createTreehole: true, mode: 'host' }),
+  joinHomeQr: ({ displayName, uri }) => dispatchCommand('joinHomeUri', { displayName, uri }),
+  joinManualHome: ({ roomKey }) =>
+    dispatchCommand('joinHome', { createTreehole: false, mode: 'peer', roomKey }),
+  showLargeHomeQr: ({ returnFocus }) =>
+    showLargeQr({ returnFocus, title: 'Home QR', uri: shareQrOutputs.homeUri }).catch(showError),
+  showLargeProfileQr: ({ returnFocus }) =>
+    showLargeQr({ returnFocus, title: 'Profile QR', uri: shareQrOutputs.profileUri }).catch(
+      showError
+    ),
+  trustProfileQr: ({ alias, displayName, uri }) =>
+    dispatchCommand('trustProfileUri', { alias, displayName, uri }),
+  updateDisplayName: ({ displayName }) => updateDisplayName(displayName)
+})
 globalThis.keposDesktopUi?.setDirectContactPickerActions({
   openPeople: () => setTab('people'),
   selectContact: (profileId) => selectDirectContact(profileId)
@@ -166,44 +174,11 @@ backendClient.subscribe('peerCountChanged', ({ peers }) => {
 })
 backendClient.subscribe('errorReceived', showError)
 
-els.createButton.addEventListener('click', () => {
-  dispatchCommand('joinHome', { createTreehole: true, mode: 'host' })
-})
-
-els.lobbyForm.addEventListener('submit', (event) => {
-  event.preventDefault()
-  dispatchCommand('joinHome', {
-    createTreehole: false,
-    mode: 'peer',
-    roomKey: els.roomKeyInput.value.trim()
-  })
-})
-
 els.leaveButton.addEventListener('click', () => dispatchCommand('leaveHome'))
 els.chatTab.addEventListener('click', () => setTab('chat'))
 els.dmTab.addEventListener('click', () => setTab('dm'))
 els.treeholeTab.addEventListener('click', () => setTab('treehole'))
 els.peopleTab.addEventListener('click', () => setTab('people'))
-els.showLargeHomeQrButton.addEventListener('click', () => {
-  showLargeQr({
-    returnFocus: els.showLargeHomeQrButton,
-    title: 'Home QR',
-    uri: shareQrOutputs.homeUri
-  }).catch(showError)
-})
-els.showLargeProfileQrButton.addEventListener('click', () => {
-  showLargeQr({
-    returnFocus: els.showLargeProfileQrButton,
-    title: 'Profile QR',
-    uri: shareQrOutputs.profileUri
-  }).catch(showError)
-})
-els.copyHomeQrButton.addEventListener('click', () => {
-  copyQrValue({ notice: 'Home QR copied.', value: shareQrOutputs.homeUri }).catch(showError)
-})
-els.copyProfileQrButton.addEventListener('click', () => {
-  copyQrValue({ notice: 'Profile QR copied.', value: shareQrOutputs.profileUri }).catch(showError)
-})
 els.largeQrCloseButton.addEventListener('click', hideLargeQr)
 els.largeQrDialog.addEventListener('click', (event) => {
   if (event.target === els.largeQrDialog) hideLargeQr()
@@ -213,30 +188,6 @@ document.addEventListener('keydown', (event) => {
     hideLargeQr()
   }
 })
-els.nickInput.addEventListener('input', () => {
-  updateQrOutputs().catch(showError)
-})
-els.roomKeyInput.addEventListener('input', renderControls)
-els.homeQrInput.addEventListener('input', renderControls)
-els.trustQrInput.addEventListener('input', renderControls)
-
-els.trustForm.addEventListener('submit', (event) => {
-  event.preventDefault()
-  dispatchCommand('trustProfileUri', {
-    alias: els.trustAliasInput.value,
-    displayName: els.nickInput.value.trim() || 'Desktop',
-    uri: els.trustQrInput.value.trim()
-  })
-})
-
-els.homeQrForm.addEventListener('submit', (event) => {
-  event.preventDefault()
-  dispatchCommand('joinHomeUri', {
-    displayName: els.nickInput.value.trim() || 'Desktop',
-    uri: els.homeQrInput.value.trim()
-  })
-})
-
 updateQrOutputs().catch(showError)
 render()
 
@@ -282,7 +233,9 @@ async function joinRoom({ createTreehole, homeAddress = null, mode, roomKey }) {
     roomKey
   })
 
-  els.roomKeyInput.value = homeJoin.homeJoinDetails.roomKey
+  globalThis.keposDesktopUi?.setContextFormDraft({
+    roomKey: homeJoin.homeJoinDetails.roomKey
+  })
   homeJoinDetails = homeJoin.homeJoinDetails
   session = homeJoin.session
   configureTreeholeRuntime()
@@ -323,7 +276,7 @@ async function joinHomeQr({ displayName = 'Desktop', uri } = {}) {
     uri
   })
 
-  els.homeQrInput.value = ''
+  globalThis.keposDesktopUi?.setContextFormDraft({ homeQrUri: '' })
   await joinRoom({
     createTreehole: false,
     homeAddress,
@@ -353,10 +306,17 @@ function trustProfileQr({ alias = '', displayName = 'Desktop', uri } = {}) {
     }
     configureTreeholeRuntime()
   }
-  els.trustQrInput.value = ''
-  els.trustAliasInput.value = ''
+  globalThis.keposDesktopUi?.setContextFormDraft({
+    trustAlias: '',
+    trustQrUri: ''
+  })
   state = { ...state, notice: 'Trusted friend added.' }
   render()
+}
+
+function updateDisplayName(displayName = 'Desktop') {
+  currentDisplayName = displayName.trim() || 'Desktop'
+  updateQrOutputs().catch(showError)
 }
 
 async function updateQrOutputs() {
@@ -399,7 +359,7 @@ function hideLargeQr() {
 }
 
 function getCurrentDisplayName() {
-  return els.nickInput.value.trim() || 'Desktop'
+  return currentDisplayName
 }
 
 function getProfileContext(displayName = getCurrentDisplayName()) {
@@ -591,14 +551,13 @@ function renderControls() {
   const isActionPending = Boolean(pendingCommand)
   const controls = {
     canCreateHome: !inRoom && !isActionPending,
-    canJoinHomeQr: !isActionPending && !inRoom && Boolean(els.homeQrInput.value.trim()),
-    canJoinManualHome:
-      !isActionPending && !inRoom && ROOM_KEY_PATTERN.test(els.roomKeyInput.value.trim()),
     canLeaveHome: inRoom && !isActionPending,
     canPostTreehole: Boolean(state.treeholeCanPost),
-    canTrustProfile: !isActionPending && Boolean(els.trustQrInput.value.trim()),
     canUseDirectComposer: inRoom,
-    canUseHomeChatComposer: inRoom
+    canUseHomeChatComposer: inRoom,
+    canUseHomeQrJoin: !isActionPending && !inRoom,
+    canUseManualHomeJoin: !isActionPending && !inRoom,
+    canUseTrustProfile: !isActionPending
   }
   globalThis.keposDesktopUi?.setControls(controls)
 }

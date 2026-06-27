@@ -745,13 +745,15 @@ test('desktop large QR dialog is keyboard reachable', async () => {
 
   assert.match(app, /aria-labelledby='largeQrTitle'/)
   assert.match(controller, /let largeQrReturnFocus = null/)
+  assert.match(app, /actions\.showLargeHomeQr\(\{ returnFocus: event\.currentTarget \}\)/)
+  assert.match(app, /actions\.showLargeProfileQr\(\{ returnFocus: event\.currentTarget \}\)/)
   assert.match(
     controller,
-    /showLargeQr\(\{[\s\S]*returnFocus: els\.showLargeHomeQrButton,[\s\S]*title: 'Home QR',[\s\S]*uri: shareQrOutputs\.homeUri[\s\S]*\}\)/
+    /showLargeHomeQr: \(\{ returnFocus \}\) =>[\s\S]*showLargeQr\(\{ returnFocus, title: 'Home QR', uri: shareQrOutputs\.homeUri \}\)/
   )
   assert.match(
     controller,
-    /showLargeQr\(\{[\s\S]*returnFocus: els\.showLargeProfileQrButton,[\s\S]*title: 'Profile QR',[\s\S]*uri: shareQrOutputs\.profileUri[\s\S]*\}\)/
+    /showLargeProfileQr: \(\{ returnFocus \}\) =>[\s\S]*showLargeQr\(\{ returnFocus, title: 'Profile QR', uri: shareQrOutputs\.profileUri \}\)/
   )
   assert.match(controller, /largeQrReturnFocus = returnFocus/)
   assert.match(controller, /els\.largeQrCloseButton\.focus\(\)/)

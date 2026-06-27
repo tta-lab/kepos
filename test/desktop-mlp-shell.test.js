@@ -28,12 +28,12 @@ test('desktop context panel uses product actions for home and people flows', asy
   assert.match(source, /<h1>Kepos Home<\/h1>/)
   assert.match(source, /<details className='contextGroup homeActions'[^>]+open>/)
   assert.match(source, /Start your home, invite a friend, or join theirs\./)
-  assert.match(source, /<label>\s*Name\s*<input id='nickInput'/)
+  assert.match(source, /Name[\s\S]*id='nickInput'/)
   assert.match(source, /Invite a friend/)
   assert.match(source, /Join a friend&apos;s home/)
   assert.match(source, /placeholder='Paste Home QR'/)
   assert.match(source, /placeholder='Paste Profile QR'/)
-  assert.match(source, /<label>\s*Friend name\s*<input id='trustAliasInput'/)
+  assert.match(source, /Friend name[\s\S]*id='trustAliasInput'/)
   assert.match(source, /placeholder='Friend name'/)
   assert.match(source, /<details className='contextGroup peopleActions'/)
   assert.equal(/<details className='contextGroup peopleActions'[^>]+open>/.test(source), false)
@@ -143,10 +143,13 @@ test('desktop QR sharing exposes copy actions without surfacing raw URI copy', a
 
   assert.match(source, /Copy Home QR/)
   assert.match(source, /Copy Profile QR/)
-  assert.match(controller, /copyHomeQrButton: document\.querySelector\('#copyHomeQrButton'\)/)
-  assert.match(controller, /copyProfileQrButton: document\.querySelector\('#copyProfileQrButton'\)/)
-  assert.match(controller, /els\.copyHomeQrButton\.addEventListener\('click', \(\) =>/)
-  assert.match(controller, /els\.copyProfileQrButton\.addEventListener\('click', \(\) =>/)
+  assert.match(source, /id='copyHomeQrButton'[\s\S]*onClick=\{\(\) => actions\.copyHomeQr\(\)\}/)
+  assert.match(
+    source,
+    /id='copyProfileQrButton'[\s\S]*onClick=\{\(\) => actions\.copyProfileQr\(\)\}/
+  )
+  assert.match(controller, /copyHomeQr: \(\) =>/)
+  assert.match(controller, /copyProfileQr: \(\) =>/)
   assert.match(controller, /navigator\.clipboard\.writeText\(value\)/)
   assert.match(controller, /notice: 'Home QR copied\.'/)
   assert.match(controller, /notice: 'Profile QR copied\.'/)
@@ -381,26 +384,20 @@ test('desktop context actions disable unavailable joins and trust', async () => 
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
 
-  assert.match(controller, /const ROOM_KEY_PATTERN = \/\^\[0-9a-f\]\{64\}\$\//)
+  assert.match(source, /const ROOM_KEY_PATTERN = \/\^\[0-9a-f\]\{64\}\$\//)
   assert.match(controller, /function renderControls\(\)/)
-  assert.match(controller, /els\.roomKeyInput\.addEventListener\('input', renderControls\)/)
-  assert.match(controller, /els\.homeQrInput\.addEventListener\('input', renderControls\)/)
-  assert.match(controller, /els\.trustQrInput\.addEventListener\('input', renderControls\)/)
-  assert.match(source, /disabled=\{!controls\.canJoinManualHome\}/)
-  assert.match(source, /disabled=\{!controls\.canJoinHomeQr\}/)
-  assert.match(source, /disabled=\{!controls\.canTrustProfile\}/)
-  assert.match(
-    controller,
-    /canJoinManualHome:\s*!isActionPending && !inRoom && ROOM_KEY_PATTERN\.test\(els\.roomKeyInput\.value\.trim\(\)\)/
-  )
-  assert.match(
-    controller,
-    /canJoinHomeQr: !isActionPending && !inRoom && Boolean\(els\.homeQrInput\.value\.trim\(\)\)/
-  )
-  assert.match(
-    controller,
-    /canTrustProfile: !isActionPending && Boolean\(els\.trustQrInput\.value\.trim\(\)\)/
-  )
+  assert.doesNotMatch(controller, /els\.roomKeyInput\.addEventListener/)
+  assert.doesNotMatch(controller, /els\.homeQrInput\.addEventListener/)
+  assert.doesNotMatch(controller, /els\.trustQrInput\.addEventListener/)
+  assert.match(source, /const canJoinManualHome =[\s\S]*controls\.canUseManualHomeJoin/)
+  assert.match(source, /const canJoinHomeQr =[\s\S]*controls\.canUseHomeQrJoin/)
+  assert.match(source, /const canTrustProfile =[\s\S]*controls\.canUseTrustProfile/)
+  assert.match(source, /disabled=\{!canJoinManualHome\}/)
+  assert.match(source, /disabled=\{!canJoinHomeQr\}/)
+  assert.match(source, /disabled=\{!canTrustProfile\}/)
+  assert.match(controller, /canUseManualHomeJoin: !isActionPending && !inRoom/)
+  assert.match(controller, /canUseHomeQrJoin: !isActionPending && !inRoom/)
+  assert.match(controller, /canUseTrustProfile: !isActionPending/)
 })
 
 test('desktop context actions expose a pending lock during blocking commands', async () => {
@@ -423,18 +420,9 @@ test('desktop context actions expose a pending lock during blocking commands', a
   assert.match(source, /disabled=\{!controls\.canCreateHome\}/)
   assert.match(controller, /canLeaveHome: inRoom && !isActionPending/)
   assert.match(controller, /canCreateHome: !inRoom && !isActionPending/)
-  assert.match(
-    controller,
-    /canJoinManualHome:\s*!isActionPending && !inRoom && ROOM_KEY_PATTERN\.test\(els\.roomKeyInput\.value\.trim\(\)\)/
-  )
-  assert.match(
-    controller,
-    /canJoinHomeQr: !isActionPending && !inRoom && Boolean\(els\.homeQrInput\.value\.trim\(\)\)/
-  )
-  assert.match(
-    controller,
-    /canTrustProfile: !isActionPending && Boolean\(els\.trustQrInput\.value\.trim\(\)\)/
-  )
+  assert.match(controller, /canUseManualHomeJoin: !isActionPending && !inRoom/)
+  assert.match(controller, /canUseHomeQrJoin: !isActionPending && !inRoom/)
+  assert.match(controller, /canUseTrustProfile: !isActionPending/)
 })
 
 test('desktop shell exposes Neo Cozy light and Indie Console dark themes', async () => {
