@@ -195,6 +195,24 @@ textarea {
   text-transform: uppercase;
 }
 
+.advanced {
+  display: grid;
+  gap: 12px;
+}
+
+.advanced summary {
+  color: #536653;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.advanced[open] summary {
+  margin-bottom: 10px;
+}
+
 .actions {
   display: grid;
   gap: 8px;

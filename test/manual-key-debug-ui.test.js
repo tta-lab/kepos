@@ -11,6 +11,21 @@ describe('manual key debug UI boundary', () => {
     assert.equal(source.indexOf("id='roomKeyInput'") > source.indexOf("id='advancedJoin'"), true)
   })
 
+  test('desktop keeps raw share URIs inside advanced sections', async () => {
+    const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+
+    assert.match(source, /<details[^>]+id='advancedHomeShare'/)
+    assert.match(source, /<details[^>]+id='advancedProfileShare'/)
+    assert.equal(
+      source.indexOf("id='homeQrOutput'") > source.indexOf("id='advancedHomeShare'"),
+      true
+    )
+    assert.equal(
+      source.indexOf("id='profileQrOutput'") > source.indexOf("id='advancedProfileShare'"),
+      true
+    )
+  })
+
   test('mobile hides manual home key entry until advanced mode is opened', async () => {
     const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 

@@ -58,15 +58,18 @@ function DesktopApp() {
 
           <form id='homeQrForm' className='panel qrPanel'>
             <SectionTitle icon={<Home size={15} />} text='Home' />
-            <label>
-              My home URI
-              <textarea id='homeQrOutput' className='compactArea' readOnly spellCheck='false' />
-            </label>
             <div id='homeQrCode' className='qrCode' aria-label='My home QR code' />
             <button id='showLargeHomeQrButton' type='button'>
               <QrCode size={17} />
               Large Home QR
             </button>
+            <details id='advancedHomeShare' className='advanced'>
+              <summary>Advanced</summary>
+              <label>
+                My home URI
+                <textarea id='homeQrOutput' className='compactArea' readOnly spellCheck='false' />
+              </label>
+            </details>
             <label>
               Join home URI
               <textarea
@@ -84,15 +87,23 @@ function DesktopApp() {
 
           <form id='trustForm' className='panel qrPanel'>
             <SectionTitle icon={<ShieldCheck size={15} />} text='People' />
-            <label>
-              My profile URI
-              <textarea id='profileQrOutput' className='compactArea' readOnly spellCheck='false' />
-            </label>
             <div id='profileQrCode' className='qrCode' aria-label='My profile QR code' />
             <button id='showLargeProfileQrButton' type='button'>
               <QrCode size={17} />
               Large Profile QR
             </button>
+            <details id='advancedProfileShare' className='advanced'>
+              <summary>Advanced</summary>
+              <label>
+                My profile URI
+                <textarea
+                  id='profileQrOutput'
+                  className='compactArea'
+                  readOnly
+                  spellCheck='false'
+                />
+              </label>
+            </details>
             <label>
               Trust profile URI
               <textarea

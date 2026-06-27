@@ -34,7 +34,7 @@ try {
     if (message.type() === 'error') console.error(`[desktop] ${message.text()}`)
   })
 
-  await page.waitForSelector('#profileQrOutput')
+  await page.waitForSelector('#profileQrOutput', { state: 'attached' })
   await waitForInputPrefix(page, '#profileQrOutput', 'kepos://profile')
   await waitForInputPrefix(page, '#homeQrOutput', 'kepos://home')
 
@@ -59,7 +59,7 @@ try {
 
 async function waitForInputPrefix(page, selector, prefix) {
   const locator = page.locator(selector)
-  await locator.waitFor({ state: 'visible' })
+  await locator.waitFor({ state: 'attached' })
   await waitFor(async () => (await locator.inputValue()).startsWith(prefix), `${selector} prefix`)
 }
 

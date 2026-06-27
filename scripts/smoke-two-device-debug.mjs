@@ -456,7 +456,7 @@ function decodeKeposUri(uri) {
 
 async function waitForInputPrefix(page, selector, prefix) {
   const locator = page.locator(selector)
-  await locator.waitFor({ state: 'visible' })
+  await locator.waitFor({ state: 'attached' })
   await waitFor(async () => (await locator.inputValue()).startsWith(prefix), `${selector} prefix`)
 }
 
