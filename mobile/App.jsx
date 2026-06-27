@@ -2123,7 +2123,7 @@ function DirectBubble({ message, onAcceptRequest, onIgnoreRequest }) {
         {isRequest
           ? outgoing
             ? 'You asked someone to start a DM'
-            : 'Someone wants to start a DM'
+            : formatMessageRequestTitle(message)
           : outgoing
             ? `You to ${displayDirectPeer(message.toProfileId)}`
             : `${displayDirectPeer(message.fromProfileId, message.nick)} to you`}

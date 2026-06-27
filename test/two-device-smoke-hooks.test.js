@@ -194,8 +194,8 @@ test('DM request copy reads as a social action', async () => {
   const mobile = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
   const desktop = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
 
-  assert.match(mobile, /Someone wants to start a DM/)
-  assert.match(desktop, /Someone wants to start a DM/)
+  assert.match(mobile, /: formatMessageRequestTitle\(message\)/)
+  assert.match(desktop, /: formatMessageRequestTitle\(message\)/)
   assert.match(mobile, /You asked someone to start a DM/)
   assert.match(desktop, /You asked someone to start a DM/)
   assert.match(mobile, /testID='message-request-ignore-button'/)

@@ -1092,7 +1092,7 @@ function displayDirectMessageMeta(message) {
   if (message.type === 'kepos.message.request.v1') {
     return message.direction === 'out'
       ? 'You asked someone to start a DM'
-      : 'Someone wants to start a DM'
+      : formatMessageRequestTitle(message)
   }
 
   return message.direction === 'out'
