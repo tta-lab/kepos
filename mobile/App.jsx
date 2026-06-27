@@ -678,7 +678,7 @@ export default function App() {
         }
 
         if (req.command === RPC_STATUS) {
-          setNotice(`Home ${payload.status}.`)
+          setNotice(getMobileBackendNotice(payload.status))
           return
         }
 
@@ -1832,6 +1832,36 @@ function getMobileHomeStatus({ online, session }) {
   }
 
   return 'Waiting for friends'
+}
+
+function getMobileBackendNotice(status) {
+  if (
+    status === 'joining' ||
+    status === 'preparing' ||
+    status === 'joining-swarm' ||
+    status === 'opening-dm' ||
+    status === 'opening-treehole'
+  ) {
+    return 'Starting home...'
+  }
+
+  if (
+    status === 'opening-treehole-store' ||
+    status === 'opening-treehole-replication' ||
+    status === 'opening-treehole-state'
+  ) {
+    return 'Syncing treehole...'
+  }
+
+  if (status === 'joined') {
+    return 'Connected.'
+  }
+
+  if (status === 'left') {
+    return 'Left home.'
+  }
+
+  return 'Home status updated.'
 }
 
 function EmptyMessages() {

@@ -249,6 +249,19 @@ test('Android header shows product home status instead of raw peer count', async
   assert.equal(source.includes('{online} peer'), false)
 })
 
+test('Android backend status notices avoid raw worker status codes', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+
+  assert.match(source, /function getMobileBackendNotice\(status\)/)
+  assert.match(source, /setNotice\(getMobileBackendNotice\(payload\.status\)\)/)
+  assert.match(source, /return 'Starting home\.\.\.'/)
+  assert.match(source, /return 'Syncing treehole\.\.\.'/)
+  assert.match(source, /return 'Connected\.'/)
+  assert.equal(source.includes('setNotice(`Home ${payload.status}.`)'), false)
+  assert.equal(source.includes('Home joining-swarm.'), false)
+  assert.equal(source.includes('Home opening-treehole-store.'), false)
+})
+
 test('Android room bar keeps raw home key behind advanced details', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 
