@@ -409,6 +409,26 @@ test('Android direct message composer keeps revoke in People', async () => {
   assert.match(contactManager, /UserMinus/)
 })
 
+test('Android direct message zero-contact state links to People', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const chatRoom = source.slice(
+    source.indexOf('function ChatRoom('),
+    source.indexOf('function PeoplePane(')
+  )
+  const directPane = source.slice(
+    source.indexOf('function DirectPane('),
+    source.indexOf('function ContactManager(')
+  )
+
+  assert.match(chatRoom, /onOpenPeople=\{\(\) => onTabChange\('people'\)\}/)
+  assert.match(directPane, /onOpenPeople/)
+  assert.match(directPane, /No trusted friends yet/)
+  assert.match(directPane, /Trust a friend first, then come back here to write privately\./)
+  assert.match(directPane, /testID='dm-open-people-button'/)
+  assert.match(directPane, /Trust a friend/)
+  assert.match(directPane, /onPress=\{onOpenPeople\}/)
+})
+
 test('Android treehole empty state talks about posts', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 

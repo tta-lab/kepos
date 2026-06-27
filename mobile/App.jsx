@@ -1214,6 +1214,7 @@ function ChatRoom({
             onAcceptRequest={onAcceptRequest}
             onDraftChange={onDmDraftChange}
             onIgnoreRequest={onIgnoreRequest}
+            onOpenPeople={() => onTabChange('people')}
             onRecipientChange={onDmRecipientChange}
             onSend={onSendDm}
             recipient={dmRecipient}
@@ -1669,6 +1670,7 @@ function DirectPane({
   onAcceptRequest,
   onDraftChange,
   onIgnoreRequest,
+  onOpenPeople,
   onRecipientChange,
   onSend,
   recipient
@@ -1720,7 +1722,22 @@ function DirectPane({
               </Pressable>
             ))}
           </ScrollView>
-        ) : null}
+        ) : (
+          <View style={styles.directEmptyContacts}>
+            <Text style={styles.panelEmptyTitle}>No trusted friends yet</Text>
+            <Text style={styles.panelEmptyCopy}>
+              Trust a friend first, then come back here to write privately.
+            </Text>
+            <Pressable
+              onPress={onOpenPeople}
+              style={styles.secondaryButton}
+              testID='dm-open-people-button'
+            >
+              <Plus color={theme.accentStrong} size={18} />
+              <Text style={styles.secondaryButtonText}>Trust a friend</Text>
+            </Pressable>
+          </View>
+        )}
         <Pressable
           onPress={() => setShowAdvancedDmRecipient((value) => !value)}
           style={styles.directAdvancedToggle}
@@ -2768,6 +2785,16 @@ function createMobileStyles(theme) {
     directComposer: {
       borderTopColor: theme.border,
       borderTopWidth: 1
+    },
+    directEmptyContacts: {
+      backgroundColor: theme.quickPanel,
+      borderColor: theme.border,
+      borderRadius: 8,
+      borderWidth: 1,
+      gap: 8,
+      marginHorizontal: 14,
+      marginTop: 14,
+      padding: 12
     },
     directAdvancedToggle: {
       alignSelf: 'flex-start',
