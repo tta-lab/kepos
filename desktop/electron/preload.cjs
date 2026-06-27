@@ -2,10 +2,12 @@ const { contextBridge, ipcRenderer } = require('electron')
 
 let nextListenerId = 1
 let backendConnected = false
+const connectedListeners = new Set()
 const listeners = new Map()
 
 ipcRenderer.on('kepos:backend:connected', (_event, connected) => {
   backendConnected = connected === true
+  for (const listener of connectedListeners) listener(backendConnected)
 })
 
 ipcRenderer.on('kepos:backend:event', (_event, message) => {
@@ -21,6 +23,14 @@ contextBridge.exposeInMainWorld('keposBackend', {
   },
   isConnected() {
     return backendConnected
+  },
+  onConnected(handler) {
+    if (typeof handler !== 'function') {
+      throw new Error('Desktop backend connected handler must be a function')
+    }
+
+    connectedListeners.add(handler)
+    return () => connectedListeners.delete(handler)
   },
   subscribe(event, handler) {
     if (typeof handler !== 'function') {

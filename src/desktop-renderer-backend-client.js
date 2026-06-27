@@ -9,9 +9,38 @@ export function createDesktopRendererBackendClient({
       return await backend.dispatch(command, payload)
     },
     subscribe(event, handler) {
+      if (mode === 'auto') return subscribeAuto({ event, handler, localBackend, preloadBackend })
+
       const backend = selectBackend({ localBackend, mode, preloadBackend })
       return backend.subscribe(event, handler)
     }
+  }
+}
+
+function subscribeAuto({ event, handler, localBackend, preloadBackend }) {
+  if (isConnectedPreloadBackend(preloadBackend)) return preloadBackend.subscribe(event, handler)
+
+  let activeBackend = 'local'
+  let unsubscribeActive = localBackend.subscribe(event, handler)
+  let unsubscribeConnected = () => {}
+
+  if (
+    typeof preloadBackend?.dispatch === 'function' &&
+    typeof preloadBackend?.subscribe === 'function' &&
+    typeof preloadBackend?.onConnected === 'function'
+  ) {
+    unsubscribeConnected = preloadBackend.onConnected((connected) => {
+      if (connected !== true || activeBackend === 'preload') return
+
+      unsubscribeActive()
+      activeBackend = 'preload'
+      unsubscribeActive = preloadBackend.subscribe(event, handler)
+    })
+  }
+
+  return () => {
+    unsubscribeActive()
+    unsubscribeConnected()
   }
 }
 

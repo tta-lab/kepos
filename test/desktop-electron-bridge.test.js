@@ -20,6 +20,8 @@ test('desktop preload exposes a narrow backend bridge api', async () => {
   assert.match(source, /let backendConnected = false/)
   assert.match(source, /ipcRenderer\.on\('kepos:backend:connected'/)
   assert.match(source, /isConnected\(\)/)
+  assert.match(source, /onConnected\(handler\)/)
+  assert.match(source, /connectedListeners\.add\(handler\)/)
   assert.match(source, /ipcRenderer\.invoke\('kepos:backend:dispatch'/)
   assert.match(source, /ipcRenderer\.send\('kepos:backend:unsubscribe'/)
   assert.doesNotMatch(source, /require\('\.\.\/src\//)

@@ -54,6 +54,43 @@ test('desktop renderer backend client uses connected preload bridge in auto mode
   ])
 })
 
+test('desktop renderer backend client moves auto subscriptions to preload when it connects', () => {
+  const calls = []
+  let connected = false
+  let connectedHandler = null
+  const preload = createBackend('preload', calls)
+  preload.isConnected = () => connected
+  preload.onConnected = (handler) => {
+    calls.push(['preload', 'onConnected'])
+    connectedHandler = handler
+    return () => calls.push(['preload', 'offConnected'])
+  }
+  const client = createDesktopRendererBackendClient({
+    localBackend: createBackend('local', calls),
+    preloadBackend: preload
+  })
+
+  const received = []
+  const unsubscribe = client.subscribe('statusChanged', (payload) => received.push(payload))
+
+  connected = true
+  connectedHandler(true)
+  unsubscribe()
+
+  assert.deepEqual(calls, [
+    ['local', 'subscribe', 'statusChanged'],
+    ['preload', 'onConnected'],
+    ['local', 'unsubscribe', 'statusChanged'],
+    ['preload', 'subscribe', 'statusChanged'],
+    ['preload', 'unsubscribe', 'statusChanged'],
+    ['preload', 'offConnected']
+  ])
+  assert.deepEqual(received, [
+    { label: 'local', event: 'statusChanged' },
+    { label: 'preload', event: 'statusChanged' }
+  ])
+})
+
 test('desktop renderer backend client can explicitly use preload bridge', async () => {
   const calls = []
   const client = createDesktopRendererBackendClient({
