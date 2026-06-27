@@ -59,3 +59,18 @@ test('desktop treehole composer has an explicit owner-only disabled state', asyn
   assert.match(controller, /els\.treeholePostPolicy\.hidden = state\.treeholeCanPost/)
   assert.match(styles, /\.disabledComposer/)
 })
+
+test('desktop shell exposes Neo Cozy light and Indie Console dark themes', async () => {
+  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
+
+  assert.match(source, /id='lightThemeButton'/)
+  assert.match(source, /id='darkThemeButton'/)
+  assert.match(source, /data-theme/)
+  assert.match(source, /kepos\.desktop\.theme/)
+  assert.match(styles, /:root/)
+  assert.match(styles, /--surface:\s*#f3efe5/)
+  assert.match(styles, /\[data-theme='dark'\]/)
+  assert.match(styles, /--surface:\s*#171d33/)
+  assert.match(styles, /--accent:\s*#ffcf3d/)
+})

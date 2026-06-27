@@ -1,21 +1,36 @@
 /* global document */
 
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { flushSync } from 'react-dom'
 import {
   Home,
   LogOut,
   MessageCircle,
+  Moon,
   QrCode,
   Send,
   ShieldCheck,
   Sprout,
+  Sun,
   UserPlus,
   Users
 } from 'lucide-react'
 
+const THEME_STORAGE_KEY = 'kepos.desktop.theme'
+
 function DesktopApp() {
+  const [theme, setTheme] = useState(getInitialTheme)
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+    try {
+      globalThis.localStorage?.setItem(THEME_STORAGE_KEY, theme)
+    } catch {
+      // Theme persistence is optional; the UI still works without storage.
+    }
+  }, [theme])
+
   return (
     <>
       <main className='shell'>
@@ -48,6 +63,30 @@ function DesktopApp() {
               <p id='treeholeStatusLabel' className='subnotice'>
                 treehole idle
               </p>
+            </div>
+            <div className='themeSwitch' role='group' aria-label='Theme'>
+              <button
+                id='lightThemeButton'
+                className={theme === 'light' ? 'themeButton active' : 'themeButton'}
+                type='button'
+                aria-pressed={theme === 'light'}
+                title='Neo Cozy light'
+                onClick={() => setTheme('light')}
+              >
+                <Sun size={15} />
+                Light
+              </button>
+              <button
+                id='darkThemeButton'
+                className={theme === 'dark' ? 'themeButton active' : 'themeButton'}
+                type='button'
+                aria-pressed={theme === 'dark'}
+                title='Indie Console dark'
+                onClick={() => setTheme('dark')}
+              >
+                <Moon size={15} />
+                Dark
+              </button>
             </div>
           </header>
 
@@ -264,6 +303,17 @@ function DesktopApp() {
       </div>
     </>
   )
+}
+
+function getInitialTheme() {
+  try {
+    const savedTheme = globalThis.localStorage?.getItem(THEME_STORAGE_KEY)
+    if (savedTheme === 'light' || savedTheme === 'dark') return savedTheme
+  } catch {
+    // Ignore unavailable storage and fall through to system preference.
+  }
+
+  return globalThis.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
 function HomeIcon() {

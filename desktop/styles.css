@@ -2,9 +2,65 @@
   box-sizing: border-box;
 }
 
+:root {
+  --surface: #f3efe5;
+  --surface-raised: #fffdf7;
+  --surface-panel: #f8f3e8;
+  --surface-context: #e2ead5;
+  --rail: #143d2b;
+  --rail-ink: #fffaf0;
+  --ink: #17211b;
+  --ink-muted: #697468;
+  --ink-soft: #536653;
+  --field: #fffdf7;
+  --border: #d6dccf;
+  --border-strong: #c4cfba;
+  --accent: #ef6b4a;
+  --accent-strong: #143d2b;
+  --accent-ink: #fffaf0;
+  --success-soft: #dfe9ce;
+  --warning-soft: #fff4d7;
+  --warning-border: #e2c46d;
+  --warning-ink: #6f5516;
+  --danger: #8e351f;
+  --danger-border: #d88b72;
+  --empty-bg: rgba(255, 253, 247, 0.72);
+  --disabled: #b8beb1;
+  --comment-border: #9bb68d;
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  --surface: #171d33;
+  --surface-raised: #222a49;
+  --surface-panel: #1d2542;
+  --surface-context: #11182b;
+  --rail: #0d1222;
+  --rail-ink: #f8f2df;
+  --ink: #f8f2df;
+  --ink-muted: #a9b1cf;
+  --ink-soft: #c6cce3;
+  --field: #11182b;
+  --border: #384264;
+  --border-strong: #4a567d;
+  --accent: #ffcf3d;
+  --accent-strong: #ffcf3d;
+  --accent-ink: #171d33;
+  --success-soft: #27345b;
+  --warning-soft: #342a18;
+  --warning-border: #ffcf3d;
+  --warning-ink: #ffe08a;
+  --danger: #ff9c88;
+  --danger-border: #ff6f61;
+  --empty-bg: rgba(34, 42, 73, 0.72);
+  --disabled: #4a5269;
+  --comment-border: #ffcf3d;
+  color-scheme: dark;
+}
+
 body {
-  background: #f3efe5;
-  color: #17211b;
+  background: var(--surface);
+  color: var(--ink);
   font-family: ui-monospace, 'SFMono-Regular', 'SF Mono', Consolas, 'Liberation Mono', monospace;
   margin: 0;
 }
@@ -21,10 +77,10 @@ textarea {
 
 button {
   align-items: center;
-  background: #143d2b;
-  border: 1px solid #143d2b;
+  background: var(--accent-strong);
+  border: 1px solid var(--accent-strong);
   border-radius: 6px;
-  color: #fffaf0;
+  color: var(--accent-ink);
   cursor: pointer;
   display: inline-flex;
   gap: 8px;
@@ -38,17 +94,17 @@ button svg {
 }
 
 button:disabled {
-  background: #b8beb1;
-  border-color: #b8beb1;
+  background: var(--disabled);
+  border-color: var(--disabled);
   cursor: not-allowed;
 }
 
 input,
 textarea {
-  background: #fffdf7;
-  border: 1px solid #cbd4c3;
+  background: var(--field);
+  border: 1px solid var(--border-strong);
   border-radius: 6px;
-  color: #17211b;
+  color: var(--ink);
   outline: none;
   padding: 10px;
   width: 100%;
@@ -65,8 +121,8 @@ textarea {
 
 .qrCode {
   align-items: center;
-  background: #fffdf7;
-  border: 1px solid #cbd4c3;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-strong);
   border-radius: 8px;
   display: flex;
   justify-content: center;
@@ -82,7 +138,7 @@ textarea {
 
 .largeQrDialog {
   align-items: center;
-  background: rgba(23, 33, 27, 0.74);
+  background: rgba(7, 9, 17, 0.74);
   display: flex;
   inset: 0;
   justify-content: center;
@@ -96,8 +152,8 @@ textarea {
 }
 
 .largeQrPanel {
-  background: #fffdf7;
-  border: 1px solid #cbd4c3;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-strong);
   border-radius: 8px;
   display: grid;
   gap: 16px;
@@ -114,7 +170,7 @@ textarea {
 .largeQrCode {
   align-items: center;
   background: #fff;
-  border: 1px solid #d6dccf;
+  border: 1px solid var(--border);
   border-radius: 6px;
   display: flex;
   justify-content: center;
@@ -135,8 +191,8 @@ textarea {
 
 .appRail {
   align-items: center;
-  background: #143d2b;
-  border-right: 1px solid rgba(255, 250, 240, 0.18);
+  background: var(--rail);
+  border-right: 1px solid var(--border-strong);
   display: grid;
   grid-template-rows: auto 1fr;
   justify-items: center;
@@ -145,9 +201,9 @@ textarea {
 
 .mark {
   align-items: center;
-  background: #fffaf0;
+  background: var(--rail-ink);
   border-radius: 8px;
-  color: #143d2b;
+  color: var(--rail);
   display: flex;
   font-size: 22px;
   font-weight: 900;
@@ -166,8 +222,8 @@ textarea {
 
 .railButton {
   background: transparent;
-  border-color: rgba(255, 250, 240, 0.2);
-  color: rgba(255, 250, 240, 0.72);
+  border-color: color-mix(in srgb, var(--rail-ink) 24%, transparent);
+  color: color-mix(in srgb, var(--rail-ink) 72%, transparent);
   display: grid;
   gap: 6px;
   height: 62px;
@@ -178,9 +234,9 @@ textarea {
 }
 
 .railButton.active {
-  background: #fffaf0;
-  border-color: #fffaf0;
-  color: #143d2b;
+  background: var(--rail-ink);
+  border-color: var(--rail-ink);
+  color: var(--rail);
 }
 
 .railLabel {
@@ -192,7 +248,7 @@ textarea {
 .kicker,
 .label,
 .meta {
-  color: #536653;
+  color: var(--ink-soft);
   font-size: 11px;
   font-weight: 900;
   letter-spacing: 0.02em;
@@ -201,8 +257,8 @@ textarea {
 }
 
 .panel {
-  background: #f8f3e8;
-  border: 1px solid #cdd6c4;
+  background: var(--surface-panel);
+  border: 1px solid var(--border);
   border-radius: 8px;
   display: grid;
   gap: 14px;
@@ -215,7 +271,7 @@ textarea {
 }
 
 .panel label {
-  color: #40503f;
+  color: var(--ink-soft);
   display: grid;
   font-size: 12px;
   font-weight: 900;
@@ -229,7 +285,7 @@ textarea {
 }
 
 .advanced summary {
-  color: #536653;
+  color: var(--ink-soft);
   cursor: pointer;
   font-size: 11px;
   font-weight: 900;
@@ -267,7 +323,7 @@ textarea {
 }
 
 .muted {
-  color: #697468;
+  color: var(--ink-muted);
 }
 
 .metric {
@@ -284,8 +340,9 @@ textarea {
 
 .topbar {
   align-items: end;
-  border-bottom: 1px solid #d6dccf;
+  border-bottom: 1px solid var(--border);
   display: flex;
+  gap: 16px;
   justify-content: space-between;
   min-height: 118px;
   padding: 22px 26px;
@@ -304,9 +361,34 @@ textarea {
 }
 
 .subnotice {
-  color: #697468;
+  color: var(--ink-muted);
   font-size: 12px;
   margin: 4px 0 0;
+}
+
+.themeSwitch {
+  background: var(--surface-panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: inline-grid;
+  gap: 4px;
+  grid-template-columns: 1fr 1fr;
+  padding: 4px;
+}
+
+.themeButton {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ink-muted);
+  font-size: 12px;
+  min-height: 34px;
+  padding: 0 10px;
+}
+
+.themeButton.active {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+  color: var(--accent-ink);
 }
 
 .pane {
@@ -331,10 +413,10 @@ textarea {
 
 .list:empty::before {
   align-self: start;
-  background: rgba(255, 253, 247, 0.72);
-  border: 1px dashed #c4cfba;
+  background: var(--empty-bg);
+  border: 1px dashed var(--border-strong);
   border-radius: 8px;
-  color: #697468;
+  color: var(--ink-muted);
   content: attr(data-empty);
   display: block;
   font-size: 13px;
@@ -344,8 +426,8 @@ textarea {
 }
 
 .item {
-  background: #fffdf7;
-  border: 1px solid #d6dccf;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: 8px;
   max-width: 720px;
   padding: 12px;
@@ -357,22 +439,22 @@ textarea {
 }
 
 .outgoing {
-  background: #143d2b;
-  color: #fffaf0;
+  background: var(--accent-strong);
+  color: var(--accent-ink);
   justify-self: end;
 }
 
 .outgoing .meta {
-  color: #f0ad79;
+  color: var(--accent);
 }
 
 .incoming {
-  background: #dfe9ce;
+  background: var(--success-soft);
 }
 
 .composer {
   align-items: center;
-  border-top: 1px solid #d6dccf;
+  border-top: 1px solid var(--border);
   display: grid;
   gap: 10px;
   grid-template-columns: 1fr auto;
@@ -392,10 +474,10 @@ textarea {
 }
 
 .composerHint {
-  background: #fff4d7;
-  border: 1px solid #e2c46d;
+  background: var(--warning-soft);
+  border: 1px solid var(--warning-border);
   border-radius: 8px;
-  color: #6f5516;
+  color: var(--warning-ink);
   font-size: 12px;
   font-weight: 800;
   grid-column: 1 / -1;
@@ -404,8 +486,8 @@ textarea {
 }
 
 .disabledComposer textarea {
-  background: #f1eee6;
-  color: #697468;
+  background: var(--surface-panel);
+  color: var(--ink-muted);
 }
 
 .contactList {
@@ -415,9 +497,9 @@ textarea {
 }
 
 .contactButton {
-  background: #dfe9ce;
-  border-color: #b9c9ad;
-  color: #143d2b;
+  background: var(--success-soft);
+  border-color: var(--border-strong);
+  color: var(--accent-strong);
   min-height: 32px;
   padding: 0 10px;
 }
@@ -429,7 +511,7 @@ textarea {
 
 .managedContact {
   align-items: center;
-  border-bottom: 1px solid #d6dccf;
+  border-bottom: 1px solid var(--border);
   display: grid;
   gap: 10px;
   grid-template-columns: 1fr auto;
@@ -445,8 +527,8 @@ textarea {
 }
 
 .dangerButton {
-  border-color: #d88b72;
-  color: #8e351f;
+  border-color: var(--danger-border);
+  color: var(--danger);
 }
 
 .post {
@@ -466,8 +548,8 @@ textarea {
 }
 
 .comment {
-  background: rgba(255, 250, 240, 0.68);
-  border-left: 3px solid #9bb68d;
+  background: var(--surface-panel);
+  border-left: 3px solid var(--comment-border);
   padding: 8px 10px;
 }
 
@@ -500,20 +582,20 @@ textarea {
 
 .time,
 .stats {
-  color: #697468;
+  color: var(--ink-muted);
   font-size: 12px;
 }
 
 .contextPanel {
-  background: #e2ead5;
-  border-left: 1px solid #c4cfba;
+  background: var(--surface-context);
+  border-left: 1px solid var(--border-strong);
   max-height: 100vh;
   overflow: auto;
   padding: 18px;
 }
 
 .contextGroup {
-  border-bottom: 1px solid #c4cfba;
+  border-bottom: 1px solid var(--border-strong);
   display: grid;
   gap: 10px;
   margin-bottom: 16px;
@@ -526,7 +608,7 @@ textarea {
 }
 
 .contextHint {
-  color: #536653;
+  color: var(--ink-soft);
   font-size: 12px;
   line-height: 1.35;
   margin: 0;
@@ -539,7 +621,7 @@ textarea {
 
   .contextPanel {
     border-left: 0;
-    border-top: 1px solid #c4cfba;
+    border-top: 1px solid var(--border-strong);
     grid-column: 1 / -1;
     max-height: none;
   }
