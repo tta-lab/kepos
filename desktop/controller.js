@@ -1,11 +1,11 @@
 /* global document, navigator */
 
-import { listTrustedContacts } from '../src/contact-book.ts'
 import { createDesktopBackendRuntime } from '../src/desktop-backend-runtime.js'
 import {
   createDesktopControlMessageResult,
   createDesktopTreeholeControlSendResult
 } from '../src/desktop-control-service.js'
+import { createDesktopDirectContactPickerViewModel } from '../src/desktop-direct-contact-picker-view-model.js'
 import { createDesktopDirectMessageListViewModel } from '../src/desktop-direct-view-model.js'
 import { createDesktopHomeChatViewModel } from '../src/desktop-home-chat-view-model.js'
 import { createDesktopHomeJoinDetails } from '../src/desktop-home-join-service.js'
@@ -49,7 +49,6 @@ const els = {
   copyProfileQrButton: document.querySelector('#copyProfileQrButton'),
   createButton: document.querySelector('#createButton'),
   dmForm: document.querySelector('#dmForm'),
-  dmContactList: document.querySelector('#dmContactList'),
   dmInput: document.querySelector('#dmInput'),
   dmPane: document.querySelector('#dmPane'),
   dmRecipientInput: document.querySelector('#dmRecipientInput'),
@@ -153,6 +152,10 @@ const dmRuntime = backendRuntime.dm
 const homeRuntime = backendRuntime.home
 const treeholeRuntime = backendRuntime.treehole
 
+globalThis.keposDesktopUi?.setDirectContactPickerActions({
+  openPeople: () => setTab('people'),
+  selectContact: (profileId) => selectDirectContact(profileId)
+})
 globalThis.keposDesktopUi?.setDirectMessageActions({
   acceptMessage: (message) => dispatchCommand('acceptMessageRequest', { message }),
   ignoreMessage: (message) => dispatchCommand('ignoreMessageRequest', { message })
@@ -690,45 +693,19 @@ function renderDirectMessages() {
 }
 
 function renderDirectContacts() {
-  if (!els.dmContactList) return
-
   const { contactBook } = getProfileContext()
-  const contacts = listTrustedContacts(contactBook)
-  const selectedProfileId = els.dmRecipientInput.value.trim()
+  const picker = createDesktopDirectContactPickerViewModel({
+    contactBook,
+    selectedProfileId: els.dmRecipientInput.value.trim()
+  })
+  globalThis.keposDesktopUi?.setDirectContactPicker(picker)
+}
 
-  if (!contacts.length) {
-    const empty = document.createElement('div')
-    empty.className = 'contactEmpty'
-    const title = document.createElement('p')
-    title.className = 'contactEmptyTitle'
-    title.textContent = 'No trusted friends yet'
-    const copy = document.createElement('p')
-    copy.className = 'contactEmptyCopy'
-    copy.textContent = 'Add a trusted friend before starting a direct message.'
-    const button = document.createElement('button')
-    button.type = 'button'
-    button.textContent = 'Add trusted friend'
-    button.addEventListener('click', () => setTab('people'))
-    empty.append(title, copy, button)
-    els.dmContactList.replaceChildren(empty)
-    return
-  }
-
-  els.dmContactList.replaceChildren(
-    ...contacts.map((contact) => {
-      const button = document.createElement('button')
-      button.type = 'button'
-      button.className = 'contactButton'
-      button.classList.toggle('activeContactButton', contact.profileId === selectedProfileId)
-      button.textContent = contact.alias
-      button.addEventListener('click', () => {
-        els.dmRecipientInput.value = contact.profileId
-        renderDirectContacts()
-        updateComposerButtons()
-      })
-      return button
-    })
-  )
+function selectDirectContact(profileId = '') {
+  if (!profileId) return
+  els.dmRecipientInput.value = profileId
+  renderDirectContacts()
+  updateComposerButtons()
 }
 
 function renderPeople() {

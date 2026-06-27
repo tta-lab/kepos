@@ -20,6 +20,8 @@ import {
 
 const THEME_STORAGE_KEY = 'kepos.desktop.theme'
 const desktopUiBridge = {
+  setDirectContactPicker: () => {},
+  setDirectContactPickerActions: () => {},
   setDirectMessageActions: () => {},
   setDirectMessages: () => {},
   setHomeMessages: () => {},
@@ -30,6 +32,21 @@ const desktopUiBridge = {
 }
 
 globalThis.keposDesktopUi = {
+  setDirectContactPicker(
+    picker = {
+      contacts: [],
+      empty: {
+        actionLabel: 'Add trusted friend',
+        copy: 'Add a trusted friend before starting a direct message.',
+        title: 'No trusted friends yet'
+      }
+    }
+  ) {
+    desktopUiBridge.setDirectContactPicker(picker)
+  },
+  setDirectContactPickerActions(actions = {}) {
+    desktopUiBridge.setDirectContactPickerActions(actions)
+  },
   setDirectMessageActions(actions = {}) {
     desktopUiBridge.setDirectMessageActions(actions)
   },
@@ -54,6 +71,18 @@ globalThis.keposDesktopUi = {
 }
 
 function DesktopApp() {
+  const [directContactPicker, setDirectContactPicker] = useState({
+    contacts: [],
+    empty: {
+      actionLabel: 'Add trusted friend',
+      copy: 'Add a trusted friend before starting a direct message.',
+      title: 'No trusted friends yet'
+    }
+  })
+  const [directContactPickerActions, setDirectContactPickerActions] = useState({
+    openPeople: () => {},
+    selectContact: () => {}
+  })
   const [directMessageActions, setDirectMessageActions] = useState({
     acceptMessage: () => {},
     ignoreMessage: () => {}
@@ -72,6 +101,8 @@ function DesktopApp() {
   })
   const [treeholePosts, setTreeholePosts] = useState([])
   const [theme, setTheme] = useState(getInitialTheme)
+  desktopUiBridge.setDirectContactPicker = setDirectContactPicker
+  desktopUiBridge.setDirectContactPickerActions = setDirectContactPickerActions
   desktopUiBridge.setDirectMessageActions = setDirectMessageActions
   desktopUiBridge.setDirectMessages = setDirectMessages
   desktopUiBridge.setHomeMessages = setHomeMessages
@@ -178,7 +209,11 @@ function DesktopApp() {
               onIgnore={directMessageActions.ignoreMessage}
             />
             <form id='dmForm' className='composer tall'>
-              <div id='dmContactList' className='contactList' />
+              <DirectContactPicker
+                actions={directContactPickerActions}
+                contacts={directContactPicker.contacts}
+                empty={directContactPicker.empty}
+              />
               <details id='advancedDmRecipient' className='advanced advancedComposer'>
                 <summary>Advanced</summary>
                 <label>
@@ -489,6 +524,33 @@ function DirectMessageList({ messages, onAccept, onIgnore }) {
         </li>
       ))}
     </ol>
+  )
+}
+
+function DirectContactPicker({ actions, contacts, empty }) {
+  return (
+    <div id='dmContactList' className='contactList'>
+      {contacts.length === 0 ? (
+        <div className='contactEmpty'>
+          <p className='contactEmptyTitle'>{empty.title}</p>
+          <p className='contactEmptyCopy'>{empty.copy}</p>
+          <button type='button' onClick={actions.openPeople}>
+            {empty.actionLabel}
+          </button>
+        </div>
+      ) : (
+        contacts.map((contact) => (
+          <button
+            key={contact.profileId}
+            className={contact.isSelected ? 'contactButton activeContactButton' : 'contactButton'}
+            type='button'
+            onClick={() => actions.selectContact(contact.profileId)}
+          >
+            {contact.alias}
+          </button>
+        ))
+      )}
+    </div>
   )
 }
 

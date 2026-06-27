@@ -61,6 +61,22 @@ test('desktop React owns the direct message list surface', async () => {
   assert.doesNotMatch(controller, /els\.dmList\.replaceChildren/)
 })
 
+test('desktop React owns the direct contact picker surface', async () => {
+  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+
+  assert.match(source, /function DirectContactPicker\(\{ actions, contacts, empty \}\)/)
+  assert.match(source, /setDirectContactPicker\([\s\S]*picker = \{[\s\S]*contacts: \[\]/)
+  assert.match(source, /setDirectContactPickerActions\(actions = \{\}\)/)
+  assert.match(source, /<DirectContactPicker[\s\S]*contacts=\{directContactPicker\.contacts\}/)
+  assert.match(source, /onClick=\{\(\) => actions\.selectContact\(contact\.profileId\)\}/)
+  assert.match(source, /onClick=\{actions\.openPeople\}/)
+  assert.match(controller, /createDesktopDirectContactPickerViewModel/)
+  assert.match(controller, /globalThis\.keposDesktopUi\?\.setDirectContactPicker\(picker\)/)
+  assert.match(controller, /globalThis\.keposDesktopUi\?\.setDirectContactPickerActions\(\{/)
+  assert.doesNotMatch(controller, /els\.dmContactList\.replaceChildren/)
+})
+
 test('desktop React owns the people list surfaces', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')

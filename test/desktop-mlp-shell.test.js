@@ -254,7 +254,10 @@ test('desktop panes label live and durable surfaces', async () => {
   assert.equal(source.includes("<span className='railLabel'>DM</span>"), false)
   assert.match(source, /Send message/)
   assert.equal(source.includes('Send DM'), false)
-  assert.match(controller, /button\.classList\.toggle\('activeContactButton'/)
+  assert.match(
+    source,
+    /className=\{contact\.isSelected \? 'contactButton activeContactButton' : 'contactButton'\}/
+  )
   assert.match(controller, /els\.dmRecipientInput\.addEventListener\('input', \(\) => \{/)
   assert.match(controller, /renderDirectContacts\(\)/)
   assert.equal(controller.includes('button.title = contact.profileId'), false)
@@ -296,18 +299,17 @@ test('desktop MLP shell has responsive polish for narrow screens', async () => {
 })
 
 test('desktop direct messages links zero-contact state to People', async () => {
+  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
 
-  assert.match(controller, /if \(!contacts\.length\) \{/)
-  assert.match(controller, /empty\.className = 'contactEmpty'/)
-  assert.match(controller, /title\.textContent = 'No trusted friends yet'/)
-  assert.match(
-    controller,
-    /copy\.textContent = 'Add a trusted friend before starting a direct message\.'/
-  )
-  assert.match(controller, /button\.textContent = 'Add trusted friend'/)
-  assert.match(controller, /button\.addEventListener\('click', \(\) => setTab\('people'\)\)/)
+  assert.match(source, /className='contactEmpty'/)
+  assert.match(source, /\{empty\.title\}/)
+  assert.match(source, /\{empty\.copy\}/)
+  assert.match(source, /\{empty\.actionLabel\}/)
+  assert.match(source, /onClick=\{actions\.openPeople\}/)
+  assert.match(controller, /openPeople: \(\) => setTab\('people'\)/)
+  assert.match(controller, /createDesktopDirectContactPickerViewModel/)
   assert.match(styles, /\.contactEmpty/)
 })
 
