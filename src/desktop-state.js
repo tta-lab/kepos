@@ -9,6 +9,7 @@ export function createDesktopState() {
     notice: 'Create or join a room.',
     peers: 0,
     roomKey: '',
+    treeholeCanPost: true,
     treeholePosts: [],
     treeholeStatus: 'idle',
     view: 'lobby'
@@ -40,6 +41,8 @@ export function setDesktopTab(state, tab) {
 export function setDesktopTreehole(state, treehole) {
   return {
     ...state,
+    treeholeCanPost:
+      typeof treehole.canPost === 'boolean' ? treehole.canPost : state.treeholeCanPost,
     treeholePosts: treehole.posts || [],
     treeholeStatus: treehole.status || state.treeholeStatus
   }

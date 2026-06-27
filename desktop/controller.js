@@ -97,6 +97,7 @@ const els = {
   treeholeInput: document.querySelector('#treeholeInput'),
   treeholeList: document.querySelector('#treeholeList'),
   treeholePane: document.querySelector('#treeholePane'),
+  treeholePostPolicy: document.querySelector('#treeholePostPolicy'),
   treeholeStatusLabel: document.querySelector('#treeholeStatusLabel'),
   treeholeTab: document.querySelector('#treeholeTab'),
   trustAliasInput: document.querySelector('#trustAliasInput'),
@@ -295,6 +296,7 @@ async function joinRoom({ createTreehole, homeAddress = null, mode, roomKey }) {
     requestHomeHello()
   } else {
     state = setDesktopTreehole(state, {
+      canPost: canPostToCurrentTreehole(),
       status: 'waiting-for-bootstrap',
       posts: []
     })
@@ -504,7 +506,7 @@ function sendMessageRequest() {
 
 async function postTreehole() {
   const text = els.treeholeInput.value.trim()
-  if (!treehole || !text) return
+  if (!treehole || !text || !state.treeholeCanPost) return
 
   await treehole.post({
     createdAt: Date.now(),
@@ -629,6 +631,11 @@ async function openTreehole(bootstrapKey = null) {
     showError(new Error(`Treehole replication unavailable: ${error.message}`))
   })
   startTreeholeStatePublisher()
+  state = setDesktopTreehole(state, {
+    canPost: canPostToCurrentTreehole(),
+    posts: state.treeholePosts,
+    status: state.treeholeStatus
+  })
 }
 
 function sendHomeHello(peer = null) {
@@ -698,10 +705,17 @@ async function renderTreeholeState() {
 
   const treeholeState = await treehole.getState()
   state = setDesktopTreehole(state, {
+    canPost: canPostToCurrentTreehole(),
     posts: serializeTreeholeState(treeholeState).posts,
     status: 'ready'
   })
   render()
+}
+
+function canPostToCurrentTreehole() {
+  if (!session) return true
+  const ownerProfileId = homeJoinDetails?.ownerProfileId
+  return !ownerProfileId || ownerProfileId === session.profileId
 }
 
 function startTreeholeStatePublisher() {
@@ -714,6 +728,7 @@ function startTreeholeStatePublisher() {
     onError: (error) => showError(new Error(`Treehole state unavailable: ${error.message}`)),
     publish: (snapshot) => {
       state = setDesktopTreehole(state, {
+        canPost: canPostToCurrentTreehole(),
         posts: snapshot.posts,
         status: 'ready'
       })
@@ -737,6 +752,9 @@ function render() {
   els.peerLabel.textContent = String(state.peers)
   els.noticeLabel.textContent = state.notice
   els.treeholeStatusLabel.textContent = `home treehole ${state.treeholeStatus}`
+  els.treeholeForm.classList.toggle('disabledComposer', !state.treeholeCanPost)
+  els.treeholeInput.disabled = !state.treeholeCanPost
+  els.treeholePostPolicy.hidden = state.treeholeCanPost
 
   els.chatPane.classList.toggle('hidden', state.activeTab !== 'chat')
   els.dmPane.classList.toggle('hidden', state.activeTab !== 'dm')

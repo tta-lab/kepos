@@ -99,6 +99,9 @@ function DesktopApp() {
               data-empty='No posts yet'
             />
             <form id='treeholeForm' className='composer tall'>
+              <p id='treeholePostPolicy' className='composerHint' hidden>
+                Only the owner can post here.
+              </p>
               <textarea id='treeholeInput' placeholder='Post to the treehole' />
               <button type='submit'>
                 <Sprout size={17} />

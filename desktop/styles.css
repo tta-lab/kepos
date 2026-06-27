@@ -391,6 +391,23 @@ textarea {
   grid-column: 1 / -1;
 }
 
+.composerHint {
+  background: #fff4d7;
+  border: 1px solid #e2c46d;
+  border-radius: 8px;
+  color: #6f5516;
+  font-size: 12px;
+  font-weight: 800;
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 10px 12px;
+}
+
+.disabledComposer textarea {
+  background: #f1eee6;
+  color: #697468;
+}
+
 .contactList {
   display: flex;
   flex-wrap: wrap;

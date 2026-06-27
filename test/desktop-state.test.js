@@ -34,11 +34,13 @@ describe('desktop state', () => {
 
   test('setDesktopTreehole stores ready status and feed posts', () => {
     const state = setDesktopTreehole(createDesktopState(), {
+      canPost: false,
       status: 'ready',
       posts: [{ id: 'post-1', author: 'Ada', text: 'hello' }]
     })
 
     assert.equal(state.treeholeStatus, 'ready')
+    assert.equal(state.treeholeCanPost, false)
     assert.deepEqual(state.treeholePosts, [{ id: 'post-1', author: 'Ada', text: 'hello' }])
   })
 

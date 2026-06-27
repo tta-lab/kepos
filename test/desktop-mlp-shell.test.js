@@ -46,3 +46,16 @@ test('desktop primary panes expose short empty states before content arrives', a
   assert.match(styles, /\.list:empty::before/)
   assert.match(styles, /content:\s*attr\(data-empty\)/)
 })
+
+test('desktop treehole composer has an explicit owner-only disabled state', async () => {
+  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
+
+  assert.match(source, /id='treeholePostPolicy'/)
+  assert.match(source, /Only the owner can post here\./)
+  assert.match(controller, /els\.treeholeForm\.classList\.toggle\('disabledComposer'/)
+  assert.match(controller, /els\.treeholeInput\.disabled = !state\.treeholeCanPost/)
+  assert.match(controller, /els\.treeholePostPolicy\.hidden = state\.treeholeCanPost/)
+  assert.match(styles, /\.disabledComposer/)
+})
