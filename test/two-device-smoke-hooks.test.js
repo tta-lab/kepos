@@ -35,6 +35,25 @@ test('Android lobby is scrollable so QR and trust controls are reachable', async
   assert.match(source, /<\/ScrollView>/)
 })
 
+test('Android lobby uses product action words for QR and trust flows', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+
+  for (const text of [
+    'My Home QR',
+    'Join a home',
+    'My Profile QR',
+    'Friend profile',
+    'Add trusted friend'
+  ]) {
+    assert.match(source, new RegExp(text), `${text} is missing`)
+  }
+
+  assert.equal(source.includes('Home URI'), false)
+  assert.equal(source.includes('Profile trust'), false)
+  assert.equal(source.includes('Join Home URI'), false)
+  assert.equal(source.includes('Trust Profile'), false)
+})
+
 test('Android QR scanner keeps the camera preview visible', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 

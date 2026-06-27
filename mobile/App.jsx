@@ -856,14 +856,14 @@ function Lobby({
       </View>
 
       <View style={styles.panel}>
-        <Text style={styles.panelTitle}>Home URI</Text>
+        <Text style={styles.panelTitle}>My Home QR</Text>
         <QrCard value={myHomeQrUri} />
         <TextInput
           autoCapitalize='none'
           autoCorrect={false}
           editable={false}
           multiline
-          placeholder='Home URI'
+          placeholder='My home QR text'
           placeholderTextColor='#8b9188'
           style={styles.keyInput}
           testID='home-address-uri'
@@ -874,7 +874,7 @@ function Lobby({
           autoCorrect={false}
           multiline
           onChangeText={onHomeQrChange}
-          placeholder='Paste home URI'
+          placeholder='Paste Home QR text'
           placeholderTextColor='#8b9188'
           style={styles.keyInput}
           testID='join-home-uri-input'
@@ -890,7 +890,7 @@ function Lobby({
           <Text
             style={[styles.secondaryButtonText, !homeQrUri.trim() && styles.disabledButtonText]}
           >
-            Join Home URI
+            Join a home
           </Text>
         </Pressable>
         <Pressable
@@ -903,25 +903,26 @@ function Lobby({
       </View>
 
       <View style={styles.panel}>
-        <Text style={styles.panelTitle}>Profile trust</Text>
+        <Text style={styles.panelTitle}>My Profile QR</Text>
         <QrCard value={profileQrUri} />
         <TextInput
           autoCapitalize='none'
           autoCorrect={false}
           editable={false}
           multiline
-          placeholder='Profile URI'
+          placeholder='My profile QR text'
           placeholderTextColor='#8b9188'
           style={styles.keyInput}
           testID='home-profile-uri'
           value={profileQrUri}
         />
+        <Text style={styles.panelCopy}>Friend profile</Text>
         <TextInput
           autoCapitalize='none'
           autoCorrect={false}
           multiline
           onChangeText={onTrustQrChange}
-          placeholder='Paste profile URI'
+          placeholder='Paste Profile QR text'
           placeholderTextColor='#8b9188'
           style={styles.keyInput}
           testID='trust-profile-uri-input'
@@ -943,7 +944,7 @@ function Lobby({
           <Text
             style={[styles.secondaryButtonText, !trustQrUri.trim() && styles.disabledButtonText]}
           >
-            Trust Profile
+            Add trusted friend
           </Text>
         </Pressable>
         <Pressable
