@@ -36,6 +36,13 @@ test('desktop context panel uses product actions for home and people flows', asy
   assert.match(styles, /\.contextHint/)
 })
 
+test('desktop people UI uses trusted friends copy', async () => {
+  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+
+  assert.match(source, /Trusted friends/)
+  assert.equal(source.includes("text='Contacts'"), false)
+})
+
 test('desktop keeps inline QR codes as advanced share detail', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
 

@@ -183,6 +183,13 @@ test('Android room has a People tab for QR and trusted contacts', async () => {
   assert.match(source, /ContactManager/)
 })
 
+test('Android people UI uses trusted friends copy', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+
+  assert.match(source, /Trusted friends/)
+  assert.equal(source.includes('<Text style={styles.panelTitle}>Contacts</Text>'), false)
+})
+
 test('Android lobby and room reuse the same people action UI', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 

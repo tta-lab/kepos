@@ -266,7 +266,7 @@ function DesktopApp() {
           </section>
 
           <section className='panel contactsPanel'>
-            <SectionTitle icon={<Users size={15} />} text='Contacts' />
+            <SectionTitle icon={<Users size={15} />} text='Trusted friends' />
             <div id='contactList' className='managedContacts' />
           </section>
 

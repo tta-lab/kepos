@@ -1391,7 +1391,7 @@ function ContactManager({ contacts, onRevokeContact }) {
 
   return (
     <View style={styles.panel}>
-      <Text style={styles.panelTitle}>Contacts</Text>
+      <Text style={styles.panelTitle}>Trusted friends</Text>
       {contacts.map((contact) => (
         <View key={contact.profileId} style={styles.contactRow}>
           <View style={styles.contactRowText}>
