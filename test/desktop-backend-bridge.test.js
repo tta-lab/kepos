@@ -66,3 +66,15 @@ test('desktop controller routes treehole runtime updates through backend bridge 
   assert.doesNotMatch(source, /createTreeholeBase/)
   assert.doesNotMatch(source, /createTreeholeStatePublisher/)
 })
+
+test('desktop controller delegates home transport to a runtime boundary', async () => {
+  const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+
+  assert.match(source, /createDesktopHomeRuntime/)
+  assert.match(source, /const homeRuntime = createDesktopHomeRuntime/)
+  assert.match(source, /homeRuntime\.join/)
+  assert.match(source, /homeRuntime\.sendMessage/)
+  assert.doesNotMatch(source, /from '..\/src\/p2p-room\.js'/)
+  assert.doesNotMatch(source, /from '..\/src\/chat-session\.js'/)
+  assert.doesNotMatch(source, /from '..\/src\/home-presence\.ts'/)
+})

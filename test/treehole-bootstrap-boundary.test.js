@@ -3,13 +3,14 @@ import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 
 test('desktop shares treehole capabilities only after signed home hello', async () => {
-  const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const runtime = await readFile(new URL('../src/desktop-home-runtime.js', import.meta.url), 'utf8')
 
-  assert.match(source, /createHomeHello/)
-  assert.match(source, /verifyHomeHello/)
-  assert.match(source, /sendTreeholeBootstrap\(peer/)
-  assert.doesNotMatch(source, /broadcastControl\(\{\s*key: treehole\.key/s)
-  assert.doesNotMatch(source, /broadcastControl\(\{\s*key: treehole\.localWriterKey/s)
+  assert.match(runtime, /createHomeHello/)
+  assert.match(runtime, /verifyHomeHello/)
+  assert.match(controller, /onVerifiedHello: \(message, peer\) => sendTreeholeBootstrap\(peer/)
+  assert.doesNotMatch(controller, /broadcastControl\(\{\s*key: treehole\.key/s)
+  assert.doesNotMatch(controller, /broadcastControl\(\{\s*key: treehole\.localWriterKey/s)
 })
 
 test('android backend shares treehole capabilities only after signed home hello', async () => {

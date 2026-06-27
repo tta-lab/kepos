@@ -1,7 +1,6 @@
 /* global document, navigator */
 
 import QRCode from 'qrcode'
-import { appendLocalMessage, appendRemoteMessage } from '../src/chat-session.js'
 import {
   appendLocalMessageRequest,
   appendLocalSignedDirectMessage,
@@ -23,8 +22,6 @@ import {
   createHomeJoinSessionFromAddress,
   createManualHomeJoinSession
 } from '../src/home-session.js'
-import { createHomeHello, verifyHomeHello } from '../src/home-presence.ts'
-import { createP2PRoom } from '../src/p2p-room.js'
 import { applyLocalContactRevoke } from '../src/revoke-state.js'
 import { applySignedQrUriToContactBook } from '../src/signed-qr-scan.js'
 import {
@@ -32,6 +29,7 @@ import {
   createSignedTrustInvitePayload,
   encodeQrUri
 } from '../src/signed-qr-payload.ts'
+import { createDesktopHomeRuntime } from '../src/desktop-home-runtime.js'
 import { createDesktopTreeholeRuntime } from '../src/desktop-treehole-runtime.js'
 import {
   getDesktopLocalProfile,
@@ -116,7 +114,6 @@ let state = createDesktopState()
 let session = null
 let dmSession = null
 let dmRuntime = null
-let room = null
 let homeJoinDetails = null
 let largeQrReturnFocus = null
 let pendingCommand = null
@@ -151,6 +148,19 @@ const commands = createDesktopCommandRegistry({
 })
 const backendBridge = createDesktopBackendBridge({
   dispatch: (command, payload) => commands.dispatch(command, payload)
+})
+const homeRuntime = createDesktopHomeRuntime({
+  onControl: (message, peer) => handleControl(message, peer).catch(showError),
+  onError: (error) => backendBridge.emit('errorReceived', error),
+  onPeerCount: (peers) => {
+    state = { ...state, peers }
+    render()
+  },
+  onSessionChanged: (nextSession) => {
+    session = nextSession
+    render()
+  },
+  onVerifiedHello: (message, peer) => sendTreeholeBootstrap(peer, message.profileId)
 })
 const treeholeRuntime = createDesktopTreeholeRuntime({
   onError: (error) => backendBridge.emit('errorReceived', error),
@@ -341,32 +351,12 @@ async function joinRoom({ createTreehole, homeAddress = null, mode, roomKey }) {
   state = { ...state, notice: 'Joining home...' }
   render()
 
-  room = createP2PRoom({
-    awaitDiscoveryFlush: false,
-    onDiscoveryError: (error) => {
-      showError(new Error(`Home discovery unavailable: ${error.message}`))
-    },
-    onControl: (message, peer) => handleControl(message, peer).catch(showError),
-    onMessage: (message) => {
-      session = appendRemoteMessage(session, message)
-      render()
-    },
-    onPeer: (peer) => {
-      sendHomeHello(peer)
-      requestHomeHello(peer)
-    },
-    onPeerCount: (peers) => {
-      state = { ...state, peers }
-      render()
-    }
-  })
-
-  await room.join({ nick, roomKey: homeJoin.roomKey })
+  await homeRuntime.join({ homeJoinDetails })
   await openLocalDmThreads(profile.id)
 
   if (createTreehole) {
     await openTreehole()
-    requestHomeHello()
+    homeRuntime.requestHomeHello()
   } else {
     state = setDesktopTreehole(state, {
       canPost: canPostToCurrentTreehole(),
@@ -513,8 +503,7 @@ function getDesktopProfile(displayName) {
 async function leaveRoom() {
   await dmRuntime?.closeAll()
   dmRuntime = null
-  await room?.leave()
-  room = null
+  await homeRuntime.leave()
   await treeholeRuntime.close()
   session = null
   dmSession = null
@@ -525,12 +514,13 @@ async function leaveRoom() {
 }
 
 function configureTreeholeRuntime() {
+  homeRuntime.configure({ homeJoinDetails, session })
   treeholeRuntime.configure({ homeJoinDetails, session })
 }
 
 function sendChat() {
   const text = els.chatInput.value.trim()
-  if (!room || !session || !text) return
+  if (!homeRuntime.isJoined() || !session || !text) return
 
   const message = {
     at: Date.now(),
@@ -538,8 +528,7 @@ function sendChat() {
     text
   }
 
-  session = appendLocalMessage(session, text, message)
-  room.send(message)
+  session = homeRuntime.sendMessage(message)
   els.chatInput.value = ''
   render()
 }
@@ -547,7 +536,7 @@ function sendChat() {
 function sendMessageRequest() {
   const toProfileId = els.dmRecipientInput.value.trim()
   const text = els.dmInput.value.trim()
-  if (!room || !dmSession || !toProfileId || !text) return
+  if (!homeRuntime.isJoined() || !dmSession || !toProfileId || !text) return
   const profile = getDesktopProfile(els.nickInput.value.trim() || 'Desktop')
   const thread = findLocalDmThread(profile.id, toProfileId)
 
@@ -573,7 +562,7 @@ function sendMessageRequest() {
   })
 
   dmSession = appendLocalMessageRequest(dmSession, request)
-  room.broadcastControl(request)
+  homeRuntime.broadcastControl(request)
   els.dmInput.value = ''
   render()
 }
@@ -591,20 +580,6 @@ async function postTreehole() {
 }
 
 async function handleControl(message, peer) {
-  if (message.type === 'kepos.home.hello.request.v1') {
-    sendHomeHello(peer)
-    return
-  }
-
-  if (message.type === 'kepos.home.hello.v1') {
-    if (!verifyHomeHello(message) || message.homeAddress !== homeJoinDetails?.address) {
-      return
-    }
-
-    sendTreeholeBootstrap(peer, message.profileId)
-    return
-  }
-
   if (message.type === 'kepos.message.request.v1') {
     if (!dmSession || message.toProfileId !== dmSession.localProfileId) return
 
@@ -669,47 +644,18 @@ async function openTreehole(bootstrapKey = null) {
   })
 }
 
-function sendHomeHello(peer = null) {
-  if (!room || !homeJoinDetails?.identity || !homeJoinDetails?.address) return
-
-  const hello = createHomeHello({
-    homeAddress: homeJoinDetails.address,
-    identity: homeJoinDetails.identity
-  })
-
-  if (peer) {
-    room.sendControl(peer, hello)
-    return
-  }
-
-  room.broadcastControl(hello)
-}
-
-function requestHomeHello(peer = null) {
-  if (!room) return
-
-  const request = { type: 'kepos.home.hello.request.v1' }
-
-  if (peer) {
-    room.sendControl(peer, request)
-    return
-  }
-
-  room.broadcastControl(request)
-}
-
 function sendTreeholeBootstrap(peer, remoteProfileId) {
-  if (!room || !peer) return
+  if (!homeRuntime.isJoined() || !peer) return
 
   const payload = treeholeRuntime.createBootstrapControl(remoteProfileId)
-  if (payload) room.sendControl(peer, payload)
+  if (payload) homeRuntime.sendControl(peer, payload)
 }
 
 function sendTreeholeWriter(peer) {
-  if (!room || !peer) return
+  if (!homeRuntime.isJoined() || !peer) return
 
   const payload = treeholeRuntime.createWriterControl()
-  if (payload) room.sendControl(peer, payload)
+  if (payload) homeRuntime.sendControl(peer, payload)
 }
 
 function canPostToCurrentTreehole() {
@@ -997,6 +943,7 @@ async function revokeLocalContact(profileId) {
       ...homeJoinDetails,
       treeholePolicy: result.treeholePolicy
     }
+    configureTreeholeRuntime()
   }
 
   if (els.dmRecipientInput.value.trim() === profileId) {
@@ -1058,7 +1005,7 @@ function displayDirectPeer(profileId, displayName = '') {
 }
 
 function acceptIncomingMessageRequest(message) {
-  if (!room || !dmSession) return
+  if (!homeRuntime.isJoined() || !dmSession) return
 
   const profile = getDesktopProfile(els.nickInput.value.trim() || 'Desktop')
   const result = acceptMessageRequestWithInvite({
@@ -1072,7 +1019,7 @@ function acceptIncomingMessageRequest(message) {
   saveDesktopContactBook({ book: result.book })
   saveLocalDmThread(profile.id, result.thread)
   openLocalDmThread(result.thread).catch(showError)
-  room.broadcastControl(result.invite)
+  homeRuntime.broadcastControl(result.invite)
   state = { ...state, notice: 'Message request accepted.' }
   render()
 }

@@ -1,0 +1,126 @@
+import assert from 'node:assert/strict'
+import test from 'node:test'
+import { createDesktopHomeRuntime } from '../src/desktop-home-runtime.js'
+
+const identity = { publicKey: 'a'.repeat(64), secretKey: 'b'.repeat(128) }
+const homeJoinDetails = {
+  address: 'home-address',
+  identity,
+  ownerProfileId: identity.publicKey,
+  profileId: identity.publicKey,
+  roomKey: 'c'.repeat(64),
+  session: {
+    messages: [],
+    nick: 'Owner',
+    profileId: identity.publicKey,
+    roomKey: 'c'.repeat(64),
+    seenMessageIds: new Set()
+  }
+}
+
+function createFakeRoom() {
+  const calls = []
+  const room = {
+    broadcastControl: (message) => calls.push(['broadcastControl', message]),
+    join: (payload) => calls.push(['join', payload]),
+    leave: () => calls.push(['leave']),
+    send: (message) => calls.push(['send', message]),
+    sendControl: (peer, message) => calls.push(['sendControl', peer, message])
+  }
+
+  return { calls, room }
+}
+
+function createRuntime() {
+  const { calls, room } = createFakeRoom()
+  const controls = []
+  const errors = []
+  const peerCounts = []
+  const sessions = []
+  const verifiedHellos = []
+  const runtime = createDesktopHomeRuntime({
+    createHomeHello: () => ({
+      homeAddress: homeJoinDetails.address,
+      profileId: identity.publicKey,
+      type: 'kepos.home.hello.v1'
+    }),
+    createRoom: (options) => {
+      room.options = options
+      return room
+    },
+    onControl: (message, peer) => controls.push([message, peer]),
+    onError: (error) => errors.push(error.message),
+    onPeerCount: (peers) => peerCounts.push(peers),
+    onSessionChanged: (session) => sessions.push(session),
+    onVerifiedHello: (message, peer) => verifiedHellos.push([message, peer]),
+    verifyHomeHello: (message) => message.signature === 'sig'
+  })
+
+  return { calls, controls, errors, peerCounts, room, runtime, sessions, verifiedHellos }
+}
+
+test('desktop home runtime joins and leaves a room lifecycle', async () => {
+  const { calls, runtime } = createRuntime()
+
+  await runtime.join({ homeJoinDetails })
+  await runtime.leave()
+
+  assert.deepEqual(calls, [
+    ['join', { nick: 'Owner', roomKey: homeJoinDetails.roomKey }],
+    ['leave']
+  ])
+  assert.equal(runtime.isJoined(), false)
+})
+
+test('desktop home runtime owns home hello request and verification', async () => {
+  const { calls, room, runtime, verifiedHellos } = createRuntime()
+
+  await runtime.join({ homeJoinDetails })
+  room.options.onPeer('peer-1')
+  room.options.onControl({ type: 'kepos.home.hello.request.v1' }, 'peer-1')
+  room.options.onControl(
+    {
+      homeAddress: homeJoinDetails.address,
+      profileId: identity.publicKey,
+      signature: 'sig',
+      signedAt: 1,
+      type: 'kepos.home.hello.v1'
+    },
+    'peer-1'
+  )
+
+  assert.deepEqual(
+    calls
+      .filter(([name]) => name === 'sendControl')
+      .map(([, peer, message]) => [peer, message.type]),
+    [
+      ['peer-1', 'kepos.home.hello.v1'],
+      ['peer-1', 'kepos.home.hello.request.v1'],
+      ['peer-1', 'kepos.home.hello.v1']
+    ]
+  )
+  assert.equal(verifiedHellos.length, 1)
+})
+
+test('desktop home runtime updates chat session for local and remote messages', async () => {
+  const { calls, room, runtime, sessions } = createRuntime()
+
+  await runtime.join({ homeJoinDetails })
+  const local = runtime.sendMessage({ at: 1, id: 'message-1', text: 'hello' })
+  room.options.onMessage({ at: 2, id: 'message-2', nick: 'Peer', text: 'hi' })
+
+  assert.equal(local.messages.length, 1)
+  assert.equal(sessions.at(-1).messages.length, 2)
+  assert.deepEqual(calls.at(-1), ['send', { at: 1, id: 'message-1', text: 'hello' }])
+})
+
+test('desktop home runtime forwards non-home control frames and peer counts', async () => {
+  const { controls, peerCounts, room, runtime } = createRuntime()
+
+  await runtime.join({ homeJoinDetails })
+  room.options.onPeerCount(2)
+  room.options.onControl({ type: 'treehole.bootstrap', key: 'tree-key' }, 'peer-1')
+
+  assert.deepEqual(peerCounts, [2])
+  assert.deepEqual(controls, [[{ type: 'treehole.bootstrap', key: 'tree-key' }, 'peer-1']])
+})
