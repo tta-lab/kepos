@@ -54,8 +54,26 @@ test('desktop context panel uses product actions for home and people flows', asy
 
 test('desktop people UI uses trusted friends copy', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
 
+  assert.match(source, /id='peopleTab'[^>]+title='People'/)
+  assert.match(source, /<span className='railLabel'>People<\/span>/)
+  assert.match(source, /id='peoplePane'/)
+  assert.match(source, /<PaneLabel eyebrow='trusted' title='People' \/>/)
   assert.match(source, /Trusted friends/)
+  assert.equal(source.indexOf("id='contactList'") > source.indexOf("id='peoplePane'"), true)
+  assert.match(
+    controller,
+    /els\.peopleTab\.addEventListener\('click', \(\) => setTab\('people'\)\)/
+  )
+  assert.match(
+    controller,
+    /els\.peoplePane\.classList\.toggle\('hidden', state\.activeTab !== 'people'\)/
+  )
+  assert.match(
+    controller,
+    /els\.peopleTab\.classList\.toggle\('active', state\.activeTab === 'people'\)/
+  )
   assert.equal(source.includes("text='Contacts'"), false)
 })
 

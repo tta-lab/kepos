@@ -49,6 +49,10 @@ function DesktopApp() {
               <Sprout size={19} />
               <span className='railLabel'>Treehole</span>
             </button>
+            <button id='peopleTab' className='railButton' type='button' title='People'>
+              <Users size={19} />
+              <span className='railLabel'>People</span>
+            </button>
           </nav>
         </aside>
 
@@ -155,6 +159,14 @@ function DesktopApp() {
                 Post
               </button>
             </form>
+          </section>
+
+          <section id='peoplePane' className='pane hidden'>
+            <PaneLabel eyebrow='trusted' title='People' />
+            <section className='panel contactsPanel'>
+              <SectionTitle icon={<Users size={15} />} text='Trusted friends' />
+              <div id='contactList' className='managedContacts' />
+            </section>
           </section>
         </section>
 
@@ -268,11 +280,6 @@ function DesktopApp() {
                 Add trusted friend
               </button>
             </form>
-          </section>
-
-          <section className='panel contactsPanel'>
-            <SectionTitle icon={<Users size={15} />} text='Trusted friends' />
-            <div id='contactList' className='managedContacts' />
           </section>
 
           <section className='panel roomMeta'>

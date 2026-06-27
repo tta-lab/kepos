@@ -52,6 +52,12 @@ describe('desktop state', () => {
     assert.equal(state.activeTab, 'dm')
   })
 
+  test('setDesktopTab accepts people', () => {
+    const state = setDesktopTab(createDesktopState(), 'people')
+
+    assert.equal(state.activeTab, 'people')
+  })
+
   test('setDesktopTab rejects unknown tabs', () => {
     assert.throws(() => setDesktopTab(createDesktopState(), 'settings'), /Unknown tab/)
   })

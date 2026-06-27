@@ -1,4 +1,4 @@
-const TABS = new Set(['chat', 'dm', 'treehole'])
+const TABS = new Set(['chat', 'dm', 'treehole', 'people'])
 
 export function createDesktopState() {
   return {

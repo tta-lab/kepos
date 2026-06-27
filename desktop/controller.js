@@ -89,6 +89,8 @@ const els = {
   nickInput: document.querySelector('#nickInput'),
   noticeLabel: document.querySelector('#noticeLabel'),
   peerLabel: document.querySelector('#peerLabel'),
+  peoplePane: document.querySelector('#peoplePane'),
+  peopleTab: document.querySelector('#peopleTab'),
   profileQrCode: document.querySelector('#profileQrCode'),
   profileQrOutput: document.querySelector('#profileQrOutput'),
   profileIdLabel: document.querySelector('#profileIdLabel'),
@@ -161,6 +163,7 @@ els.leaveButton.addEventListener('click', () => dispatchCommand('leaveHome'))
 els.chatTab.addEventListener('click', () => setTab('chat'))
 els.dmTab.addEventListener('click', () => setTab('dm'))
 els.treeholeTab.addEventListener('click', () => setTab('treehole'))
+els.peopleTab.addEventListener('click', () => setTab('people'))
 els.showLargeHomeQrButton.addEventListener('click', () => {
   showLargeQr({ title: 'Home QR', uri: els.homeQrOutput.value }).catch(showError)
 })
@@ -763,9 +766,11 @@ function render() {
   els.chatPane.classList.toggle('hidden', state.activeTab !== 'chat')
   els.dmPane.classList.toggle('hidden', state.activeTab !== 'dm')
   els.treeholePane.classList.toggle('hidden', state.activeTab !== 'treehole')
+  els.peoplePane.classList.toggle('hidden', state.activeTab !== 'people')
   els.chatTab.classList.toggle('active', state.activeTab === 'chat')
   els.dmTab.classList.toggle('active', state.activeTab === 'dm')
   els.treeholeTab.classList.toggle('active', state.activeTab === 'treehole')
+  els.peopleTab.classList.toggle('active', state.activeTab === 'people')
 
   renderMessages()
   renderDirectMessages()
