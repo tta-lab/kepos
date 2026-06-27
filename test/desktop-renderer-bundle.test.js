@@ -4,6 +4,7 @@ import test from 'node:test'
 
 async function readDesktopUiSource() {
   const app = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const appState = await readFile(new URL('../desktop/app-state.jsx', import.meta.url), 'utf8')
   const panes = await readFile(new URL('../desktop/pane-components.jsx', import.meta.url), 'utf8')
   const shell = await readFile(new URL('../desktop/shell-components.jsx', import.meta.url), 'utf8')
   const context = await readFile(
@@ -14,7 +15,7 @@ async function readDesktopUiSource() {
     new URL('../desktop/people-components.jsx', import.meta.url),
     'utf8'
   )
-  return `${app}\n${panes}\n${shell}\n${context}\n${people}`
+  return `${app}\n${appState}\n${panes}\n${shell}\n${context}\n${people}`
 }
 
 test('desktop renderer loads the bundled CommonJS entrypoint', async () => {
@@ -60,7 +61,7 @@ test('desktop React owns the home chat list surface', async () => {
   assert.match(source, /function HomeChatList\(\{ messages \}\)/)
   assert.match(source, /globalThis\.keposDesktopUi/)
   assert.match(source, /setHomeMessages\(messages = \[\]\)/)
-  assert.match(source, /<HomePane[\s\S]*messages=\{homeMessages\}/)
+  assert.match(source, /<HomePane[\s\S]*messages=\{model\.homeMessages\}/)
   assert.match(source, /<HomeChatList messages=\{messages\} \/>/)
   assert.match(presenter, /ui\?\.setHomeMessages\(/)
   assert.doesNotMatch(controller, /els\.messageList\.replaceChildren/)
@@ -101,7 +102,7 @@ test('desktop React owns the direct message list surface', async () => {
   assert.match(source, /function DirectMessageList\(\{ messages, onAccept, onIgnore \}\)/)
   assert.match(source, /setDirectMessages\(messages = \[\]\)/)
   assert.match(source, /setDirectMessageActions\(actions = \{\}\)/)
-  assert.match(source, /<DirectPane[\s\S]*messages=\{directMessages\}/)
+  assert.match(source, /<DirectPane[\s\S]*messages=\{model\.directMessages\}/)
   assert.match(source, /<DirectMessageList[\s\S]*messages=\{messages\}/)
   assert.match(source, /onClick=\{\(\) => onIgnore\(message\.actions\.ignoreMessage\)\}/)
   assert.match(source, /onClick=\{\(\) => onAccept\(message\.actions\.acceptMessage\)\}/)
@@ -124,7 +125,7 @@ test('desktop React owns the direct contact picker surface', async () => {
   )
   assert.match(source, /setDirectContactPicker\([\s\S]*picker = \{[\s\S]*contacts: \[\]/)
   assert.match(source, /setDirectContactPickerActions\(actions = \{\}\)/)
-  assert.match(source, /<DirectPane[\s\S]*contactPicker=\{directContactPicker\}/)
+  assert.match(source, /<DirectPane[\s\S]*contactPicker=\{model\.directContactPicker\}/)
   assert.match(source, /<DirectComposer[\s\S]*contactPicker=\{contactPicker\}/)
   assert.match(source, /<DirectContactPicker[\s\S]*contacts=\{contactPicker\.contacts\}/)
   assert.match(source, /selectedProfileId=\{composer\.toProfileId\.trim\(\)\}/)
@@ -256,7 +257,10 @@ test('desktop React owns the large QR dialog surface', async () => {
   )
   assert.match(source, /onClick=\{onClose\}/)
   assert.match(source, /dangerouslySetInnerHTML=\{\{ __html: qr\.svg \}\}/)
-  assert.match(source, /<LargeQrDialog onClose=\{shellActions\.hideLargeQr\} qr=\{largeQr\} \/>/)
+  assert.match(
+    source,
+    /<LargeQrDialog onClose=\{model\.shellActions\.hideLargeQr\} qr=\{model\.largeQr\} \/>/
+  )
   assert.match(controller, /setLargeQr: \(qr\) => globalThis\.keposDesktopUi\?\.setLargeQr\(qr\)/)
   assert.match(actions, /setLargeQr\(\{/)
   assert.doesNotMatch(controller, /largeQrCloseButton: document\.querySelector/)
@@ -286,7 +290,7 @@ test('desktop React owns shell busy and leave action', async () => {
   assert.match(source, /setShellBusy\(isBusy = false\)/)
   assert.match(source, /const \[isShellBusy, setShellBusy\] = useState\(false\)/)
   assert.match(source, /document\.body\.setAttribute\('aria-busy', String\(isShellBusy\)\)/)
-  assert.match(source, /<HomeStatusPanel[\s\S]*onLeave=\{shellActions\.leaveHome\}/)
+  assert.match(source, /<HomeStatusPanel[\s\S]*onLeave=\{model\.shellActions\.leaveHome\}/)
   assert.match(source, /onClick=\{onLeave\}/)
   assert.match(presenter, /ui\?\.setShellBusy\(isActionPending\)/)
   assert.match(bindings, /leaveHome: \(\) => dispatchCommand\('leaveHome'\)/)
@@ -333,7 +337,7 @@ test('desktop React owns context form drafts and QR actions', async () => {
   assert.match(source, /trustQrUri: ''/)
   assert.match(source, /setContextFormActions\(actions = \{\}\)/)
   assert.match(source, /setContextFormDraft\(draft = \{\}\)/)
-  assert.match(source, /form=\{contextForm\}/)
+  assert.match(source, /form=\{model\.contextForm\}/)
   assert.match(source, /value=\{form\.displayName\}/)
   assert.match(source, /value=\{form\.roomKey\}/)
   assert.match(source, /value=\{form\.homeQrUri\}/)
@@ -366,7 +370,7 @@ test('desktop React owns the people list surfaces', async () => {
   assert.match(source, /function PeopleLists\(\{ actions, messageRequests, trustedContacts \}\)/)
   assert.match(source, /setPeople\(people = \{ messageRequests: \[\], trustedContacts: \[\] \}\)/)
   assert.match(source, /setPeopleActions\(actions = \{\}\)/)
-  assert.match(source, /<PeoplePane[\s\S]*messageRequests=\{people\.messageRequests\}/)
+  assert.match(source, /<PeoplePane[\s\S]*messageRequests=\{model\.people\.messageRequests\}/)
   assert.match(source, /<PeopleLists[\s\S]*messageRequests=\{messageRequests\}/)
   assert.match(source, /onClick=\{\(\) => actions\.revokeContact\(contact\.profileId\)\}/)
   assert.match(source, /onClick=\{\(\) => actions\.ignoreMessageRequest\(request\.profileId\)\}/)
@@ -391,7 +395,7 @@ test('desktop React owns the treehole post list surface', async () => {
   assert.match(source, /function TreeholeList\(\{ actions, posts \}\)/)
   assert.match(source, /setTreeholePosts\(posts = \[\]\)/)
   assert.match(source, /setTreeholeActions\(actions = \{\}\)/)
-  assert.match(source, /<TreeholePane[\s\S]*posts=\{treeholePosts\}/)
+  assert.match(source, /<TreeholePane[\s\S]*posts=\{model\.treeholePosts\}/)
   assert.match(source, /<TreeholeList[\s\S]*posts=\{posts\}/)
   assert.match(source, /onClick=\{\(\) => actions\.likePost\(post\.actions\.likePostId\)\}/)
   assert.match(

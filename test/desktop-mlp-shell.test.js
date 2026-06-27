@@ -8,6 +8,7 @@ async function readDesktopAppSource() {
 
 async function readDesktopUiSource() {
   const app = await readDesktopAppSource()
+  const appState = await readFile(new URL('../desktop/app-state.jsx', import.meta.url), 'utf8')
   const panes = await readFile(new URL('../desktop/pane-components.jsx', import.meta.url), 'utf8')
   const shell = await readFile(new URL('../desktop/shell-components.jsx', import.meta.url), 'utf8')
   const context = await readFile(
@@ -18,7 +19,7 @@ async function readDesktopUiSource() {
     new URL('../desktop/people-components.jsx', import.meta.url),
     'utf8'
   )
-  return `${app}\n${panes}\n${shell}\n${context}\n${people}`
+  return `${app}\n${appState}\n${panes}\n${shell}\n${context}\n${people}`
 }
 
 test('desktop React shell separates navigation, workspace, and context panels', async () => {
@@ -26,7 +27,10 @@ test('desktop React shell separates navigation, workspace, and context panels', 
   const shell = await readFile(new URL('../desktop/shell-components.jsx', import.meta.url), 'utf8')
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
 
-  assert.match(source, /<AppRail activeTab=\{activeTab\} shellActions=\{shellActions\} \/>/)
+  assert.match(
+    source,
+    /<AppRail activeTab=\{model\.activeTab\} shellActions=\{model\.shellActions\} \/>/
+  )
   assert.match(source, /className='workspace'/)
   assert.match(source, /className='contextPanel'/)
   assert.match(shell, /className='appRail'/)
@@ -48,7 +52,7 @@ test('desktop context actions live behind a dedicated component boundary', async
   )
 
   assert.match(source, /import \{ ContextPanel \} from '\.\/context-components\.jsx'/)
-  assert.match(source, /<ContextPanel[\s\S]*shareQrOutputs=\{shareQrOutputs\}/)
+  assert.match(source, /<ContextPanel[\s\S]*shareQrOutputs=\{model\.shareQrOutputs\}/)
   assert.match(context, /export function ContextPanel\(/)
   assert.match(context, /const ROOM_KEY_PATTERN = \/\^\[0-9a-f\]\{64\}\$\//)
   assert.doesNotMatch(source, /function ContextPanel\(/)
@@ -146,7 +150,7 @@ test('desktop People pane lives behind a dedicated component boundary', async ()
   )
 
   assert.match(source, /import \{ PeoplePane \} from '\.\/people-components\.jsx'/)
-  assert.match(source, /<PeoplePane[\s\S]*trustedContacts=\{people\.trustedContacts\}/)
+  assert.match(source, /<PeoplePane[\s\S]*trustedContacts=\{model\.people\.trustedContacts\}/)
   assert.match(people, /export function PeoplePane\(/)
   assert.match(people, /export function PeopleLists\(/)
   assert.match(people, /function SectionTitle\(/)
@@ -163,9 +167,9 @@ test('desktop primary panes live behind a dedicated component boundary', async (
     source,
     /import \{ DirectPane, HomePane, TreeholePane \} from '\.\/pane-components\.jsx'/
   )
-  assert.match(source, /<HomePane[\s\S]*messages=\{homeMessages\}/)
-  assert.match(source, /<DirectPane[\s\S]*messages=\{directMessages\}/)
-  assert.match(source, /<TreeholePane[\s\S]*posts=\{treeholePosts\}/)
+  assert.match(source, /<HomePane[\s\S]*messages=\{model\.homeMessages\}/)
+  assert.match(source, /<DirectPane[\s\S]*messages=\{model\.directMessages\}/)
+  assert.match(source, /<TreeholePane[\s\S]*posts=\{model\.treeholePosts\}/)
   assert.match(panes, /export function HomePane\(/)
   assert.match(panes, /export function DirectPane\(/)
   assert.match(panes, /export function TreeholePane\(/)
@@ -173,6 +177,19 @@ test('desktop primary panes live behind a dedicated component boundary', async (
   assert.doesNotMatch(source, /function DirectComposer\(/)
   assert.doesNotMatch(source, /function TreeholeComposer\(/)
   assert.doesNotMatch(source, /function PaneLabel\(/)
+})
+
+test('desktop app state and bridge live behind a dedicated hook boundary', async () => {
+  const source = await readDesktopAppSource()
+  const appState = await readFile(new URL('../desktop/app-state.jsx', import.meta.url), 'utf8')
+
+  assert.match(source, /import \{ useDesktopAppModel \} from '\.\/app-state\.jsx'/)
+  assert.match(source, /const model = useDesktopAppModel\(\)/)
+  assert.match(appState, /export function useDesktopAppModel\(\)/)
+  assert.match(appState, /globalThis\.keposDesktopUi = \{/)
+  assert.match(appState, /desktopUiBridge\.setContextFormDraft = \(draft = \{\}\) =>/)
+  assert.doesNotMatch(source, /const desktopUiBridge = \{/)
+  assert.doesNotMatch(source, /globalThis\.keposDesktopUi = \{/)
 })
 
 test('desktop people pane surfaces pending message requests', async () => {
@@ -198,7 +215,7 @@ test('desktop people pane surfaces pending message requests', async () => {
   assert.match(source, /id='requestList'/)
   assert.match(source, /Message requests/)
   assert.match(presenter, /createDesktopPeopleViewModel/)
-  assert.match(source, /messageRequests=\{people\.messageRequests\}/)
+  assert.match(source, /messageRequests=\{model\.people\.messageRequests\}/)
   assert.match(source, /No message requests/)
   assert.match(source, /\{request\.title\}/)
   assert.match(source, /\{request\.preview\}/)
