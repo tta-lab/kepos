@@ -36,10 +36,11 @@ const EVENT_SET = new Set(DESKTOP_EVENTS)
 function createDesktopElectronBackendBridge({ dispatch, ipcMain, webContents }) {
   const subscriptions = new Map()
   let currentWebContents = webContents
+  let currentDispatch = dispatch
 
   ipcMain.handle(DISPATCH_CHANNEL, (_event, command, payload) => {
     assertCommand(command)
-    return dispatch(command, payload)
+    return currentDispatch(command, payload)
   })
 
   ipcMain.on(SUBSCRIBE_CHANNEL, (_event, listenerId, event) => {
@@ -55,6 +56,13 @@ function createDesktopElectronBackendBridge({ dispatch, ipcMain, webContents }) 
 
   return {
     commands: DESKTOP_COMMANDS,
+    connectBackend(backend) {
+      if (!backend || typeof backend.dispatch !== 'function') {
+        throw new Error('Desktop backend dispatch must be a function')
+      }
+
+      currentDispatch = backend.dispatch
+    },
     emit(event, payload) {
       assertEvent(event)
 

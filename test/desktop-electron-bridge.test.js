@@ -117,3 +117,29 @@ test('desktop electron backend ipc can retarget events to a recreated window', (
     ]
   ])
 })
+
+test('desktop registered backend ipc can connect a real backend dispatch', async () => {
+  const { registerDesktopBackendIpc } = require('../desktop/electron/backend-ipc.cjs')
+  const handled = new Map()
+  const ipcMain = {
+    handle(channel, handler) {
+      handled.set(channel, handler)
+    },
+    on(channel, handler) {
+      handled.set(channel, handler)
+    }
+  }
+  const bridge = registerDesktopBackendIpc({
+    ipcMain,
+    webContents: { send: () => {} }
+  })
+  const dispatch = handled.get('kepos:backend:dispatch')
+
+  assert.throws(() => dispatch({}, 'joinHome', { mode: 'host' }), /not connected/)
+
+  bridge.connectBackend({
+    dispatch: (command, payload) => `${command}:${payload.mode}`
+  })
+
+  assert.equal(await dispatch({}, 'joinHome', { mode: 'host' }), 'joinHome:host')
+})
