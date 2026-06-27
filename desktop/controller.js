@@ -974,7 +974,7 @@ function renderMessageRequests() {
       const button = document.createElement('button')
 
       row.className = 'managedContact'
-      title.textContent = 'Message request'
+      title.textContent = formatMessageRequestTitle(request)
       profileId.className = 'mono muted smallText'
       profileId.textContent = request.alias || shorten(request.profileId)
       preview.className = 'muted smallText'
@@ -1008,6 +1008,11 @@ function renderMessageRequests() {
 
 function formatRequestPreview(text) {
   return text?.trim() || 'No message yet'
+}
+
+function formatMessageRequestTitle(request) {
+  const name = request?.alias?.trim() || 'Someone'
+  return `${name} wants to start a DM.`
 }
 
 async function revokeLocalContact(profileId) {

@@ -1423,7 +1423,7 @@ function MessageRequestManager({ onAcceptRequest, onIgnoreRequest, pendingReques
         return (
           <View key={request.profileId} style={styles.requestCard}>
             <View style={styles.requestText}>
-              <Text style={styles.requestTitle}>Someone wants to start a DM</Text>
+              <Text style={styles.requestTitle}>{formatMessageRequestTitle(request)}</Text>
               <Text style={styles.contactProfile}>
                 {request.alias || shortenProfileId(request.profileId)}
               </Text>
@@ -2081,6 +2081,11 @@ function formatMobileTrustTime(trustedAt) {
 
 function formatRequestPreview(text) {
   return text?.trim() || 'No message yet'
+}
+
+function formatMessageRequestTitle(request) {
+  const name = request?.alias?.trim() || 'Someone'
+  return `${name} wants to start a DM.`
 }
 
 function EmptyMessages() {
