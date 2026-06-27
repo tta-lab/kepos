@@ -168,7 +168,7 @@ export default function App() {
       .catch((error) => {
         console.error('Profile storage unavailable', error)
         if (!cancelled) {
-          setNotice(`Profile storage unavailable: ${error.message}`)
+          setNotice('Could not load this profile.')
         }
       })
 
@@ -207,7 +207,8 @@ export default function App() {
         treeholePolicy
       })
     } catch (error) {
-      setNotice(`Could not start this home: ${error.message}`)
+      console.error('Could not start home', error)
+      setNotice('Could not start this home.')
     }
   }
 
@@ -244,7 +245,8 @@ export default function App() {
         treeholePolicy
       })
     } catch (error) {
-      setNotice(`Could not join this home: ${error.message}`)
+      console.error('Could not join home', error)
+      setNotice('Could not join this home.')
     }
   }
 
@@ -293,7 +295,8 @@ export default function App() {
         treeholePolicy
       })
     } catch (error) {
-      setNotice(`Invalid home QR: ${error.message}`)
+      console.error('Could not read Home QR', error)
+      setNotice('Could not read this Home QR.')
     }
   }
 
@@ -323,7 +326,8 @@ export default function App() {
       setTrustQrUri('')
       setNotice(`Trusted ${shortenProfileId(result.profileId)}.`)
     } catch (error) {
-      setNotice(`Invalid profile QR: ${error.message}`)
+      console.error('Could not read Profile QR', error)
+      setNotice('Could not read this Profile QR.')
     }
   }
 
@@ -541,7 +545,8 @@ export default function App() {
 
         if (req.command === RPC_DM_MESSAGE) {
           persistIncomingMessageRequest(payload).catch((error) => {
-            setNotice(`Message request unavailable: ${error.message}`)
+            console.error('Message request unavailable', error)
+            setNotice('Could not save this message request.')
           })
           setDmSession((current) => {
             if (!current) {
@@ -575,7 +580,8 @@ export default function App() {
 
         if (req.command === RPC_DM_THREAD) {
           saveMobileDmThread(payload).catch((error) => {
-            setNotice(`DM thread unavailable: ${error.message}`)
+            console.error('DM thread unavailable', error)
+            setNotice('Could not save this DM thread.')
           })
           return
         }
@@ -601,7 +607,8 @@ export default function App() {
         }
 
         if (req.command === RPC_ERROR) {
-          setNotice(payload.message || 'Home connection error.')
+          console.error('Home connection error', payload)
+          setNotice('Home connection error.')
         }
       })
 
@@ -609,7 +616,8 @@ export default function App() {
       setRpc(nextRpc)
       setNotice('Starting home...')
     } catch (error) {
-      setNotice(`Could not connect this home: ${error.message}`)
+      console.error('Could not connect home', error)
+      setNotice('Could not connect this home.')
     }
   }
 

@@ -1095,7 +1095,8 @@ async function likeTreeholePost(postId) {
 }
 
 function showError(error) {
-  state = { ...state, notice: error.message }
+  console.error(error)
+  state = { ...state, notice: 'Something went wrong.' }
   render()
 }
 

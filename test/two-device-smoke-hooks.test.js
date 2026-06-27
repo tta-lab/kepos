@@ -105,6 +105,18 @@ test('DM request copy reads as a social action', async () => {
   assert.equal(desktop.includes('message request ${message.direction'), false)
 })
 
+test('normal error notices avoid raw exception text', async () => {
+  const mobile = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const desktop = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+
+  assert.equal(/setNotice\(`[^`]*\$\{error\.message\}/.test(mobile), false)
+  assert.equal(/setNotice\(payload\.message/.test(mobile), false)
+  assert.equal(/notice: error\.message/.test(desktop), false)
+  assert.match(mobile, /Could not join this home\./)
+  assert.match(mobile, /Could not read this Home QR\./)
+  assert.match(desktop, /Something went wrong\./)
+})
+
 test('Android room has a People tab for QR and trusted contacts', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 
