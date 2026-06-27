@@ -52,7 +52,12 @@ function DesktopApp() {
           </header>
 
           <section id='chatPane' className='pane'>
-            <ol id='messageList' className='list' />
+            <ol
+              id='messageList'
+              className='list'
+              aria-label='Home chat messages'
+              data-empty='No messages yet'
+            />
             <form id='chatForm' className='composer'>
               <input id='chatInput' placeholder='Write to the home' autoComplete='off' />
               <button type='submit'>
@@ -63,7 +68,7 @@ function DesktopApp() {
           </section>
 
           <section id='dmPane' className='pane hidden'>
-            <ol id='dmList' className='list' />
+            <ol id='dmList' className='list' aria-label='Direct messages' data-empty='No DMs yet' />
             <form id='dmForm' className='composer tall'>
               <div id='dmContactList' className='contactList' />
               <details id='advancedDmRecipient' className='advanced advancedComposer'>
@@ -87,7 +92,12 @@ function DesktopApp() {
           </section>
 
           <section id='treeholePane' className='pane hidden'>
-            <ol id='treeholeList' className='list posts' />
+            <ol
+              id='treeholeList'
+              className='list posts'
+              aria-label='Treehole posts'
+              data-empty='No posts yet'
+            />
             <form id='treeholeForm' className='composer tall'>
               <textarea id='treeholeInput' placeholder='Post to the treehole' />
               <button type='submit'>

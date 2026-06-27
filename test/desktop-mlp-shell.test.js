@@ -35,3 +35,14 @@ test('desktop context panel uses product actions for home and people flows', asy
   assert.match(styles, /\.contextGroup/)
   assert.match(styles, /\.contextHint/)
 })
+
+test('desktop primary panes expose short empty states before content arrives', async () => {
+  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
+
+  assert.match(source, /id='messageList'[^>]+data-empty='No messages yet'/)
+  assert.match(source, /id='dmList'[^>]+data-empty='No DMs yet'/)
+  assert.match(source, /id='treeholeList'[^>]+data-empty='No posts yet'/)
+  assert.match(styles, /\.list:empty::before/)
+  assert.match(styles, /content:\s*attr\(data-empty\)/)
+})
