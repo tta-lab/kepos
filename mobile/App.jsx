@@ -700,7 +700,9 @@ export default function App() {
 
         if (req.command === RPC_TREEHOLE_STATUS) {
           setTreeholeStatus(payload.status || 'idle')
-          setTreeholeCanPost(Boolean(payload.canPost))
+          if (Object.hasOwn(payload, 'canPost')) {
+            setTreeholeCanPost(Boolean(payload.canPost))
+          }
           return
         }
 

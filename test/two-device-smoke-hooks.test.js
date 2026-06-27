@@ -444,7 +444,12 @@ test('Android treehole composer explains owner-only posting', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 
   assert.match(source, /const \[treeholeCanPost, setTreeholeCanPost\] = useState\(false\)/)
+  assert.match(source, /Object\.hasOwn\(payload, 'canPost'\)/)
   assert.match(source, /setTreeholeCanPost\(Boolean\(payload\.canPost\)\)/)
+  assert.equal(
+    source.includes('setTreeholeCanPost(Boolean(payload.canPost))\n          return'),
+    false
+  )
   assert.match(source, /canPost={treeholeCanPost}/)
   assert.match(source, /function TreeholePane\(\{ canPost,/)
   assert.match(source, /const canSubmitPost = canPost && draft\.trim\(\)/)
