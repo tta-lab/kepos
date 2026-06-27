@@ -1,9 +1,11 @@
 const path = require('node:path')
-const { app, BrowserWindow } = require('electron')
+const { app, BrowserWindow, ipcMain } = require('electron')
+const { registerDesktopBackendIpc } = require('./backend-ipc.cjs')
 
 const pkg = require('../package.json')
 
 let mainWindow = null
+let backendIpc = null
 let pear = null
 
 function createWindow() {
@@ -13,10 +15,20 @@ function createWindow() {
     webPreferences: {
       contextIsolation: false,
       nodeIntegration: true,
+      preload: path.join(__dirname, 'preload.cjs'),
       sandbox: false
     },
     width: 1080
   })
+
+  if (backendIpc) {
+    backendIpc.setWebContents(mainWindow.webContents)
+  } else {
+    backendIpc = registerDesktopBackendIpc({
+      ipcMain,
+      webContents: mainWindow.webContents
+    })
+  }
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show()
