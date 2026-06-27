@@ -155,8 +155,9 @@ test('Android header shows product home status instead of raw peer count', async
   assert.match(source, /function getMobileHomeStatus\(/)
   assert.match(source, /getMobileHomeStatus\(\{ online: peerCount, session \}\)/)
   assert.match(source, /Connected/)
-  assert.match(source, /Looking for peers/)
+  assert.match(source, /Waiting for friends/)
   assert.match(source, /Offline/)
+  assert.equal(source.includes('Looking for peers'), false)
   assert.equal(source.includes('{online} peer'), false)
 })
 

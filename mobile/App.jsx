@@ -1610,7 +1610,7 @@ function getMobileHomeStatus({ online, session }) {
     return 'Connected'
   }
 
-  return 'Looking for peers'
+  return 'Waiting for friends'
 }
 
 function EmptyMessages() {

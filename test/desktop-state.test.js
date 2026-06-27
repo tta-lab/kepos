@@ -60,7 +60,7 @@ describe('desktop state', () => {
     assert.equal(getDesktopHomeStatus(createDesktopState()), 'Offline')
     assert.equal(
       getDesktopHomeStatus(setDesktopRoom(createDesktopState(), { roomKey: 'a'.repeat(64) })),
-      'Looking for peers'
+      'Waiting for friends'
     )
     assert.equal(
       getDesktopHomeStatus(

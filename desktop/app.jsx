@@ -280,7 +280,7 @@ function DesktopApp() {
             <p id='homeStatusLabel' className='metric'>
               Offline
             </p>
-            <p className='label'>Peers</p>
+            <p className='label'>Online</p>
             <p id='peerLabel' className='metric'>
               0
             </p>

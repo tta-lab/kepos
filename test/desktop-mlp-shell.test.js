@@ -82,6 +82,7 @@ test('desktop status panel keeps raw ids in advanced details', async () => {
 
   assert.match(source, /id='homeStatusLabel'/)
   assert.match(source, /Treehole offline/)
+  assert.match(source, /<p className='label'>Online<\/p>/)
   assert.match(source, /<details[^>]+id='advancedStatus'/)
   assert.equal(source.indexOf("id='roomKeyLabel'") > source.indexOf("id='advancedStatus'"), true)
   assert.equal(source.indexOf("id='profileIdLabel'") > source.indexOf("id='advancedStatus'"), true)
@@ -91,6 +92,7 @@ test('desktop status panel keeps raw ids in advanced details', async () => {
     /els\.treeholeStatusLabel\.textContent = getDesktopTreeholeStatus\(state\)/
   )
   assert.equal(source.includes('treehole idle'), false)
+  assert.equal(source.includes("<p className='label'>Peers</p>"), false)
   assert.equal(controller.includes('Treehole ${state.treeholeStatus}'), false)
 })
 

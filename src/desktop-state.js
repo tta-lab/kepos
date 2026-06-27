@@ -53,7 +53,7 @@ export function getDesktopHomeStatus(state) {
     return 'Offline'
   }
 
-  return state.peers > 0 ? 'Connected' : 'Looking for peers'
+  return state.peers > 0 ? 'Connected' : 'Waiting for friends'
 }
 
 export function getDesktopTreeholeStatus(state) {
