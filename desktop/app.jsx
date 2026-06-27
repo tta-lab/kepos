@@ -22,7 +22,9 @@ const THEME_STORAGE_KEY = 'kepos.desktop.theme'
 const desktopUiBridge = {
   setDirectMessageActions: () => {},
   setDirectMessages: () => {},
-  setHomeMessages: () => {}
+  setHomeMessages: () => {},
+  setPeople: () => {},
+  setPeopleActions: () => {}
 }
 
 globalThis.keposDesktopUi = {
@@ -34,6 +36,12 @@ globalThis.keposDesktopUi = {
   },
   setHomeMessages(messages = []) {
     desktopUiBridge.setHomeMessages(messages)
+  },
+  setPeople(people = { messageRequests: [], trustedContacts: [] }) {
+    desktopUiBridge.setPeople(people)
+  },
+  setPeopleActions(actions = {}) {
+    desktopUiBridge.setPeopleActions(actions)
   }
 }
 
@@ -44,10 +52,18 @@ function DesktopApp() {
   })
   const [directMessages, setDirectMessages] = useState([])
   const [homeMessages, setHomeMessages] = useState([])
+  const [people, setPeople] = useState({ messageRequests: [], trustedContacts: [] })
+  const [peopleActions, setPeopleActions] = useState({
+    acceptMessageRequest: () => {},
+    ignoreMessageRequest: () => {},
+    revokeContact: () => {}
+  })
   const [theme, setTheme] = useState(getInitialTheme)
   desktopUiBridge.setDirectMessageActions = setDirectMessageActions
   desktopUiBridge.setDirectMessages = setDirectMessages
   desktopUiBridge.setHomeMessages = setHomeMessages
+  desktopUiBridge.setPeople = setPeople
+  desktopUiBridge.setPeopleActions = setPeopleActions
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
@@ -191,14 +207,11 @@ function DesktopApp() {
 
           <section id='peoplePane' className='pane hidden'>
             <PaneLabel eyebrow='trusted' title='People' />
-            <section className='panel contactsPanel'>
-              <SectionTitle icon={<MessageCircle size={15} />} text='Message requests' />
-              <div id='requestList' className='managedContacts' />
-            </section>
-            <section className='panel contactsPanel'>
-              <SectionTitle icon={<Users size={15} />} text='Trusted friends' />
-              <div id='contactList' className='managedContacts' />
-            </section>
+            <PeopleLists
+              actions={peopleActions}
+              messageRequests={people.messageRequests}
+              trustedContacts={people.trustedContacts}
+            />
           </section>
         </section>
 
@@ -467,6 +480,76 @@ function DirectMessageList({ messages, onAccept, onIgnore }) {
         </li>
       ))}
     </ol>
+  )
+}
+
+function PeopleLists({ actions, messageRequests, trustedContacts }) {
+  return (
+    <>
+      <section className='panel contactsPanel'>
+        <SectionTitle icon={<MessageCircle size={15} />} text='Message requests' />
+        <div id='requestList' className='managedContacts'>
+          {messageRequests.length === 0 ? (
+            <p className='muted smallText'>No message requests</p>
+          ) : (
+            messageRequests.map((request) => (
+              <div key={request.profileId} className='managedContact'>
+                <div>
+                  <p>{request.title}</p>
+                  <p className='mono muted smallText'>{request.profileLabel}</p>
+                  <p className='muted smallText'>{request.preview}</p>
+                </div>
+                <div className='inlineActions'>
+                  <button
+                    className='smallButton'
+                    type='button'
+                    onClick={() => actions.ignoreMessageRequest(request.profileId)}
+                  >
+                    Ignore
+                  </button>
+                  <button
+                    className='smallButton'
+                    type='button'
+                    onClick={() => actions.acceptMessageRequest(request.acceptMessage)}
+                  >
+                    Accept
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </section>
+      <section className='panel contactsPanel'>
+        <SectionTitle icon={<Users size={15} />} text='Trusted friends' />
+        <div id='contactList' className='managedContacts'>
+          {trustedContacts.length === 0 ? (
+            <p className='muted smallText'>No trusted friends yet</p>
+          ) : (
+            trustedContacts.map((contact) => (
+              <div key={contact.profileId} className='managedContact'>
+                <div>
+                  <p>{contact.alias}</p>
+                  <p className='mono muted smallText'>{contact.shortProfileId}</p>
+                  <div className='trustMeta'>
+                    <span>{contact.statusLabel}</span>
+                    <span>{contact.sourceLabel}</span>
+                    <span>{contact.trustedAtLabel}</span>
+                  </div>
+                </div>
+                <button
+                  className='smallButton dangerButton'
+                  type='button'
+                  onClick={() => actions.revokeContact(contact.profileId)}
+                >
+                  Revoke
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </section>
+    </>
   )
 }
 

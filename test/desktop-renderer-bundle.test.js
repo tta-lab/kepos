@@ -60,3 +60,23 @@ test('desktop React owns the direct message list surface', async () => {
   assert.match(controller, /globalThis\.keposDesktopUi\?\.setDirectMessageActions\(\{/)
   assert.doesNotMatch(controller, /els\.dmList\.replaceChildren/)
 })
+
+test('desktop React owns the people list surfaces', async () => {
+  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+
+  assert.match(source, /function PeopleLists\(\{ actions, messageRequests, trustedContacts \}\)/)
+  assert.match(source, /setPeople\(people = \{ messageRequests: \[\], trustedContacts: \[\] \}\)/)
+  assert.match(source, /setPeopleActions\(actions = \{\}\)/)
+  assert.match(source, /<PeopleLists[\s\S]*messageRequests=\{people\.messageRequests\}/)
+  assert.match(source, /onClick=\{\(\) => actions\.revokeContact\(contact\.profileId\)\}/)
+  assert.match(source, /onClick=\{\(\) => actions\.ignoreMessageRequest\(request\.profileId\)\}/)
+  assert.match(
+    source,
+    /onClick=\{\(\) => actions\.acceptMessageRequest\(request\.acceptMessage\)\}/
+  )
+  assert.match(controller, /globalThis\.keposDesktopUi\?\.setPeople\(people\)/)
+  assert.match(controller, /globalThis\.keposDesktopUi\?\.setPeopleActions\(\{/)
+  assert.doesNotMatch(controller, /els\.contactList\.replaceChildren/)
+  assert.doesNotMatch(controller, /els\.requestList\.replaceChildren/)
+})

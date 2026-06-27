@@ -64,11 +64,13 @@ test('desktop people UI uses trusted friends copy', async () => {
   assert.match(source, /id='peoplePane'/)
   assert.match(source, /<PaneLabel eyebrow='trusted' title='People' \/>/)
   assert.match(source, /Trusted friends/)
-  assert.match(controller, /empty\.textContent = 'No trusted friends yet'/)
+  assert.match(source, /No trusted friends yet/)
   assert.match(controller, /createDesktopPeopleViewModel/)
-  assert.match(controller, /status\.textContent = contact\.statusLabel/)
-  assert.match(controller, /source\.textContent = contact\.sourceLabel/)
-  assert.match(controller, /trustedAt\.textContent = contact\.trustedAtLabel/)
+  assert.match(source, /\{contact\.statusLabel\}/)
+  assert.match(source, /\{contact\.sourceLabel\}/)
+  assert.match(source, /\{contact\.trustedAtLabel\}/)
+  assert.match(controller, /globalThis\.keposDesktopUi\?\.setPeople\(people\)/)
+  assert.match(controller, /revokeContact: \(profileId\) => dispatchCommand\('revokeContact'/)
   assert.equal(source.indexOf("id='contactList'") > source.indexOf("id='peoplePane'"), true)
   assert.match(
     controller,
@@ -94,17 +96,21 @@ test('desktop people pane surfaces pending message requests', async () => {
 
   assert.match(source, /id='requestList'/)
   assert.match(source, /Message requests/)
-  assert.match(controller, /requestList: document\.querySelector\('#requestList'\)/)
-  assert.match(controller, /renderMessageRequests\(\)/)
-  assert.match(controller, /messageRequests/)
-  assert.match(controller, /empty\.textContent = 'No message requests'/)
-  assert.match(controller, /title\.textContent = request\.title/)
-  assert.match(controller, /preview\.textContent = request\.preview/)
-  assert.match(controller, /message: request\.acceptMessage/)
-  assert.match(controller, /button\.textContent = 'Accept'/)
-  assert.match(controller, /ignoreButton\.textContent = 'Ignore'/)
-  assert.match(controller, /dispatchCommand\('acceptMessageRequest'/)
-  assert.match(controller, /dispatchCommand\('ignoreMessageRequest'/)
+  assert.match(controller, /renderPeople\(\)/)
+  assert.match(source, /messageRequests=\{people\.messageRequests\}/)
+  assert.match(source, /No message requests/)
+  assert.match(source, /\{request\.title\}/)
+  assert.match(source, /\{request\.preview\}/)
+  assert.match(source, /actions\.acceptMessageRequest\(request\.acceptMessage\)/)
+  assert.match(source, /actions\.ignoreMessageRequest\(request\.profileId\)/)
+  assert.match(
+    controller,
+    /acceptMessageRequest: \(message\) => dispatchCommand\('acceptMessageRequest'/
+  )
+  assert.match(
+    controller,
+    /ignoreMessageRequest: \(profileId\) => dispatchCommand\('ignoreMessageRequest'/
+  )
   assert.match(controller, /createDesktopMessageRequestAcceptance/)
   assert.match(controller, /createDesktopMessageRequestIgnore/)
 })

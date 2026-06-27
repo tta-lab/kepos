@@ -45,7 +45,6 @@ const els = {
   chatPane: document.querySelector('#chatPane'),
   chatSendButton: document.querySelector('#chatSendButton'),
   chatTab: document.querySelector('#chatTab'),
-  contactList: document.querySelector('#contactList'),
   copyHomeQrButton: document.querySelector('#copyHomeQrButton'),
   copyProfileQrButton: document.querySelector('#copyProfileQrButton'),
   createButton: document.querySelector('#createButton'),
@@ -78,7 +77,6 @@ const els = {
   profileQrCode: document.querySelector('#profileQrCode'),
   profileQrOutput: document.querySelector('#profileQrOutput'),
   profileIdLabel: document.querySelector('#profileIdLabel'),
-  requestList: document.querySelector('#requestList'),
   roomKeyInput: document.querySelector('#roomKeyInput'),
   roomKeyLabel: document.querySelector('#roomKeyLabel'),
   showLargeHomeQrButton: document.querySelector('#showLargeHomeQrButton'),
@@ -159,6 +157,11 @@ const treeholeRuntime = backendRuntime.treehole
 globalThis.keposDesktopUi?.setDirectMessageActions({
   acceptMessage: (message) => dispatchCommand('acceptMessageRequest', { message }),
   ignoreMessage: (message) => dispatchCommand('ignoreMessageRequest', { message })
+})
+globalThis.keposDesktopUi?.setPeopleActions({
+  acceptMessageRequest: (message) => dispatchCommand('acceptMessageRequest', { message }),
+  ignoreMessageRequest: (profileId) => dispatchCommand('ignoreMessageRequest', { profileId }),
+  revokeContact: (profileId) => dispatchCommand('revokeContact', { profileId })
 })
 
 backendClient.subscribe('treeholeStateChanged', (snapshot) => {
@@ -631,8 +634,7 @@ function render() {
   renderMessages()
   renderDirectMessages()
   renderDirectContacts()
-  renderMessageRequests()
-  renderContacts()
+  renderPeople()
   renderPosts()
 }
 
@@ -726,112 +728,13 @@ function renderDirectContacts() {
   )
 }
 
-function renderContacts() {
-  if (!els.contactList) return
-
+function renderPeople() {
   const { contactBook } = getProfileContext()
-  const { trustedContacts } = createDesktopPeopleViewModel({
+  const people = createDesktopPeopleViewModel({
     contactBook,
     shortenProfileId: shorten
   })
-
-  if (trustedContacts.length === 0) {
-    const empty = document.createElement('p')
-    empty.className = 'muted smallText'
-    empty.textContent = 'No trusted friends yet'
-    els.contactList.replaceChildren(empty)
-    return
-  }
-
-  els.contactList.replaceChildren(
-    ...trustedContacts.map((contact) => {
-      const row = document.createElement('div')
-      const label = document.createElement('div')
-      const alias = document.createElement('p')
-      const profileId = document.createElement('p')
-      const meta = document.createElement('div')
-      const status = document.createElement('span')
-      const source = document.createElement('span')
-      const trustedAt = document.createElement('span')
-      const button = document.createElement('button')
-
-      row.className = 'managedContact'
-      alias.textContent = contact.alias
-      profileId.className = 'mono muted smallText'
-      profileId.textContent = contact.shortProfileId
-      meta.className = 'trustMeta'
-      status.textContent = contact.statusLabel
-      source.textContent = contact.sourceLabel
-      trustedAt.textContent = contact.trustedAtLabel
-      meta.append(status, source, trustedAt)
-      label.append(alias, profileId, meta)
-      button.type = 'button'
-      button.className = 'smallButton dangerButton'
-      button.textContent = 'Revoke'
-      button.addEventListener('click', () =>
-        dispatchCommand('revokeContact', { profileId: contact.profileId })
-      )
-      row.append(label, button)
-      return row
-    })
-  )
-}
-
-function renderMessageRequests() {
-  if (!els.requestList) return
-
-  const { contactBook } = getProfileContext()
-  const { messageRequests } = createDesktopPeopleViewModel({
-    contactBook,
-    shortenProfileId: shorten
-  })
-
-  if (messageRequests.length === 0) {
-    const empty = document.createElement('p')
-    empty.className = 'muted smallText'
-    empty.textContent = 'No message requests'
-    els.requestList.replaceChildren(empty)
-    return
-  }
-
-  els.requestList.replaceChildren(
-    ...messageRequests.map((request) => {
-      const row = document.createElement('div')
-      const label = document.createElement('div')
-      const title = document.createElement('p')
-      const profileId = document.createElement('p')
-      const preview = document.createElement('p')
-      const actions = document.createElement('div')
-      const ignoreButton = document.createElement('button')
-      const button = document.createElement('button')
-
-      row.className = 'managedContact'
-      title.textContent = request.title
-      profileId.className = 'mono muted smallText'
-      profileId.textContent = request.profileLabel
-      preview.className = 'muted smallText'
-      preview.textContent = request.preview
-      label.append(title, profileId, preview)
-      actions.className = 'inlineActions'
-      ignoreButton.type = 'button'
-      ignoreButton.className = 'smallButton'
-      ignoreButton.textContent = 'Ignore'
-      ignoreButton.addEventListener('click', () =>
-        dispatchCommand('ignoreMessageRequest', { profileId: request.profileId })
-      )
-      button.type = 'button'
-      button.className = 'smallButton'
-      button.textContent = 'Accept'
-      button.addEventListener('click', () =>
-        dispatchCommand('acceptMessageRequest', {
-          message: request.acceptMessage
-        })
-      )
-      actions.append(ignoreButton, button)
-      row.append(label, actions)
-      return row
-    })
-  )
+  globalThis.keposDesktopUi?.setPeople(people)
 }
 
 async function revokeLocalContact(profileId) {
