@@ -52,3 +52,17 @@ test('desktop controller routes commands through the backend bridge', async () =
   assert.match(source, /const backendBridge = createDesktopBackendBridge/)
   assert.match(source, /await backendBridge\.dispatch\(command, payload\)/)
 })
+
+test('desktop controller routes treehole runtime updates through backend bridge events', async () => {
+  const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+
+  assert.match(source, /createDesktopTreeholeRuntime/)
+  assert.match(source, /backendBridge\.emit\('treeholeStateChanged'/)
+  assert.match(source, /backendBridge\.subscribe\('treeholeStateChanged'/)
+  assert.match(source, /setDesktopTreehole\(state, snapshot\)/)
+  assert.match(source, /backendBridge\.emit\('errorReceived'/)
+  assert.match(source, /backendBridge\.subscribe\('errorReceived', showError\)/)
+  assert.doesNotMatch(source, /import Hyperswarm/)
+  assert.doesNotMatch(source, /createTreeholeBase/)
+  assert.doesNotMatch(source, /createTreeholeStatePublisher/)
+})

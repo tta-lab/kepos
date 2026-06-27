@@ -1,8 +1,5 @@
 /* global document, navigator */
 
-import Hyperswarm from 'hyperswarm'
-import os from 'node:os'
-import path from 'node:path'
 import QRCode from 'qrcode'
 import { appendLocalMessage, appendRemoteMessage } from '../src/chat-session.js'
 import {
@@ -35,14 +32,7 @@ import {
   createSignedTrustInvitePayload,
   encodeQrUri
 } from '../src/signed-qr-payload.ts'
-import { createTreeholeBase } from '../src/treehole-base.js'
-import {
-  canGrantTreeholeWriter,
-  canShareTreeholeBootstrap,
-  createTreeholeSessionOptions
-} from '../src/treehole-policy.ts'
-import { createTreeholeStatePublisher } from '../src/treehole-state-publisher.js'
-import { serializeTreeholeState } from '../src/treehole-view.js'
+import { createDesktopTreeholeRuntime } from '../src/desktop-treehole-runtime.js'
 import {
   getDesktopLocalProfile,
   loadDesktopContactBook,
@@ -127,13 +117,9 @@ let session = null
 let dmSession = null
 let dmRuntime = null
 let room = null
-let treehole = null
-let treeholeSwarm = null
-let treeholeStatePublisher = null
 let homeJoinDetails = null
 let largeQrReturnFocus = null
 let pendingCommand = null
-const addedWriters = new Set()
 const commands = createDesktopCommandRegistry({
   handlers: {
     acceptMessageRequest: (payload) => {
@@ -166,6 +152,16 @@ const commands = createDesktopCommandRegistry({
 const backendBridge = createDesktopBackendBridge({
   dispatch: (command, payload) => commands.dispatch(command, payload)
 })
+const treeholeRuntime = createDesktopTreeholeRuntime({
+  onError: (error) => backendBridge.emit('errorReceived', error),
+  onStateChanged: (snapshot) => backendBridge.emit('treeholeStateChanged', snapshot)
+})
+
+backendBridge.subscribe('treeholeStateChanged', (snapshot) => {
+  state = setDesktopTreehole(state, snapshot)
+  render()
+})
+backendBridge.subscribe('errorReceived', showError)
 
 els.createButton.addEventListener('click', () => {
   dispatchCommand('joinHome', { createTreehole: true, mode: 'host' })
@@ -313,6 +309,7 @@ async function joinRoom({ createTreehole, homeAddress = null, mode, roomKey }) {
   els.roomKeyInput.value = homeJoin.roomKey
   homeJoinDetails = { ...homeJoin, treeholePolicy }
   session = homeJoin.session
+  configureTreeholeRuntime()
   dmSession = createDirectMessageSession({ localProfileId: profile.id, nick })
   dmRuntime = createDmThreadRuntime({
     identity: profile.identity,
@@ -434,6 +431,7 @@ function trustProfileQr() {
       ...homeJoinDetails,
       treeholePolicy
     }
+    configureTreeholeRuntime()
   }
   els.trustQrInput.value = ''
   els.trustAliasInput.value = ''
@@ -517,20 +515,17 @@ async function leaveRoom() {
   dmRuntime = null
   await room?.leave()
   room = null
-
-  await treeholeSwarm?.destroy()
-  treeholeSwarm = null
-  treeholeStatePublisher?.stop()
-  treeholeStatePublisher = null
-  await treehole?.close()
-  treehole = null
-
-  addedWriters.clear()
+  await treeholeRuntime.close()
   session = null
   dmSession = null
   homeJoinDetails = null
+  configureTreeholeRuntime()
   state = createDesktopState()
   render()
+}
+
+function configureTreeholeRuntime() {
+  treeholeRuntime.configure({ homeJoinDetails, session })
 }
 
 function sendChat() {
@@ -585,15 +580,14 @@ function sendMessageRequest() {
 
 async function postTreehole() {
   const text = els.treeholeInput.value.trim()
-  if (!treehole || !text || !state.treeholeCanPost) return
+  if (!text || !state.treeholeCanPost) return
 
-  await treehole.post({
+  await treeholeRuntime.post({
     createdAt: Date.now(),
     id: createId(),
     text
   })
   els.treeholeInput.value = ''
-  await renderTreeholeState()
 }
 
 async function handleControl(message, peer) {
@@ -654,6 +648,7 @@ async function handleControl(message, peer) {
         ...homeJoinDetails,
         ownerProfileId: message.ownerProfileId
       }
+      configureTreeholeRuntime()
     }
     await openTreehole(message.key)
     sendTreeholeWriter(peer)
@@ -661,56 +656,16 @@ async function handleControl(message, peer) {
   }
 
   if (message.type === 'treehole.writer') {
-    if (!treehole || addedWriters.has(message.key)) return
-
-    if (
-      !canGrantTreeholeWriter({
-        ownerProfileId: homeJoinDetails?.ownerProfileId || session.profileId,
-        policy: homeJoinDetails?.treeholePolicy,
-        writerProfileId: message.profileId
-      })
-    ) {
-      return
-    }
-
-    addedWriters.add(message.key)
-    await treehole.addWriter(message.key, { profileId: message.profileId })
-    await renderTreeholeState()
+    await treeholeRuntime.addWriter(message)
   }
 }
 
 async function openTreehole(bootstrapKey = null) {
-  if (treehole) return
-
-  treehole = await createTreeholeBase(
-    createTreeholeSessionOptions({
-      bootstrapKey,
-      identity: homeJoinDetails?.identity,
-      nick: session.nick,
-      ownerProfileId: homeJoinDetails?.ownerProfileId || session.profileId,
-      profileId: session.profileId,
-      storage: treeholeStoragePath(session.roomKey, bootstrapKey),
-      treeholePolicy: homeJoinDetails?.treeholePolicy
-    })
-  )
-
-  treeholeSwarm = new Hyperswarm()
-  treeholeSwarm.on('connection', (socket) => {
-    treehole?.replicate(socket)
-  })
-
-  const discovery = treeholeSwarm.join(treehole.base.discoveryKey, {
-    client: true,
-    server: true
-  })
-  discovery.flushed().catch((error) => {
-    showError(new Error(`Treehole replication unavailable: ${error.message}`))
-  })
-  startTreeholeStatePublisher()
-  state = setDesktopTreehole(state, {
-    canPost: canPostToCurrentTreehole(),
-    posts: state.treeholePosts,
-    status: state.treeholeStatus
+  configureTreeholeRuntime()
+  await treeholeRuntime.open({
+    bootstrapKey,
+    initialPosts: state.treeholePosts,
+    initialStatus: state.treeholeStatus
   })
 }
 
@@ -744,73 +699,21 @@ function requestHomeHello(peer = null) {
 }
 
 function sendTreeholeBootstrap(peer, remoteProfileId) {
-  if (!room || !treehole || !peer || homeJoinDetails?.ownerProfileId !== session.profileId) {
-    return
-  }
+  if (!room || !peer) return
 
-  if (
-    !canShareTreeholeBootstrap({
-      localProfileId: session.profileId,
-      ownerProfileId: session.profileId,
-      policy: homeJoinDetails?.treeholePolicy,
-      remoteProfileId
-    })
-  ) {
-    return
-  }
-
-  room.sendControl(peer, {
-    key: treehole.key,
-    ownerProfileId: session.profileId,
-    type: 'treehole.bootstrap'
-  })
+  const payload = treeholeRuntime.createBootstrapControl(remoteProfileId)
+  if (payload) room.sendControl(peer, payload)
 }
 
 function sendTreeholeWriter(peer) {
-  if (!room || !treehole || !peer) return
+  if (!room || !peer) return
 
-  room.sendControl(peer, {
-    key: treehole.localWriterKey,
-    profileId: session.profileId,
-    type: 'treehole.writer'
-  })
-}
-
-async function renderTreeholeState() {
-  if (!treehole) return
-
-  const treeholeState = await treehole.getState()
-  state = setDesktopTreehole(state, {
-    canPost: canPostToCurrentTreehole(),
-    posts: serializeTreeholeState(treeholeState).posts,
-    status: 'ready'
-  })
-  render()
+  const payload = treeholeRuntime.createWriterControl()
+  if (payload) room.sendControl(peer, payload)
 }
 
 function canPostToCurrentTreehole() {
-  if (!session) return true
-  const ownerProfileId = homeJoinDetails?.ownerProfileId
-  return !ownerProfileId || ownerProfileId === session.profileId
-}
-
-function startTreeholeStatePublisher() {
-  treeholeStatePublisher?.stop()
-  treeholeStatePublisher = createTreeholeStatePublisher({
-    getSnapshot: async () => {
-      const treeholeState = await treehole.getState()
-      return serializeTreeholeState(treeholeState)
-    },
-    onError: (error) => showError(new Error(`Treehole state unavailable: ${error.message}`)),
-    publish: (snapshot) => {
-      state = setDesktopTreehole(state, {
-        canPost: canPostToCurrentTreehole(),
-        posts: snapshot.posts,
-        status: 'ready'
-      })
-      render()
-    }
-  })
+  return treeholeRuntime.canPost()
 }
 
 function setTab(tab) {
@@ -1315,25 +1218,21 @@ function renderPostActions(post) {
 }
 
 async function commentTreeholePost({ postId, text }) {
-  if (!treehole || !text.trim()) return
+  if (!text.trim()) return
 
-  await treehole.comment({
+  await treeholeRuntime.comment({
     createdAt: Date.now(),
     id: createId(),
     postId,
     text
   })
-  await renderTreeholeState()
 }
 
 async function likeTreeholePost(postId) {
-  if (!treehole) return
-
-  await treehole.like({
+  await treeholeRuntime.like({
     createdAt: Date.now(),
     postId
   })
-  await renderTreeholeState()
 }
 
 function showError(error) {
@@ -1366,11 +1265,6 @@ function displayPostAuthor(post) {
 
 function shortenProfileId(value) {
   return value ? shorten(value) : ''
-}
-
-function treeholeStoragePath(roomKey, bootstrapKey) {
-  const suffix = bootstrapKey ? bootstrapKey.slice(0, 16) : 'host'
-  return path.join(os.homedir(), `.kepos-treehole-${roomKey.slice(0, 16)}-${suffix}`)
 }
 
 function createId() {
