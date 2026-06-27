@@ -836,7 +836,7 @@ function renderContacts() {
   if (contacts.length === 0) {
     const empty = document.createElement('p')
     empty.className = 'muted smallText'
-    empty.textContent = 'No trusted contacts'
+    empty.textContent = 'No trusted friends yet'
     els.contactList.replaceChildren(empty)
     return
   }
@@ -901,7 +901,7 @@ async function revokeLocalContact(profileId) {
     els.dmRecipientInput.value = ''
   }
 
-  state = { ...state, notice: `Revoked ${shorten(profileId)}.` }
+  state = { ...state, notice: 'Trust revoked.' }
   render()
 }
 

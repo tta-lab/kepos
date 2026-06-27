@@ -61,6 +61,7 @@ test('desktop people UI uses trusted friends copy', async () => {
   assert.match(source, /id='peoplePane'/)
   assert.match(source, /<PaneLabel eyebrow='trusted' title='People' \/>/)
   assert.match(source, /Trusted friends/)
+  assert.match(controller, /empty\.textContent = 'No trusted friends yet'/)
   assert.equal(source.indexOf("id='contactList'") > source.indexOf("id='peoplePane'"), true)
   assert.match(
     controller,
@@ -75,6 +76,9 @@ test('desktop people UI uses trusted friends copy', async () => {
     /els\.peopleTab\.classList\.toggle\('active', state\.activeTab === 'people'\)/
   )
   assert.equal(source.includes("text='Contacts'"), false)
+  assert.equal(controller.includes('No trusted contacts'), false)
+  assert.equal(controller.includes('notice: `Revoked ${shorten(profileId)}.`'), false)
+  assert.match(controller, /notice: 'Trust revoked\.'/)
 })
 
 test('desktop keeps inline QR codes as advanced share detail', async () => {
