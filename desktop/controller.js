@@ -41,7 +41,6 @@ const BLOCKING_COMMANDS = new Set(['joinHome', 'joinHomeUri', 'leaveHome', 'trus
 const els = {
   chatForm: document.querySelector('#chatForm'),
   chatInput: document.querySelector('#chatInput'),
-  chatSendButton: document.querySelector('#chatSendButton'),
   chatTab: document.querySelector('#chatTab'),
   copyHomeQrButton: document.querySelector('#copyHomeQrButton'),
   copyProfileQrButton: document.querySelector('#copyProfileQrButton'),
@@ -49,12 +48,9 @@ const els = {
   dmForm: document.querySelector('#dmForm'),
   dmInput: document.querySelector('#dmInput'),
   dmRecipientInput: document.querySelector('#dmRecipientInput'),
-  dmSendButton: document.querySelector('#dmSendButton'),
   dmTab: document.querySelector('#dmTab'),
   homeQrForm: document.querySelector('#homeQrForm'),
   homeQrInput: document.querySelector('#homeQrInput'),
-  joinButton: document.querySelector('#joinButton'),
-  joinHomeQrButton: document.querySelector('#joinHomeQrButton'),
   largeQrCloseButton: document.querySelector('#largeQrCloseButton'),
   largeQrDialog: document.querySelector('#largeQrDialog'),
   leaveButton: document.querySelector('#leaveButton'),
@@ -66,11 +62,8 @@ const els = {
   showLargeProfileQrButton: document.querySelector('#showLargeProfileQrButton'),
   treeholeForm: document.querySelector('#treeholeForm'),
   treeholeInput: document.querySelector('#treeholeInput'),
-  treeholePostPolicy: document.querySelector('#treeholePostPolicy'),
-  treeholeSendButton: document.querySelector('#treeholeSendButton'),
   treeholeTab: document.querySelector('#treeholeTab'),
   trustAliasInput: document.querySelector('#trustAliasInput'),
-  trustButton: document.querySelector('#trustButton'),
   trustForm: document.querySelector('#trustForm'),
   trustQrInput: document.querySelector('#trustQrInput')
 }
@@ -218,15 +211,15 @@ document.addEventListener('keydown', (event) => {
 els.nickInput.addEventListener('input', () => {
   updateQrOutputs().catch(showError)
 })
-els.chatInput.addEventListener('input', updateComposerButtons)
-els.dmInput.addEventListener('input', updateComposerButtons)
-els.treeholeInput.addEventListener('input', updateComposerButtons)
-els.roomKeyInput.addEventListener('input', updateActionButtons)
-els.homeQrInput.addEventListener('input', updateActionButtons)
-els.trustQrInput.addEventListener('input', updateActionButtons)
+els.chatInput.addEventListener('input', renderControls)
+els.dmInput.addEventListener('input', renderControls)
+els.treeholeInput.addEventListener('input', renderControls)
+els.roomKeyInput.addEventListener('input', renderControls)
+els.homeQrInput.addEventListener('input', renderControls)
+els.trustQrInput.addEventListener('input', renderControls)
 els.dmRecipientInput.addEventListener('input', () => {
   renderDirectContacts()
-  updateComposerButtons()
+  renderControls()
 })
 
 els.chatForm.addEventListener('submit', (event) => {
@@ -599,14 +592,8 @@ function render() {
   const inRoom = state.view === 'room'
   const isActionPending = Boolean(pendingCommand)
   document.body.setAttribute('aria-busy', String(isActionPending))
-  els.leaveButton.disabled = !inRoom || isActionPending
-  els.createButton.disabled = inRoom || isActionPending
-  updateActionButtons()
   renderStatus()
-  els.treeholeForm.classList.toggle('disabledComposer', !state.treeholeCanPost)
-  els.treeholeInput.disabled = !state.treeholeCanPost
-  els.treeholePostPolicy.hidden = state.treeholeCanPost
-  updateComposerButtons()
+  renderControls()
 
   globalThis.keposDesktopUi?.setActiveTab(state.activeTab)
 
@@ -626,22 +613,24 @@ function renderStatus() {
   globalThis.keposDesktopUi?.setStatus(status)
 }
 
-function updateActionButtons() {
+function renderControls() {
   const inRoom = state.view === 'room'
   const isActionPending = Boolean(pendingCommand)
-  els.joinButton.disabled =
-    isActionPending || inRoom || !ROOM_KEY_PATTERN.test(els.roomKeyInput.value.trim())
-  els.joinHomeQrButton.disabled = isActionPending || inRoom || !els.homeQrInput.value.trim()
-  els.trustButton.disabled = isActionPending || !els.trustQrInput.value.trim()
-}
-
-function updateComposerButtons() {
-  const inRoom = state.view === 'room'
-  els.chatSendButton.disabled = !inRoom || !els.chatInput.value.trim()
-  els.dmSendButton.disabled =
-    !inRoom || !els.dmInput.value.trim() || !els.dmRecipientInput.value.trim()
-  els.treeholeSendButton.disabled =
-    !inRoom || !state.treeholeCanPost || !els.treeholeInput.value.trim()
+  const controls = {
+    canCreateHome: !inRoom && !isActionPending,
+    canJoinHomeQr: !isActionPending && !inRoom && Boolean(els.homeQrInput.value.trim()),
+    canJoinManualHome:
+      !isActionPending && !inRoom && ROOM_KEY_PATTERN.test(els.roomKeyInput.value.trim()),
+    canLeaveHome: inRoom && !isActionPending,
+    canPostTreehole: Boolean(state.treeholeCanPost),
+    canSendDirectMessage:
+      inRoom && Boolean(els.dmInput.value.trim()) && Boolean(els.dmRecipientInput.value.trim()),
+    canSendHomeMessage: inRoom && Boolean(els.chatInput.value.trim()),
+    canSubmitTreeholePost:
+      inRoom && Boolean(state.treeholeCanPost) && Boolean(els.treeholeInput.value.trim()),
+    canTrustProfile: !isActionPending && Boolean(els.trustQrInput.value.trim())
+  }
+  globalThis.keposDesktopUi?.setControls(controls)
 }
 
 function renderMessages() {
@@ -672,7 +661,7 @@ function selectDirectContact(profileId = '') {
   if (!profileId) return
   els.dmRecipientInput.value = profileId
   renderDirectContacts()
-  updateComposerButtons()
+  renderControls()
 }
 
 function renderPeople() {

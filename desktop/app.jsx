@@ -28,6 +28,17 @@ const DEFAULT_STATUS = {
   roomKeyLabel: 'not joined',
   treeholeStatusLabel: 'Treehole offline'
 }
+const DEFAULT_CONTROLS = {
+  canCreateHome: true,
+  canJoinHomeQr: false,
+  canJoinManualHome: false,
+  canLeaveHome: false,
+  canPostTreehole: false,
+  canSendDirectMessage: false,
+  canSendHomeMessage: false,
+  canSubmitTreeholePost: false,
+  canTrustProfile: false
+}
 const EMPTY_LARGE_QR = { isOpen: false, svg: '', title: '' }
 const EMPTY_SHARE_QR_OUTPUTS = {
   homeSvg: '',
@@ -37,6 +48,7 @@ const EMPTY_SHARE_QR_OUTPUTS = {
 }
 const desktopUiBridge = {
   setActiveTab: () => {},
+  setControls: () => {},
   setDirectContactPicker: () => {},
   setDirectContactPickerActions: () => {},
   setDirectMessageActions: () => {},
@@ -54,6 +66,9 @@ const desktopUiBridge = {
 globalThis.keposDesktopUi = {
   setActiveTab(tab = 'chat') {
     desktopUiBridge.setActiveTab(tab)
+  },
+  setControls(controls = DEFAULT_CONTROLS) {
+    desktopUiBridge.setControls(controls)
   },
   setDirectContactPicker(
     picker = {
@@ -104,6 +119,7 @@ globalThis.keposDesktopUi = {
 
 function DesktopApp() {
   const [activeTab, setActiveTab] = useState('chat')
+  const [controls, setControls] = useState(DEFAULT_CONTROLS)
   const [directContactPicker, setDirectContactPicker] = useState({
     contacts: [],
     empty: {
@@ -138,6 +154,7 @@ function DesktopApp() {
   const [status, setStatus] = useState(DEFAULT_STATUS)
   const [theme, setTheme] = useState(getInitialTheme)
   desktopUiBridge.setActiveTab = setActiveTab
+  desktopUiBridge.setControls = setControls
   desktopUiBridge.setDirectContactPicker = setDirectContactPicker
   desktopUiBridge.setDirectContactPickerActions = setDirectContactPickerActions
   desktopUiBridge.setDirectMessageActions = setDirectMessageActions
@@ -240,7 +257,7 @@ function DesktopApp() {
             <HomeChatList messages={homeMessages} />
             <form id='chatForm' className='composer'>
               <input id='chatInput' placeholder='Write to the home' autoComplete='off' />
-              <button id='chatSendButton' type='submit'>
+              <button id='chatSendButton' type='submit' disabled={!controls.canSendHomeMessage}>
                 <Send size={17} />
                 Send
               </button>
@@ -273,7 +290,7 @@ function DesktopApp() {
                 </label>
               </details>
               <textarea id='dmInput' placeholder='Write a direct message' />
-              <button id='dmSendButton' type='submit'>
+              <button id='dmSendButton' type='submit' disabled={!controls.canSendDirectMessage}>
                 <Send size={17} />
                 Send message
               </button>
@@ -283,12 +300,25 @@ function DesktopApp() {
           <section id='treeholePane' className={activeTab === 'treehole' ? 'pane' : 'pane hidden'}>
             <PaneLabel eyebrow='durable' title='Durable treehole' />
             <TreeholeList actions={treeholeActions} posts={treeholePosts} />
-            <form id='treeholeForm' className='composer tall'>
-              <p id='treeholePostPolicy' className='composerHint' hidden>
+            <form
+              id='treeholeForm'
+              className={
+                controls.canPostTreehole ? 'composer tall' : 'composer tall disabledComposer'
+              }
+            >
+              <p id='treeholePostPolicy' className='composerHint' hidden={controls.canPostTreehole}>
                 Only the owner can post here.
               </p>
-              <textarea id='treeholeInput' placeholder='Post to the treehole' />
-              <button id='treeholeSendButton' type='submit'>
+              <textarea
+                id='treeholeInput'
+                placeholder='Post to the treehole'
+                disabled={!controls.canPostTreehole}
+              />
+              <button
+                id='treeholeSendButton'
+                type='submit'
+                disabled={!controls.canSubmitTreeholePost}
+              >
                 <Sprout size={17} />
                 Post
               </button>
@@ -318,7 +348,7 @@ function DesktopApp() {
                 <input id='nickInput' autoComplete='off' defaultValue='Desktop' />
               </label>
               <div className='actions singleAction'>
-                <button id='createButton' type='button'>
+                <button id='createButton' type='button' disabled={!controls.canCreateHome}>
                   <HomeIcon />
                   Create my home
                 </button>
@@ -333,7 +363,7 @@ function DesktopApp() {
                     spellCheck='false'
                   />
                 </label>
-                <button id='joinButton' type='submit'>
+                <button id='joinButton' type='submit' disabled={!controls.canJoinManualHome}>
                   <LogOut size={17} />
                   Join home
                 </button>
@@ -369,7 +399,7 @@ function DesktopApp() {
                   spellCheck='false'
                 />
               </label>
-              <button id='joinHomeQrButton' type='submit'>
+              <button id='joinHomeQrButton' type='submit' disabled={!controls.canJoinHomeQr}>
                 <LogOut size={17} />
                 Join home
               </button>
@@ -419,7 +449,7 @@ function DesktopApp() {
                 Friend name
                 <input id='trustAliasInput' autoComplete='off' placeholder='Friend name' />
               </label>
-              <button id='trustButton' type='submit'>
+              <button id='trustButton' type='submit' disabled={!controls.canTrustProfile}>
                 <UserPlus size={17} />
                 Add trusted friend
               </button>
@@ -450,7 +480,7 @@ function DesktopApp() {
                 {status.errorDetailLabel}
               </p>
             </details>
-            <button id='leaveButton' type='button' disabled>
+            <button id='leaveButton' type='button' disabled={!controls.canLeaveHome}>
               <LogOut size={17} />
               Leave
             </button>

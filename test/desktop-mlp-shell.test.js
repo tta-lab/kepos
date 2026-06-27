@@ -318,9 +318,16 @@ test('desktop treehole composer has an explicit owner-only disabled state', asyn
 
   assert.match(source, /id='treeholePostPolicy'/)
   assert.match(source, /Only the owner can post here\./)
-  assert.match(controller, /els\.treeholeForm\.classList\.toggle\('disabledComposer'/)
-  assert.match(controller, /els\.treeholeInput\.disabled = !state\.treeholeCanPost/)
-  assert.match(controller, /els\.treeholePostPolicy\.hidden = state\.treeholeCanPost/)
+  assert.match(
+    source,
+    /className=\{[\s\S]*controls\.canPostTreehole \? 'composer tall' : 'composer tall disabledComposer'[\s\S]*\}/
+  )
+  assert.match(source, /hidden=\{controls\.canPostTreehole\}/)
+  assert.match(source, /disabled=\{!controls\.canPostTreehole\}/)
+  assert.match(controller, /canPostTreehole: Boolean\(state\.treeholeCanPost\)/)
+  assert.doesNotMatch(controller, /els\.treeholeForm\.classList\.toggle\('disabledComposer'/)
+  assert.doesNotMatch(controller, /els\.treeholeInput\.disabled =/)
+  assert.doesNotMatch(controller, /els\.treeholePostPolicy\.hidden =/)
   assert.match(styles, /\.disabledComposer/)
 })
 
@@ -349,47 +356,54 @@ test('desktop composers disable unavailable sends', async () => {
 
   for (const id of ['chatSendButton', 'dmSendButton', 'treeholeSendButton']) {
     assert.match(source, new RegExp(`id='${id}'`), `${id} is missing`)
-    assert.match(controller, new RegExp(`${id}: document\\.querySelector\\('#${id}'\\)`))
   }
 
-  assert.match(controller, /function updateComposerButtons\(\)/)
+  assert.match(controller, /function renderControls\(\)/)
+  assert.match(source, /disabled=\{!controls\.canSendHomeMessage\}/)
+  assert.match(source, /disabled=\{!controls\.canSendDirectMessage\}/)
+  assert.match(source, /disabled=\{!controls\.canSubmitTreeholePost\}/)
   assert.match(
     controller,
-    /els\.chatSendButton\.disabled = !inRoom \|\| !els\.chatInput\.value\.trim\(\)/
+    /canSendHomeMessage: inRoom && Boolean\(els\.chatInput\.value\.trim\(\)\)/
   )
   assert.match(
     controller,
-    /els\.dmSendButton\.disabled =\s*!inRoom \|\| !els\.dmInput\.value\.trim\(\) \|\| !els\.dmRecipientInput\.value\.trim\(\)/
+    /canSendDirectMessage:\s*inRoom && Boolean\(els\.dmInput\.value\.trim\(\)\) && Boolean\(els\.dmRecipientInput\.value\.trim\(\)\)/
   )
   assert.match(
     controller,
-    /els\.treeholeSendButton\.disabled =\s*!inRoom \|\| !state\.treeholeCanPost \|\| !els\.treeholeInput\.value\.trim\(\)/
+    /canSubmitTreeholePost:\s*inRoom && Boolean\(state\.treeholeCanPost\) && Boolean\(els\.treeholeInput\.value\.trim\(\)\)/
   )
 })
 
 test('desktop context actions disable unavailable joins and trust', async () => {
+  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
 
   assert.match(controller, /const ROOM_KEY_PATTERN = \/\^\[0-9a-f\]\{64\}\$\//)
-  assert.match(controller, /function updateActionButtons\(\)/)
-  assert.match(controller, /els\.roomKeyInput\.addEventListener\('input', updateActionButtons\)/)
-  assert.match(controller, /els\.homeQrInput\.addEventListener\('input', updateActionButtons\)/)
-  assert.match(controller, /els\.trustQrInput\.addEventListener\('input', updateActionButtons\)/)
+  assert.match(controller, /function renderControls\(\)/)
+  assert.match(controller, /els\.roomKeyInput\.addEventListener\('input', renderControls\)/)
+  assert.match(controller, /els\.homeQrInput\.addEventListener\('input', renderControls\)/)
+  assert.match(controller, /els\.trustQrInput\.addEventListener\('input', renderControls\)/)
+  assert.match(source, /disabled=\{!controls\.canJoinManualHome\}/)
+  assert.match(source, /disabled=\{!controls\.canJoinHomeQr\}/)
+  assert.match(source, /disabled=\{!controls\.canTrustProfile\}/)
   assert.match(
     controller,
-    /els\.joinButton\.disabled =\s*isActionPending \|\| inRoom \|\| !ROOM_KEY_PATTERN\.test\(els\.roomKeyInput\.value\.trim\(\)\)/
+    /canJoinManualHome:\s*!isActionPending && !inRoom && ROOM_KEY_PATTERN\.test\(els\.roomKeyInput\.value\.trim\(\)\)/
   )
   assert.match(
     controller,
-    /els\.joinHomeQrButton\.disabled = isActionPending \|\| inRoom \|\| !els\.homeQrInput\.value\.trim\(\)/
+    /canJoinHomeQr: !isActionPending && !inRoom && Boolean\(els\.homeQrInput\.value\.trim\(\)\)/
   )
   assert.match(
     controller,
-    /els\.trustButton\.disabled = isActionPending \|\| !els\.trustQrInput\.value\.trim\(\)/
+    /canTrustProfile: !isActionPending && Boolean\(els\.trustQrInput\.value\.trim\(\)\)/
   )
 })
 
 test('desktop context actions expose a pending lock during blocking commands', async () => {
+  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
 
   assert.match(controller, /const BLOCKING_COMMANDS = new Set\(\[/)
@@ -404,19 +418,21 @@ test('desktop context actions expose a pending lock during blocking commands', a
     /finally \{\s*if \(pendingCommand === command\) \{\s*pendingCommand = null/
   )
   assert.match(controller, /document\.body\.setAttribute\('aria-busy', String\(isActionPending\)\)/)
-  assert.match(controller, /els\.leaveButton\.disabled = !inRoom \|\| isActionPending/)
-  assert.match(controller, /els\.createButton\.disabled = inRoom \|\| isActionPending/)
+  assert.match(source, /disabled=\{!controls\.canLeaveHome\}/)
+  assert.match(source, /disabled=\{!controls\.canCreateHome\}/)
+  assert.match(controller, /canLeaveHome: inRoom && !isActionPending/)
+  assert.match(controller, /canCreateHome: !inRoom && !isActionPending/)
   assert.match(
     controller,
-    /els\.joinButton\.disabled =\s*isActionPending \|\| inRoom \|\| !ROOM_KEY_PATTERN\.test\(els\.roomKeyInput\.value\.trim\(\)\)/
+    /canJoinManualHome:\s*!isActionPending && !inRoom && ROOM_KEY_PATTERN\.test\(els\.roomKeyInput\.value\.trim\(\)\)/
   )
   assert.match(
     controller,
-    /els\.joinHomeQrButton\.disabled = isActionPending \|\| inRoom \|\| !els\.homeQrInput\.value\.trim\(\)/
+    /canJoinHomeQr: !isActionPending && !inRoom && Boolean\(els\.homeQrInput\.value\.trim\(\)\)/
   )
   assert.match(
     controller,
-    /els\.trustButton\.disabled = isActionPending \|\| !els\.trustQrInput\.value\.trim\(\)/
+    /canTrustProfile: !isActionPending && Boolean\(els\.trustQrInput\.value\.trim\(\)\)/
   )
 })
 

@@ -118,6 +118,32 @@ test('desktop React owns tab and pane active state', async () => {
   assert.doesNotMatch(controller, /function updateTabCurrentState\(\)/)
 })
 
+test('desktop React owns action and composer disabled state', async () => {
+  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+
+  assert.match(source, /setControls\(controls = DEFAULT_CONTROLS\)/)
+  assert.match(source, /const \[controls, setControls\] = useState\(DEFAULT_CONTROLS\)/)
+  assert.match(source, /disabled=\{!controls\.canCreateHome\}/)
+  assert.match(source, /disabled=\{!controls\.canLeaveHome\}/)
+  assert.match(source, /disabled=\{!controls\.canJoinManualHome\}/)
+  assert.match(source, /disabled=\{!controls\.canJoinHomeQr\}/)
+  assert.match(source, /disabled=\{!controls\.canTrustProfile\}/)
+  assert.match(source, /disabled=\{!controls\.canSendHomeMessage\}/)
+  assert.match(source, /disabled=\{!controls\.canSendDirectMessage\}/)
+  assert.match(source, /disabled=\{!controls\.canSubmitTreeholePost\}/)
+  assert.match(
+    source,
+    /className=\{[\s\S]*controls\.canPostTreehole \? 'composer tall' : 'composer tall disabledComposer'[\s\S]*\}/
+  )
+  assert.match(source, /hidden=\{controls\.canPostTreehole\}/)
+  assert.match(source, /disabled=\{!controls\.canPostTreehole\}/)
+  assert.match(controller, /globalThis\.keposDesktopUi\?\.setControls\(controls\)/)
+  assert.doesNotMatch(controller, /\.disabled =/)
+  assert.doesNotMatch(controller, /classList\.toggle\('disabledComposer'/)
+  assert.doesNotMatch(controller, /treeholePostPolicy\.hidden =/)
+})
+
 test('desktop React owns the large QR dialog surface', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
