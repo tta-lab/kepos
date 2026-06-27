@@ -26,7 +26,7 @@ test('desktop context panel uses product actions for home and people flows', asy
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
 
   assert.match(source, /<h1>Kepos Home<\/h1>/)
-  assert.match(source, /className='contextGroup homeActions'/)
+  assert.match(source, /<details className='contextGroup homeActions'[^>]+open>/)
   assert.match(source, /Start your home, invite a friend, or join theirs\./)
   assert.match(source, /<label>\s*Name\s*<input id='nickInput'/)
   assert.match(source, /Invite a friend/)
@@ -35,7 +35,8 @@ test('desktop context panel uses product actions for home and people flows', asy
   assert.match(source, /placeholder='Paste Profile QR'/)
   assert.match(source, /<label>\s*Friend name\s*<input id='trustAliasInput'/)
   assert.match(source, /placeholder='Friend name'/)
-  assert.match(source, /className='contextGroup peopleActions'/)
+  assert.match(source, /<details className='contextGroup peopleActions'/)
+  assert.equal(/<details className='contextGroup peopleActions'[^>]+open>/.test(source), false)
   assert.match(source, /Trust a friend before home access or direct messages\./)
   assert.match(source, /Add trusted friend/)
   assert.equal(source.includes('Start your room'), false)
@@ -49,6 +50,8 @@ test('desktop context panel uses product actions for home and people flows', asy
   assert.equal(source.includes('Paste Home QR text'), false)
   assert.equal(source.includes('Paste Profile QR text'), false)
   assert.match(styles, /\.contextGroup/)
+  assert.match(styles, /\.contextGroup > summary/)
+  assert.match(styles, /\.contextGroup\[open\]/)
   assert.match(styles, /\.contextHint/)
 })
 

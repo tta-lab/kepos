@@ -175,11 +175,11 @@ function DesktopApp() {
         </section>
 
         <aside className='contextPanel' aria-label='Home and people context'>
-          <section className='contextGroup homeActions' aria-labelledby='homeActionsTitle'>
-            <div className='contextHead'>
+          <details className='contextGroup homeActions' aria-labelledby='homeActionsTitle' open>
+            <summary className='contextHead'>
               <SectionTitle id='homeActionsTitle' icon={<Home size={15} />} text='Home' />
               <p className='contextHint'>Start your home, invite a friend, or join theirs.</p>
-            </div>
+            </summary>
 
             <form id='lobbyForm' className='panel compactPanel'>
               <label>
@@ -236,17 +236,17 @@ function DesktopApp() {
                 Join home
               </button>
             </form>
-          </section>
+          </details>
 
-          <section className='contextGroup peopleActions' aria-labelledby='peopleActionsTitle'>
-            <div className='contextHead'>
+          <details className='contextGroup peopleActions' aria-labelledby='peopleActionsTitle'>
+            <summary className='contextHead'>
               <SectionTitle
                 id='peopleActionsTitle'
                 icon={<ShieldCheck size={15} />}
                 text='People'
               />
               <p className='contextHint'>Trust a friend before home access or direct messages.</p>
-            </div>
+            </summary>
 
             <form id='trustForm' className='panel qrPanel'>
               <button id='showLargeProfileQrButton' type='button'>
@@ -284,7 +284,7 @@ function DesktopApp() {
                 Add trusted friend
               </button>
             </form>
-          </section>
+          </details>
 
           <section className='panel roomMeta'>
             <p className='label'>Home</p>

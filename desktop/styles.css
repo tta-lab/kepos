@@ -639,6 +639,22 @@ textarea {
   padding-bottom: 16px;
 }
 
+.contextGroup > summary {
+  border-radius: 8px;
+  cursor: pointer;
+  list-style: none;
+  padding: 8px;
+}
+
+.contextGroup > summary::-webkit-details-marker {
+  display: none;
+}
+
+.contextGroup[open] > summary {
+  background: color-mix(in srgb, var(--surface-raised) 44%, transparent);
+  margin-bottom: 4px;
+}
+
 .contextHead {
   display: grid;
   gap: 4px;
