@@ -19,15 +19,86 @@ function DesktopApp() {
   return (
     <>
       <main className='shell'>
-        <aside className='sidebar'>
-          <div className='brand'>
-            <div className='mark'>K</div>
+        <aside className='appRail' aria-label='Kepos views'>
+          <div className='mark'>K</div>
+          <nav className='railNav' aria-label='Main views'>
+            <button id='chatTab' className='railButton active' type='button' title='Home chat'>
+              <MessageCircle size={19} />
+              <span className='railLabel'>Home</span>
+            </button>
+            <button id='dmTab' className='railButton' type='button' title='Direct messages'>
+              <Send size={19} />
+              <span className='railLabel'>DM</span>
+            </button>
+            <button id='treeholeTab' className='railButton' type='button' title='Treehole'>
+              <Sprout size={19} />
+              <span className='railLabel'>Treehole</span>
+            </button>
+          </nav>
+        </aside>
+
+        <section className='workspace'>
+          <header className='topbar'>
             <div>
               <p className='kicker'>private garden</p>
               <h1>Kepos Peer</h1>
+              <p id='noticeLabel' className='notice'>
+                Create or join a home.
+              </p>
+              <p id='treeholeStatusLabel' className='subnotice'>
+                treehole idle
+              </p>
             </div>
-          </div>
+          </header>
 
+          <section id='chatPane' className='pane'>
+            <ol id='messageList' className='list' />
+            <form id='chatForm' className='composer'>
+              <input id='chatInput' placeholder='Write to the home' autoComplete='off' />
+              <button type='submit'>
+                <Send size={17} />
+                Send
+              </button>
+            </form>
+          </section>
+
+          <section id='dmPane' className='pane hidden'>
+            <ol id='dmList' className='list' />
+            <form id='dmForm' className='composer tall'>
+              <div id='dmContactList' className='contactList' />
+              <details id='advancedDmRecipient' className='advanced advancedComposer'>
+                <summary>Advanced</summary>
+                <label>
+                  Recipient profile id
+                  <input
+                    id='dmRecipientInput'
+                    placeholder='Recipient profile id'
+                    autoComplete='off'
+                    spellCheck='false'
+                  />
+                </label>
+              </details>
+              <textarea id='dmInput' placeholder='Write a direct message' />
+              <button type='submit'>
+                <Send size={17} />
+                Send DM
+              </button>
+            </form>
+          </section>
+
+          <section id='treeholePane' className='pane hidden'>
+            <ol id='treeholeList' className='list posts' />
+            <form id='treeholeForm' className='composer tall'>
+              <textarea id='treeholeInput' placeholder='Post to the treehole' />
+              <button type='submit'>
+                <Sprout size={17} />
+                Post
+              </button>
+            </form>
+          </section>
+        </section>
+
+        <aside className='contextPanel' aria-label='Home and people context'>
           <form id='lobbyForm' className='panel'>
             <label>
               Nick
@@ -147,79 +218,6 @@ function DesktopApp() {
             </button>
           </section>
         </aside>
-
-        <section className='workspace'>
-          <header className='topbar'>
-            <div>
-              <p id='noticeLabel' className='notice'>
-                Create or join a home.
-              </p>
-              <p id='treeholeStatusLabel' className='subnotice'>
-                treehole idle
-              </p>
-            </div>
-            <div className='tabs'>
-              <button id='chatTab' className='tab active' type='button' title='Home chat'>
-                <MessageCircle size={17} />
-                Chat
-              </button>
-              <button id='dmTab' className='tab' type='button' title='Direct messages'>
-                <Send size={17} />
-                DM
-              </button>
-              <button id='treeholeTab' className='tab' type='button' title='Treehole'>
-                <Sprout size={17} />
-                Treehole
-              </button>
-            </div>
-          </header>
-
-          <section id='chatPane' className='pane'>
-            <ol id='messageList' className='list' />
-            <form id='chatForm' className='composer'>
-              <input id='chatInput' placeholder='Write to the home' autoComplete='off' />
-              <button type='submit'>
-                <Send size={17} />
-                Send
-              </button>
-            </form>
-          </section>
-
-          <section id='dmPane' className='pane hidden'>
-            <ol id='dmList' className='list' />
-            <form id='dmForm' className='composer tall'>
-              <div id='dmContactList' className='contactList' />
-              <details id='advancedDmRecipient' className='advanced advancedComposer'>
-                <summary>Advanced</summary>
-                <label>
-                  Recipient profile id
-                  <input
-                    id='dmRecipientInput'
-                    placeholder='Recipient profile id'
-                    autoComplete='off'
-                    spellCheck='false'
-                  />
-                </label>
-              </details>
-              <textarea id='dmInput' placeholder='Write a direct message' />
-              <button type='submit'>
-                <Send size={17} />
-                Send DM
-              </button>
-            </form>
-          </section>
-
-          <section id='treeholePane' className='pane hidden'>
-            <ol id='treeholeList' className='list posts' />
-            <form id='treeholeForm' className='composer tall'>
-              <textarea id='treeholeInput' placeholder='Post to the treehole' />
-              <button type='submit'>
-                <Sprout size={17} />
-                Post
-              </button>
-            </form>
-          </section>
-        </section>
       </main>
 
       <div id='largeQrDialog' className='largeQrDialog hidden' role='dialog' aria-modal='true'>
