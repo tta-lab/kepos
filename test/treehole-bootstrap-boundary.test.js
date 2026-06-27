@@ -33,3 +33,12 @@ test('android backend reports whether the local profile can post to treehole', a
     /return Boolean\(profileId && ownerProfileId && profileId === ownerProfileId\)/
   )
 })
+
+test('android backend reports whether the local profile can interact with treehole', async () => {
+  const source = await readFile(new URL('../backend/backend.mjs', import.meta.url), 'utf8')
+
+  assert.match(source, /function canInteractWithCurrentTreehole\(\)/)
+  assert.match(source, /canInteract: canInteractWithCurrentTreehole\(\)/)
+  assert.match(source, /canGrantTreeholeWriter\(\{/)
+  assert.match(source, /writerProfileId: profileId/)
+})

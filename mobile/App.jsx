@@ -189,6 +189,7 @@ export default function App() {
   const [dmSession, setDmSession] = useState(null)
   const [dmThreads, setDmThreads] = useState([])
   const [treeholeDraft, setTreeholeDraft] = useState('')
+  const [treeholeCanInteract, setTreeholeCanInteract] = useState(false)
   const [treeholeCanPost, setTreeholeCanPost] = useState(false)
   const [treeholePosts, setTreeholePosts] = useState([])
   const [treeholeStatus, setTreeholeStatus] = useState('idle')
@@ -287,6 +288,7 @@ export default function App() {
       setDmMessages([])
       setPeerCount(0)
       setTreeholePosts([])
+      setTreeholeCanInteract(false)
       setTreeholeCanPost(false)
       setTreeholeStatus('starting')
       startBackend({
@@ -327,6 +329,7 @@ export default function App() {
       setDmMessages([])
       setPeerCount(0)
       setTreeholePosts([])
+      setTreeholeCanInteract(false)
       setTreeholeCanPost(false)
       setTreeholeStatus('waiting')
       startBackend({
@@ -378,6 +381,7 @@ export default function App() {
       setDmMessages([])
       setPeerCount(0)
       setTreeholePosts([])
+      setTreeholeCanInteract(false)
       setTreeholeCanPost(false)
       setTreeholeStatus('waiting')
       setHomeQrUri('')
@@ -513,6 +517,7 @@ export default function App() {
     setDmDraft('')
     setDmMessages([])
     setTreeholeDraft('')
+    setTreeholeCanInteract(false)
     setTreeholeCanPost(false)
     setTreeholePosts([])
     setTreeholeStatus('idle')
@@ -603,7 +608,7 @@ export default function App() {
   }
 
   function sendTreeholeComment({ postId, text }) {
-    if (!session || !text.trim()) {
+    if (!session || !treeholeCanInteract || !text.trim()) {
       return
     }
 
@@ -618,7 +623,7 @@ export default function App() {
   }
 
   function sendTreeholeLike(postId) {
-    if (!session) {
+    if (!session || !treeholeCanInteract) {
       return
     }
 
@@ -701,6 +706,9 @@ export default function App() {
 
         if (req.command === RPC_TREEHOLE_STATUS) {
           setTreeholeStatus(payload.status || 'idle')
+          if (Object.hasOwn(payload, 'canInteract')) {
+            setTreeholeCanInteract(Boolean(payload.canInteract))
+          }
           if (Object.hasOwn(payload, 'canPost')) {
             setTreeholeCanPost(Boolean(payload.canPost))
           }
@@ -890,6 +898,8 @@ export default function App() {
                   profileQrUri={profileQrUri}
                   lastError={lastError}
                   session={session}
+                  treeholeCanInteract={treeholeCanInteract}
+                  treeholeCanPost={treeholeCanPost}
                   treeholeDraft={treeholeDraft}
                   treeholePosts={treeholePosts}
                   treeholeStatus={treeholeStatus}
@@ -1152,6 +1162,7 @@ function ChatRoom({
   profileQrUri,
   lastError,
   session,
+  treeholeCanInteract,
   treeholeCanPost,
   treeholeDraft,
   treeholePosts,
@@ -1230,6 +1241,7 @@ function ChatRoom({
             onLike={onTreeholeLike}
             onPost={onTreeholePost}
             posts={treeholePosts}
+            canInteract={treeholeCanInteract}
             canPost={treeholeCanPost}
             status={treeholeStatus}
           />
@@ -1887,7 +1899,17 @@ function ChatPane({ draft, messages, onDraftChange, onSend }) {
   )
 }
 
-function TreeholePane({ canPost, draft, onComment, onDraftChange, onLike, onPost, posts, status }) {
+function TreeholePane({
+  canInteract,
+  canPost,
+  draft,
+  onComment,
+  onDraftChange,
+  onLike,
+  onPost,
+  posts,
+  status
+}) {
   const { styles, theme } = useMobileTheme()
   const canSubmitPost = canPost && draft.trim()
   const showOwnerOnlyHint = status === 'ready' && !canPost
@@ -1901,7 +1923,12 @@ function TreeholePane({ canPost, draft, onComment, onDraftChange, onLike, onPost
         keyExtractor={(item) => item.id}
         ListEmptyComponent={<EmptyTreehole status={status} />}
         renderItem={({ item }) => (
-          <TreeholePost onComment={onComment} onLike={onLike} post={item} />
+          <TreeholePost
+            canInteract={canInteract}
+            onComment={onComment}
+            onLike={onLike}
+            post={item}
+          />
         )}
       />
 
@@ -1958,12 +1985,13 @@ function PaneLabel({ eyebrow, title }) {
   )
 }
 
-function TreeholePost({ onComment, onLike, post }) {
+function TreeholePost({ canInteract, onComment, onLike, post }) {
   const { styles, theme } = useMobileTheme()
   const [commentDraft, setCommentDraft] = useState('')
+  const canSubmitComment = canInteract && commentDraft.trim()
 
   function submitComment() {
-    if (!commentDraft.trim()) {
+    if (!canSubmitComment) {
       return
     }
 
@@ -1997,24 +2025,32 @@ function TreeholePost({ onComment, onLike, post }) {
         </View>
       </View>
       <View style={styles.postActions}>
-        <Pressable onPress={() => onLike(post.id)} style={styles.smallActionButton}>
+        <Pressable
+          disabled={!canInteract}
+          onPress={() => onLike(post.id)}
+          style={[styles.smallActionButton, !canInteract && styles.disabledSmallActionButton]}
+        >
           <Heart color={theme.accentStrong} size={15} />
           <Text style={styles.smallActionText}>Like</Text>
         </Pressable>
+        {!canInteract ? (
+          <Text style={styles.composerHint}>Only trusted friends can comment or like here.</Text>
+        ) : null}
         <View style={styles.commentComposer}>
           <TextInput
+            editable={canInteract}
             onChangeText={setCommentDraft}
             onSubmitEditing={submitComment}
             placeholder='Write a comment'
             placeholderTextColor={theme.placeholder}
-            style={styles.commentInput}
+            style={[styles.commentInput, !canInteract && styles.disabledTreeholeInput]}
             value={commentDraft}
           />
           <Pressable
             accessibilityLabel='Send treehole comment'
-            disabled={!commentDraft.trim()}
+            disabled={!canSubmitComment}
             onPress={submitComment}
-            style={[styles.smallSendButton, !commentDraft.trim() && styles.disabledSendButton]}
+            style={[styles.smallSendButton, !canSubmitComment && styles.disabledSendButton]}
           >
             <Send color={theme.surface} size={15} />
           </Pressable>
@@ -3044,6 +3080,10 @@ function createMobileStyles(theme) {
       gap: 6,
       minHeight: 36,
       paddingHorizontal: 10
+    },
+    disabledSmallActionButton: {
+      borderColor: theme.disabledBorder,
+      opacity: 0.65
     },
     smallActionText: {
       color: theme.accentStrong,

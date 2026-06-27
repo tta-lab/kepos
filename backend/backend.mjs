@@ -264,6 +264,7 @@ async function openTreehole(bootstrapKey = null) {
   sendToUI(RPC_STATUS, { status: 'opening-treehole-state' })
   sendToUI(RPC_TREEHOLE_STATUS, { status: 'sending-state' })
   sendToUI(RPC_TREEHOLE_STATUS, {
+    canInteract: canInteractWithCurrentTreehole(),
     canPost: canPostToCurrentTreehole(),
     status: 'ready',
     key: treehole.key,
@@ -427,6 +428,14 @@ function sendTreeholeWriter(peer) {
 function canPostToCurrentTreehole() {
   const ownerProfileId = homeOwnerProfileId || profileId
   return Boolean(profileId && ownerProfileId && profileId === ownerProfileId)
+}
+
+function canInteractWithCurrentTreehole() {
+  return canGrantTreeholeWriter({
+    ownerProfileId: homeOwnerProfileId || profileId,
+    policy: treeholePolicy,
+    writerProfileId: profileId
+  })
 }
 
 async function postTreehole(payload) {

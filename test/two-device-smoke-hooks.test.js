@@ -492,7 +492,7 @@ test('Android treehole composer explains owner-only posting', async () => {
     false
   )
   assert.match(source, /canPost={treeholeCanPost}/)
-  assert.match(source, /function TreeholePane\(\{ canPost,/)
+  assert.match(source, /function TreeholePane\(\{\s*canInteract,\s*canPost,/)
   assert.match(source, /const canSubmitPost = canPost && draft\.trim\(\)/)
   assert.match(source, /const showOwnerOnlyHint = status === 'ready' && !canPost/)
   assert.match(source, /Only the owner can post here\./)
@@ -500,6 +500,31 @@ test('Android treehole composer explains owner-only posting', async () => {
   assert.match(source, /!canPost && styles\.disabledTreeholeInput/)
   assert.match(source, /disabled=\{!canSubmitPost\}/)
   assert.match(source, /!canSubmitPost && styles\.disabledSendButton/)
+})
+
+test('Android treehole interactions disable when the profile cannot interact', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const treeholePane = source.slice(
+    source.indexOf('function TreeholePane('),
+    source.indexOf('function EmptyTreehole(')
+  )
+  const treeholePost = source.slice(
+    source.indexOf('function TreeholePost('),
+    source.indexOf('function displayPostAuthor(')
+  )
+
+  assert.match(source, /const \[treeholeCanInteract, setTreeholeCanInteract\] = useState\(false\)/)
+  assert.match(source, /Object\.hasOwn\(payload, 'canInteract'\)/)
+  assert.match(source, /setTreeholeCanInteract\(Boolean\(payload\.canInteract\)\)/)
+  assert.match(source, /canInteract={treeholeCanInteract}/)
+  assert.match(treeholePane, /function TreeholePane\(\{\s*canInteract,/)
+  assert.match(treeholePane, /<TreeholePost[\s\S]*canInteract=\{canInteract\}/)
+  assert.match(treeholePost, /function TreeholePost\(\{\s*canInteract,/)
+  assert.match(treeholePost, /const canSubmitComment = canInteract && commentDraft\.trim\(\)/)
+  assert.match(treeholePost, /disabled=\{!canInteract\}/)
+  assert.match(treeholePost, /disabled=\{!canSubmitComment\}/)
+  assert.match(treeholePost, /editable=\{canInteract\}/)
+  assert.match(treeholePost, /Only trusted friends can comment or like here\./)
 })
 
 test('Android room has a People tab for QR and trusted contacts', async () => {
