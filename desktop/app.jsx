@@ -91,6 +91,7 @@ function DesktopApp() {
           </header>
 
           <section id='chatPane' className='pane'>
+            <PaneLabel eyebrow='live' title='Live home chat' />
             <ol
               id='messageList'
               className='list'
@@ -107,6 +108,7 @@ function DesktopApp() {
           </section>
 
           <section id='dmPane' className='pane hidden'>
+            <PaneLabel eyebrow='durable' title='Direct messages' />
             <ol id='dmList' className='list' aria-label='Direct messages' data-empty='No DMs yet' />
             <form id='dmForm' className='composer tall'>
               <div id='dmContactList' className='contactList' />
@@ -131,6 +133,7 @@ function DesktopApp() {
           </section>
 
           <section id='treeholePane' className='pane hidden'>
+            <PaneLabel eyebrow='durable' title='Durable treehole' />
             <ol
               id='treeholeList'
               className='list posts'
@@ -333,6 +336,15 @@ function SectionTitle({ icon, id, text }) {
       {icon}
       <span>{text}</span>
     </p>
+  )
+}
+
+function PaneLabel({ eyebrow, title }) {
+  return (
+    <div className='paneLabel'>
+      <p className='paneEyebrow'>{eyebrow}</p>
+      <h2 className='paneTitle'>{title}</h2>
+    </div>
   )
 }
 

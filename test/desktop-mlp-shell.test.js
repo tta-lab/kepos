@@ -89,6 +89,19 @@ test('desktop primary panes expose short empty states before content arrives', a
   assert.match(styles, /content:\s*attr\(data-empty\)/)
 })
 
+test('desktop panes label live and durable surfaces', async () => {
+  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
+
+  for (const text of ['Live home chat', 'Direct messages', 'Durable treehole']) {
+    assert.match(source, new RegExp(text), `${text} is missing`)
+  }
+
+  assert.match(styles, /\.paneLabel/)
+  assert.match(styles, /\.paneEyebrow/)
+  assert.match(styles, /\.paneTitle/)
+})
+
 test('desktop treehole composer has an explicit owner-only disabled state', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
