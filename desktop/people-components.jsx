@@ -1,6 +1,19 @@
 import React from 'react'
 import { MessageCircle, Users } from 'lucide-react'
 
+export function PeoplePane({ activeTab, actions, messageRequests, trustedContacts }) {
+  return (
+    <section id='peoplePane' className={activeTab === 'people' ? 'pane' : 'pane hidden'}>
+      <PaneLabel eyebrow='trusted' title='People' />
+      <PeopleLists
+        actions={actions}
+        messageRequests={messageRequests}
+        trustedContacts={trustedContacts}
+      />
+    </section>
+  )
+}
+
 export function PeopleLists({ actions, messageRequests, trustedContacts }) {
   return (
     <>
@@ -68,6 +81,15 @@ export function PeopleLists({ actions, messageRequests, trustedContacts }) {
         </div>
       </section>
     </>
+  )
+}
+
+function PaneLabel({ eyebrow, title }) {
+  return (
+    <div className='paneLabel'>
+      <p className='paneEyebrow'>{eyebrow}</p>
+      <h2 className='paneTitle'>{title}</h2>
+    </div>
   )
 }
 

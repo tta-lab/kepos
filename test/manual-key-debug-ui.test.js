@@ -4,6 +4,7 @@ import { describe, test } from 'node:test'
 
 async function readDesktopUiSource() {
   const app = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const panes = await readFile(new URL('../desktop/pane-components.jsx', import.meta.url), 'utf8')
   const shell = await readFile(new URL('../desktop/shell-components.jsx', import.meta.url), 'utf8')
   const context = await readFile(
     new URL('../desktop/context-components.jsx', import.meta.url),
@@ -13,7 +14,7 @@ async function readDesktopUiSource() {
     new URL('../desktop/people-components.jsx', import.meta.url),
     'utf8'
   )
-  return `${app}\n${shell}\n${context}\n${people}`
+  return `${app}\n${panes}\n${shell}\n${context}\n${people}`
 }
 
 describe('manual key debug UI boundary', () => {

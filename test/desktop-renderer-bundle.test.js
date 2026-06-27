@@ -4,6 +4,7 @@ import test from 'node:test'
 
 async function readDesktopUiSource() {
   const app = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const panes = await readFile(new URL('../desktop/pane-components.jsx', import.meta.url), 'utf8')
   const shell = await readFile(new URL('../desktop/shell-components.jsx', import.meta.url), 'utf8')
   const context = await readFile(
     new URL('../desktop/context-components.jsx', import.meta.url),
@@ -13,7 +14,7 @@ async function readDesktopUiSource() {
     new URL('../desktop/people-components.jsx', import.meta.url),
     'utf8'
   )
-  return `${app}\n${shell}\n${context}\n${people}`
+  return `${app}\n${panes}\n${shell}\n${context}\n${people}`
 }
 
 test('desktop renderer loads the bundled CommonJS entrypoint', async () => {
@@ -59,7 +60,8 @@ test('desktop React owns the home chat list surface', async () => {
   assert.match(source, /function HomeChatList\(\{ messages \}\)/)
   assert.match(source, /globalThis\.keposDesktopUi/)
   assert.match(source, /setHomeMessages\(messages = \[\]\)/)
-  assert.match(source, /<HomeChatList messages=\{homeMessages\} \/>/)
+  assert.match(source, /<HomePane[\s\S]*messages=\{homeMessages\}/)
+  assert.match(source, /<HomeChatList messages=\{messages\} \/>/)
   assert.match(presenter, /ui\?\.setHomeMessages\(/)
   assert.doesNotMatch(controller, /els\.messageList\.replaceChildren/)
 })
@@ -99,7 +101,8 @@ test('desktop React owns the direct message list surface', async () => {
   assert.match(source, /function DirectMessageList\(\{ messages, onAccept, onIgnore \}\)/)
   assert.match(source, /setDirectMessages\(messages = \[\]\)/)
   assert.match(source, /setDirectMessageActions\(actions = \{\}\)/)
-  assert.match(source, /<DirectMessageList[\s\S]*messages=\{directMessages\}/)
+  assert.match(source, /<DirectPane[\s\S]*messages=\{directMessages\}/)
+  assert.match(source, /<DirectMessageList[\s\S]*messages=\{messages\}/)
   assert.match(source, /onClick=\{\(\) => onIgnore\(message\.actions\.ignoreMessage\)\}/)
   assert.match(source, /onClick=\{\(\) => onAccept\(message\.actions\.acceptMessage\)\}/)
   assert.match(presenter, /ui\?\.setDirectMessages\(/)
@@ -121,7 +124,8 @@ test('desktop React owns the direct contact picker surface', async () => {
   )
   assert.match(source, /setDirectContactPicker\([\s\S]*picker = \{[\s\S]*contacts: \[\]/)
   assert.match(source, /setDirectContactPickerActions\(actions = \{\}\)/)
-  assert.match(source, /<DirectComposer[\s\S]*contactPicker=\{directContactPicker\}/)
+  assert.match(source, /<DirectPane[\s\S]*contactPicker=\{directContactPicker\}/)
+  assert.match(source, /<DirectComposer[\s\S]*contactPicker=\{contactPicker\}/)
   assert.match(source, /<DirectContactPicker[\s\S]*contacts=\{contactPicker\.contacts\}/)
   assert.match(source, /selectedProfileId=\{composer\.toProfileId\.trim\(\)\}/)
   assert.match(source, /onClick=\{\(\) => actions\.selectContact\(contact\.profileId\)\}/)
@@ -362,7 +366,8 @@ test('desktop React owns the people list surfaces', async () => {
   assert.match(source, /function PeopleLists\(\{ actions, messageRequests, trustedContacts \}\)/)
   assert.match(source, /setPeople\(people = \{ messageRequests: \[\], trustedContacts: \[\] \}\)/)
   assert.match(source, /setPeopleActions\(actions = \{\}\)/)
-  assert.match(source, /<PeopleLists[\s\S]*messageRequests=\{people\.messageRequests\}/)
+  assert.match(source, /<PeoplePane[\s\S]*messageRequests=\{people\.messageRequests\}/)
+  assert.match(source, /<PeopleLists[\s\S]*messageRequests=\{messageRequests\}/)
   assert.match(source, /onClick=\{\(\) => actions\.revokeContact\(contact\.profileId\)\}/)
   assert.match(source, /onClick=\{\(\) => actions\.ignoreMessageRequest\(request\.profileId\)\}/)
   assert.match(
@@ -386,7 +391,8 @@ test('desktop React owns the treehole post list surface', async () => {
   assert.match(source, /function TreeholeList\(\{ actions, posts \}\)/)
   assert.match(source, /setTreeholePosts\(posts = \[\]\)/)
   assert.match(source, /setTreeholeActions\(actions = \{\}\)/)
-  assert.match(source, /<TreeholeList[\s\S]*posts=\{treeholePosts\}/)
+  assert.match(source, /<TreeholePane[\s\S]*posts=\{treeholePosts\}/)
+  assert.match(source, /<TreeholeList[\s\S]*posts=\{posts\}/)
   assert.match(source, /onClick=\{\(\) => actions\.likePost\(post\.actions\.likePostId\)\}/)
   assert.match(
     source,

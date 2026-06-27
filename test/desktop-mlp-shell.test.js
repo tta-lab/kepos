@@ -8,6 +8,7 @@ async function readDesktopAppSource() {
 
 async function readDesktopUiSource() {
   const app = await readDesktopAppSource()
+  const panes = await readFile(new URL('../desktop/pane-components.jsx', import.meta.url), 'utf8')
   const shell = await readFile(new URL('../desktop/shell-components.jsx', import.meta.url), 'utf8')
   const context = await readFile(
     new URL('../desktop/context-components.jsx', import.meta.url),
@@ -17,7 +18,7 @@ async function readDesktopUiSource() {
     new URL('../desktop/people-components.jsx', import.meta.url),
     'utf8'
   )
-  return `${app}\n${shell}\n${context}\n${people}`
+  return `${app}\n${panes}\n${shell}\n${context}\n${people}`
 }
 
 test('desktop React shell separates navigation, workspace, and context panels', async () => {
@@ -137,19 +138,41 @@ test('desktop people UI uses trusted friends copy', async () => {
   assert.match(actions, /setNotice\('Trust revoked\.'\)/)
 })
 
-test('desktop People lists live behind a dedicated component boundary', async () => {
+test('desktop People pane lives behind a dedicated component boundary', async () => {
   const source = await readDesktopAppSource()
   const people = await readFile(
     new URL('../desktop/people-components.jsx', import.meta.url),
     'utf8'
   )
 
-  assert.match(source, /import \{ PeopleLists \} from '\.\/people-components\.jsx'/)
-  assert.match(source, /<PeopleLists[\s\S]*trustedContacts=\{people\.trustedContacts\}/)
+  assert.match(source, /import \{ PeoplePane \} from '\.\/people-components\.jsx'/)
+  assert.match(source, /<PeoplePane[\s\S]*trustedContacts=\{people\.trustedContacts\}/)
+  assert.match(people, /export function PeoplePane\(/)
   assert.match(people, /export function PeopleLists\(/)
   assert.match(people, /function SectionTitle\(/)
+  assert.doesNotMatch(source, /<PaneLabel eyebrow='trusted' title='People' \/>/)
   assert.doesNotMatch(source, /function PeopleLists\(/)
   assert.doesNotMatch(source, /function SectionTitle\(/)
+})
+
+test('desktop primary panes live behind a dedicated component boundary', async () => {
+  const source = await readDesktopAppSource()
+  const panes = await readFile(new URL('../desktop/pane-components.jsx', import.meta.url), 'utf8')
+
+  assert.match(
+    source,
+    /import \{ DirectPane, HomePane, TreeholePane \} from '\.\/pane-components\.jsx'/
+  )
+  assert.match(source, /<HomePane[\s\S]*messages=\{homeMessages\}/)
+  assert.match(source, /<DirectPane[\s\S]*messages=\{directMessages\}/)
+  assert.match(source, /<TreeholePane[\s\S]*posts=\{treeholePosts\}/)
+  assert.match(panes, /export function HomePane\(/)
+  assert.match(panes, /export function DirectPane\(/)
+  assert.match(panes, /export function TreeholePane\(/)
+  assert.doesNotMatch(source, /function HomeChatComposer\(/)
+  assert.doesNotMatch(source, /function DirectComposer\(/)
+  assert.doesNotMatch(source, /function TreeholeComposer\(/)
+  assert.doesNotMatch(source, /function PaneLabel\(/)
 })
 
 test('desktop people pane surfaces pending message requests', async () => {
