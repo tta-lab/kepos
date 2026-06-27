@@ -1106,6 +1106,8 @@ function DirectPane({
   onSend,
   recipient
 }) {
+  const [showAdvancedDmRecipient, setShowAdvancedDmRecipient] = useState(false)
+
   return (
     <>
       <FlatList
@@ -1152,16 +1154,25 @@ function DirectPane({
             ))}
           </ScrollView>
         ) : null}
-        <TextInput
-          autoCapitalize='none'
-          autoCorrect={false}
-          onChangeText={onRecipientChange}
-          placeholder='Recipient profile id'
-          placeholderTextColor='#8b9188'
-          style={styles.recipientInput}
-          testID='dm-recipient-input'
-          value={recipient}
-        />
+        <Pressable
+          onPress={() => setShowAdvancedDmRecipient((value) => !value)}
+          style={styles.directAdvancedToggle}
+          testID='advanced-dm-recipient-toggle'
+        >
+          <Text style={styles.advancedSummary}>Advanced</Text>
+        </Pressable>
+        {showAdvancedDmRecipient ? (
+          <TextInput
+            autoCapitalize='none'
+            autoCorrect={false}
+            onChangeText={onRecipientChange}
+            placeholder='Manual recipient profile id'
+            placeholderTextColor='#8b9188'
+            style={styles.recipientInput}
+            testID='dm-recipient-input'
+            value={recipient}
+          />
+        ) : null}
         <View style={styles.composer}>
           <TextInput
             onChangeText={onDraftChange}
@@ -1396,7 +1407,7 @@ function EmptyDirectMessages() {
     <View style={styles.empty}>
       <MessageCircle color='#56715f' size={34} />
       <Text style={styles.emptyTitle}>No direct messages yet</Text>
-      <Text style={styles.emptyCopy}>Paste a profile id and send a text DM.</Text>
+      <Text style={styles.emptyCopy}>Choose a trusted friend and send the first DM.</Text>
     </View>
   )
 }
@@ -1891,6 +1902,19 @@ const styles = StyleSheet.create({
   directComposer: {
     borderTopColor: '#d9dfcf',
     borderTopWidth: 1
+  },
+  directAdvancedToggle: {
+    alignSelf: 'flex-start',
+    marginHorizontal: 14,
+    marginTop: 12,
+    minHeight: 30,
+    justifyContent: 'center'
+  },
+  advancedSummary: {
+    color: '#5a6b54',
+    fontSize: 12,
+    fontWeight: '900',
+    textTransform: 'uppercase'
   },
   contactScroller: {
     gap: 8,

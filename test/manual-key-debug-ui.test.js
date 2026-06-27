@@ -47,4 +47,16 @@ describe('manual key debug UI boundary', () => {
       true
     )
   })
+
+  test('mobile keeps manual DM recipient entry inside an advanced section', async () => {
+    const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+
+    assert.match(source, /<Text style={styles\.advancedSummary}>Advanced<\/Text>/)
+    assert.match(source, /showAdvancedDmRecipient \? \(/)
+    assert.equal(
+      source.indexOf("testID='dm-recipient-input'") > source.indexOf('showAdvancedDmRecipient ? ('),
+      true
+    )
+    assert.equal(source.includes('Paste a profile id and send a text DM.'), false)
+  })
 })
