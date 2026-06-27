@@ -13,18 +13,13 @@ import {
   createDirectMessageSession,
   dismissDirectMessage
 } from '../src/dm-session.js'
-import { createDmEncryptionKeyPair } from '../src/dm-invite.ts'
 import { acceptDmInviteAsRecipient } from '../src/dm-invite-acceptance.js'
 import { loadDmMessagesFromStorage, saveDmMessagesToStorage } from '../src/dm-message-storage.ts'
 import { createDmThreadRuntime } from '../src/dm-thread-runtime.js'
 import { loadDmThreadsFromStorage, saveDmThreadsToStorage } from '../src/dm-thread-storage.js'
 import { applyMessageRequestToContactBook, createMessageRequest } from '../src/message-request.ts'
 import { acceptMessageRequestWithInvite } from '../src/message-request-acceptance.js'
-import {
-  createTreeholePolicyFromContactBook,
-  loadContactBookFromStorage,
-  saveContactBookToStorage
-} from '../src/contact-book-storage.js'
+import { createTreeholePolicyFromContactBook } from '../src/contact-book-storage.js'
 import { ignoreMessageRequest, listTrustedContacts } from '../src/contact-book.ts'
 import {
   createHomeJoinSession,
@@ -48,7 +43,11 @@ import {
 } from '../src/treehole-policy.ts'
 import { createTreeholeStatePublisher } from '../src/treehole-state-publisher.js'
 import { serializeTreeholeState } from '../src/treehole-view.js'
-import { getOrCreateLocalProfile } from '../src/local-profile.js'
+import {
+  getDesktopLocalProfile,
+  loadDesktopContactBook,
+  saveDesktopContactBook
+} from '../src/desktop-local-adapters.js'
 import {
   createDesktopState,
   getDesktopHomeStatus,
@@ -427,10 +426,7 @@ function trustProfileQr() {
     throw new Error('Profile QR is required')
   }
 
-  saveContactBookToStorage({
-    book: result.book,
-    storage: globalThis.localStorage
-  })
+  saveDesktopContactBook({ book: result.book })
 
   const treeholePolicy = createTreeholePolicyFromContactBook(result.book)
   if (homeJoinDetails?.profileId === profile.id) {
@@ -509,17 +505,11 @@ function hideLargeQr() {
 }
 
 function loadLocalContactBook(ownerProfileId) {
-  return loadContactBookFromStorage({
-    ownerProfileId,
-    storage: globalThis.localStorage
-  })
+  return loadDesktopContactBook({ ownerProfileId })
 }
 
 function getDesktopProfile(displayName) {
-  return getOrCreateLocalProfile({
-    createDmEncryptionKeyPair,
-    displayName
-  })
+  return getDesktopLocalProfile({ displayName })
 }
 
 async function leaveRoom() {
@@ -631,10 +621,7 @@ async function handleControl(message, peer) {
       source: 'home_room'
     })
 
-    saveContactBookToStorage({
-      book: nextBook,
-      storage: globalThis.localStorage
-    })
+    saveDesktopContactBook({ book: nextBook })
     dmSession = appendRemoteMessageRequest(dmSession, message)
     state = { ...state, notice: 'Message request received.' }
     render()
@@ -1093,10 +1080,7 @@ async function revokeLocalContact(profileId) {
     threads
   })
 
-  saveContactBookToStorage({
-    book: result.book,
-    storage: globalThis.localStorage
-  })
+  saveDesktopContactBook({ book: result.book })
   saveDmThreadsToStorage({
     ownerProfileId: profile.id,
     storage: globalThis.localStorage,
@@ -1182,10 +1166,7 @@ function acceptIncomingMessageRequest(message) {
     threadId: createId()
   })
 
-  saveContactBookToStorage({
-    book: result.book,
-    storage: globalThis.localStorage
-  })
+  saveDesktopContactBook({ book: result.book })
   saveLocalDmThread(profile.id, result.thread)
   openLocalDmThread(result.thread).catch(showError)
   room.broadcastControl(result.invite)
@@ -1202,10 +1183,7 @@ function ignoreIncomingMessageRequest({ message = null, profileId = '' }) {
     profileId: requestProfileId
   })
 
-  saveContactBookToStorage({
-    book,
-    storage: globalThis.localStorage
-  })
+  saveDesktopContactBook({ book })
 
   if (dmSession && message?.id) {
     dmSession = dismissDirectMessage(dmSession, { id: message.id })
