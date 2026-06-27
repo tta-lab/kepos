@@ -33,7 +33,8 @@ import {
   appendLocalMessageRequest,
   appendRemoteSignedDirectMessage,
   appendRemoteMessageRequest,
-  createDirectMessageSession
+  createDirectMessageSession,
+  dismissDirectMessage
 } from '../src/dm-session.js'
 import { loadDmThreadsFromFileSystem, saveDmThreadsToFileSystem } from '../src/dm-thread-storage.js'
 import {
@@ -782,8 +783,9 @@ export default function App() {
       return
     }
 
+    const requestProfileId = request.profileId || request.fromProfileId
     const nextBook = ignoreMessageRequest(contactBook, {
-      profileId: request.profileId
+      profileId: requestProfileId
     })
 
     await saveContactBookToFileSystem({
@@ -792,6 +794,15 @@ export default function App() {
       fileSystem: FileSystem
     })
     setContactBook(nextBook)
+    setDmSession((current) => {
+      if (!current || !request.id) {
+        return current
+      }
+
+      const nextSession = dismissDirectMessage(current, { id: request.id })
+      setDmMessages(nextSession.messages)
+      return nextSession
+    })
     setNotice('Message request ignored.')
   }
 
@@ -1188,6 +1199,7 @@ function ChatRoom({
             messages={dmMessages}
             onAcceptRequest={onAcceptRequest}
             onDraftChange={onDmDraftChange}
+            onIgnoreRequest={onIgnoreRequest}
             onRecipientChange={onDmRecipientChange}
             onRevokeContact={onRevokeContact}
             onSend={onSendDm}
@@ -1620,6 +1632,7 @@ function DirectPane({
   messages,
   onAcceptRequest,
   onDraftChange,
+  onIgnoreRequest,
   onRecipientChange,
   onRevokeContact,
   onSend,
@@ -1636,7 +1649,13 @@ function DirectPane({
         data={messages}
         keyExtractor={(item) => item.id}
         ListEmptyComponent={<EmptyDirectMessages />}
-        renderItem={({ item }) => <DirectBubble message={item} onAcceptRequest={onAcceptRequest} />}
+        renderItem={({ item }) => (
+          <DirectBubble
+            message={item}
+            onAcceptRequest={onAcceptRequest}
+            onIgnoreRequest={onIgnoreRequest}
+          />
+        )}
       />
 
       <View style={styles.directComposer}>
@@ -2036,7 +2055,7 @@ function EmptyDirectMessages() {
   )
 }
 
-function DirectBubble({ message, onAcceptRequest }) {
+function DirectBubble({ message, onAcceptRequest, onIgnoreRequest }) {
   const { styles } = useMobileTheme()
   const outgoing = message.direction === 'out'
   const isRequest = message.type === 'kepos.message.request.v1'
@@ -2054,15 +2073,26 @@ function DirectBubble({ message, onAcceptRequest }) {
       </Text>
       <Text style={[styles.bubbleText, !outgoing && styles.inBubbleText]}>{message.text}</Text>
       {isRequest && !outgoing ? (
-        <Pressable
-          style={styles.requestButton}
-          onPress={() => {
-            onAcceptRequest(message).catch(() => {})
-          }}
-          testID='message-request-accept-button'
-        >
-          <Text style={styles.requestButtonText}>Accept</Text>
-        </Pressable>
+        <View style={styles.requestActions}>
+          <Pressable
+            onPress={() => {
+              onIgnoreRequest(message).catch(() => {})
+            }}
+            style={styles.requestIgnoreButton}
+            testID='message-request-ignore-button'
+          >
+            <Text style={styles.requestIgnoreButtonText}>Ignore</Text>
+          </Pressable>
+          <Pressable
+            style={styles.requestButton}
+            onPress={() => {
+              onAcceptRequest(message).catch(() => {})
+            }}
+            testID='message-request-accept-button'
+          >
+            <Text style={styles.requestButtonText}>Accept</Text>
+          </Pressable>
+        </View>
       ) : null}
     </View>
   )

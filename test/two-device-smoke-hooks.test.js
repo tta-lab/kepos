@@ -186,6 +186,8 @@ test('DM request copy reads as a social action', async () => {
   assert.match(desktop, /Someone wants to start a DM/)
   assert.match(mobile, /You asked someone to start a DM/)
   assert.match(desktop, /You asked someone to start a DM/)
+  assert.match(mobile, /testID='message-request-ignore-button'/)
+  assert.match(mobile, /onIgnoreRequest\(message\)/)
   assert.match(mobile, /wants to start a DM/)
   assert.match(desktop, /wants to start a DM/)
   assert.equal(mobile.includes('asked Profile'), false)

@@ -69,6 +69,15 @@ export function appendRemoteMessageRequest(session, request) {
   return appendDirectMessage(session, normalizeMessageRequest(request, 'in'))
 }
 
+export function dismissDirectMessage(session, { id }) {
+  const cleanId = cleanRequiredString(id, 'Direct message id is required')
+
+  return {
+    ...session,
+    messages: session.messages.filter((message) => message.id !== cleanId)
+  }
+}
+
 function appendDirectMessage(session, message) {
   if (!message.id || !message.text || session.seenMessageIds.has(message.id)) {
     return session

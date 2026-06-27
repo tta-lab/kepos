@@ -7,7 +7,8 @@ import {
   appendRemoteDirectMessage,
   appendRemoteSignedDirectMessage,
   appendRemoteMessageRequest,
-  createDirectMessageSession
+  createDirectMessageSession,
+  dismissDirectMessage
 } from '../src/dm-session.js'
 import { createSignedDmMessage } from '../src/dm-message.ts'
 import { createSigningKeyPair } from '../src/signed-record.ts'
@@ -129,6 +130,29 @@ describe('direct message session state', () => {
     ])
     assert.equal(duplicate.messages.length, 1)
     assert.equal(duplicate.messages[0].direction, 'in')
+  })
+
+  test('dismissing a direct message removes it without clearing seen history', () => {
+    const session = appendRemoteMessageRequest(
+      createDirectMessageSession({
+        localProfileId: 'profile-b',
+        nick: 'Neil'
+      }),
+      {
+        type: 'kepos.message.request.v1',
+        requestId: 'request-1',
+        fromProfileId: 'profile-a',
+        toProfileId: 'profile-b',
+        text: 'hello',
+        createdAt: 1_797_331_200_000
+      }
+    )
+
+    const dismissed = dismissDirectMessage(session, { id: 'request-1' })
+
+    assert.equal(session.messages.length, 1)
+    assert.deepEqual(dismissed.messages, [])
+    assert.equal(dismissed.seenMessageIds.has('request-1'), true)
   })
 
   test('signed DM messages append locally and remotely for display', () => {
