@@ -280,6 +280,20 @@ test('Android home chat disables empty sends like other composers', async () => 
   assert.match(source, /\[styles\.sendButton, !draft\.trim\(\) && styles\.disabledSendButton\]/)
 })
 
+test('Android icon-only buttons expose accessible labels', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+
+  for (const label of [
+    'Leave home',
+    'Send home message',
+    'Send direct message',
+    'Post to treehole',
+    'Send treehole comment'
+  ]) {
+    assert.match(source, new RegExp(`accessibilityLabel=['"]${label}['"]`), `${label} is missing`)
+  }
+})
+
 test('Android room tabs use product labels', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 

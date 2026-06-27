@@ -1090,7 +1090,7 @@ function ChatRoom({
           >
             <Text style={styles.advancedSummary}>Advanced</Text>
           </Pressable>
-          <Pressable style={styles.iconButton} onPress={onLeave}>
+          <Pressable accessibilityLabel='Leave home' style={styles.iconButton} onPress={onLeave}>
             <LogOut color={theme.accentStrong} size={18} />
           </Pressable>
         </View>
@@ -1574,6 +1574,7 @@ function DirectPane({
             value={draft}
           />
           <Pressable
+            accessibilityLabel='Send direct message'
             disabled={!draft.trim() || !recipient.trim()}
             onPress={onSend}
             style={[
@@ -1660,6 +1661,7 @@ function ChatPane({ draft, messages, onDraftChange, onSend }) {
           value={draft}
         />
         <Pressable
+          accessibilityLabel='Send home message'
           disabled={!draft.trim()}
           onPress={onSend}
           style={[styles.sendButton, !draft.trim() && styles.disabledSendButton]}
@@ -1706,6 +1708,7 @@ function TreeholePane({ canPost, draft, onComment, onDraftChange, onLike, onPost
           ) : null}
         </View>
         <Pressable
+          accessibilityLabel='Post to treehole'
           disabled={!canSubmitPost}
           onPress={onPost}
           style={[styles.sendButton, !canSubmitPost && styles.disabledSendButton]}
@@ -1794,6 +1797,7 @@ function TreeholePost({ onComment, onLike, post }) {
             value={commentDraft}
           />
           <Pressable
+            accessibilityLabel='Send treehole comment'
             disabled={!commentDraft.trim()}
             onPress={submitComment}
             style={[styles.smallSendButton, !commentDraft.trim() && styles.disabledSendButton]}
