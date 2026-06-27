@@ -7,7 +7,6 @@ import {
 import { createDesktopDirectContactPickerViewModel } from '../src/desktop-direct-contact-picker-view-model.js'
 import { createDesktopDirectMessageListViewModel } from '../src/desktop-direct-view-model.js'
 import { createDesktopHomeChatViewModel } from '../src/desktop-home-chat-view-model.js'
-import { createDesktopHomeJoinDetails } from '../src/desktop-home-join-service.js'
 import { createDesktopPeopleViewModel } from '../src/desktop-people-view-model.js'
 import { createDesktopProfileContext } from '../src/desktop-profile-context.js'
 import {
@@ -15,19 +14,14 @@ import {
   createDesktopMessageRequestIgnore
 } from '../src/desktop-message-request-service.js'
 import { createDesktopMessageActions } from '../src/desktop-message-actions.js'
+import { createDesktopRoomActions } from '../src/desktop-room-actions.js'
 import {
-  applyDesktopHomeQr,
   applyDesktopProfileTrustQr,
   createDesktopShareQrOutputs,
   renderDesktopQrSvg
 } from '../src/desktop-qr-service.js'
 import { createDesktopContactRevoke } from '../src/desktop-revoke-service.js'
-import {
-  createDesktopState,
-  setDesktopRoom,
-  setDesktopTab,
-  setDesktopTreehole
-} from '../src/desktop-state.js'
+import { createDesktopState, setDesktopTab, setDesktopTreehole } from '../src/desktop-state.js'
 import { createDesktopStatusViewModel } from '../src/desktop-status-view-model.js'
 import { createDesktopTreeholeViewModel } from '../src/desktop-treehole-view-model.js'
 import { createDesktopLocalBackendHost } from '../src/desktop-local-backend-host.js'
@@ -63,14 +57,38 @@ const messageActions = createDesktopMessageActions({
     session = nextSession
   }
 })
+const roomActions = createDesktopRoomActions({
+  closeAll: () => backendRuntime.closeAll(),
+  configureTreeholeRuntime,
+  getCurrentDisplayName,
+  getDmRuntime: () => dmRuntime,
+  getHomeRuntime: () => homeRuntime,
+  getProfileContext,
+  getTreeholeRuntime: () => treeholeRuntime,
+  onChanged: () => render(),
+  openTreehole,
+  setContextFormDraft: (draft) => globalThis.keposDesktopUi?.setContextFormDraft(draft),
+  setDmSession: (nextSession) => {
+    dmSession = nextSession
+  },
+  setHomeJoinDetails: (nextDetails) => {
+    homeJoinDetails = nextDetails
+  },
+  setSession: (nextSession) => {
+    session = nextSession
+  },
+  updateState: (updater) => {
+    state = updater(state)
+  }
+})
 const backendHost = createDesktopLocalBackendHost({
   actions: {
     acceptMessageRequest: acceptIncomingMessageRequest,
     commentTreehole: messageActions.commentTreehole,
     ignoreMessageRequest: ignoreIncomingMessageRequest,
-    joinHome: joinRoom,
-    joinHomeUri: joinHomeQr,
-    leaveHome: leaveRoom,
+    joinHome: roomActions.joinHome,
+    joinHomeUri: roomActions.joinHomeUri,
+    leaveHome: roomActions.leaveHome,
     likeTreehole: messageActions.likeTreehole,
     postTreehole: messageActions.postTreehole,
     revokeContact: revokeLocalContact,
@@ -193,71 +211,6 @@ function isBlockingCommand(command) {
   return BLOCKING_COMMANDS.has(command)
 }
 
-async function joinRoom({ createTreehole, homeAddress = null, mode, roomKey }) {
-  await leaveRoom()
-
-  const nick = getCurrentDisplayName()
-  const { contactBook, profile, storage } = getProfileContext(nick)
-  const homeJoin = createDesktopHomeJoinDetails({
-    contactBook,
-    homeAddress,
-    mode,
-    nick,
-    profile,
-    roomKey
-  })
-
-  globalThis.keposDesktopUi?.setContextFormDraft({
-    roomKey: homeJoin.homeJoinDetails.roomKey
-  })
-  homeJoinDetails = homeJoin.homeJoinDetails
-  session = homeJoin.session
-  configureTreeholeRuntime()
-  dmSession = await dmRuntime.start({ nick, profile, storage })
-  state = setDesktopRoom(state, {
-    mode: homeJoin.mode,
-    nick,
-    peers: 0,
-    roomKey: homeJoin.homeJoinDetails.roomKey
-  })
-  state = { ...state, notice: 'Joining home...' }
-  render()
-
-  await homeRuntime.join({ homeJoinDetails })
-
-  if (createTreehole) {
-    await openTreehole()
-    homeRuntime.requestHomeHello()
-  } else {
-    state = setDesktopTreehole(state, {
-      canPost: canPostToCurrentTreehole(),
-      status: 'waiting-for-bootstrap',
-      posts: []
-    })
-  }
-
-  state = { ...state, notice: 'Home joined.' }
-  render()
-}
-
-async function joinHomeQr({ displayName = 'Desktop', uri } = {}) {
-  if (!uri) return
-
-  const { contactBook, profile } = getProfileContext(displayName)
-  const homeAddress = applyDesktopHomeQr({
-    book: contactBook,
-    localProfileId: profile.id,
-    uri
-  })
-
-  globalThis.keposDesktopUi?.setContextFormDraft({ homeQrUri: '' })
-  await joinRoom({
-    createTreehole: false,
-    homeAddress,
-    mode: 'peer'
-  })
-}
-
 function trustProfileQr({ alias = '', displayName = 'Desktop', uri } = {}) {
   if (!uri) return
 
@@ -337,16 +290,6 @@ function getCurrentDisplayName() {
 
 function getProfileContext(displayName = getCurrentDisplayName()) {
   return createDesktopProfileContext({ displayName })
-}
-
-async function leaveRoom() {
-  await backendRuntime.closeAll()
-  session = null
-  dmSession = null
-  homeJoinDetails = null
-  configureTreeholeRuntime()
-  state = createDesktopState()
-  render()
 }
 
 function configureTreeholeRuntime() {
@@ -443,10 +386,6 @@ function sendTreeholeWriter(peer) {
   if (!result) return
 
   homeRuntime.sendControl(result.peer, result.payload)
-}
-
-function canPostToCurrentTreehole() {
-  return treeholeRuntime.canPost()
 }
 
 function setTab(tab) {
@@ -662,4 +601,4 @@ function formatTime(value) {
 }
 
 globalThis.Pear?.updates?.(() => globalThis.Pear.reload())
-globalThis.Pear?.teardown?.(() => leaveRoom())
+globalThis.Pear?.teardown?.(() => roomActions.leaveHome())

@@ -147,6 +147,7 @@ test('desktop treehole post command carries composer text as payload', async () 
 test('desktop Home QR join command carries QR text and display name as payload', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const host = await readFile(new URL('../src/desktop-command-host.js', import.meta.url), 'utf8')
+  const actions = await readFile(new URL('../src/desktop-room-actions.js', import.meta.url), 'utf8')
 
   assert.match(
     source,
@@ -157,8 +158,8 @@ test('desktop Home QR join command carries QR text and display name as payload',
     host,
     /joinHomeUri: \(payload\) => actions\.joinHomeUri\(readCommandPayload\(payload\)\)/
   )
-  assert.match(source, /joinHomeUri: joinHomeQr/)
-  assert.match(source, /async function joinHomeQr\(\{ displayName = 'Desktop', uri \} = \{\}\)/)
+  assert.match(source, /joinHomeUri: roomActions\.joinHomeUri/)
+  assert.match(actions, /async function joinHomeUri\(\{ displayName = 'Desktop', uri \} = \{\}\)/)
   assert.doesNotMatch(source, /homeQrForm: document\.querySelector/)
   assert.doesNotMatch(source, /homeQrInput: document\.querySelector/)
   assert.doesNotMatch(source, /nickInput: document\.querySelector/)
@@ -166,6 +167,7 @@ test('desktop Home QR join command carries QR text and display name as payload',
     source,
     /async function joinHomeQr\(\) \{\s*const uri = els\.homeQrInput\.value\.trim\(\)/
   )
+  assert.doesNotMatch(source, /async function joinHomeQr/)
 })
 
 test('desktop Profile QR trust command carries QR text alias and display name as payload', async () => {

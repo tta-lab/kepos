@@ -35,6 +35,13 @@ test('android backend reports whether the local profile can post to treehole', a
   )
 })
 
+test('desktop room actions report whether the local profile can post to treehole', async () => {
+  const source = await readFile(new URL('../src/desktop-room-actions.js', import.meta.url), 'utf8')
+
+  assert.match(source, /canPost: getTreeholeRuntime\(\)\.canPost\(\)/)
+  assert.doesNotMatch(source, /canPostToCurrentTreehole/)
+})
+
 test('android backend reports whether the local profile can interact with treehole', async () => {
   const source = await readFile(new URL('../backend/backend.mjs', import.meta.url), 'utf8')
 
