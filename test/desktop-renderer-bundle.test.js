@@ -46,6 +46,30 @@ test('desktop React owns the home chat list surface', async () => {
   assert.doesNotMatch(controller, /els\.messageList\.replaceChildren/)
 })
 
+test('desktop React owns the home chat composer draft', async () => {
+  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+
+  assert.match(source, /function HomeChatComposer\(\{ controls, onSend \}\)/)
+  assert.match(source, /const \[draft, setDraft\] = useState\(''\)/)
+  assert.match(
+    source,
+    /const canSend = controls\.canUseHomeChatComposer && Boolean\(draft\.trim\(\)\)/
+  )
+  assert.match(source, /onSend\(\{ text: draft\.trim\(\) \}\)/)
+  assert.match(source, /setDraft\(''\)/)
+  assert.match(source, /value=\{draft\}/)
+  assert.match(source, /onChange=\{\(event\) => setDraft\(event\.target\.value\)\}/)
+  assert.match(source, /disabled=\{!canSend\}/)
+  assert.match(source, /setHomeComposerActions\(actions = \{\}\)/)
+  assert.match(controller, /globalThis\.keposDesktopUi\?\.setHomeComposerActions\(\{/)
+  assert.doesNotMatch(controller, /chatForm: document\.querySelector/)
+  assert.doesNotMatch(controller, /chatInput: document\.querySelector/)
+  assert.doesNotMatch(controller, /els\.chatInput\.addEventListener/)
+  assert.doesNotMatch(controller, /els\.chatForm\.addEventListener/)
+  assert.doesNotMatch(controller, /els\.chatInput\.value/)
+})
+
 test('desktop React owns the direct message list surface', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
@@ -129,7 +153,12 @@ test('desktop React owns action and composer disabled state', async () => {
   assert.match(source, /disabled=\{!controls\.canJoinManualHome\}/)
   assert.match(source, /disabled=\{!controls\.canJoinHomeQr\}/)
   assert.match(source, /disabled=\{!controls\.canTrustProfile\}/)
-  assert.match(source, /disabled=\{!controls\.canSendHomeMessage\}/)
+  assert.match(source, /canUseHomeChatComposer: false/)
+  assert.match(
+    source,
+    /const canSend = controls\.canUseHomeChatComposer && Boolean\(draft\.trim\(\)\)/
+  )
+  assert.match(source, /disabled=\{!canSend\}/)
   assert.match(source, /disabled=\{!controls\.canSendDirectMessage\}/)
   assert.match(source, /disabled=\{!controls\.canSubmitTreeholePost\}/)
   assert.match(

@@ -39,8 +39,6 @@ const ROOM_KEY_PATTERN = /^[0-9a-f]{64}$/
 const BLOCKING_COMMANDS = new Set(['joinHome', 'joinHomeUri', 'leaveHome', 'trustProfileUri'])
 
 const els = {
-  chatForm: document.querySelector('#chatForm'),
-  chatInput: document.querySelector('#chatInput'),
   chatTab: document.querySelector('#chatTab'),
   copyHomeQrButton: document.querySelector('#copyHomeQrButton'),
   copyProfileQrButton: document.querySelector('#copyProfileQrButton'),
@@ -141,6 +139,9 @@ globalThis.keposDesktopUi?.setDirectMessageActions({
   acceptMessage: (message) => dispatchCommand('acceptMessageRequest', { message }),
   ignoreMessage: (message) => dispatchCommand('ignoreMessageRequest', { message })
 })
+globalThis.keposDesktopUi?.setHomeComposerActions({
+  sendHomeMessage: ({ text }) => dispatchCommand('sendHomeMessage', { text })
+})
 globalThis.keposDesktopUi?.setPeopleActions({
   acceptMessageRequest: (message) => dispatchCommand('acceptMessageRequest', { message }),
   ignoreMessageRequest: (profileId) => dispatchCommand('ignoreMessageRequest', { profileId }),
@@ -211,7 +212,6 @@ document.addEventListener('keydown', (event) => {
 els.nickInput.addEventListener('input', () => {
   updateQrOutputs().catch(showError)
 })
-els.chatInput.addEventListener('input', renderControls)
 els.dmInput.addEventListener('input', renderControls)
 els.treeholeInput.addEventListener('input', renderControls)
 els.roomKeyInput.addEventListener('input', renderControls)
@@ -220,13 +220,6 @@ els.trustQrInput.addEventListener('input', renderControls)
 els.dmRecipientInput.addEventListener('input', () => {
   renderDirectContacts()
   renderControls()
-})
-
-els.chatForm.addEventListener('submit', (event) => {
-  event.preventDefault()
-  dispatchCommand('sendHomeMessage', {
-    text: els.chatInput.value.trim()
-  })
 })
 
 els.dmForm.addEventListener('submit', (event) => {
@@ -454,7 +447,6 @@ function sendChat({ text } = {}) {
   }
 
   session = homeRuntime.sendMessage(message)
-  els.chatInput.value = ''
   render()
 }
 
@@ -625,10 +617,10 @@ function renderControls() {
     canPostTreehole: Boolean(state.treeholeCanPost),
     canSendDirectMessage:
       inRoom && Boolean(els.dmInput.value.trim()) && Boolean(els.dmRecipientInput.value.trim()),
-    canSendHomeMessage: inRoom && Boolean(els.chatInput.value.trim()),
     canSubmitTreeholePost:
       inRoom && Boolean(state.treeholeCanPost) && Boolean(els.treeholeInput.value.trim()),
-    canTrustProfile: !isActionPending && Boolean(els.trustQrInput.value.trim())
+    canTrustProfile: !isActionPending && Boolean(els.trustQrInput.value.trim()),
+    canUseHomeChatComposer: inRoom
   }
   globalThis.keposDesktopUi?.setControls(controls)
 }

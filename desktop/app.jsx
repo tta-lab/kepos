@@ -35,9 +35,9 @@ const DEFAULT_CONTROLS = {
   canLeaveHome: false,
   canPostTreehole: false,
   canSendDirectMessage: false,
-  canSendHomeMessage: false,
   canSubmitTreeholePost: false,
-  canTrustProfile: false
+  canTrustProfile: false,
+  canUseHomeChatComposer: false
 }
 const EMPTY_LARGE_QR = { isOpen: false, svg: '', title: '' }
 const EMPTY_SHARE_QR_OUTPUTS = {
@@ -53,6 +53,7 @@ const desktopUiBridge = {
   setDirectContactPickerActions: () => {},
   setDirectMessageActions: () => {},
   setDirectMessages: () => {},
+  setHomeComposerActions: () => {},
   setHomeMessages: () => {},
   setLargeQr: () => {},
   setPeople: () => {},
@@ -90,6 +91,9 @@ globalThis.keposDesktopUi = {
   },
   setDirectMessages(messages = []) {
     desktopUiBridge.setDirectMessages(messages)
+  },
+  setHomeComposerActions(actions = {}) {
+    desktopUiBridge.setHomeComposerActions(actions)
   },
   setHomeMessages(messages = []) {
     desktopUiBridge.setHomeMessages(messages)
@@ -137,6 +141,9 @@ function DesktopApp() {
     ignoreMessage: () => {}
   })
   const [directMessages, setDirectMessages] = useState([])
+  const [homeComposerActions, setHomeComposerActions] = useState({
+    sendHomeMessage: () => {}
+  })
   const [homeMessages, setHomeMessages] = useState([])
   const [largeQr, setLargeQr] = useState(EMPTY_LARGE_QR)
   const [people, setPeople] = useState({ messageRequests: [], trustedContacts: [] })
@@ -159,6 +166,7 @@ function DesktopApp() {
   desktopUiBridge.setDirectContactPickerActions = setDirectContactPickerActions
   desktopUiBridge.setDirectMessageActions = setDirectMessageActions
   desktopUiBridge.setDirectMessages = setDirectMessages
+  desktopUiBridge.setHomeComposerActions = setHomeComposerActions
   desktopUiBridge.setHomeMessages = setHomeMessages
   desktopUiBridge.setLargeQr = setLargeQr
   desktopUiBridge.setPeople = setPeople
@@ -255,13 +263,7 @@ function DesktopApp() {
           <section id='chatPane' className={activeTab === 'chat' ? 'pane' : 'pane hidden'}>
             <PaneLabel eyebrow='live' title='Live home chat' />
             <HomeChatList messages={homeMessages} />
-            <form id='chatForm' className='composer'>
-              <input id='chatInput' placeholder='Write to the home' autoComplete='off' />
-              <button id='chatSendButton' type='submit' disabled={!controls.canSendHomeMessage}>
-                <Send size={17} />
-                Send
-              </button>
-            </form>
+            <HomeChatComposer controls={controls} onSend={homeComposerActions.sendHomeMessage} />
           </section>
 
           <section id='dmPane' className={activeTab === 'dm' ? 'pane' : 'pane hidden'}>
@@ -553,6 +555,34 @@ function getInitialTheme() {
 
 function HomeIcon() {
   return <Home size={17} />
+}
+
+function HomeChatComposer({ controls, onSend }) {
+  const [draft, setDraft] = useState('')
+  const canSend = controls.canUseHomeChatComposer && Boolean(draft.trim())
+
+  function handleSubmit(event) {
+    event.preventDefault()
+    if (!canSend) return
+    onSend({ text: draft.trim() })
+    setDraft('')
+  }
+
+  return (
+    <form id='chatForm' className='composer' onSubmit={handleSubmit}>
+      <input
+        id='chatInput'
+        placeholder='Write to the home'
+        autoComplete='off'
+        value={draft}
+        onChange={(event) => setDraft(event.target.value)}
+      />
+      <button id='chatSendButton' type='submit' disabled={!canSend}>
+        <Send size={17} />
+        Send
+      </button>
+    </form>
+  )
 }
 
 function SectionTitle({ icon, id, text }) {

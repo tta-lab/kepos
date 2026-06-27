@@ -65,8 +65,9 @@ test('desktop home message command carries composer text as payload', async () =
 
   assert.match(
     source,
-    /dispatchCommand\('sendHomeMessage', \{\s*text: els\.chatInput\.value\.trim\(\)\s*\}\)/
+    /sendHomeMessage: \(\{ text \}\) => dispatchCommand\('sendHomeMessage', \{ text \}\)/
   )
+  assert.match(source, /globalThis\.keposDesktopUi\?\.setHomeComposerActions\(\{/)
   assert.match(source, /sendHomeMessage: \(payload\) => sendChat\(readCommandPayload\(payload\)\)/)
   assert.match(source, /function sendChat\(\{ text \} = \{\}\)/)
   assert.doesNotMatch(

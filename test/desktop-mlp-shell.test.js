@@ -359,13 +359,14 @@ test('desktop composers disable unavailable sends', async () => {
   }
 
   assert.match(controller, /function renderControls\(\)/)
-  assert.match(source, /disabled=\{!controls\.canSendHomeMessage\}/)
+  assert.match(
+    source,
+    /const canSend = controls\.canUseHomeChatComposer && Boolean\(draft\.trim\(\)\)/
+  )
+  assert.match(source, /disabled=\{!canSend\}/)
   assert.match(source, /disabled=\{!controls\.canSendDirectMessage\}/)
   assert.match(source, /disabled=\{!controls\.canSubmitTreeholePost\}/)
-  assert.match(
-    controller,
-    /canSendHomeMessage: inRoom && Boolean\(els\.chatInput\.value\.trim\(\)\)/
-  )
+  assert.match(controller, /canUseHomeChatComposer: inRoom/)
   assert.match(
     controller,
     /canSendDirectMessage:\s*inRoom && Boolean\(els\.dmInput\.value\.trim\(\)\) && Boolean\(els\.dmRecipientInput\.value\.trim\(\)\)/
