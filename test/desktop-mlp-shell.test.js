@@ -73,10 +73,9 @@ test('desktop people UI uses trusted friends copy', async () => {
   assert.match(controller, /globalThis\.keposDesktopUi\?\.setPeople\(people\)/)
   assert.match(controller, /revokeContact: \(profileId\) => dispatchCommand\('revokeContact'/)
   assert.equal(source.indexOf("id='contactList'") > source.indexOf("id='peoplePane'"), true)
-  assert.match(
-    controller,
-    /els\.peopleTab\.addEventListener\('click', \(\) => setTab\('people'\)\)/
-  )
+  assert.match(source, /onSelect=\{\(\) => shellActions\.setTab\('people'\)\}/)
+  assert.match(controller, /globalThis\.keposDesktopUi\?\.setShellActions\(\{/)
+  assert.doesNotMatch(controller, /els\.peopleTab\.addEventListener/)
   assert.match(source, /className=\{activeTab === 'people' \? 'pane' : 'pane hidden'\}/)
   assert.match(source, /isActive=\{activeTab === 'people'\}/)
   assert.equal(source.includes("text='Contacts'"), false)
@@ -277,7 +276,9 @@ test('desktop rail keeps current view accessible', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
 
-  assert.match(source, /function RailButton\(\{ icon, id, isActive, label, title \}\)/)
+  assert.match(source, /function RailButton\(\{ icon, id, isActive, label, onSelect, title \}\)/)
+  assert.match(source, /onClick=\{onSelect\}/)
+  assert.doesNotMatch(controller, /els\.chatTab\.addEventListener/)
   assert.match(source, /aria-current=\{isActive \? 'page' : undefined\}/)
   assert.match(source, /className=\{isActive \? 'railButton active' : 'railButton'\}/)
   assert.match(controller, /globalThis\.keposDesktopUi\?\.setActiveTab\(state\.activeTab\)/)
@@ -415,7 +416,8 @@ test('desktop context actions expose a pending lock during blocking commands', a
     controller,
     /finally \{\s*if \(pendingCommand === command\) \{\s*pendingCommand = null/
   )
-  assert.match(controller, /document\.body\.setAttribute\('aria-busy', String\(isActionPending\)\)/)
+  assert.match(source, /document\.body\.setAttribute\('aria-busy', String\(isShellBusy\)\)/)
+  assert.match(controller, /globalThis\.keposDesktopUi\?\.setShellBusy\(isActionPending\)/)
   assert.match(source, /disabled=\{!controls\.canLeaveHome\}/)
   assert.match(source, /disabled=\{!controls\.canCreateHome\}/)
   assert.match(controller, /canLeaveHome: inRoom && !isActionPending/)

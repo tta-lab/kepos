@@ -131,11 +131,24 @@ test('desktop React owns tab and pane active state', async () => {
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
 
   assert.match(source, /setActiveTab\(tab = 'chat'\)/)
+  assert.match(source, /setShellActions\(actions = \{\}\)/)
   assert.match(source, /const \[activeTab, setActiveTab\] = useState\('chat'\)/)
+  assert.match(source, /const \[shellActions, setShellActions\] = useState\(\{/)
   assert.match(source, /isActive=\{activeTab === 'chat'\}/)
+  assert.match(source, /onSelect=\{\(\) => shellActions\.setTab\('chat'\)\}/)
+  assert.match(source, /onClick=\{onSelect\}/)
   assert.match(source, /className=\{isActive \? 'railButton active' : 'railButton'\}/)
   assert.match(source, /className=\{activeTab === 'chat' \? 'pane' : 'pane hidden'\}/)
   assert.match(controller, /globalThis\.keposDesktopUi\?\.setActiveTab\(state\.activeTab\)/)
+  assert.match(controller, /globalThis\.keposDesktopUi\?\.setShellActions\(\{/)
+  assert.doesNotMatch(controller, /chatTab: document\.querySelector/)
+  assert.doesNotMatch(controller, /dmTab: document\.querySelector/)
+  assert.doesNotMatch(controller, /treeholeTab: document\.querySelector/)
+  assert.doesNotMatch(controller, /peopleTab: document\.querySelector/)
+  assert.doesNotMatch(controller, /els\.chatTab\.addEventListener/)
+  assert.doesNotMatch(controller, /els\.dmTab\.addEventListener/)
+  assert.doesNotMatch(controller, /els\.treeholeTab\.addEventListener/)
+  assert.doesNotMatch(controller, /els\.peopleTab\.addEventListener/)
   assert.doesNotMatch(controller, /els\.chatPane\.classList\.toggle/)
   assert.doesNotMatch(controller, /els\.dmPane\.classList\.toggle/)
   assert.doesNotMatch(controller, /els\.treeholePane\.classList\.toggle/)
@@ -186,17 +199,46 @@ test('desktop React owns the large QR dialog surface', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
 
-  assert.match(source, /function LargeQrDialog\(\{ qr \}\)/)
+  assert.match(source, /function LargeQrDialog\(\{ onClose, qr \}\)/)
   assert.match(source, /setLargeQr\(qr = EMPTY_LARGE_QR\)/)
   assert.match(source, /className=\{qr\.isOpen \? 'largeQrDialog' : 'largeQrDialog hidden'\}/)
+  assert.match(
+    source,
+    /onClick=\{\(event\) => \{[\s\S]*if \(event\.target === event\.currentTarget\) onClose\(\)/
+  )
+  assert.match(
+    source,
+    /onKeyDown=\{\(event\) => \{[\s\S]*if \(event\.key === 'Escape'\) onClose\(\)/
+  )
+  assert.match(source, /onClick=\{onClose\}/)
   assert.match(source, /dangerouslySetInnerHTML=\{\{ __html: qr\.svg \}\}/)
-  assert.match(source, /<LargeQrDialog qr=\{largeQr\} \/>/)
+  assert.match(source, /<LargeQrDialog onClose=\{shellActions\.hideLargeQr\} qr=\{largeQr\} \/>/)
   assert.match(controller, /globalThis\.keposDesktopUi\?\.setLargeQr\(\{/)
+  assert.doesNotMatch(controller, /largeQrCloseButton: document\.querySelector/)
+  assert.doesNotMatch(controller, /largeQrDialog: document\.querySelector/)
+  assert.doesNotMatch(controller, /els\.largeQrCloseButton\.addEventListener/)
+  assert.doesNotMatch(controller, /els\.largeQrDialog\.addEventListener/)
+  assert.doesNotMatch(controller, /document\.addEventListener\('keydown'/)
   assert.doesNotMatch(controller, /els\.largeQrTitle\.textContent/)
   assert.doesNotMatch(controller, /els\.largeQrCode\.innerHTML/)
   assert.doesNotMatch(controller, /els\.largeQrCode\.replaceChildren/)
   assert.doesNotMatch(controller, /els\.largeQrDialog\.classList\.add\('hidden'\)/)
   assert.doesNotMatch(controller, /els\.largeQrDialog\.classList\.remove\('hidden'\)/)
+})
+
+test('desktop React owns shell busy and leave action', async () => {
+  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+
+  assert.match(source, /setShellBusy\(isBusy = false\)/)
+  assert.match(source, /const \[isShellBusy, setShellBusy\] = useState\(false\)/)
+  assert.match(source, /document\.body\.setAttribute\('aria-busy', String\(isShellBusy\)\)/)
+  assert.match(source, /onClick=\{shellActions\.leaveHome\}/)
+  assert.match(controller, /globalThis\.keposDesktopUi\?\.setShellBusy\(isActionPending\)/)
+  assert.match(controller, /leaveHome: \(\) => dispatchCommand\('leaveHome'\)/)
+  assert.doesNotMatch(controller, /leaveButton: document\.querySelector/)
+  assert.doesNotMatch(controller, /els\.leaveButton\.addEventListener/)
+  assert.doesNotMatch(controller, /document\.body\.setAttribute\('aria-busy'/)
 })
 
 test('desktop React owns inline QR share outputs', async () => {

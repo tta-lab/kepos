@@ -37,16 +37,6 @@ import { getDesktopStorageBasePath } from '../src/desktop-storage-base.js'
 
 const BLOCKING_COMMANDS = new Set(['joinHome', 'joinHomeUri', 'leaveHome', 'trustProfileUri'])
 
-const els = {
-  chatTab: document.querySelector('#chatTab'),
-  dmTab: document.querySelector('#dmTab'),
-  largeQrCloseButton: document.querySelector('#largeQrCloseButton'),
-  largeQrDialog: document.querySelector('#largeQrDialog'),
-  leaveButton: document.querySelector('#leaveButton'),
-  peopleTab: document.querySelector('#peopleTab'),
-  treeholeTab: document.querySelector('#treeholeTab')
-}
-
 let state = createDesktopState()
 let session = null
 let dmSession = null
@@ -156,6 +146,11 @@ globalThis.keposDesktopUi?.setPeopleActions({
   ignoreMessageRequest: (profileId) => dispatchCommand('ignoreMessageRequest', { profileId }),
   revokeContact: (profileId) => dispatchCommand('revokeContact', { profileId })
 })
+globalThis.keposDesktopUi?.setShellActions({
+  hideLargeQr: () => hideLargeQr(),
+  leaveHome: () => dispatchCommand('leaveHome'),
+  setTab: (tab) => setTab(tab)
+})
 globalThis.keposDesktopUi?.setTreeholeActions({
   commentPost: ({ postId, text }) => dispatchCommand('commentTreehole', { postId, text }),
   likePost: (postId) => dispatchCommand('likeTreehole', { postId })
@@ -174,20 +169,6 @@ backendClient.subscribe('peerCountChanged', ({ peers }) => {
 })
 backendClient.subscribe('errorReceived', showError)
 
-els.leaveButton.addEventListener('click', () => dispatchCommand('leaveHome'))
-els.chatTab.addEventListener('click', () => setTab('chat'))
-els.dmTab.addEventListener('click', () => setTab('dm'))
-els.treeholeTab.addEventListener('click', () => setTab('treehole'))
-els.peopleTab.addEventListener('click', () => setTab('people'))
-els.largeQrCloseButton.addEventListener('click', hideLargeQr)
-els.largeQrDialog.addEventListener('click', (event) => {
-  if (event.target === els.largeQrDialog) hideLargeQr()
-})
-document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && !els.largeQrDialog.classList.contains('hidden')) {
-    hideLargeQr()
-  }
-})
 updateQrOutputs().catch(showError)
 render()
 
@@ -341,7 +322,6 @@ async function showLargeQr({ returnFocus, title, uri }) {
     svg,
     title
   })
-  els.largeQrCloseButton.focus()
 }
 
 async function copyQrValue({ notice, value }) {
@@ -524,7 +504,7 @@ function setTab(tab) {
 function render() {
   const inRoom = state.view === 'room'
   const isActionPending = Boolean(pendingCommand)
-  document.body.setAttribute('aria-busy', String(isActionPending))
+  globalThis.keposDesktopUi?.setShellBusy(isActionPending)
   renderStatus()
   renderControls()
 

@@ -70,6 +70,8 @@ const desktopUiBridge = {
   setPeople: () => {},
   setPeopleActions: () => {},
   setShareQrOutputs: () => {},
+  setShellActions: () => {},
+  setShellBusy: () => {},
   setStatus: () => {},
   setTreeholeActions: () => {},
   setTreeholeComposerActions: () => {},
@@ -133,6 +135,12 @@ globalThis.keposDesktopUi = {
   },
   setShareQrOutputs(outputs = EMPTY_SHARE_QR_OUTPUTS) {
     desktopUiBridge.setShareQrOutputs(outputs)
+  },
+  setShellActions(actions = {}) {
+    desktopUiBridge.setShellActions(actions)
+  },
+  setShellBusy(isBusy = false) {
+    desktopUiBridge.setShellBusy(isBusy)
   },
   setStatus(status = DEFAULT_STATUS) {
     desktopUiBridge.setStatus(status)
@@ -200,6 +208,12 @@ function DesktopApp() {
     revokeContact: () => {}
   })
   const [shareQrOutputs, setShareQrOutputs] = useState(EMPTY_SHARE_QR_OUTPUTS)
+  const [isShellBusy, setShellBusy] = useState(false)
+  const [shellActions, setShellActions] = useState({
+    hideLargeQr: () => {},
+    leaveHome: () => {},
+    setTab: () => {}
+  })
   const [treeholeActions, setTreeholeActions] = useState({
     commentPost: () => {},
     likePost: () => {}
@@ -230,6 +244,8 @@ function DesktopApp() {
   desktopUiBridge.setPeople = setPeople
   desktopUiBridge.setPeopleActions = setPeopleActions
   desktopUiBridge.setShareQrOutputs = setShareQrOutputs
+  desktopUiBridge.setShellActions = setShellActions
+  desktopUiBridge.setShellBusy = setShellBusy
   desktopUiBridge.setStatus = setStatus
   desktopUiBridge.setTreeholeActions = setTreeholeActions
   desktopUiBridge.setTreeholeComposerActions = setTreeholeComposerActions
@@ -244,6 +260,10 @@ function DesktopApp() {
     }
   }, [theme])
 
+  useEffect(() => {
+    document.body.setAttribute('aria-busy', String(isShellBusy))
+  }, [isShellBusy])
+
   return (
     <>
       <main className='shell'>
@@ -255,6 +275,7 @@ function DesktopApp() {
               icon={<MessageCircle size={19} />}
               isActive={activeTab === 'chat'}
               label='Home'
+              onSelect={() => shellActions.setTab('chat')}
               title='Home chat'
             />
             <RailButton
@@ -262,6 +283,7 @@ function DesktopApp() {
               icon={<Send size={19} />}
               isActive={activeTab === 'dm'}
               label='Direct'
+              onSelect={() => shellActions.setTab('dm')}
               title='Direct messages'
             />
             <RailButton
@@ -269,6 +291,7 @@ function DesktopApp() {
               icon={<Sprout size={19} />}
               isActive={activeTab === 'treehole'}
               label='Treehole'
+              onSelect={() => shellActions.setTab('treehole')}
               title='Treehole'
             />
             <RailButton
@@ -276,6 +299,7 @@ function DesktopApp() {
               icon={<Users size={19} />}
               isActive={activeTab === 'people'}
               label='People'
+              onSelect={() => shellActions.setTab('people')}
               title='People'
             />
           </nav>
@@ -390,7 +414,12 @@ function DesktopApp() {
                 {status.errorDetailLabel}
               </p>
             </details>
-            <button id='leaveButton' type='button' disabled={!controls.canLeaveHome}>
+            <button
+              id='leaveButton'
+              type='button'
+              disabled={!controls.canLeaveHome}
+              onClick={shellActions.leaveHome}
+            >
               <LogOut size={17} />
               Leave
             </button>
@@ -398,7 +427,7 @@ function DesktopApp() {
         </aside>
       </main>
 
-      <LargeQrDialog qr={largeQr} />
+      <LargeQrDialog onClose={shellActions.hideLargeQr} qr={largeQr} />
     </>
   )
 }
@@ -421,7 +450,7 @@ function QrShareOutput({ detailsId, label, outputId, qrId, qrLabel, svg, uri }) 
   )
 }
 
-function LargeQrDialog({ qr }) {
+function LargeQrDialog({ onClose, qr }) {
   return (
     <div
       id='largeQrDialog'
@@ -429,13 +458,26 @@ function LargeQrDialog({ qr }) {
       role='dialog'
       aria-modal='true'
       aria-labelledby='largeQrTitle'
+      tabIndex={-1}
+      onClick={(event) => {
+        if (event.target === event.currentTarget) onClose()
+      }}
+      onKeyDown={(event) => {
+        if (event.key === 'Escape') onClose()
+      }}
     >
       <section className='largeQrPanel'>
         <div className='largeQrHeader'>
           <p id='largeQrTitle' className='label'>
             {qr.title || 'QR'}
           </p>
-          <button id='largeQrCloseButton' className='smallButton' type='button'>
+          <button
+            id='largeQrCloseButton'
+            className='smallButton'
+            type='button'
+            autoFocus={qr.isOpen}
+            onClick={onClose}
+          >
             Close
           </button>
         </div>
@@ -802,7 +844,7 @@ function TreeholeComposer({ controls, onPost }) {
   )
 }
 
-function RailButton({ icon, id, isActive, label, title }) {
+function RailButton({ icon, id, isActive, label, onSelect, title }) {
   return (
     <button
       id={id}
@@ -810,6 +852,7 @@ function RailButton({ icon, id, isActive, label, title }) {
       type='button'
       title={title}
       aria-current={isActive ? 'page' : undefined}
+      onClick={onSelect}
     >
       {icon}
       <span className='railLabel'>{label}</span>

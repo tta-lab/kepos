@@ -756,11 +756,11 @@ test('desktop large QR dialog is keyboard reachable', async () => {
     /showLargeProfileQr: \(\{ returnFocus \}\) =>[\s\S]*showLargeQr\(\{ returnFocus, title: 'Profile QR', uri: shareQrOutputs\.profileUri \}\)/
   )
   assert.match(controller, /largeQrReturnFocus = returnFocus/)
-  assert.match(controller, /els\.largeQrCloseButton\.focus\(\)/)
+  assert.match(app, /id='largeQrCloseButton'[\s\S]*autoFocus=\{qr\.isOpen\}/)
   assert.match(controller, /largeQrReturnFocus\?\.focus\(\)/)
-  assert.match(controller, /event\.key === 'Escape'/)
-  assert.match(controller, /!els\.largeQrDialog\.classList\.contains\('hidden'\)/)
-  assert.match(controller, /hideLargeQr\(\)/)
+  assert.match(app, /event\.key === 'Escape'/)
+  assert.match(app, /event\.target === event\.currentTarget/)
+  assert.match(controller, /hideLargeQr: \(\) => hideLargeQr\(\)/)
 })
 
 test('debug two-device smoke covers live DM exchange and restart persistence', async () => {
