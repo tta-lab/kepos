@@ -30,8 +30,10 @@ test('desktop context panel uses product actions for home and people flows', asy
   assert.match(source, /Invite a friend/)
   assert.match(source, /Join a friend&apos;s home/)
   assert.match(source, /className='contextGroup peopleActions'/)
+  assert.match(source, /Trust a friend before home access or direct messages\./)
   assert.match(source, /Add trusted friend/)
   assert.equal(source.includes('Start your room'), false)
+  assert.equal(source.includes('Trust a profile before private home access or DM.'), false)
   assert.equal(source.includes('Trust Profile'), false)
   assert.equal(source.includes('Join Home URI'), false)
   assert.match(styles, /\.contextGroup/)
@@ -110,6 +112,8 @@ test('desktop panes label live and durable surfaces', async () => {
     assert.match(source, new RegExp(text), `${text} is missing`)
   }
 
+  assert.match(source, /Send message/)
+  assert.equal(source.includes('Send DM'), false)
   assert.match(styles, /\.paneLabel/)
   assert.match(styles, /\.paneEyebrow/)
   assert.match(styles, /\.paneTitle/)

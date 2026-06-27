@@ -132,7 +132,7 @@ function DesktopApp() {
               <textarea id='dmInput' placeholder='Write a direct message' />
               <button type='submit'>
                 <Send size={17} />
-                Send DM
+                Send message
               </button>
             </form>
           </section>
@@ -229,7 +229,7 @@ function DesktopApp() {
                 icon={<ShieldCheck size={15} />}
                 text='People'
               />
-              <p className='contextHint'>Trust a profile before private home access or DM.</p>
+              <p className='contextHint'>Trust a friend before home access or direct messages.</p>
             </div>
 
             <form id='trustForm' className='panel qrPanel'>
