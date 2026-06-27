@@ -130,6 +130,7 @@ let treehole = null
 let treeholeSwarm = null
 let treeholeStatePublisher = null
 let homeJoinDetails = null
+let largeQrReturnFocus = null
 const addedWriters = new Set()
 const commands = createDesktopCommandRegistry({
   handlers: {
@@ -180,10 +181,18 @@ els.dmTab.addEventListener('click', () => setTab('dm'))
 els.treeholeTab.addEventListener('click', () => setTab('treehole'))
 els.peopleTab.addEventListener('click', () => setTab('people'))
 els.showLargeHomeQrButton.addEventListener('click', () => {
-  showLargeQr({ title: 'Home QR', uri: els.homeQrOutput.value }).catch(showError)
+  showLargeQr({
+    returnFocus: els.showLargeHomeQrButton,
+    title: 'Home QR',
+    uri: els.homeQrOutput.value
+  }).catch(showError)
 })
 els.showLargeProfileQrButton.addEventListener('click', () => {
-  showLargeQr({ title: 'Profile QR', uri: els.profileQrOutput.value }).catch(showError)
+  showLargeQr({
+    returnFocus: els.showLargeProfileQrButton,
+    title: 'Profile QR',
+    uri: els.profileQrOutput.value
+  }).catch(showError)
 })
 els.copyHomeQrButton.addEventListener('click', () => {
   copyQrValue({ notice: 'Home QR copied.', value: els.homeQrOutput.value }).catch(showError)
@@ -194,6 +203,11 @@ els.copyProfileQrButton.addEventListener('click', () => {
 els.largeQrCloseButton.addEventListener('click', hideLargeQr)
 els.largeQrDialog.addEventListener('click', (event) => {
   if (event.target === els.largeQrDialog) hideLargeQr()
+})
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && !els.largeQrDialog.classList.contains('hidden')) {
+    hideLargeQr()
+  }
 })
 els.nickInput.addEventListener('input', () => {
   updateQrOutputs().catch(showError)
@@ -438,9 +452,10 @@ async function updateQrOutputs() {
   })
 }
 
-async function showLargeQr({ title, uri }) {
+async function showLargeQr({ returnFocus, title, uri }) {
   if (!uri) return
 
+  largeQrReturnFocus = returnFocus
   els.largeQrTitle.textContent = title
   els.largeQrCode.innerHTML = await QRCode.toString(uri, {
     errorCorrectionLevel: 'M',
@@ -449,6 +464,7 @@ async function showLargeQr({ title, uri }) {
     width: 520
   })
   els.largeQrDialog.classList.remove('hidden')
+  els.largeQrCloseButton.focus()
 }
 
 async function copyQrValue({ notice, value }) {
@@ -462,6 +478,8 @@ async function copyQrValue({ notice, value }) {
 function hideLargeQr() {
   els.largeQrDialog.classList.add('hidden')
   els.largeQrCode.replaceChildren()
+  largeQrReturnFocus?.focus()
+  largeQrReturnFocus = null
 }
 
 function loadLocalContactBook(ownerProfileId) {

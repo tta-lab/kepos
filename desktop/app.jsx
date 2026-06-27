@@ -331,7 +331,13 @@ function DesktopApp() {
         </aside>
       </main>
 
-      <div id='largeQrDialog' className='largeQrDialog hidden' role='dialog' aria-modal='true'>
+      <div
+        id='largeQrDialog'
+        className='largeQrDialog hidden'
+        role='dialog'
+        aria-modal='true'
+        aria-labelledby='largeQrTitle'
+      >
         <section className='largeQrPanel'>
           <div className='largeQrHeader'>
             <p id='largeQrTitle' className='label'>

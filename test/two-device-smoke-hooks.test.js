@@ -602,6 +602,28 @@ test('desktop large QR dialog renders scan-sized QR codes', async () => {
   }
 })
 
+test('desktop large QR dialog is keyboard reachable', async () => {
+  const app = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+
+  assert.match(app, /aria-labelledby='largeQrTitle'/)
+  assert.match(controller, /let largeQrReturnFocus = null/)
+  assert.match(
+    controller,
+    /showLargeQr\(\{[\s\S]*returnFocus: els\.showLargeHomeQrButton,[\s\S]*title: 'Home QR',[\s\S]*uri: els\.homeQrOutput\.value[\s\S]*\}\)/
+  )
+  assert.match(
+    controller,
+    /showLargeQr\(\{[\s\S]*returnFocus: els\.showLargeProfileQrButton,[\s\S]*title: 'Profile QR',[\s\S]*uri: els\.profileQrOutput\.value[\s\S]*\}\)/
+  )
+  assert.match(controller, /largeQrReturnFocus = returnFocus/)
+  assert.match(controller, /els\.largeQrCloseButton\.focus\(\)/)
+  assert.match(controller, /largeQrReturnFocus\?\.focus\(\)/)
+  assert.match(controller, /event\.key === 'Escape'/)
+  assert.match(controller, /!els\.largeQrDialog\.classList\.contains\('hidden'\)/)
+  assert.match(controller, /hideLargeQr\(\)/)
+})
+
 test('debug two-device smoke covers live DM exchange and restart persistence', async () => {
   const source = await readFile(
     new URL('../scripts/smoke-two-device-debug.mjs', import.meta.url),
