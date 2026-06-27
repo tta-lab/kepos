@@ -195,6 +195,7 @@ export default function App() {
   const [peerCount, setPeerCount] = useState(0)
   const [rpc, setRpc] = useState(null)
   const [scanTarget, setScanTarget] = useState(null)
+  const [scannerPermissionDenied, setScannerPermissionDenied] = useState(false)
   const [showAdvancedJoin, setShowAdvancedJoin] = useState(false)
   const [cameraPermission, requestCameraPermission] = useCameraPermissions()
   const scanLockRef = useRef(false)
@@ -456,10 +457,14 @@ export default function App() {
   }
 
   async function startQrScan(target) {
+    setScannerPermissionDenied(false)
+
     if (!cameraPermission?.granted) {
       const nextPermission = await requestCameraPermission()
 
       if (!nextPermission.granted) {
+        setScanTarget(target)
+        setScannerPermissionDenied(true)
         setNotice('Camera permission denied.')
         return
       }
@@ -788,7 +793,14 @@ export default function App() {
           style={styles.screen}
         >
           {scanTarget ? (
-            <QrScanner onCancel={() => setScanTarget(null)} onScanned={handleQrScanned} />
+            <QrScanner
+              onCancel={() => {
+                setScannerPermissionDenied(false)
+                setScanTarget(null)
+              }}
+              onScanned={handleQrScanned}
+              permissionDenied={scannerPermissionDenied}
+            />
           ) : (
             <>
               <Header
@@ -912,17 +924,27 @@ function QrCard({ value }) {
   )
 }
 
-function QrScanner({ onCancel, onScanned }) {
-  const { styles } = useMobileTheme()
+function QrScanner({ onCancel, onScanned, permissionDenied }) {
+  const { styles, theme } = useMobileTheme()
 
   return (
     <View style={styles.scannerOverlay} testID='qr-scanner-overlay'>
-      <CameraView
-        barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
-        onBarcodeScanned={onScanned}
-        style={styles.scannerCamera}
-        testID='qr-scanner-camera'
-      />
+      {permissionDenied ? (
+        <View style={styles.scannerPermission} testID='qr-scanner-permission'>
+          <QrCode color={theme.accentStrong} size={42} />
+          <Text style={styles.scannerPermissionTitle}>Camera access is off.</Text>
+          <Text style={styles.scannerPermissionCopy}>
+            Enable camera permission to scan QR codes.
+          </Text>
+        </View>
+      ) : (
+        <CameraView
+          barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+          onBarcodeScanned={onScanned}
+          style={styles.scannerCamera}
+          testID='qr-scanner-camera'
+        />
+      )}
       <View style={styles.scannerControls}>
         <Pressable onPress={onCancel} style={styles.scannerCancel} testID='qr-scanner-cancel'>
           <Text style={styles.scannerCancelText}>Cancel</Text>
@@ -2220,6 +2242,26 @@ function createMobileStyles(theme) {
     scannerCamera: {
       flex: 1,
       minHeight: 0
+    },
+    scannerPermission: {
+      alignItems: 'center',
+      flex: 1,
+      gap: 10,
+      justifyContent: 'center',
+      padding: 28
+    },
+    scannerPermissionTitle: {
+      color: theme.ink,
+      fontSize: 22,
+      fontWeight: '900',
+      textAlign: 'center'
+    },
+    scannerPermissionCopy: {
+      color: theme.inkMuted,
+      fontSize: 15,
+      lineHeight: 21,
+      maxWidth: 280,
+      textAlign: 'center'
     },
     scannerControls: {
       alignItems: 'center',

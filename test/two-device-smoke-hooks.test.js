@@ -413,6 +413,18 @@ test('Android QR scanner keeps the camera preview visible', async () => {
   assert.doesNotMatch(source, /SafeAreaView/)
 })
 
+test('Android QR scanner has an in-flow permission denied state', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+
+  assert.match(source, /const \[scannerPermissionDenied, setScannerPermissionDenied\]/)
+  assert.match(source, /permissionDenied={scannerPermissionDenied}/)
+  assert.match(source, /testID='qr-scanner-permission'/)
+  assert.match(source, /Camera access is off\./)
+  assert.match(source, /Enable camera permission to scan QR codes\./)
+  assert.match(source, /setScannerPermissionDenied\(true\)/)
+  assert.match(source, /setScannerPermissionDenied\(false\)/)
+})
+
 test('Android supports Neo Cozy light and Indie Console dark themes', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 
