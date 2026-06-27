@@ -54,6 +54,7 @@ import {
   setDesktopTab,
   setDesktopTreehole
 } from '../src/desktop-state.js'
+import { createDesktopCommandRegistry } from '../src/desktop-command-registry.ts'
 
 const els = {
   chatForm: document.querySelector('#chatForm'),
@@ -113,21 +114,46 @@ let treeholeSwarm = null
 let treeholeStatePublisher = null
 let homeJoinDetails = null
 const addedWriters = new Set()
+const commands = createDesktopCommandRegistry({
+  handlers: {
+    acceptMessageRequest: (payload) => {
+      const { message } = readCommandPayload(payload)
+      if (message) acceptIncomingMessageRequest(message)
+    },
+    commentTreehole: (payload) => commentTreeholePost(readCommandPayload(payload)),
+    joinHome: (payload) => joinRoom(readCommandPayload(payload)),
+    joinHomeUri: () => joinHomeQr(),
+    leaveHome: () => leaveRoom(),
+    likeTreehole: (payload) => {
+      const { postId } = readCommandPayload(payload)
+      return likeTreeholePost(postId)
+    },
+    postTreehole: () => postTreehole(),
+    revokeContact: (payload) => {
+      const { profileId } = readCommandPayload(payload)
+      if (profileId) return revokeLocalContact(profileId)
+    },
+    sendDmMessage: () => sendMessageRequest(),
+    sendHomeMessage: () => sendChat(),
+    sendMessageRequest: () => sendMessageRequest(),
+    trustProfileUri: () => trustProfileQr()
+  }
+})
 
 els.createButton.addEventListener('click', () => {
-  joinRoom({ createTreehole: true, mode: 'host' }).catch(showError)
+  dispatchCommand('joinHome', { createTreehole: true, mode: 'host' })
 })
 
 els.lobbyForm.addEventListener('submit', (event) => {
   event.preventDefault()
-  joinRoom({
+  dispatchCommand('joinHome', {
     createTreehole: false,
     mode: 'peer',
     roomKey: els.roomKeyInput.value.trim()
-  }).catch(showError)
+  })
 })
 
-els.leaveButton.addEventListener('click', () => leaveRoom().catch(showError))
+els.leaveButton.addEventListener('click', () => dispatchCommand('leaveHome'))
 els.chatTab.addEventListener('click', () => setTab('chat'))
 els.dmTab.addEventListener('click', () => setTab('dm'))
 els.treeholeTab.addEventListener('click', () => setTab('treehole'))
@@ -147,39 +173,39 @@ els.nickInput.addEventListener('input', () => {
 
 els.chatForm.addEventListener('submit', (event) => {
   event.preventDefault()
-  sendChat()
+  dispatchCommand('sendHomeMessage')
 })
 
 els.dmForm.addEventListener('submit', (event) => {
   event.preventDefault()
-  try {
-    sendMessageRequest()
-  } catch (error) {
-    showError(error)
-  }
+  dispatchCommand('sendDmMessage')
 })
 
 els.treeholeForm.addEventListener('submit', (event) => {
   event.preventDefault()
-  postTreehole().catch(showError)
+  dispatchCommand('postTreehole')
 })
 
 els.trustForm.addEventListener('submit', (event) => {
   event.preventDefault()
-  try {
-    trustProfileQr()
-  } catch (error) {
-    showError(error)
-  }
+  dispatchCommand('trustProfileUri')
 })
 
 els.homeQrForm.addEventListener('submit', (event) => {
   event.preventDefault()
-  joinHomeQr().catch(showError)
+  dispatchCommand('joinHomeUri')
 })
 
 updateQrOutputs().catch(showError)
 render()
+
+function dispatchCommand(command, payload) {
+  commands.dispatch(command, payload).catch(showError)
+}
+
+function readCommandPayload(payload) {
+  return payload && typeof payload === 'object' ? payload : {}
+}
 
 async function joinRoom({ createTreehole, homeAddress = null, mode, roomKey }) {
   await leaveRoom()
@@ -804,7 +830,9 @@ function renderContacts() {
       button.type = 'button'
       button.className = 'smallButton dangerButton'
       button.textContent = 'Revoke'
-      button.addEventListener('click', () => revokeLocalContact(contact.profileId).catch(showError))
+      button.addEventListener('click', () =>
+        dispatchCommand('revokeContact', { profileId: contact.profileId })
+      )
       row.append(label, button)
       return row
     })
@@ -866,11 +894,7 @@ function renderDirectMessageContent(message) {
     button.className = 'smallButton'
     button.textContent = 'Accept'
     button.addEventListener('click', () => {
-      try {
-        acceptIncomingMessageRequest(message)
-      } catch (error) {
-        showError(error)
-      }
+      dispatchCommand('acceptMessageRequest', { message })
     })
     fragment.append(button)
   }
@@ -1004,7 +1028,7 @@ function renderPostActions(post) {
   likeButton.type = 'button'
   likeButton.className = 'smallButton'
   likeButton.textContent = 'Like'
-  likeButton.addEventListener('click', () => likeTreeholePost(post.id).catch(showError))
+  likeButton.addEventListener('click', () => dispatchCommand('likeTreehole', { postId: post.id }))
 
   const form = document.createElement('form')
   form.className = 'commentForm'
@@ -1018,7 +1042,7 @@ function renderPostActions(post) {
   form.append(input, submit)
   form.addEventListener('submit', (event) => {
     event.preventDefault()
-    commentTreeholePost({ postId: post.id, text: input.value }).catch(showError)
+    dispatchCommand('commentTreehole', { postId: post.id, text: input.value })
   })
 
   actions.append(likeButton, form)
