@@ -99,7 +99,8 @@ describe('signed message requests', () => {
         requestedAt: 1000,
         requestId: 'request-1',
         senderEncryptionPublicKey: fromEncryption.publicKey,
-        source: 'message_request'
+        source: 'message_request',
+        text: 'hello'
       }
     ])
   })

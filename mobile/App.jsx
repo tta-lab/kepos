@@ -737,7 +737,8 @@ export default function App() {
       requestedAt: request.createdAt,
       requestId: request.requestId,
       senderEncryptionPublicKey: request.senderEncryptionPublicKey,
-      source: 'home_room'
+      source: 'home_room',
+      text: request.text
     })
 
     await saveContactBookToFileSystem({

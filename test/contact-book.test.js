@@ -160,14 +160,16 @@ describe('contact book', () => {
       alias: 'Ada',
       requestedAt: 1000,
       requestId: 'request-1',
-      source: 'home_qr'
+      source: 'home_qr',
+      text: 'can we talk?'
     })
     const twice = recordMessageRequest(once, {
       profileId: 'profile-b',
       alias: 'Ada',
       requestedAt: 1001,
       requestId: 'request-2',
-      source: 'home_qr'
+      source: 'home_qr',
+      text: 'newer request should not replace the first preview'
     })
 
     assert.equal(canContactAccessHome(twice, 'profile-b'), false)
@@ -179,7 +181,8 @@ describe('contact book', () => {
         alias: 'Ada',
         requestedAt: 1000,
         requestId: 'request-1',
-        source: 'home_qr'
+        source: 'home_qr',
+        text: 'can we talk?'
       }
     ])
   })

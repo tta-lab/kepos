@@ -452,6 +452,7 @@ test('Android people pane surfaces pending message requests', async () => {
   assert.match(source, /\{formatRequestPreview\(request\.text\)\}/)
   assert.match(source, /function formatRequestPreview\(text\)/)
   assert.match(source, /return text\?\.trim\(\) \|\| 'No message yet'/)
+  assert.match(source, /text: request\.text/)
   assert.match(source, /testID='people-message-request-accept-button'/)
   assert.match(source, /testID='people-message-request-ignore-button'/)
   assert.match(source, /Ignore/)

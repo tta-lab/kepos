@@ -23,6 +23,7 @@ export type MessageRequestContact = {
   requestId?: string
   senderEncryptionPublicKey?: string
   source?: string
+  text?: string
 }
 
 export type ContactBook = {
@@ -273,7 +274,8 @@ export function recordMessageRequest(
     requestedAt,
     requestId,
     senderEncryptionPublicKey,
-    source
+    source,
+    text
   }: Partial<MessageRequestContact> & { profileId: string }
 ): ContactBook {
   const cleanProfileId = cleanRequiredString(profileId, 'Contact profile id is required')
@@ -303,7 +305,8 @@ export function recordMessageRequest(
       requestedAt,
       requestId,
       senderEncryptionPublicKey: cleanOptionalString(senderEncryptionPublicKey),
-      source: cleanOptionalString(source)
+      source: cleanOptionalString(source),
+      text: cleanOptionalString(text)
     }) as MessageRequestContact
   )
 

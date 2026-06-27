@@ -156,7 +156,8 @@ export function applyMessageRequestToContactBook(
     requestedAt: request.createdAt,
     requestId: request.requestId,
     senderEncryptionPublicKey: request.senderEncryptionPublicKey,
-    source
+    source,
+    text: request.text
   })
 }
 
