@@ -79,6 +79,22 @@ test('Android normal UI copy avoids backend and address language', async () => {
   }
 })
 
+test('Android raw own QR text stays behind advanced people controls', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+
+  assert.match(source, /const \[showAdvancedShare, setShowAdvancedShare\] = useState\(false\)/)
+  assert.match(source, /testID='advanced-share-toggle'/)
+  assert.match(source, /showAdvancedShare \? \(/)
+  assert.equal(
+    source.indexOf("testID='home-address-uri'") > source.indexOf('showAdvancedShare ? ('),
+    true
+  )
+  assert.equal(
+    source.indexOf("testID='home-profile-uri'") > source.indexOf('showAdvancedShare ? ('),
+    true
+  )
+})
+
 test('Android room has a People tab for QR and trusted contacts', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 
@@ -157,6 +173,7 @@ test('debug two-device smoke covers live DM exchange and restart persistence', a
   for (const marker of [
     'sendAndroidMessageRequest',
     'acceptDesktopMessageRequest',
+    'advanced-share-toggle',
     'sendAndroidDmBody',
     'sendDesktopDmBody',
     'restartBothAppsAndRejoin',

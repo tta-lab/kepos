@@ -172,6 +172,7 @@ async function readAndroidProfileUri() {
   runAdb(['shell', 'am', 'force-stop', 'io.guion.kepos'])
   runAdb(['shell', 'monkey', '-p', 'io.guion.kepos', '-c', 'android.intent.category.LAUNCHER', '1'])
   await delay(8000)
+  await revealAndroidAdvancedShare()
 
   for (let attempt = 0; attempt < 5; attempt++) {
     const xml = await dumpAndroidUi()
@@ -182,6 +183,23 @@ async function readAndroidProfileUri() {
   }
 
   throw new Error('Unable to read Android profile URI from UI')
+}
+
+async function revealAndroidAdvancedShare() {
+  const flow = path.join(workDir, 'android-reveal-advanced-share.yaml')
+  await writeFile(
+    flow,
+    `appId: io.guion.kepos
+---
+- scrollUntilVisible:
+    element:
+      id: 'advanced-share-toggle'
+    direction: DOWN
+- tapOn:
+    id: 'advanced-share-toggle'
+`
+  )
+  runMaestro(['test', flow])
 }
 
 async function writeAndroidContactBook({ alias, ownerProfileId, trustedProfileId }) {

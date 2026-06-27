@@ -1108,22 +1108,13 @@ function PeopleActions({
   trustedContacts,
   trustQrUri
 }) {
+  const [showAdvancedShare, setShowAdvancedShare] = useState(false)
+
   return (
     <>
       <View style={styles.panel}>
         <Text style={styles.panelTitle}>My Home QR</Text>
         <QrCard value={myHomeQrUri} />
-        <TextInput
-          autoCapitalize='none'
-          autoCorrect={false}
-          editable={false}
-          multiline
-          placeholder='My home QR text'
-          placeholderTextColor='#8b9188'
-          style={styles.keyInput}
-          testID='home-address-uri'
-          value={myHomeQrUri}
-        />
         <TextInput
           autoCapitalize='none'
           autoCorrect={false}
@@ -1160,17 +1151,6 @@ function PeopleActions({
       <View style={styles.panel}>
         <Text style={styles.panelTitle}>My Profile QR</Text>
         <QrCard value={profileQrUri} />
-        <TextInput
-          autoCapitalize='none'
-          autoCorrect={false}
-          editable={false}
-          multiline
-          placeholder='My profile QR text'
-          placeholderTextColor='#8b9188'
-          style={styles.keyInput}
-          testID='home-profile-uri'
-          value={profileQrUri}
-        />
         <Text style={styles.panelCopy}>Friend profile</Text>
         <TextInput
           autoCapitalize='none'
@@ -1210,6 +1190,41 @@ function PeopleActions({
           <Text style={styles.secondaryButtonText}>Scan Profile QR</Text>
         </Pressable>
       </View>
+
+      <Pressable
+        onPress={() => setShowAdvancedShare((value) => !value)}
+        style={styles.secondaryButton}
+        testID='advanced-share-toggle'
+      >
+        <Text style={styles.secondaryButtonText}>Advanced</Text>
+      </Pressable>
+      {showAdvancedShare ? (
+        <View style={styles.panel}>
+          <Text style={styles.panelTitle}>QR text</Text>
+          <TextInput
+            autoCapitalize='none'
+            autoCorrect={false}
+            editable={false}
+            multiline
+            placeholder='My home QR text'
+            placeholderTextColor='#8b9188'
+            style={styles.keyInput}
+            testID='home-address-uri'
+            value={myHomeQrUri}
+          />
+          <TextInput
+            autoCapitalize='none'
+            autoCorrect={false}
+            editable={false}
+            multiline
+            placeholder='My profile QR text'
+            placeholderTextColor='#8b9188'
+            style={styles.keyInput}
+            testID='home-profile-uri'
+            value={profileQrUri}
+          />
+        </View>
+      ) : null}
 
       <ContactManager contacts={trustedContacts} onRevokeContact={onRevokeContact} />
     </>
