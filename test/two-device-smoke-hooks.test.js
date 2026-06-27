@@ -355,6 +355,21 @@ test('Android QR scanner keeps the camera preview visible', async () => {
   assert.doesNotMatch(source, /SafeAreaView/)
 })
 
+test('Android supports Neo Cozy light and Indie Console dark themes', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+
+  assert.match(source, /useColorScheme/)
+  assert.match(source, /const mobileThemes = \{/)
+  assert.match(source, /neoCozy/)
+  assert.match(source, /indieConsole/)
+  assert.match(source, /function createMobileStyles\(theme\)/)
+  assert.match(source, /MobileThemeContext\.Provider/)
+  assert.match(source, /StatusBar barStyle=\{theme\.statusBar\}/)
+  assert.match(source, /backgroundColor: theme\.surface/)
+  assert.match(source, /surface: '#171d33'/)
+  assert.match(source, /accent: '#ffcf3d'/)
+})
+
 test('desktop UI exposes stable hooks for two-device smoke', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
 

@@ -12,6 +12,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  useColorScheme,
   View
 } from 'react-native'
 import {
@@ -93,7 +94,79 @@ import {
 
 const ROOM_KEY_PATTERN = /^[0-9a-f]{64}$/
 
+const mobileThemes = {
+  neoCozy: {
+    accent: '#d9714b',
+    accentInk: '#fffaf0',
+    accentStrong: '#143d2b',
+    border: '#d9dfcf',
+    borderStrong: '#c9d3bf',
+    danger: '#8e351f',
+    dangerBorder: '#d88b72',
+    disabled: '#b7bdae',
+    disabledBorder: '#c6cdc1',
+    field: '#fffdf7',
+    iconMuted: '#56715f',
+    ink: '#162119',
+    inkMuted: '#6f766b',
+    inkSoft: '#4b554c',
+    panel: '#f6f1e4',
+    placeholder: '#8b9188',
+    quickPanel: '#dfe9ce',
+    quickPanelBorder: '#b9caa6',
+    raised: '#fffdf7',
+    scanner: '#101711',
+    statusBar: 'dark-content',
+    statusDot: '#2f8f61',
+    statusText: '#324137',
+    surface: '#fffaf0',
+    treeComment: '#f4f6ed',
+    treeCommentBorder: '#9bb68d'
+  },
+  indieConsole: {
+    accent: '#ffcf3d',
+    accentInk: '#171d33',
+    accentStrong: '#ffcf3d',
+    border: '#384264',
+    borderStrong: '#4a567d',
+    danger: '#ff9c88',
+    dangerBorder: '#ff6f61',
+    disabled: '#4a5269',
+    disabledBorder: '#4a5269',
+    field: '#11182b',
+    iconMuted: '#a9b1cf',
+    ink: '#f8f2df',
+    inkMuted: '#a9b1cf',
+    inkSoft: '#c6cce3',
+    panel: '#1d2542',
+    placeholder: '#8d96b8',
+    quickPanel: '#27345b',
+    quickPanelBorder: '#4a567d',
+    raised: '#222a49',
+    scanner: '#080d18',
+    statusBar: 'light-content',
+    statusDot: '#ffcf3d',
+    statusText: '#f8f2df',
+    surface: '#171d33',
+    treeComment: '#202a4a',
+    treeCommentBorder: '#ffcf3d'
+  }
+}
+
+const MobileThemeContext = React.createContext({
+  theme: mobileThemes.neoCozy
+})
+
+function useMobileTheme() {
+  return React.useContext(MobileThemeContext)
+}
+
+let styles = createMobileStyles(mobileThemes.neoCozy)
+
 export default function App() {
+  const colorScheme = useColorScheme()
+  const theme = colorScheme === 'dark' ? mobileThemes.indieConsole : mobileThemes.neoCozy
+  styles = useMemo(() => createMobileStyles(theme), [theme])
   const [nick, setNick] = useState('Neil')
   const [profileId, setProfileId] = useState(null)
   const [identity, setIdentity] = useState(null)
@@ -699,101 +772,105 @@ export default function App() {
   }
 
   return (
-    <View style={styles.safe}>
-      <StatusBar barStyle='dark-content' />
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.screen}
-      >
-        {scanTarget ? (
-          <QrScanner onCancel={() => setScanTarget(null)} onScanned={handleQrScanned} />
-        ) : (
-          <>
-            <Header
-              notice={notice}
-              statusLabel={homeStatusLabel}
-              title={session ? 'Home' : 'Kepos'}
-            />
-            {session ? (
-              <ChatRoom
-                draft={draft}
-                dmDraft={dmDraft}
-                dmContactOptions={dmContactOptions}
-                dmMessages={dmMessages}
-                dmRecipient={dmRecipient}
-                activeTab={activeTab}
-                homeQrUri={homeQrUri}
-                myHomeQrUri={myHomeQrUri}
-                onAcceptRequest={acceptIncomingMessageRequest}
-                onDraftChange={setDraft}
-                onDmDraftChange={setDmDraft}
-                onDmRecipientChange={setDmRecipient}
-                onHomeQrChange={setHomeQrUri}
-                onJoinHomeQr={joinHomeQr}
-                onLeave={leaveRoom}
-                onRevokeContact={revokeTrustedContact}
-                onScanHomeQr={() => startQrScan('home')}
-                onScanProfileQr={() => startQrScan('profile')}
-                onSend={sendMessage}
-                onSendDm={sendMessageRequest}
-                onTabChange={setActiveTab}
-                onTrustAliasChange={setTrustAlias}
-                onTrustProfile={trustProfileQr}
-                onTrustQrChange={setTrustQrUri}
-                onTreeholeDraftChange={setTreeholeDraft}
-                onTreeholeComment={sendTreeholeComment}
-                onTreeholeLike={sendTreeholeLike}
-                onTreeholePost={sendTreeholePost}
-                pendingRequests={pendingMessageRequests}
-                profileId={profileId}
-                profileQrUri={profileQrUri}
-                session={session}
-                treeholeDraft={treeholeDraft}
-                treeholePosts={treeholePosts}
-                treeholeStatus={treeholeStatus}
-                trustAlias={trustAlias}
-                trustQrUri={trustQrUri}
+    <MobileThemeContext.Provider value={{ theme }}>
+      <View style={styles.safe}>
+        <StatusBar barStyle={theme.statusBar} />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.screen}
+        >
+          {scanTarget ? (
+            <QrScanner onCancel={() => setScanTarget(null)} onScanned={handleQrScanned} />
+          ) : (
+            <>
+              <Header
+                notice={notice}
+                statusLabel={homeStatusLabel}
+                title={session ? 'Home' : 'Kepos'}
               />
-            ) : (
-              <Lobby
-                canJoin={canJoin}
-                homeQrUri={homeQrUri}
-                myHomeQrUri={myHomeQrUri}
-                nick={nick}
-                onCreateRoom={createRoom}
-                onHomeQrChange={setHomeQrUri}
-                onJoinRoom={joinRoom}
-                onJoinHomeQr={joinHomeQr}
-                onNickChange={setNick}
-                onRoomKeyChange={setRoomKey}
-                onScanHomeQr={() => startQrScan('home')}
-                onScanProfileQr={() => startQrScan('profile')}
-                onToggleAdvancedJoin={() => setShowAdvancedJoin((value) => !value)}
-                onRevokeContact={revokeTrustedContact}
-                onTrustAliasChange={setTrustAlias}
-                onTrustProfile={trustProfileQr}
-                onTrustQrChange={setTrustQrUri}
-                profileQrUri={profileQrUri}
-                roomKey={roomKey}
-                showAdvancedJoin={showAdvancedJoin}
-                trustAlias={trustAlias}
-                trustQrUri={trustQrUri}
-                trustedContacts={dmContactOptions}
-              />
-            )}
-          </>
-        )}
-      </KeyboardAvoidingView>
-    </View>
+              {session ? (
+                <ChatRoom
+                  draft={draft}
+                  dmDraft={dmDraft}
+                  dmContactOptions={dmContactOptions}
+                  dmMessages={dmMessages}
+                  dmRecipient={dmRecipient}
+                  activeTab={activeTab}
+                  homeQrUri={homeQrUri}
+                  myHomeQrUri={myHomeQrUri}
+                  onAcceptRequest={acceptIncomingMessageRequest}
+                  onDraftChange={setDraft}
+                  onDmDraftChange={setDmDraft}
+                  onDmRecipientChange={setDmRecipient}
+                  onHomeQrChange={setHomeQrUri}
+                  onJoinHomeQr={joinHomeQr}
+                  onLeave={leaveRoom}
+                  onRevokeContact={revokeTrustedContact}
+                  onScanHomeQr={() => startQrScan('home')}
+                  onScanProfileQr={() => startQrScan('profile')}
+                  onSend={sendMessage}
+                  onSendDm={sendMessageRequest}
+                  onTabChange={setActiveTab}
+                  onTrustAliasChange={setTrustAlias}
+                  onTrustProfile={trustProfileQr}
+                  onTrustQrChange={setTrustQrUri}
+                  onTreeholeDraftChange={setTreeholeDraft}
+                  onTreeholeComment={sendTreeholeComment}
+                  onTreeholeLike={sendTreeholeLike}
+                  onTreeholePost={sendTreeholePost}
+                  pendingRequests={pendingMessageRequests}
+                  profileId={profileId}
+                  profileQrUri={profileQrUri}
+                  session={session}
+                  treeholeDraft={treeholeDraft}
+                  treeholePosts={treeholePosts}
+                  treeholeStatus={treeholeStatus}
+                  trustAlias={trustAlias}
+                  trustQrUri={trustQrUri}
+                />
+              ) : (
+                <Lobby
+                  canJoin={canJoin}
+                  homeQrUri={homeQrUri}
+                  myHomeQrUri={myHomeQrUri}
+                  nick={nick}
+                  onCreateRoom={createRoom}
+                  onHomeQrChange={setHomeQrUri}
+                  onJoinRoom={joinRoom}
+                  onJoinHomeQr={joinHomeQr}
+                  onNickChange={setNick}
+                  onRoomKeyChange={setRoomKey}
+                  onScanHomeQr={() => startQrScan('home')}
+                  onScanProfileQr={() => startQrScan('profile')}
+                  onToggleAdvancedJoin={() => setShowAdvancedJoin((value) => !value)}
+                  onRevokeContact={revokeTrustedContact}
+                  onTrustAliasChange={setTrustAlias}
+                  onTrustProfile={trustProfileQr}
+                  onTrustQrChange={setTrustQrUri}
+                  profileQrUri={profileQrUri}
+                  roomKey={roomKey}
+                  showAdvancedJoin={showAdvancedJoin}
+                  trustAlias={trustAlias}
+                  trustQrUri={trustQrUri}
+                  trustedContacts={dmContactOptions}
+                />
+              )}
+            </>
+          )}
+        </KeyboardAvoidingView>
+      </View>
+    </MobileThemeContext.Provider>
   )
 }
 
 function Header({ title, notice, statusLabel }) {
+  const { theme } = useMobileTheme()
+
   return (
     <View style={styles.header}>
       <View style={styles.brandRow}>
         <View style={styles.mark}>
-          <Sprout color='#143d2b' size={22} strokeWidth={2.4} />
+          <Sprout color={theme.accentStrong} size={22} strokeWidth={2.4} />
         </View>
         <View>
           <Text style={styles.kicker}>private garden</Text>
@@ -814,13 +891,15 @@ function Header({ title, notice, statusLabel }) {
 }
 
 function QrCard({ value }) {
+  const { theme } = useMobileTheme()
+
   if (!value) {
     return null
   }
 
   return (
     <View style={styles.qrCard}>
-      <QRCode backgroundColor='#fffdf7' ecl='M' quietZone={8} size={154} value={value} />
+      <QRCode backgroundColor={theme.raised} ecl='M' quietZone={8} size={154} value={value} />
     </View>
   )
 }
@@ -868,6 +947,8 @@ function Lobby({
   trustQrUri,
   trustedContacts
 }) {
+  const { theme } = useMobileTheme()
+
   return (
     <ScrollView
       contentContainerStyle={styles.lobby}
@@ -916,7 +997,7 @@ function Lobby({
             multiline
             onChangeText={onRoomKeyChange}
             placeholder='64-character manual key'
-            placeholderTextColor='#8b9188'
+            placeholderTextColor={theme.placeholder}
             style={styles.keyInput}
             testID='manual-home-key-input'
             value={roomKey}
@@ -927,7 +1008,7 @@ function Lobby({
             style={[styles.secondaryButton, !canJoin && styles.disabledButton]}
             testID='manual-home-join-button'
           >
-            <ArrowRight color={canJoin ? '#143d2b' : '#8b9188'} size={18} />
+            <ArrowRight color={canJoin ? theme.accentStrong : theme.placeholder} size={18} />
             <Text style={[styles.secondaryButtonText, !canJoin && styles.disabledButtonText]}>
               Join home
             </Text>
@@ -977,6 +1058,7 @@ function ChatRoom({
   trustAlias,
   trustQrUri
 }) {
+  const { theme } = useMobileTheme()
   const [showRoomAdvanced, setShowRoomAdvanced] = useState(false)
   const roomShort = useMemo(
     () => `${session.roomKey.slice(0, 8)}...${session.roomKey.slice(-8)}`,
@@ -998,7 +1080,7 @@ function ChatRoom({
             <Text style={styles.advancedSummary}>Advanced</Text>
           </Pressable>
           <Pressable style={styles.iconButton} onPress={onLeave}>
-            <LogOut color='#143d2b' size={18} />
+            <LogOut color={theme.accentStrong} size={18} />
           </Pressable>
         </View>
       </View>
@@ -1093,6 +1175,8 @@ function ChatRoom({
 }
 
 function QuickStartPanel({ nick, onCreateRoom, onNickChange, onScanHomeQr, onScanProfileQr }) {
+  const { theme } = useMobileTheme()
+
   return (
     <View style={styles.quickStartPanel}>
       <Text style={styles.panelTitle}>Start here</Text>
@@ -1102,7 +1186,7 @@ function QuickStartPanel({ nick, onCreateRoom, onNickChange, onScanHomeQr, onSca
       <Field label='Name' onChangeText={onNickChange} value={nick} />
       <View style={styles.quickActions}>
         <Pressable style={styles.primaryButton} onPress={onCreateRoom} testID='create-home-button'>
-          <Plus color='#fffaf0' size={18} />
+          <Plus color={theme.surface} size={18} />
           <Text style={styles.primaryButtonText}>Create my home</Text>
         </Pressable>
         <Pressable
@@ -1110,7 +1194,7 @@ function QuickStartPanel({ nick, onCreateRoom, onNickChange, onScanHomeQr, onSca
           style={styles.secondaryButton}
           testID='quick-scan-home-qr-button'
         >
-          <ArrowRight color='#143d2b' size={18} />
+          <ArrowRight color={theme.accentStrong} size={18} />
           <Text style={styles.secondaryButtonText}>Scan Home QR</Text>
         </Pressable>
         <Pressable
@@ -1118,7 +1202,7 @@ function QuickStartPanel({ nick, onCreateRoom, onNickChange, onScanHomeQr, onSca
           style={styles.secondaryButton}
           testID='quick-scan-profile-qr-button'
         >
-          <Plus color='#143d2b' size={18} />
+          <Plus color={theme.accentStrong} size={18} />
           <Text style={styles.secondaryButtonText}>Scan Profile QR</Text>
         </Pressable>
       </View>
@@ -1234,6 +1318,7 @@ function PeopleActions({
   trustedContacts,
   trustQrUri
 }) {
+  const { theme } = useMobileTheme()
   const [showAdvancedShare, setShowAdvancedShare] = useState(false)
   const [showHomeQr, setShowHomeQr] = useState(false)
   const [showProfileQr, setShowProfileQr] = useState(false)
@@ -1247,7 +1332,7 @@ function PeopleActions({
           style={styles.secondaryButton}
           testID='show-home-qr-button'
         >
-          <QrCode color='#143d2b' size={18} />
+          <QrCode color={theme.accentStrong} size={18} />
           <Text style={styles.secondaryButtonText}>Show My Home QR</Text>
         </Pressable>
         {showHomeQr ? <QrCard value={myHomeQrUri} /> : null}
@@ -1267,7 +1352,7 @@ function PeopleActions({
           style={styles.secondaryButton}
           testID='show-profile-qr-button'
         >
-          <QrCode color='#143d2b' size={18} />
+          <QrCode color={theme.accentStrong} size={18} />
           <Text style={styles.secondaryButtonText}>Show My Profile QR</Text>
         </Pressable>
         {showProfileQr ? <QrCard value={profileQrUri} /> : null}
@@ -1297,7 +1382,7 @@ function PeopleActions({
             multiline
             onChangeText={onHomeQrChange}
             placeholder='Paste Home QR'
-            placeholderTextColor='#8b9188'
+            placeholderTextColor={theme.placeholder}
             style={styles.keyInput}
             testID='join-home-uri-input'
             value={homeQrUri}
@@ -1308,7 +1393,10 @@ function PeopleActions({
             style={[styles.secondaryButton, !homeQrUri.trim() && styles.disabledButton]}
             testID='join-home-uri-button'
           >
-            <ArrowRight color={homeQrUri.trim() ? '#143d2b' : '#8b9188'} size={18} />
+            <ArrowRight
+              color={homeQrUri.trim() ? theme.accentStrong : theme.placeholder}
+              size={18}
+            />
             <Text
               style={[styles.secondaryButtonText, !homeQrUri.trim() && styles.disabledButtonText]}
             >
@@ -1322,7 +1410,7 @@ function PeopleActions({
             multiline
             onChangeText={onTrustQrChange}
             placeholder='Paste Profile QR'
-            placeholderTextColor='#8b9188'
+            placeholderTextColor={theme.placeholder}
             style={styles.keyInput}
             testID='trust-profile-uri-input'
             value={trustQrUri}
@@ -1339,7 +1427,7 @@ function PeopleActions({
             style={[styles.secondaryButton, !trustQrUri.trim() && styles.disabledButton]}
             testID='trust-profile-button'
           >
-            <Plus color={trustQrUri.trim() ? '#143d2b' : '#8b9188'} size={18} />
+            <Plus color={trustQrUri.trim() ? theme.accentStrong : theme.placeholder} size={18} />
             <Text
               style={[styles.secondaryButtonText, !trustQrUri.trim() && styles.disabledButtonText]}
             >
@@ -1352,7 +1440,7 @@ function PeopleActions({
             editable={false}
             multiline
             placeholder='Home QR details'
-            placeholderTextColor='#8b9188'
+            placeholderTextColor={theme.placeholder}
             style={styles.keyInput}
             testID='home-address-uri'
             value={myHomeQrUri}
@@ -1363,7 +1451,7 @@ function PeopleActions({
             editable={false}
             multiline
             placeholder='Profile QR details'
-            placeholderTextColor='#8b9188'
+            placeholderTextColor={theme.placeholder}
             style={styles.keyInput}
             testID='home-profile-uri'
             value={profileQrUri}
@@ -1387,6 +1475,7 @@ function DirectPane({
   onSend,
   recipient
 }) {
+  const { theme } = useMobileTheme()
   const [showAdvancedDmRecipient, setShowAdvancedDmRecipient] = useState(false)
 
   return (
@@ -1430,7 +1519,7 @@ function DirectPane({
                   onPress={() => onRevokeContact(contact.profileId)}
                   style={styles.revokeChip}
                 >
-                  <UserMinus color='#8e351f' size={16} />
+                  <UserMinus color={theme.danger} size={16} />
                 </Pressable>
               </View>
             ))}
@@ -1449,7 +1538,7 @@ function DirectPane({
             autoCorrect={false}
             onChangeText={onRecipientChange}
             placeholder='Manual recipient profile id'
-            placeholderTextColor='#8b9188'
+            placeholderTextColor={theme.placeholder}
             style={styles.recipientInput}
             testID='dm-recipient-input'
             value={recipient}
@@ -1460,7 +1549,7 @@ function DirectPane({
             onChangeText={onDraftChange}
             onSubmitEditing={onSend}
             placeholder='Write a direct message'
-            placeholderTextColor='#8b9188'
+            placeholderTextColor={theme.placeholder}
             returnKeyType='send'
             style={styles.messageInput}
             testID='dm-message-input'
@@ -1475,7 +1564,7 @@ function DirectPane({
             ]}
             testID='dm-send-button'
           >
-            <Send color='#fffaf0' size={18} />
+            <Send color={theme.surface} size={18} />
           </Pressable>
         </View>
       </View>
@@ -1484,6 +1573,8 @@ function DirectPane({
 }
 
 function ContactManager({ contacts, onRevokeContact }) {
+  const { theme } = useMobileTheme()
+
   if (!contacts?.length) {
     return null
   }
@@ -1502,7 +1593,7 @@ function ContactManager({ contacts, onRevokeContact }) {
             onPress={() => onRevokeContact(contact.profileId)}
             style={styles.revokeButton}
           >
-            <UserMinus color='#8e351f' size={18} />
+            <UserMinus color={theme.danger} size={18} />
             <Text style={styles.revokeButtonText}>Revoke</Text>
           </Pressable>
         </View>
@@ -1524,6 +1615,8 @@ function TabButton({ active, label, onPress, testID }) {
 }
 
 function ChatPane({ draft, messages, onDraftChange, onSend }) {
+  const { theme } = useMobileTheme()
+
   return (
     <>
       <PaneLabel eyebrow='live' title='Live home chat' />
@@ -1540,7 +1633,7 @@ function ChatPane({ draft, messages, onDraftChange, onSend }) {
           onChangeText={onDraftChange}
           onSubmitEditing={onSend}
           placeholder='Write to the home'
-          placeholderTextColor='#8b9188'
+          placeholderTextColor={theme.placeholder}
           returnKeyType='send'
           style={styles.messageInput}
           testID='chat-message-input'
@@ -1552,7 +1645,7 @@ function ChatPane({ draft, messages, onDraftChange, onSend }) {
           style={[styles.sendButton, !draft.trim() && styles.disabledSendButton]}
           testID='chat-send-button'
         >
-          <Send color='#fffaf0' size={18} />
+          <Send color={theme.surface} size={18} />
         </Pressable>
       </View>
     </>
@@ -1560,6 +1653,8 @@ function ChatPane({ draft, messages, onDraftChange, onSend }) {
 }
 
 function TreeholePane({ draft, onComment, onDraftChange, onLike, onPost, posts, status }) {
+  const { theme } = useMobileTheme()
+
   return (
     <>
       <PaneLabel eyebrow='durable' title='Durable treehole' />
@@ -1578,7 +1673,7 @@ function TreeholePane({ draft, onComment, onDraftChange, onLike, onPost, posts, 
           multiline
           onChangeText={onDraftChange}
           placeholder='Post to the treehole'
-          placeholderTextColor='#8b9188'
+          placeholderTextColor={theme.placeholder}
           style={styles.treeholeInput}
           testID='treehole-post-input'
           value={draft}
@@ -1592,7 +1687,7 @@ function TreeholePane({ draft, onComment, onDraftChange, onLike, onPost, posts, 
           ]}
           testID='treehole-post-button'
         >
-          <Send color='#fffaf0' size={18} />
+          <Send color={theme.surface} size={18} />
         </Pressable>
       </View>
     </>
@@ -1600,9 +1695,11 @@ function TreeholePane({ draft, onComment, onDraftChange, onLike, onPost, posts, 
 }
 
 function EmptyTreehole({ status }) {
+  const { theme } = useMobileTheme()
+
   return (
     <View style={styles.empty}>
-      <MessageCircle color='#56715f' size={34} />
+      <MessageCircle color={theme.iconMuted} size={34} />
       <Text style={styles.emptyTitle}>No posts yet</Text>
       <Text style={styles.emptyCopy}>{treeholeStatusText(status)}</Text>
     </View>
@@ -1619,6 +1716,7 @@ function PaneLabel({ eyebrow, title }) {
 }
 
 function TreeholePost({ onComment, onLike, post }) {
+  const { theme } = useMobileTheme()
   const [commentDraft, setCommentDraft] = useState('')
 
   function submitComment() {
@@ -1647,17 +1745,17 @@ function TreeholePost({ onComment, onLike, post }) {
       </View>
       <View style={styles.postStats}>
         <View style={styles.postStat}>
-          <MessageCircle color='#5a6b54' size={14} />
+          <MessageCircle color={theme.inkSoft} size={14} />
           <Text style={styles.postStatText}>{post.commentCount}</Text>
         </View>
         <View style={styles.postStat}>
-          <Heart color='#5a6b54' size={14} />
+          <Heart color={theme.inkSoft} size={14} />
           <Text style={styles.postStatText}>{post.likeCount}</Text>
         </View>
       </View>
       <View style={styles.postActions}>
         <Pressable onPress={() => onLike(post.id)} style={styles.smallActionButton}>
-          <Heart color='#143d2b' size={15} />
+          <Heart color={theme.accentStrong} size={15} />
           <Text style={styles.smallActionText}>Like</Text>
         </Pressable>
         <View style={styles.commentComposer}>
@@ -1665,7 +1763,7 @@ function TreeholePost({ onComment, onLike, post }) {
             onChangeText={setCommentDraft}
             onSubmitEditing={submitComment}
             placeholder='Write a comment'
-            placeholderTextColor='#8b9188'
+            placeholderTextColor={theme.placeholder}
             style={styles.commentInput}
             value={commentDraft}
           />
@@ -1674,7 +1772,7 @@ function TreeholePost({ onComment, onLike, post }) {
             onPress={submitComment}
             style={[styles.smallSendButton, !commentDraft.trim() && styles.disabledSendButton]}
           >
-            <Send color='#fffaf0' size={15} />
+            <Send color={theme.surface} size={15} />
           </Pressable>
         </View>
       </View>
@@ -1707,9 +1805,11 @@ function getMobileHomeStatus({ online, session }) {
 }
 
 function EmptyMessages() {
+  const { theme } = useMobileTheme()
+
   return (
     <View style={styles.empty}>
-      <MessageCircle color='#56715f' size={34} />
+      <MessageCircle color={theme.iconMuted} size={34} />
       <Text style={styles.emptyTitle}>No messages yet</Text>
       <Text style={styles.emptyCopy}>Send the first line from this phone.</Text>
     </View>
@@ -1717,9 +1817,11 @@ function EmptyMessages() {
 }
 
 function EmptyDirectMessages() {
+  const { theme } = useMobileTheme()
+
   return (
     <View style={styles.empty}>
-      <MessageCircle color='#56715f' size={34} />
+      <MessageCircle color={theme.iconMuted} size={34} />
       <Text style={styles.emptyTitle}>No direct messages yet</Text>
       <Text style={styles.emptyCopy}>Choose a trusted friend and send the first message.</Text>
     </View>
@@ -1871,693 +1973,695 @@ function readRpcPayload(req) {
   return JSON.parse(b4a.toString(req.data))
 }
 
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: '#fffaf0',
-    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 0
-  },
-  screen: {
-    flex: 1,
-    backgroundColor: '#fffaf0'
-  },
-  header: {
-    paddingHorizontal: 22,
-    paddingTop: 18,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#d9dfcf'
-  },
-  brandRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 12
-  },
-  mark: {
-    alignItems: 'center',
-    backgroundColor: '#dfe9ce',
-    borderColor: '#b9caa6',
-    borderRadius: 8,
-    borderWidth: 1,
-    height: 42,
-    justifyContent: 'center',
-    width: 42
-  },
-  kicker: {
-    color: '#6f766b',
-    fontSize: 12,
-    letterSpacing: 0,
-    textTransform: 'uppercase'
-  },
-  title: {
-    color: '#162119',
-    fontSize: 30,
-    fontWeight: '800',
-    letterSpacing: 0
-  },
-  statusPill: {
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    borderColor: '#c9d3bf',
-    borderRadius: 8,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 7,
-    marginTop: 16,
-    paddingHorizontal: 10,
-    paddingVertical: 6
-  },
-  statusDot: {
-    backgroundColor: '#2f8f61',
-    borderRadius: 4,
-    height: 8,
-    width: 8
-  },
-  statusText: {
-    color: '#324137',
-    fontSize: 13,
-    fontWeight: '700'
-  },
-  notice: {
-    color: '#6f766b',
-    fontSize: 13,
-    lineHeight: 18,
-    marginTop: 12
-  },
-  lobby: {
-    gap: 14,
-    padding: 18
-  },
-  lobbyScroll: {
-    flex: 1
-  },
-  peoplePane: {
-    gap: 14,
-    padding: 18
-  },
-  panel: {
-    backgroundColor: '#f6f1e4',
-    borderColor: '#d9dfcf',
-    borderRadius: 8,
-    borderWidth: 1,
-    padding: 16
-  },
-  panelTitle: {
-    color: '#162119',
-    fontSize: 20,
-    fontWeight: '800',
-    letterSpacing: 0
-  },
-  panelCopy: {
-    color: '#596255',
-    fontSize: 14,
-    lineHeight: 20,
-    marginTop: 6
-  },
-  quickStartPanel: {
-    backgroundColor: '#dfe9ce',
-    borderColor: '#b9caa6',
-    borderRadius: 8,
-    borderWidth: 1,
-    padding: 16
-  },
-  quickActions: {
-    gap: 10,
-    marginTop: 16
-  },
-  field: {
-    marginTop: 16
-  },
-  label: {
-    color: '#4b554c',
-    fontSize: 12,
-    fontWeight: '800',
-    marginBottom: 7,
-    textTransform: 'uppercase'
-  },
-  input: {
-    backgroundColor: '#fffdf7',
-    borderColor: '#cfd8c6',
-    borderRadius: 8,
-    borderWidth: 1,
-    color: '#162119',
-    fontSize: 17,
-    minHeight: 48,
-    paddingHorizontal: 13
-  },
-  keyInput: {
-    backgroundColor: '#fffdf7',
-    borderColor: '#cfd8c6',
-    borderRadius: 8,
-    borderWidth: 1,
-    color: '#162119',
-    fontSize: 14,
-    lineHeight: 20,
-    marginTop: 14,
-    minHeight: 96,
-    padding: 13
-  },
-  qrCard: {
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    backgroundColor: '#fffdf7',
-    borderColor: '#cfd8c6',
-    borderRadius: 8,
-    borderWidth: 1,
-    marginTop: 14,
-    padding: 10
-  },
-  scannerOverlay: {
-    backgroundColor: '#101711',
-    flex: 1
-  },
-  scannerCamera: {
-    flex: 1,
-    minHeight: 0
-  },
-  scannerControls: {
-    alignItems: 'center',
-    bottom: 0,
-    left: 0,
-    paddingBottom: 28,
-    paddingTop: 16,
-    position: 'absolute',
-    right: 0
-  },
-  scannerCancel: {
-    alignItems: 'center',
-    alignSelf: 'center',
-    backgroundColor: '#fffaf0',
-    borderRadius: 8,
-    minHeight: 46,
-    paddingHorizontal: 22,
-    justifyContent: 'center'
-  },
-  scannerCancelText: {
-    color: '#143d2b',
-    fontSize: 15,
-    fontWeight: '900'
-  },
-  primaryButton: {
-    alignItems: 'center',
-    backgroundColor: '#143d2b',
-    borderRadius: 8,
-    flexDirection: 'row',
-    gap: 9,
-    justifyContent: 'center',
-    marginTop: 16,
-    minHeight: 50
-  },
-  primaryButtonText: {
-    color: '#fffaf0',
-    fontSize: 16,
-    fontWeight: '800'
-  },
-  secondaryButton: {
-    alignItems: 'center',
-    borderColor: '#143d2b',
-    borderRadius: 8,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 9,
-    justifyContent: 'center',
-    marginTop: 14,
-    minHeight: 50
-  },
-  secondaryButtonText: {
-    color: '#143d2b',
-    fontSize: 16,
-    fontWeight: '800'
-  },
-  disabledButton: {
-    borderColor: '#c6cdc1'
-  },
-  disabledButtonText: {
-    color: '#8b9188'
-  },
-  chat: {
-    flex: 1
-  },
-  tabs: {
-    borderBottomColor: '#d9dfcf',
-    borderBottomWidth: 1,
-    flexDirection: 'row',
-    gap: 8,
-    paddingHorizontal: 18,
-    paddingVertical: 10
-  },
-  tabButton: {
-    alignItems: 'center',
-    borderColor: '#c9d3bf',
-    borderRadius: 8,
-    borderWidth: 1,
-    flex: 1,
-    justifyContent: 'center',
-    minHeight: 40
-  },
-  activeTabButton: {
-    backgroundColor: '#143d2b',
-    borderColor: '#143d2b'
-  },
-  tabText: {
-    color: '#4b554c',
-    fontSize: 14,
-    fontWeight: '800'
-  },
-  activeTabText: {
-    color: '#fffaf0'
-  },
-  roomBar: {
-    alignItems: 'center',
-    borderBottomColor: '#d9dfcf',
-    borderBottomWidth: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 18,
-    paddingVertical: 13
-  },
-  roomActions: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 10
-  },
-  roomAdvancedButton: {
-    alignItems: 'center',
-    borderColor: '#c9d3bf',
-    borderRadius: 8,
-    borderWidth: 1,
-    height: 42,
-    justifyContent: 'center',
-    paddingHorizontal: 12
-  },
-  roomAdvancedPanel: {
-    backgroundColor: '#f6f1e4',
-    borderBottomColor: '#d9dfcf',
-    borderBottomWidth: 1,
-    paddingHorizontal: 18,
-    paddingVertical: 10
-  },
-  roomLabel: {
-    color: '#6f766b',
-    fontSize: 11,
-    fontWeight: '800',
-    textTransform: 'uppercase'
-  },
-  roomName: {
-    color: '#162119',
-    fontSize: 17,
-    fontWeight: '800',
-    marginTop: 2
-  },
-  roomKey: {
-    color: '#162119',
-    fontSize: 16,
-    fontWeight: '800',
-    marginTop: 2
-  },
-  iconButton: {
-    alignItems: 'center',
-    backgroundColor: '#dfe9ce',
-    borderRadius: 8,
-    height: 42,
-    justifyContent: 'center',
-    width: 42
-  },
-  messageList: {
-    flexGrow: 1,
-    gap: 10,
-    padding: 18
-  },
-  paneLabel: {
-    borderBottomColor: '#d9dfcf',
-    borderBottomWidth: 1,
-    gap: 2,
-    paddingHorizontal: 18,
-    paddingVertical: 10
-  },
-  paneEyebrow: {
-    color: '#6f766b',
-    fontSize: 11,
-    fontWeight: '900',
-    textTransform: 'uppercase'
-  },
-  paneTitle: {
-    color: '#162119',
-    fontSize: 17,
-    fontWeight: '800'
-  },
-  empty: {
-    alignItems: 'center',
-    flex: 1,
-    justifyContent: 'center',
-    minHeight: 280
-  },
-  emptyTitle: {
-    color: '#162119',
-    fontSize: 20,
-    fontWeight: '800',
-    marginTop: 12
-  },
-  emptyCopy: {
-    color: '#6f766b',
-    fontSize: 14,
-    marginTop: 5
-  },
-  bubble: {
-    borderRadius: 8,
-    maxWidth: '82%',
-    paddingHorizontal: 13,
-    paddingVertical: 10
-  },
-  outBubble: {
-    alignSelf: 'flex-end',
-    backgroundColor: '#143d2b'
-  },
-  inBubble: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#dfe9ce'
-  },
-  bubbleMeta: {
-    color: '#d9714b',
-    fontSize: 11,
-    fontWeight: '900',
-    marginBottom: 4,
-    textTransform: 'uppercase'
-  },
-  inBubbleMeta: {
-    color: '#5a6b54'
-  },
-  bubbleText: {
-    color: '#fffaf0',
-    fontSize: 16,
-    lineHeight: 22
-  },
-  inBubbleText: {
-    color: '#162119'
-  },
-  requestButton: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#d9714b',
-    borderRadius: 7,
-    marginTop: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 7
-  },
-  requestButtonText: {
-    color: '#fffaf0',
-    fontSize: 12,
-    fontWeight: '900'
-  },
-  composer: {
-    alignItems: 'center',
-    borderTopColor: '#d9dfcf',
-    borderTopWidth: 1,
-    flexDirection: 'row',
-    gap: 10,
-    padding: 14
-  },
-  directComposer: {
-    borderTopColor: '#d9dfcf',
-    borderTopWidth: 1
-  },
-  directAdvancedToggle: {
-    alignSelf: 'flex-start',
-    marginHorizontal: 14,
-    marginTop: 12,
-    minHeight: 30,
-    justifyContent: 'center'
-  },
-  advancedSummary: {
-    color: '#5a6b54',
-    fontSize: 12,
-    fontWeight: '900',
-    textTransform: 'uppercase'
-  },
-  contactScroller: {
-    gap: 8,
-    paddingHorizontal: 14,
-    paddingTop: 14
-  },
-  contactChipGroup: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 4
-  },
-  contactChip: {
-    backgroundColor: '#dfe9ce',
-    borderColor: '#b9c9ad',
-    borderRadius: 8,
-    borderWidth: 1,
-    minHeight: 34,
-    paddingHorizontal: 12,
-    paddingVertical: 8
-  },
-  activeContactChip: {
-    backgroundColor: '#143d2b',
-    borderColor: '#143d2b'
-  },
-  contactChipText: {
-    color: '#143d2b',
-    fontSize: 12,
-    fontWeight: '900'
-  },
-  activeContactChipText: {
-    color: '#fffaf0'
-  },
-  revokeChip: {
-    alignItems: 'center',
-    borderColor: '#d88b72',
-    borderRadius: 8,
-    borderWidth: 1,
-    height: 34,
-    justifyContent: 'center',
-    width: 34
-  },
-  contactRow: {
-    alignItems: 'center',
-    borderBottomColor: '#d9dfcf',
-    borderBottomWidth: 1,
-    flexDirection: 'row',
-    gap: 10,
-    justifyContent: 'space-between',
-    paddingVertical: 10
-  },
-  contactRowText: {
-    flex: 1
-  },
-  contactName: {
-    color: '#162119',
-    fontSize: 15,
-    fontWeight: '800'
-  },
-  contactProfile: {
-    color: '#6f766b',
-    fontSize: 12,
-    marginTop: 2
-  },
-  requestCard: {
-    alignItems: 'center',
-    borderBottomColor: '#d9dfcf',
-    borderBottomWidth: 1,
-    flexDirection: 'row',
-    gap: 10,
-    justifyContent: 'space-between',
-    paddingVertical: 10
-  },
-  requestText: {
-    flex: 1
-  },
-  requestTitle: {
-    color: '#162119',
-    fontSize: 15,
-    fontWeight: '800'
-  },
-  revokeButton: {
-    alignItems: 'center',
-    borderColor: '#d88b72',
-    borderRadius: 8,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 6,
-    minHeight: 38,
-    paddingHorizontal: 10
-  },
-  revokeButtonText: {
-    color: '#8e351f',
-    fontSize: 13,
-    fontWeight: '800'
-  },
-  recipientInput: {
-    backgroundColor: '#fffdf7',
-    borderColor: '#cfd8c6',
-    borderRadius: 8,
-    borderWidth: 1,
-    color: '#162119',
-    fontSize: 13,
-    marginHorizontal: 14,
-    marginTop: 14,
-    minHeight: 42,
-    paddingHorizontal: 12
-  },
-  messageInput: {
-    backgroundColor: '#fffdf7',
-    borderColor: '#cfd8c6',
-    borderRadius: 8,
-    borderWidth: 1,
-    color: '#162119',
-    flex: 1,
-    fontSize: 16,
-    minHeight: 48,
-    paddingHorizontal: 13
-  },
-  sendButton: {
-    alignItems: 'center',
-    backgroundColor: '#d9714b',
-    borderRadius: 8,
-    height: 48,
-    justifyContent: 'center',
-    width: 48
-  },
-  disabledSendButton: {
-    backgroundColor: '#b7bdae'
-  },
-  treeholeList: {
-    flexGrow: 1,
-    gap: 12,
-    padding: 18
-  },
-  post: {
-    backgroundColor: '#fffdf7',
-    borderColor: '#d9dfcf',
-    borderRadius: 8,
-    borderWidth: 1,
-    padding: 14
-  },
-  postHeader: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between'
-  },
-  postAuthor: {
-    color: '#143d2b',
-    fontSize: 13,
-    fontWeight: '900',
-    textTransform: 'uppercase'
-  },
-  postTime: {
-    color: '#6f766b',
-    fontSize: 12,
-    fontWeight: '700'
-  },
-  postText: {
-    color: '#162119',
-    fontSize: 17,
-    lineHeight: 24,
-    marginTop: 10
-  },
-  commentList: {
-    gap: 8,
-    marginTop: 12
-  },
-  comment: {
-    backgroundColor: '#f4f6ed',
-    borderLeftColor: '#9bb68d',
-    borderLeftWidth: 3,
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 8
-  },
-  commentAuthor: {
-    color: '#5a6b54',
-    fontSize: 11,
-    fontWeight: '900',
-    textTransform: 'uppercase'
-  },
-  commentText: {
-    color: '#162119',
-    fontSize: 14,
-    lineHeight: 20,
-    marginTop: 3
-  },
-  postStats: {
-    flexDirection: 'row',
-    gap: 14,
-    marginTop: 12
-  },
-  postStat: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 5
-  },
-  postStatText: {
-    color: '#5a6b54',
-    fontSize: 13,
-    fontWeight: '800'
-  },
-  postActions: {
-    gap: 8,
-    marginTop: 12
-  },
-  smallActionButton: {
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    borderColor: '#c9d3bf',
-    borderRadius: 8,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 6,
-    minHeight: 36,
-    paddingHorizontal: 10
-  },
-  smallActionText: {
-    color: '#143d2b',
-    fontSize: 13,
-    fontWeight: '800'
-  },
-  commentComposer: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 8
-  },
-  commentInput: {
-    backgroundColor: '#fffdf7',
-    borderColor: '#cfd8c6',
-    borderRadius: 8,
-    borderWidth: 1,
-    color: '#162119',
-    flex: 1,
-    fontSize: 14,
-    minHeight: 42,
-    paddingHorizontal: 11
-  },
-  smallSendButton: {
-    alignItems: 'center',
-    backgroundColor: '#d9714b',
-    borderRadius: 8,
-    height: 42,
-    justifyContent: 'center',
-    width: 42
-  },
-  treeholeComposer: {
-    alignItems: 'flex-end',
-    borderTopColor: '#d9dfcf',
-    borderTopWidth: 1,
-    flexDirection: 'row',
-    gap: 10,
-    padding: 14
-  },
-  treeholeInput: {
-    backgroundColor: '#fffdf7',
-    borderColor: '#cfd8c6',
-    borderRadius: 8,
-    borderWidth: 1,
-    color: '#162119',
-    flex: 1,
-    fontSize: 16,
-    lineHeight: 22,
-    maxHeight: 118,
-    minHeight: 64,
-    paddingHorizontal: 13,
-    paddingVertical: 10
-  }
-})
+function createMobileStyles(theme) {
+  return StyleSheet.create({
+    safe: {
+      flex: 1,
+      backgroundColor: theme.surface,
+      paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 0
+    },
+    screen: {
+      flex: 1,
+      backgroundColor: theme.surface
+    },
+    header: {
+      paddingHorizontal: 22,
+      paddingTop: 18,
+      paddingBottom: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border
+    },
+    brandRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: 12
+    },
+    mark: {
+      alignItems: 'center',
+      backgroundColor: theme.quickPanel,
+      borderColor: theme.quickPanelBorder,
+      borderRadius: 8,
+      borderWidth: 1,
+      height: 42,
+      justifyContent: 'center',
+      width: 42
+    },
+    kicker: {
+      color: theme.inkMuted,
+      fontSize: 12,
+      letterSpacing: 0,
+      textTransform: 'uppercase'
+    },
+    title: {
+      color: theme.ink,
+      fontSize: 30,
+      fontWeight: '800',
+      letterSpacing: 0
+    },
+    statusPill: {
+      alignItems: 'center',
+      alignSelf: 'flex-start',
+      borderColor: theme.borderStrong,
+      borderRadius: 8,
+      borderWidth: 1,
+      flexDirection: 'row',
+      gap: 7,
+      marginTop: 16,
+      paddingHorizontal: 10,
+      paddingVertical: 6
+    },
+    statusDot: {
+      backgroundColor: theme.statusDot,
+      borderRadius: 4,
+      height: 8,
+      width: 8
+    },
+    statusText: {
+      color: theme.statusText,
+      fontSize: 13,
+      fontWeight: '700'
+    },
+    notice: {
+      color: theme.inkMuted,
+      fontSize: 13,
+      lineHeight: 18,
+      marginTop: 12
+    },
+    lobby: {
+      gap: 14,
+      padding: 18
+    },
+    lobbyScroll: {
+      flex: 1
+    },
+    peoplePane: {
+      gap: 14,
+      padding: 18
+    },
+    panel: {
+      backgroundColor: theme.panel,
+      borderColor: theme.border,
+      borderRadius: 8,
+      borderWidth: 1,
+      padding: 16
+    },
+    panelTitle: {
+      color: theme.ink,
+      fontSize: 20,
+      fontWeight: '800',
+      letterSpacing: 0
+    },
+    panelCopy: {
+      color: theme.inkSoft,
+      fontSize: 14,
+      lineHeight: 20,
+      marginTop: 6
+    },
+    quickStartPanel: {
+      backgroundColor: theme.quickPanel,
+      borderColor: theme.quickPanelBorder,
+      borderRadius: 8,
+      borderWidth: 1,
+      padding: 16
+    },
+    quickActions: {
+      gap: 10,
+      marginTop: 16
+    },
+    field: {
+      marginTop: 16
+    },
+    label: {
+      color: theme.inkSoft,
+      fontSize: 12,
+      fontWeight: '800',
+      marginBottom: 7,
+      textTransform: 'uppercase'
+    },
+    input: {
+      backgroundColor: theme.raised,
+      borderColor: theme.borderStrong,
+      borderRadius: 8,
+      borderWidth: 1,
+      color: theme.ink,
+      fontSize: 17,
+      minHeight: 48,
+      paddingHorizontal: 13
+    },
+    keyInput: {
+      backgroundColor: theme.raised,
+      borderColor: theme.borderStrong,
+      borderRadius: 8,
+      borderWidth: 1,
+      color: theme.ink,
+      fontSize: 14,
+      lineHeight: 20,
+      marginTop: 14,
+      minHeight: 96,
+      padding: 13
+    },
+    qrCard: {
+      alignItems: 'center',
+      alignSelf: 'flex-start',
+      backgroundColor: theme.raised,
+      borderColor: theme.borderStrong,
+      borderRadius: 8,
+      borderWidth: 1,
+      marginTop: 14,
+      padding: 10
+    },
+    scannerOverlay: {
+      backgroundColor: theme.scanner,
+      flex: 1
+    },
+    scannerCamera: {
+      flex: 1,
+      minHeight: 0
+    },
+    scannerControls: {
+      alignItems: 'center',
+      bottom: 0,
+      left: 0,
+      paddingBottom: 28,
+      paddingTop: 16,
+      position: 'absolute',
+      right: 0
+    },
+    scannerCancel: {
+      alignItems: 'center',
+      alignSelf: 'center',
+      backgroundColor: theme.surface,
+      borderRadius: 8,
+      minHeight: 46,
+      paddingHorizontal: 22,
+      justifyContent: 'center'
+    },
+    scannerCancelText: {
+      color: theme.accentStrong,
+      fontSize: 15,
+      fontWeight: '900'
+    },
+    primaryButton: {
+      alignItems: 'center',
+      backgroundColor: theme.accentStrong,
+      borderRadius: 8,
+      flexDirection: 'row',
+      gap: 9,
+      justifyContent: 'center',
+      marginTop: 16,
+      minHeight: 50
+    },
+    primaryButtonText: {
+      color: theme.surface,
+      fontSize: 16,
+      fontWeight: '800'
+    },
+    secondaryButton: {
+      alignItems: 'center',
+      borderColor: theme.accentStrong,
+      borderRadius: 8,
+      borderWidth: 1,
+      flexDirection: 'row',
+      gap: 9,
+      justifyContent: 'center',
+      marginTop: 14,
+      minHeight: 50
+    },
+    secondaryButtonText: {
+      color: theme.accentStrong,
+      fontSize: 16,
+      fontWeight: '800'
+    },
+    disabledButton: {
+      borderColor: theme.disabledBorder
+    },
+    disabledButtonText: {
+      color: theme.placeholder
+    },
+    chat: {
+      flex: 1
+    },
+    tabs: {
+      borderBottomColor: theme.border,
+      borderBottomWidth: 1,
+      flexDirection: 'row',
+      gap: 8,
+      paddingHorizontal: 18,
+      paddingVertical: 10
+    },
+    tabButton: {
+      alignItems: 'center',
+      borderColor: theme.borderStrong,
+      borderRadius: 8,
+      borderWidth: 1,
+      flex: 1,
+      justifyContent: 'center',
+      minHeight: 40
+    },
+    activeTabButton: {
+      backgroundColor: theme.accentStrong,
+      borderColor: theme.accentStrong
+    },
+    tabText: {
+      color: theme.inkSoft,
+      fontSize: 14,
+      fontWeight: '800'
+    },
+    activeTabText: {
+      color: theme.surface
+    },
+    roomBar: {
+      alignItems: 'center',
+      borderBottomColor: theme.border,
+      borderBottomWidth: 1,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingHorizontal: 18,
+      paddingVertical: 13
+    },
+    roomActions: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: 10
+    },
+    roomAdvancedButton: {
+      alignItems: 'center',
+      borderColor: theme.borderStrong,
+      borderRadius: 8,
+      borderWidth: 1,
+      height: 42,
+      justifyContent: 'center',
+      paddingHorizontal: 12
+    },
+    roomAdvancedPanel: {
+      backgroundColor: theme.panel,
+      borderBottomColor: theme.border,
+      borderBottomWidth: 1,
+      paddingHorizontal: 18,
+      paddingVertical: 10
+    },
+    roomLabel: {
+      color: theme.inkMuted,
+      fontSize: 11,
+      fontWeight: '800',
+      textTransform: 'uppercase'
+    },
+    roomName: {
+      color: theme.ink,
+      fontSize: 17,
+      fontWeight: '800',
+      marginTop: 2
+    },
+    roomKey: {
+      color: theme.ink,
+      fontSize: 16,
+      fontWeight: '800',
+      marginTop: 2
+    },
+    iconButton: {
+      alignItems: 'center',
+      backgroundColor: theme.quickPanel,
+      borderRadius: 8,
+      height: 42,
+      justifyContent: 'center',
+      width: 42
+    },
+    messageList: {
+      flexGrow: 1,
+      gap: 10,
+      padding: 18
+    },
+    paneLabel: {
+      borderBottomColor: theme.border,
+      borderBottomWidth: 1,
+      gap: 2,
+      paddingHorizontal: 18,
+      paddingVertical: 10
+    },
+    paneEyebrow: {
+      color: theme.inkMuted,
+      fontSize: 11,
+      fontWeight: '900',
+      textTransform: 'uppercase'
+    },
+    paneTitle: {
+      color: theme.ink,
+      fontSize: 17,
+      fontWeight: '800'
+    },
+    empty: {
+      alignItems: 'center',
+      flex: 1,
+      justifyContent: 'center',
+      minHeight: 280
+    },
+    emptyTitle: {
+      color: theme.ink,
+      fontSize: 20,
+      fontWeight: '800',
+      marginTop: 12
+    },
+    emptyCopy: {
+      color: theme.inkMuted,
+      fontSize: 14,
+      marginTop: 5
+    },
+    bubble: {
+      borderRadius: 8,
+      maxWidth: '82%',
+      paddingHorizontal: 13,
+      paddingVertical: 10
+    },
+    outBubble: {
+      alignSelf: 'flex-end',
+      backgroundColor: theme.accentStrong
+    },
+    inBubble: {
+      alignSelf: 'flex-start',
+      backgroundColor: theme.quickPanel
+    },
+    bubbleMeta: {
+      color: theme.accent,
+      fontSize: 11,
+      fontWeight: '900',
+      marginBottom: 4,
+      textTransform: 'uppercase'
+    },
+    inBubbleMeta: {
+      color: theme.inkSoft
+    },
+    bubbleText: {
+      color: theme.surface,
+      fontSize: 16,
+      lineHeight: 22
+    },
+    inBubbleText: {
+      color: theme.ink
+    },
+    requestButton: {
+      alignSelf: 'flex-start',
+      backgroundColor: theme.accent,
+      borderRadius: 7,
+      marginTop: 10,
+      paddingHorizontal: 12,
+      paddingVertical: 7
+    },
+    requestButtonText: {
+      color: theme.surface,
+      fontSize: 12,
+      fontWeight: '900'
+    },
+    composer: {
+      alignItems: 'center',
+      borderTopColor: theme.border,
+      borderTopWidth: 1,
+      flexDirection: 'row',
+      gap: 10,
+      padding: 14
+    },
+    directComposer: {
+      borderTopColor: theme.border,
+      borderTopWidth: 1
+    },
+    directAdvancedToggle: {
+      alignSelf: 'flex-start',
+      marginHorizontal: 14,
+      marginTop: 12,
+      minHeight: 30,
+      justifyContent: 'center'
+    },
+    advancedSummary: {
+      color: theme.inkSoft,
+      fontSize: 12,
+      fontWeight: '900',
+      textTransform: 'uppercase'
+    },
+    contactScroller: {
+      gap: 8,
+      paddingHorizontal: 14,
+      paddingTop: 14
+    },
+    contactChipGroup: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: 4
+    },
+    contactChip: {
+      backgroundColor: theme.quickPanel,
+      borderColor: theme.quickPanelBorder,
+      borderRadius: 8,
+      borderWidth: 1,
+      minHeight: 34,
+      paddingHorizontal: 12,
+      paddingVertical: 8
+    },
+    activeContactChip: {
+      backgroundColor: theme.accentStrong,
+      borderColor: theme.accentStrong
+    },
+    contactChipText: {
+      color: theme.accentStrong,
+      fontSize: 12,
+      fontWeight: '900'
+    },
+    activeContactChipText: {
+      color: theme.surface
+    },
+    revokeChip: {
+      alignItems: 'center',
+      borderColor: theme.dangerBorder,
+      borderRadius: 8,
+      borderWidth: 1,
+      height: 34,
+      justifyContent: 'center',
+      width: 34
+    },
+    contactRow: {
+      alignItems: 'center',
+      borderBottomColor: theme.border,
+      borderBottomWidth: 1,
+      flexDirection: 'row',
+      gap: 10,
+      justifyContent: 'space-between',
+      paddingVertical: 10
+    },
+    contactRowText: {
+      flex: 1
+    },
+    contactName: {
+      color: theme.ink,
+      fontSize: 15,
+      fontWeight: '800'
+    },
+    contactProfile: {
+      color: theme.inkMuted,
+      fontSize: 12,
+      marginTop: 2
+    },
+    requestCard: {
+      alignItems: 'center',
+      borderBottomColor: theme.border,
+      borderBottomWidth: 1,
+      flexDirection: 'row',
+      gap: 10,
+      justifyContent: 'space-between',
+      paddingVertical: 10
+    },
+    requestText: {
+      flex: 1
+    },
+    requestTitle: {
+      color: theme.ink,
+      fontSize: 15,
+      fontWeight: '800'
+    },
+    revokeButton: {
+      alignItems: 'center',
+      borderColor: theme.dangerBorder,
+      borderRadius: 8,
+      borderWidth: 1,
+      flexDirection: 'row',
+      gap: 6,
+      minHeight: 38,
+      paddingHorizontal: 10
+    },
+    revokeButtonText: {
+      color: theme.danger,
+      fontSize: 13,
+      fontWeight: '800'
+    },
+    recipientInput: {
+      backgroundColor: theme.raised,
+      borderColor: theme.borderStrong,
+      borderRadius: 8,
+      borderWidth: 1,
+      color: theme.ink,
+      fontSize: 13,
+      marginHorizontal: 14,
+      marginTop: 14,
+      minHeight: 42,
+      paddingHorizontal: 12
+    },
+    messageInput: {
+      backgroundColor: theme.raised,
+      borderColor: theme.borderStrong,
+      borderRadius: 8,
+      borderWidth: 1,
+      color: theme.ink,
+      flex: 1,
+      fontSize: 16,
+      minHeight: 48,
+      paddingHorizontal: 13
+    },
+    sendButton: {
+      alignItems: 'center',
+      backgroundColor: theme.accent,
+      borderRadius: 8,
+      height: 48,
+      justifyContent: 'center',
+      width: 48
+    },
+    disabledSendButton: {
+      backgroundColor: theme.disabled
+    },
+    treeholeList: {
+      flexGrow: 1,
+      gap: 12,
+      padding: 18
+    },
+    post: {
+      backgroundColor: theme.raised,
+      borderColor: theme.border,
+      borderRadius: 8,
+      borderWidth: 1,
+      padding: 14
+    },
+    postHeader: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'space-between'
+    },
+    postAuthor: {
+      color: theme.accentStrong,
+      fontSize: 13,
+      fontWeight: '900',
+      textTransform: 'uppercase'
+    },
+    postTime: {
+      color: theme.inkMuted,
+      fontSize: 12,
+      fontWeight: '700'
+    },
+    postText: {
+      color: theme.ink,
+      fontSize: 17,
+      lineHeight: 24,
+      marginTop: 10
+    },
+    commentList: {
+      gap: 8,
+      marginTop: 12
+    },
+    comment: {
+      backgroundColor: theme.treeComment,
+      borderLeftColor: theme.treeCommentBorder,
+      borderLeftWidth: 3,
+      borderRadius: 6,
+      paddingHorizontal: 10,
+      paddingVertical: 8
+    },
+    commentAuthor: {
+      color: theme.inkSoft,
+      fontSize: 11,
+      fontWeight: '900',
+      textTransform: 'uppercase'
+    },
+    commentText: {
+      color: theme.ink,
+      fontSize: 14,
+      lineHeight: 20,
+      marginTop: 3
+    },
+    postStats: {
+      flexDirection: 'row',
+      gap: 14,
+      marginTop: 12
+    },
+    postStat: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: 5
+    },
+    postStatText: {
+      color: theme.inkSoft,
+      fontSize: 13,
+      fontWeight: '800'
+    },
+    postActions: {
+      gap: 8,
+      marginTop: 12
+    },
+    smallActionButton: {
+      alignItems: 'center',
+      alignSelf: 'flex-start',
+      borderColor: theme.borderStrong,
+      borderRadius: 8,
+      borderWidth: 1,
+      flexDirection: 'row',
+      gap: 6,
+      minHeight: 36,
+      paddingHorizontal: 10
+    },
+    smallActionText: {
+      color: theme.accentStrong,
+      fontSize: 13,
+      fontWeight: '800'
+    },
+    commentComposer: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: 8
+    },
+    commentInput: {
+      backgroundColor: theme.raised,
+      borderColor: theme.borderStrong,
+      borderRadius: 8,
+      borderWidth: 1,
+      color: theme.ink,
+      flex: 1,
+      fontSize: 14,
+      minHeight: 42,
+      paddingHorizontal: 11
+    },
+    smallSendButton: {
+      alignItems: 'center',
+      backgroundColor: theme.accent,
+      borderRadius: 8,
+      height: 42,
+      justifyContent: 'center',
+      width: 42
+    },
+    treeholeComposer: {
+      alignItems: 'flex-end',
+      borderTopColor: theme.border,
+      borderTopWidth: 1,
+      flexDirection: 'row',
+      gap: 10,
+      padding: 14
+    },
+    treeholeInput: {
+      backgroundColor: theme.raised,
+      borderColor: theme.borderStrong,
+      borderRadius: 8,
+      borderWidth: 1,
+      color: theme.ink,
+      flex: 1,
+      fontSize: 16,
+      lineHeight: 22,
+      maxHeight: 118,
+      minHeight: 64,
+      paddingHorizontal: 13,
+      paddingVertical: 10
+    }
+  })
+}
