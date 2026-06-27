@@ -137,14 +137,32 @@ test('desktop status panel keeps raw ids in advanced details', async () => {
   assert.match(source, /<details[^>]+id='advancedStatus'/)
   assert.equal(source.indexOf("id='roomKeyLabel'") > source.indexOf("id='advancedStatus'"), true)
   assert.equal(source.indexOf("id='profileIdLabel'") > source.indexOf("id='advancedStatus'"), true)
+  assert.equal(
+    source.indexOf("id='errorDetailLabel'") > source.indexOf("id='advancedStatus'"),
+    true
+  )
   assert.match(controller, /els\.homeStatusLabel\.textContent = getDesktopHomeStatus\(state\)/)
   assert.match(
     controller,
     /els\.treeholeStatusLabel\.textContent = getDesktopTreeholeStatus\(state\)/
   )
+  assert.match(controller, /els\.errorDetailLabel\.textContent = state\.lastError \|\| 'none'/)
   assert.equal(source.includes('treehole idle'), false)
   assert.equal(source.includes("<p className='label'>Peers</p>"), false)
   assert.equal(controller.includes('Treehole ${state.treeholeStatus}'), false)
+})
+
+test('desktop error handling keeps raw exception detail advanced', async () => {
+  const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const state = await readFile(new URL('../src/desktop-state.js', import.meta.url), 'utf8')
+
+  assert.match(state, /lastError: ''/)
+  assert.match(controller, /errorDetailLabel: document\.querySelector\('#errorDetailLabel'\)/)
+  assert.match(
+    controller,
+    /state = \{ \.\.\.state, lastError: error\.message, notice: 'Something went wrong\.' \}/
+  )
+  assert.equal(controller.includes('notice: error.message'), false)
 })
 
 test('desktop primary panes expose short empty states before content arrives', async () => {

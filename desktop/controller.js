@@ -76,6 +76,7 @@ const els = {
   dmRecipientInput: document.querySelector('#dmRecipientInput'),
   dmSendButton: document.querySelector('#dmSendButton'),
   dmTab: document.querySelector('#dmTab'),
+  errorDetailLabel: document.querySelector('#errorDetailLabel'),
   homeQrForm: document.querySelector('#homeQrForm'),
   homeQrCode: document.querySelector('#homeQrCode'),
   homeQrInput: document.querySelector('#homeQrInput'),
@@ -775,6 +776,7 @@ function render() {
   els.profileIdLabel.textContent = session?.profileId ? shorten(session.profileId) : 'not ready'
   els.peerLabel.textContent = String(state.peers)
   els.noticeLabel.textContent = state.notice
+  els.errorDetailLabel.textContent = state.lastError || 'none'
   els.treeholeStatusLabel.textContent = getDesktopTreeholeStatus(state)
   els.treeholeForm.classList.toggle('disabledComposer', !state.treeholeCanPost)
   els.treeholeInput.disabled = !state.treeholeCanPost
@@ -1196,7 +1198,7 @@ async function likeTreeholePost(postId) {
 
 function showError(error) {
   console.error(error)
-  state = { ...state, notice: 'Something went wrong.' }
+  state = { ...state, lastError: error.message, notice: 'Something went wrong.' }
   render()
 }
 

@@ -4,6 +4,7 @@ export function createDesktopState() {
   return {
     activeTab: 'chat',
     messages: [],
+    lastError: '',
     mode: null,
     nick: 'Desktop',
     notice: 'Create or join a room.',

@@ -305,6 +305,10 @@ function DesktopApp() {
               <p id='profileIdLabel' className='mono muted'>
                 not ready
               </p>
+              <p className='label'>Error detail</p>
+              <p id='errorDetailLabel' className='mono muted'>
+                none
+              </p>
             </details>
             <button id='leaveButton' type='button' disabled>
               <LogOut size={17} />
