@@ -30,10 +30,7 @@ const messageActions = createDesktopMessageActions({
   getSession: () => session,
   getTreeholeCanPost: () => state.treeholeCanPost,
   getTreeholeRuntime: () => treeholeRuntime,
-  onChanged: () => render(),
-  setSession: (nextSession) => {
-    session = nextSession
-  }
+  onChanged: () => render()
 })
 const renderPresenter = createDesktopRenderPresenter({
   formatTime,
@@ -138,15 +135,7 @@ const backendHost = createDesktopLocalBackendHost({
     trustProfileUri: trustActions.trustProfileUri
   },
   runtimeOptions: {
-    onDmSessionChanged: (nextSession) => {
-      dmSession = nextSession
-      render()
-    },
     onHomeControl: (message, peer) => controlActions.handleControl(message, peer).catch(showError),
-    onHomeSessionChanged: (nextSession) => {
-      session = nextSession
-      render()
-    },
     onVerifiedHello: (message, peer) =>
       controlActions.sendTreeholeBootstrap(peer, message.profileId),
     storageBasePath: getDesktopStorageBasePath()
@@ -230,6 +219,14 @@ globalThis.keposDesktopUi?.setTreeholeComposerActions({
   postTreehole: ({ text }) => dispatchCommand('postTreehole', { text })
 })
 
+backendClient.subscribe('homeMessageReceived', (nextSession) => {
+  session = nextSession
+  render()
+})
+backendClient.subscribe('dmMessageReceived', (nextSession) => {
+  dmSession = nextSession
+  render()
+})
 backendClient.subscribe('treeholeStateChanged', (snapshot) => {
   state = setDesktopTreehole(state, snapshot)
   render()

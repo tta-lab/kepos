@@ -80,6 +80,21 @@ test('desktop controller routes treehole runtime updates through backend bridge 
   assert.doesNotMatch(source, /createTreeholeStatePublisher/)
 })
 
+test('desktop controller routes Home and Direct sessions through backend bridge events', async () => {
+  const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const runtime = await readFile(
+    new URL('../src/desktop-backend-runtime.js', import.meta.url),
+    'utf8'
+  )
+
+  assert.match(runtime, /emit\('homeMessageReceived', session\)/)
+  assert.match(runtime, /emit\('dmMessageReceived', session\)/)
+  assert.match(source, /backendClient\.subscribe\('homeMessageReceived'/)
+  assert.match(source, /backendClient\.subscribe\('dmMessageReceived'/)
+  assert.doesNotMatch(source, /onHomeSessionChanged:/)
+  assert.doesNotMatch(source, /onDmSessionChanged:/)
+})
+
 test('desktop controller delegates home transport to a runtime boundary', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const actions = await readFile(
