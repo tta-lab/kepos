@@ -27,6 +27,7 @@ import {
 } from '../src/desktop-state.js'
 import { createDesktopBackendBridge } from '../src/desktop-backend-bridge.ts'
 import { createDesktopCommandRegistry } from '../src/desktop-command-registry.ts'
+import { createDesktopRendererBackendClient } from '../src/desktop-renderer-backend-client.js'
 
 const ROOM_KEY_PATTERN = /^[0-9a-f]{64}$/
 const BLOCKING_COMMANDS = new Set(['joinHome', 'joinHomeUri', 'leaveHome', 'trustProfileUri'])
@@ -129,6 +130,9 @@ const commands = createDesktopCommandRegistry({
 const backendBridge = createDesktopBackendBridge({
   dispatch: (command, payload) => commands.dispatch(command, payload)
 })
+const backendClient = createDesktopRendererBackendClient({
+  localBackend: backendBridge
+})
 const backendRuntime = createDesktopBackendRuntime({
   emit: (event, payload) => backendBridge.emit(event, payload),
   onDmSessionChanged: (nextSession) => {
@@ -146,15 +150,15 @@ const dmRuntime = backendRuntime.dm
 const homeRuntime = backendRuntime.home
 const treeholeRuntime = backendRuntime.treehole
 
-backendBridge.subscribe('treeholeStateChanged', (snapshot) => {
+backendClient.subscribe('treeholeStateChanged', (snapshot) => {
   state = setDesktopTreehole(state, snapshot)
   render()
 })
-backendBridge.subscribe('peerCountChanged', ({ peers }) => {
+backendClient.subscribe('peerCountChanged', ({ peers }) => {
   state = { ...state, peers }
   render()
 })
-backendBridge.subscribe('errorReceived', showError)
+backendClient.subscribe('errorReceived', showError)
 
 els.createButton.addEventListener('click', () => {
   dispatchCommand('joinHome', { createTreehole: true, mode: 'host' })
@@ -254,7 +258,7 @@ async function dispatchCommand(command, payload) {
   }
 
   try {
-    await backendBridge.dispatch(command, payload)
+    await backendClient.dispatch(command, payload)
   } catch (error) {
     showError(error)
   } finally {
