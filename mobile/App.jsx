@@ -1427,6 +1427,7 @@ function MessageRequestManager({ onAcceptRequest, onIgnoreRequest, pendingReques
               <Text style={styles.contactProfile}>
                 {request.alias || shortenProfileId(request.profileId)}
               </Text>
+              <Text style={styles.requestPreview}>{formatRequestPreview(request.text)}</Text>
             </View>
             <View style={styles.requestActions}>
               <Pressable
@@ -2076,6 +2077,10 @@ function formatMobileTrustSource(source) {
 function formatMobileTrustTime(trustedAt) {
   if (!Number.isFinite(trustedAt)) return 'recently'
   return new Date(trustedAt).toLocaleDateString()
+}
+
+function formatRequestPreview(text) {
+  return text?.trim() || 'No message yet'
 }
 
 function EmptyMessages() {
@@ -2849,6 +2854,12 @@ function createMobileStyles(theme) {
       color: theme.ink,
       fontSize: 15,
       fontWeight: '800'
+    },
+    requestPreview: {
+      color: theme.inkSoft,
+      fontSize: 13,
+      lineHeight: 18,
+      marginTop: 5
     },
     revokeButton: {
       alignItems: 'center',

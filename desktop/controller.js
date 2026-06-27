@@ -968,6 +968,7 @@ function renderMessageRequests() {
       const label = document.createElement('div')
       const title = document.createElement('p')
       const profileId = document.createElement('p')
+      const preview = document.createElement('p')
       const actions = document.createElement('div')
       const ignoreButton = document.createElement('button')
       const button = document.createElement('button')
@@ -976,7 +977,9 @@ function renderMessageRequests() {
       title.textContent = 'Message request'
       profileId.className = 'mono muted smallText'
       profileId.textContent = request.alias || shorten(request.profileId)
-      label.append(title, profileId)
+      preview.className = 'muted smallText'
+      preview.textContent = formatRequestPreview(request.text)
+      label.append(title, profileId, preview)
       actions.className = 'inlineActions'
       ignoreButton.type = 'button'
       ignoreButton.className = 'smallButton'
@@ -1001,6 +1004,10 @@ function renderMessageRequests() {
       return row
     })
   )
+}
+
+function formatRequestPreview(text) {
+  return text?.trim() || 'No message yet'
 }
 
 async function revokeLocalContact(profileId) {
