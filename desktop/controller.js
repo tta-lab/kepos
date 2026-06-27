@@ -1,13 +1,7 @@
 /* global document, navigator */
 
-import QRCode from 'qrcode'
 import { applyMessageRequestToContactBook } from '../src/message-request.ts'
 import { listTrustedContacts } from '../src/contact-book.ts'
-import {
-  createSignedHomeAddressPayload,
-  createSignedTrustInvitePayload,
-  encodeQrUri
-} from '../src/signed-qr-payload.ts'
 import { createDesktopBackendRuntime } from '../src/desktop-backend-runtime.js'
 import { createDesktopHomeJoinDetails } from '../src/desktop-home-join-service.js'
 import { createDesktopProfileContext } from '../src/desktop-profile-context.js'
@@ -15,7 +9,12 @@ import {
   createDesktopMessageRequestAcceptance,
   createDesktopMessageRequestIgnore
 } from '../src/desktop-message-request-service.js'
-import { applyDesktopHomeQr, applyDesktopProfileTrustQr } from '../src/desktop-qr-service.js'
+import {
+  applyDesktopHomeQr,
+  applyDesktopProfileTrustQr,
+  createDesktopShareQrOutputs,
+  renderDesktopQrSvg
+} from '../src/desktop-qr-service.js'
 import { createDesktopContactRevoke } from '../src/desktop-revoke-service.js'
 import {
   createDesktopState,
@@ -386,35 +385,14 @@ function trustProfileQr({ alias = '', displayName = 'Desktop', uri } = {}) {
 
 async function updateQrOutputs() {
   const { profile } = getProfileContext()
-  const profileUri = encodeQrUri(
-    createSignedTrustInvitePayload({
-      displayName: profile.displayName,
-      identity: profile.identity
-    })
-  )
-  const homeUri = encodeQrUri(
-    createSignedHomeAddressPayload({
-      address: profile.homeRoom.address,
-      identity: profile.identity,
-      policy: profile.homeRoom.policy,
-      roomKey: profile.homeRoom.roomKey
-    })
-  )
+  const { homeSvg, homeUri, profileSvg, profileUri } = await createDesktopShareQrOutputs({
+    profile
+  })
 
   els.profileQrOutput.value = profileUri
   els.homeQrOutput.value = homeUri
-  els.profileQrCode.innerHTML = await QRCode.toString(profileUri, {
-    errorCorrectionLevel: 'M',
-    margin: 1,
-    type: 'svg',
-    width: 172
-  })
-  els.homeQrCode.innerHTML = await QRCode.toString(homeUri, {
-    errorCorrectionLevel: 'M',
-    margin: 1,
-    type: 'svg',
-    width: 172
-  })
+  els.profileQrCode.innerHTML = profileSvg
+  els.homeQrCode.innerHTML = homeSvg
 }
 
 async function showLargeQr({ returnFocus, title, uri }) {
@@ -422,10 +400,8 @@ async function showLargeQr({ returnFocus, title, uri }) {
 
   largeQrReturnFocus = returnFocus
   els.largeQrTitle.textContent = title
-  els.largeQrCode.innerHTML = await QRCode.toString(uri, {
-    errorCorrectionLevel: 'M',
+  els.largeQrCode.innerHTML = await renderDesktopQrSvg(uri, {
     margin: 2,
-    type: 'svg',
     width: 520
   })
   els.largeQrDialog.classList.remove('hidden')

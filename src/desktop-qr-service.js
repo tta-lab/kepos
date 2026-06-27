@@ -1,5 +1,18 @@
+import QRCode from 'qrcode'
 import { createTreeholePolicyFromContactBook } from './contact-book-storage.js'
+import {
+  createSignedHomeAddressPayload,
+  createSignedTrustInvitePayload,
+  encodeQrUri
+} from './signed-qr-payload.ts'
 import { applySignedQrUriToContactBook } from './signed-qr-scan.js'
+
+const SHARE_QR_OPTIONS = {
+  errorCorrectionLevel: 'M',
+  margin: 1,
+  type: 'svg',
+  width: 172
+}
 
 export function applyDesktopHomeQr({ book, localProfileId, uri }) {
   const result = applySignedQrUriToContactBook({
@@ -46,4 +59,40 @@ export function applyDesktopProfileTrustQr({
     profileId: result.profileId,
     treeholePolicy: createTreeholePolicyFromContactBook(result.book)
   }
+}
+
+export async function createDesktopShareQrOutputs({ profile }) {
+  const profileUri = encodeQrUri(
+    createSignedTrustInvitePayload({
+      displayName: profile.displayName,
+      identity: profile.identity
+    })
+  )
+  const homeUri = encodeQrUri(
+    createSignedHomeAddressPayload({
+      address: profile.homeRoom.address,
+      identity: profile.identity,
+      policy: profile.homeRoom.policy,
+      roomKey: profile.homeRoom.roomKey
+    })
+  )
+
+  const [profileSvg, homeSvg] = await Promise.all([
+    renderDesktopQrSvg(profileUri),
+    renderDesktopQrSvg(homeUri)
+  ])
+
+  return {
+    homeSvg,
+    homeUri,
+    profileSvg,
+    profileUri
+  }
+}
+
+export function renderDesktopQrSvg(value, options = {}) {
+  return QRCode.toString(value, {
+    ...SHARE_QR_OPTIONS,
+    ...options
+  })
 }

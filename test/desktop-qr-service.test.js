@@ -6,11 +6,17 @@ import {
   isContactTrusted,
   trustContact
 } from '../src/contact-book.ts'
-import { applyDesktopHomeQr, applyDesktopProfileTrustQr } from '../src/desktop-qr-service.js'
+import {
+  applyDesktopHomeQr,
+  applyDesktopProfileTrustQr,
+  createDesktopShareQrOutputs,
+  renderDesktopQrSvg
+} from '../src/desktop-qr-service.js'
 import { createSigningKeyPair } from '../src/signed-record.ts'
 import {
   createSignedHomeAddressPayload,
   createSignedTrustInvitePayload,
+  decodeQrUri,
   encodeQrUri
 } from '../src/signed-qr-payload.ts'
 
@@ -129,4 +135,39 @@ test('desktop QR service rejects untrusted home QR before join', () => {
       }),
     /This trusted-only home is not trusted locally/
   )
+})
+
+test('desktop QR service creates signed profile and home share QR outputs', async () => {
+  const identity = createSigningKeyPair()
+
+  const result = await createDesktopShareQrOutputs({
+    profile: {
+      displayName: 'Ada',
+      homeRoom: {
+        address: 'a'.repeat(64),
+        policy: 'trusted_only',
+        roomKey: 'b'.repeat(64)
+      },
+      identity
+    }
+  })
+
+  assert.equal(result.profileUri.startsWith('kepos://profile?v=1&payload='), true)
+  assert.equal(result.homeUri.startsWith('kepos://home?v=1&payload='), true)
+  assert.equal(decodeQrUri(result.profileUri).profileId, identity.publicKey)
+  assert.equal(decodeQrUri(result.homeUri).ownerProfileId, identity.publicKey)
+  assert.match(result.profileSvg, /^<svg/)
+  assert.match(result.homeSvg, /^<svg/)
+  assert.match(result.profileSvg, /width="172"/)
+  assert.match(result.homeSvg, /width="172"/)
+})
+
+test('desktop QR service renders large QR SVG for dialogs', async () => {
+  const svg = await renderDesktopQrSvg('kepos://profile?v=1&payload=test', {
+    margin: 2,
+    width: 520
+  })
+
+  assert.match(svg, /^<svg/)
+  assert.match(svg, /width="520"/)
 })
