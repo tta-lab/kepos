@@ -38,6 +38,7 @@ import {
 import { loadDmThreadsFromFileSystem, saveDmThreadsToFileSystem } from '../src/dm-thread-storage.js'
 import {
   acceptMessageRequest,
+  ignoreMessageRequest,
   listTrustedContacts,
   recordMessageRequest
 } from '../src/contact-book.ts'
@@ -776,6 +777,24 @@ export default function App() {
     setNotice('Message request accepted.')
   }
 
+  async function ignoreIncomingMessageRequest(request) {
+    if (!contactBook) {
+      return
+    }
+
+    const nextBook = ignoreMessageRequest(contactBook, {
+      profileId: request.profileId
+    })
+
+    await saveContactBookToFileSystem({
+      baseUri: getRequiredMobileDocumentDirectory(FileSystem),
+      book: nextBook,
+      fileSystem: FileSystem
+    })
+    setContactBook(nextBook)
+    setNotice('Message request ignored.')
+  }
+
   async function saveMobileDmThread(thread) {
     const baseUri = getRequiredMobileDocumentDirectory(FileSystem)
     const threads = await loadDmThreadsFromFileSystem({
@@ -834,6 +853,7 @@ export default function App() {
                   onDmDraftChange={setDmDraft}
                   onDmRecipientChange={setDmRecipient}
                   onHomeQrChange={setHomeQrUri}
+                  onIgnoreRequest={ignoreIncomingMessageRequest}
                   onJoinHomeQr={joinHomeQr}
                   onLeave={leaveRoom}
                   onRevokeContact={revokeTrustedContact}
@@ -1082,6 +1102,7 @@ function ChatRoom({
   onDmDraftChange,
   onDmRecipientChange,
   onHomeQrChange,
+  onIgnoreRequest,
   onJoinHomeQr,
   onLeave,
   onRevokeContact,
@@ -1189,6 +1210,7 @@ function ChatRoom({
             myHomeQrUri={myHomeQrUri}
             onAcceptRequest={onAcceptRequest}
             onHomeQrChange={onHomeQrChange}
+            onIgnoreRequest={onIgnoreRequest}
             onJoinHomeQr={onJoinHomeQr}
             onRevokeContact={onRevokeContact}
             onScanHomeQr={onScanHomeQr}
@@ -1298,6 +1320,7 @@ function PeoplePane({
   myHomeQrUri,
   onAcceptRequest,
   onHomeQrChange,
+  onIgnoreRequest,
   onJoinHomeQr,
   onRevokeContact,
   onScanHomeQr,
@@ -1319,6 +1342,7 @@ function PeoplePane({
     <ScrollView contentContainerStyle={styles.peoplePane} keyboardShouldPersistTaps='handled'>
       <MessageRequestManager
         onAcceptRequest={onAcceptRequest}
+        onIgnoreRequest={onIgnoreRequest}
         pendingRequests={pendingRequests}
         profileId={profileId}
       />
@@ -1343,7 +1367,7 @@ function PeoplePane({
   )
 }
 
-function MessageRequestManager({ onAcceptRequest, pendingRequests, profileId }) {
+function MessageRequestManager({ onAcceptRequest, onIgnoreRequest, pendingRequests, profileId }) {
   const { styles } = useMobileTheme()
 
   if (!pendingRequests?.length) {
@@ -1366,24 +1390,33 @@ function MessageRequestManager({ onAcceptRequest, pendingRequests, profileId }) 
                 {request.alias || shortenProfileId(request.profileId)}
               </Text>
             </View>
-            <Pressable
-              disabled={!canAccept}
-              onPress={() =>
-                onAcceptRequest({
-                  createdAt: request.requestedAt,
-                  fromProfileId: request.profileId,
-                  requestId: request.requestId,
-                  senderEncryptionPublicKey: request.senderEncryptionPublicKey,
-                  text: '',
-                  toProfileId: profileId,
-                  type: 'kepos.message.request.v1'
-                })
-              }
-              style={[styles.requestButton, !canAccept && styles.disabledButton]}
-              testID='people-message-request-accept-button'
-            >
-              <Text style={styles.requestButtonText}>Accept</Text>
-            </Pressable>
+            <View style={styles.requestActions}>
+              <Pressable
+                onPress={() => onIgnoreRequest(request)}
+                style={styles.requestIgnoreButton}
+                testID='people-message-request-ignore-button'
+              >
+                <Text style={styles.requestIgnoreButtonText}>Ignore</Text>
+              </Pressable>
+              <Pressable
+                disabled={!canAccept}
+                onPress={() =>
+                  onAcceptRequest({
+                    createdAt: request.requestedAt,
+                    fromProfileId: request.profileId,
+                    requestId: request.requestId,
+                    senderEncryptionPublicKey: request.senderEncryptionPublicKey,
+                    text: '',
+                    toProfileId: profileId,
+                    type: 'kepos.message.request.v1'
+                  })
+                }
+                style={[styles.requestButton, !canAccept && styles.disabledButton]}
+                testID='people-message-request-accept-button'
+              >
+                <Text style={styles.requestButtonText}>Accept</Text>
+              </Pressable>
+            </View>
           </View>
         )
       })}
@@ -2591,6 +2624,25 @@ function createMobileStyles(theme) {
     },
     requestButtonText: {
       color: theme.surface,
+      fontSize: 12,
+      fontWeight: '900'
+    },
+    requestActions: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: 8
+    },
+    requestIgnoreButton: {
+      alignSelf: 'flex-start',
+      borderColor: theme.borderStrong,
+      borderRadius: 7,
+      borderWidth: 1,
+      marginTop: 10,
+      paddingHorizontal: 12,
+      paddingVertical: 7
+    },
+    requestIgnoreButtonText: {
+      color: theme.inkSoft,
       fontSize: 12,
       fontWeight: '900'
     },

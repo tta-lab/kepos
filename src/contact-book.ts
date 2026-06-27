@@ -340,6 +340,18 @@ export function acceptMessageRequest(
   }
 }
 
+export function ignoreMessageRequest(
+  book: ContactBook,
+  { profileId }: { profileId: string }
+): ContactBook {
+  const cleanProfileId = cleanRequiredString(profileId, 'Contact profile id is required')
+  const nextBook = cloneContactBook(book)
+
+  nextBook.pendingRequestsByProfileId.delete(cleanProfileId)
+
+  return nextBook
+}
+
 function isContactRevoked(book: ContactBook, profileId: string): boolean {
   const contact = getContact(book, profileId)
 

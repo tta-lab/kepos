@@ -9,6 +9,7 @@ import {
   createTreeholePolicyFromContactBook,
   deserializeContactBook,
   getContact,
+  ignoreMessageRequest,
   isContactTrusted,
   listTrustedContacts,
   recordMessageRequest,
@@ -226,6 +227,23 @@ describe('contact book', () => {
     assert.equal(isContactTrusted(accepted, 'profile-b'), true)
     assert.equal(getContact(accepted, 'profile-b').trustedAt, 2000)
     assert.deepEqual(getContact(accepted, 'profile-b').aliases, ['Ada Lovelace', 'Ada'])
+  })
+
+  test('ignoring a message request only clears the pending request', () => {
+    const requested = recordMessageRequest(createContactBook({ ownerProfileId: 'owner-a' }), {
+      profileId: 'profile-b',
+      alias: 'Ada',
+      requestedAt: 1000,
+      requestId: 'request-1',
+      source: 'home_room'
+    })
+
+    const ignored = ignoreMessageRequest(requested, { profileId: 'profile-b' })
+
+    assert.equal(requested.pendingRequestsByProfileId.has('profile-b'), true)
+    assert.equal(ignored.pendingRequestsByProfileId.has('profile-b'), false)
+    assert.equal(isContactTrusted(ignored, 'profile-b'), false)
+    assert.equal(getContact(ignored, 'profile-b').alias, 'Ada')
   })
 
   test('trusted contacts cannot send message requests', () => {
