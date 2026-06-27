@@ -26,10 +26,12 @@ test('desktop context panel uses product actions for home and people flows', asy
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
 
   assert.match(source, /className='contextGroup homeActions'/)
+  assert.match(source, /Start your home, invite a friend, or join theirs\./)
   assert.match(source, /Invite a friend/)
   assert.match(source, /Join a friend&apos;s home/)
   assert.match(source, /className='contextGroup peopleActions'/)
   assert.match(source, /Add trusted friend/)
+  assert.equal(source.includes('Start your room'), false)
   assert.equal(source.includes('Trust Profile'), false)
   assert.equal(source.includes('Join Home URI'), false)
   assert.match(styles, /\.contextGroup/)
@@ -93,8 +95,9 @@ test('desktop primary panes expose short empty states before content arrives', a
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
 
   assert.match(source, /id='messageList'[^>]+data-empty='No messages yet'/)
-  assert.match(source, /id='dmList'[^>]+data-empty='No DMs yet'/)
+  assert.match(source, /id='dmList'[^>]+data-empty='No direct messages yet'/)
   assert.match(source, /id='treeholeList'[^>]+data-empty='No posts yet'/)
+  assert.equal(source.includes('No DMs yet'), false)
   assert.match(styles, /\.list:empty::before/)
   assert.match(styles, /content:\s*attr\(data-empty\)/)
 })

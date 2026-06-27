@@ -109,7 +109,12 @@ function DesktopApp() {
 
           <section id='dmPane' className='pane hidden'>
             <PaneLabel eyebrow='durable' title='Direct messages' />
-            <ol id='dmList' className='list' aria-label='Direct messages' data-empty='No DMs yet' />
+            <ol
+              id='dmList'
+              className='list'
+              aria-label='Direct messages'
+              data-empty='No direct messages yet'
+            />
             <form id='dmForm' className='composer tall'>
               <div id='dmContactList' className='contactList' />
               <details id='advancedDmRecipient' className='advanced advancedComposer'>
@@ -157,7 +162,7 @@ function DesktopApp() {
           <section className='contextGroup homeActions' aria-labelledby='homeActionsTitle'>
             <div className='contextHead'>
               <SectionTitle id='homeActionsTitle' icon={<Home size={15} />} text='Home' />
-              <p className='contextHint'>Start your room, invite a friend, or join theirs.</p>
+              <p className='contextHint'>Start your home, invite a friend, or join theirs.</p>
             </div>
 
             <form id='lobbyForm' className='panel compactPanel'>
