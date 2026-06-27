@@ -479,6 +479,10 @@ test('desktop context actions disable unavailable joins and trust', async () => 
 test('desktop context actions expose a pending lock during blocking commands', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const dispatcher = await readFile(
+    new URL('../src/desktop-command-dispatcher.js', import.meta.url),
+    'utf8'
+  )
   const presenter = await readFile(
     new URL('../src/desktop-render-presenter.js', import.meta.url),
     'utf8'
@@ -488,13 +492,13 @@ test('desktop context actions expose a pending lock during blocking commands', a
   for (const command of ['joinHome', 'joinHomeUri', 'leaveHome', 'trustProfileUri']) {
     assert.match(controller, new RegExp(`'${command}'`), `${command} is not pending-locked`)
   }
-  assert.match(controller, /let pendingCommand = null/)
-  assert.match(controller, /if \(isBlockingCommand\(command\) && pendingCommand\) return/)
-  assert.match(controller, /pendingCommand = command/)
-  assert.match(
-    controller,
-    /finally \{\s*if \(pendingCommand === command\) \{\s*pendingCommand = null/
-  )
+  assert.match(controller, /createDesktopCommandDispatcher/)
+  assert.match(controller, /commandDispatcher\.dispatch\(command, payload\)/)
+  assert.match(controller, /pendingCommand: commandDispatcher\.getPendingCommand\(\)/)
+  assert.match(dispatcher, /if \(blocking && pendingCommand\) return/)
+  assert.match(dispatcher, /await backendClient\.dispatch\(command, payload\)/)
+  assert.match(dispatcher, /onError\(error\)/)
+  assert.match(dispatcher, /pendingCommand = null/)
   assert.match(source, /document\.body\.setAttribute\('aria-busy', String\(isShellBusy\)\)/)
   assert.match(presenter, /ui\?\.setShellBusy\(isActionPending\)/)
   assert.match(source, /disabled=\{!controls\.canLeaveHome\}/)

@@ -51,6 +51,10 @@ test('desktop controller routes commands through the backend bridge', async () =
     new URL('../src/desktop-local-backend-host.js', import.meta.url),
     'utf8'
   )
+  const dispatcher = await readFile(
+    new URL('../src/desktop-command-dispatcher.js', import.meta.url),
+    'utf8'
+  )
 
   assert.match(source, /createDesktopLocalBackendHost/)
   assert.match(host, /createDesktopBackendBridge/)
@@ -59,7 +63,9 @@ test('desktop controller routes commands through the backend bridge', async () =
   assert.match(host, /const bridge = createBackendBridge/)
   assert.match(source, /const backendClient = createDesktopRendererBackendClient/)
   assert.match(source, /localBackend: backendHost\.bridge/)
-  assert.match(source, /await backendClient\.dispatch\(command, payload\)/)
+  assert.match(source, /createDesktopCommandDispatcher\(\{\s*backendClient,/)
+  assert.match(source, /await commandDispatcher\.dispatch\(command, payload\)/)
+  assert.match(dispatcher, /await backendClient\.dispatch\(command, payload\)/)
 })
 
 test('desktop controller routes treehole runtime updates through backend bridge events', async () => {

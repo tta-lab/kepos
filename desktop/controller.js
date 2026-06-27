@@ -2,6 +2,7 @@
 
 import { createDesktopBackendActions } from '../src/desktop-backend-actions.js'
 import { createDesktopBackendSubscriptions } from '../src/desktop-backend-subscriptions.js'
+import { createDesktopCommandDispatcher } from '../src/desktop-command-dispatcher.js'
 import { createDesktopControlActions } from '../src/desktop-control-actions.js'
 import { createDesktopProfileContext } from '../src/desktop-profile-context.js'
 import { createDesktopMessageActions } from '../src/desktop-message-actions.js'
@@ -21,7 +22,6 @@ let state = createDesktopState()
 let session = null
 let dmSession = null
 let homeJoinDetails = null
-let pendingCommand = null
 let directComposerRecipientProfileId = ''
 let currentDisplayName = 'Desktop'
 const messageActions = createDesktopMessageActions({
@@ -138,6 +138,12 @@ const backendHost = createDesktopLocalBackendHost({
 const backendClient = createDesktopRendererBackendClient({
   localBackend: backendHost.bridge
 })
+const commandDispatcher = createDesktopCommandDispatcher({
+  backendClient,
+  blockingCommands: BLOCKING_COMMANDS,
+  onError: showError,
+  onPendingChanged: () => render()
+})
 const backendRuntime = backendHost.runtime
 const dmRuntime = backendHost.dmRuntime
 const homeRuntime = backendHost.homeRuntime
@@ -233,27 +239,7 @@ qrActions.updateQrOutputs().catch(showError)
 render()
 
 async function dispatchCommand(command, payload) {
-  if (isBlockingCommand(command) && pendingCommand) return
-
-  if (isBlockingCommand(command)) {
-    pendingCommand = command
-    render()
-  }
-
-  try {
-    await backendClient.dispatch(command, payload)
-  } catch (error) {
-    showError(error)
-  } finally {
-    if (pendingCommand === command) {
-      pendingCommand = null
-      render()
-    }
-  }
-}
-
-function isBlockingCommand(command) {
-  return BLOCKING_COMMANDS.has(command)
+  await commandDispatcher.dispatch(command, payload)
 }
 
 function updateDisplayName(displayName = 'Desktop') {
@@ -293,7 +279,7 @@ function render() {
     contactBook,
     directComposerRecipientProfileId,
     dmSession,
-    pendingCommand,
+    pendingCommand: commandDispatcher.getPendingCommand(),
     session,
     state
   })
