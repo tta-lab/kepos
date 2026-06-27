@@ -54,6 +54,31 @@ test('Android lobby uses product action words for QR and trust flows', async () 
   assert.equal(source.includes('Trust Profile'), false)
 })
 
+test('Android normal UI copy avoids backend and address language', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+
+  for (const text of [
+    'Create your home or join a friend',
+    'Create my home',
+    'Start a private space for trusted friends.',
+    'Starting home...',
+    'Home connection error.'
+  ]) {
+    assert.equal(source.includes(text), true, `${text} is missing`)
+  }
+
+  for (const text of [
+    'Start or join a home to bring up the P2P backend.',
+    'Create a home address',
+    'P2P backend unavailable',
+    'P2P backend error',
+    'Starting P2P backend',
+    '>home address<'
+  ]) {
+    assert.equal(source.includes(text), false, `${text} should not be visible UI copy`)
+  }
+})
+
 test('Android room has a People tab for QR and trusted contacts', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 

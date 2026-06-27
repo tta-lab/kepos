@@ -114,7 +114,7 @@ export default function App() {
   const [treeholeStatus, setTreeholeStatus] = useState('idle')
   const [activeTab, setActiveTab] = useState('chat')
   const [session, setSession] = useState(null)
-  const [notice, setNotice] = useState('Start or join a home to bring up the P2P backend.')
+  const [notice, setNotice] = useState('Create your home or join a friend.')
   const [peerCount, setPeerCount] = useState(0)
   const [rpc, setRpc] = useState(null)
   const [scanTarget, setScanTarget] = useState(null)
@@ -207,7 +207,7 @@ export default function App() {
         treeholePolicy
       })
     } catch (error) {
-      setNotice(`P2P backend unavailable: ${error.message}`)
+      setNotice(`Could not start this home: ${error.message}`)
     }
   }
 
@@ -244,7 +244,7 @@ export default function App() {
         treeholePolicy
       })
     } catch (error) {
-      setNotice(`P2P backend unavailable: ${error.message}`)
+      setNotice(`Could not join this home: ${error.message}`)
     }
   }
 
@@ -586,7 +586,7 @@ export default function App() {
         }
 
         if (req.command === RPC_STATUS) {
-          setNotice(`P2P backend ${payload.status}.`)
+          setNotice(`Home ${payload.status}.`)
           return
         }
 
@@ -601,15 +601,15 @@ export default function App() {
         }
 
         if (req.command === RPC_ERROR) {
-          setNotice(payload.message || 'P2P backend error.')
+          setNotice(payload.message || 'Home connection error.')
         }
       })
 
       nextRpc.request(RPC_JOIN).send(JSON.stringify(nextSession))
       setRpc(nextRpc)
-      setNotice('Starting P2P backend...')
+      setNotice('Starting home...')
     } catch (error) {
-      setNotice(`P2P backend unavailable: ${error.message}`)
+      setNotice(`Could not connect this home: ${error.message}`)
     }
   }
 
@@ -856,10 +856,8 @@ function Lobby({
       testID='lobby-scroll'
     >
       <View style={styles.panel}>
-        <Text style={styles.panelTitle}>Start a room</Text>
-        <Text style={styles.panelCopy}>
-          Create a home address, then invite another device into the same home.
-        </Text>
+        <Text style={styles.panelTitle}>Create my home</Text>
+        <Text style={styles.panelCopy}>Start a private space for trusted friends.</Text>
         <Field label='Nick' onChangeText={onNickChange} value={nick} />
         <Pressable style={styles.primaryButton} onPress={onCreateRoom} testID='create-home-button'>
           <Plus color='#fffaf0' size={18} />
@@ -1054,7 +1052,7 @@ function ChatRoom({
     <View style={styles.chat}>
       <View style={styles.roomBar}>
         <View>
-          <Text style={styles.roomLabel}>home address</Text>
+          <Text style={styles.roomLabel}>home</Text>
           <Text style={styles.roomKey} testID='room-home-address'>
             {roomShort}
           </Text>
