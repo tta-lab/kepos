@@ -7,8 +7,25 @@ export async function createDesktopControlMessageResult({
   currentDmSession,
   fallbackAlias = '',
   message,
+  peer,
   recipientEncryptionKeyPair
 }) {
+  if (message?.type === 'treehole.bootstrap') {
+    return {
+      bootstrapKey: message.key,
+      kind: 'treehole_bootstrap',
+      ownerProfileId: message.ownerProfileId || '',
+      sendWriterPeer: peer || null
+    }
+  }
+
+  if (message?.type === 'treehole.writer') {
+    return {
+      kind: 'treehole_writer',
+      writer: message
+    }
+  }
+
   if (!currentDmSession) return null
 
   if (message?.type === 'kepos.message.request.v1') {

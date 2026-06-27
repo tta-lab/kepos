@@ -523,20 +523,26 @@ async function handleControl(message, peer) {
   }
 
   if (message.type === 'treehole.bootstrap') {
-    if (message.ownerProfileId && homeJoinDetails) {
+    const result = await createDesktopControlMessageResult({ message, peer })
+    if (!result) return
+
+    if (result.ownerProfileId && homeJoinDetails) {
       homeJoinDetails = {
         ...homeJoinDetails,
-        ownerProfileId: message.ownerProfileId
+        ownerProfileId: result.ownerProfileId
       }
       configureTreeholeRuntime()
     }
-    await openTreehole(message.key)
-    sendTreeholeWriter(peer)
+    await openTreehole(result.bootstrapKey)
+    sendTreeholeWriter(result.sendWriterPeer)
     return
   }
 
   if (message.type === 'treehole.writer') {
-    await treeholeRuntime.addWriter(message)
+    const result = await createDesktopControlMessageResult({ message, peer })
+    if (!result) return
+
+    await treeholeRuntime.addWriter(result.writer)
   }
 }
 

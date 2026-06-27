@@ -89,3 +89,40 @@ test('desktop control service accepts DM invites for the local DM session', asyn
     }
   ])
 })
+
+test('desktop control service maps treehole bootstrap control to open intent', async () => {
+  const message = {
+    type: 'treehole.bootstrap',
+    key: 'tree-key',
+    ownerProfileId: 'owner-1'
+  }
+
+  const result = await createDesktopControlMessageResult({
+    message,
+    peer: 'peer-1'
+  })
+
+  assert.deepEqual(result, {
+    bootstrapKey: 'tree-key',
+    kind: 'treehole_bootstrap',
+    ownerProfileId: 'owner-1',
+    sendWriterPeer: 'peer-1'
+  })
+})
+
+test('desktop control service maps treehole writer control to writer intent', async () => {
+  const message = {
+    type: 'treehole.writer',
+    key: 'writer-key',
+    profileId: 'profile-1'
+  }
+
+  const result = await createDesktopControlMessageResult({
+    message
+  })
+
+  assert.deepEqual(result, {
+    kind: 'treehole_writer',
+    writer: message
+  })
+})
