@@ -3,7 +3,10 @@
 import { createDesktopBackendSession } from '../src/desktop-backend-session.js'
 import { createDesktopBackendSubscriptions } from '../src/desktop-backend-subscriptions.js'
 import { createDesktopCommandDispatcher } from '../src/desktop-command-dispatcher.js'
-import { createDesktopProfileContext } from '../src/desktop-profile-context.js'
+import {
+  createDesktopFileProfileContext,
+  createDesktopProfileContext
+} from '../src/desktop-profile-context.js'
 import { createDesktopQrActions } from '../src/desktop-qr-actions.js'
 import { createDesktopRenderPresenter } from '../src/desktop-render-presenter.js'
 import { setDesktopTab } from '../src/desktop-state.js'
@@ -109,6 +112,9 @@ function getCurrentDisplayName() {
 }
 
 function getProfileContext(displayName = getCurrentDisplayName()) {
+  const storageBasePath = getDesktopStorageBasePath()
+  if (storageBasePath) return createDesktopFileProfileContext({ displayName, storageBasePath })
+
   return createDesktopProfileContext({ displayName })
 }
 

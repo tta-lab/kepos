@@ -70,11 +70,19 @@ test('desktop file profile context persists profile and contacts outside localSt
 test('desktop controller uses profile context instead of direct local adapters', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
 
-  assert.match(source, /createDesktopProfileContext/)
+  assert.match(source, /createDesktopFileProfileContext/)
   assert.doesNotMatch(source, /from '..\/src\/desktop-local-adapters\.js'/)
   assert.doesNotMatch(source, /getDesktopLocalProfile/)
   assert.doesNotMatch(source, /loadDesktopContactBook/)
   assert.doesNotMatch(source, /saveDesktopContactBook/)
+})
+
+test('desktop controller uses file-backed profile context when a storage base path exists', async () => {
+  const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+
+  assert.match(source, /const storageBasePath = getDesktopStorageBasePath\(\)/)
+  assert.match(source, /if \(storageBasePath\) return createDesktopFileProfileContext/)
+  assert.match(source, /return createDesktopProfileContext\(\{ displayName \}\)/)
 })
 
 function createMemoryFs(files) {
