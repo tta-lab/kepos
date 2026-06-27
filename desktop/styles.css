@@ -448,6 +448,18 @@ textarea {
   padding: 14px;
 }
 
+.list:empty::after {
+  align-self: start;
+  color: var(--ink-muted);
+  content: attr(data-empty-detail);
+  display: block;
+  font-size: 12px;
+  line-height: 1.5;
+  margin-top: -4px;
+  max-width: 320px;
+  padding: 0 14px;
+}
+
 .item {
   background: var(--surface-raised);
   border: 1px solid var(--border);

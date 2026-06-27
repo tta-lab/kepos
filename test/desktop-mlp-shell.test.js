@@ -217,11 +217,25 @@ test('desktop primary panes expose short empty states before content arrives', a
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
 
   assert.match(source, /id='messageList'[^>]+data-empty='No messages yet'/)
+  assert.match(
+    source,
+    /id='messageList'[^>]+data-empty-detail='Send the first line from this desktop\.'/
+  )
   assert.match(source, /id='dmList'[^>]+data-empty='No direct messages yet'/)
+  assert.match(
+    source,
+    /id='dmList'[^>]+data-empty-detail='Choose a trusted friend and send the first message\.'/
+  )
   assert.match(source, /id='treeholeList'[^>]+data-empty='No posts yet'/)
+  assert.match(
+    source,
+    /id='treeholeList'[^>]+data-empty-detail='Posts from this home will appear here\.'/
+  )
   assert.equal(source.includes('No DMs yet'), false)
   assert.match(styles, /\.list:empty::before/)
   assert.match(styles, /content:\s*attr\(data-empty\)/)
+  assert.match(styles, /\.list:empty::after/)
+  assert.match(styles, /content:\s*attr\(data-empty-detail\)/)
 })
 
 test('desktop panes label live and durable surfaces', async () => {

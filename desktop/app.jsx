@@ -102,6 +102,7 @@ function DesktopApp() {
               className='list'
               aria-label='Home chat messages'
               data-empty='No messages yet'
+              data-empty-detail='Send the first line from this desktop.'
             />
             <form id='chatForm' className='composer'>
               <input id='chatInput' placeholder='Write to the home' autoComplete='off' />
@@ -119,6 +120,7 @@ function DesktopApp() {
               className='list'
               aria-label='Direct messages'
               data-empty='No direct messages yet'
+              data-empty-detail='Choose a trusted friend and send the first message.'
             />
             <form id='dmForm' className='composer tall'>
               <div id='dmContactList' className='contactList' />
@@ -149,6 +151,7 @@ function DesktopApp() {
               className='list posts'
               aria-label='Treehole posts'
               data-empty='No posts yet'
+              data-empty-detail='Posts from this home will appear here.'
             />
             <form id='treeholeForm' className='composer tall'>
               <p id='treeholePostPolicy' className='composerHint' hidden>
