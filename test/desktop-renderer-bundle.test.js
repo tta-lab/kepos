@@ -89,10 +89,15 @@ test('desktop React owns the direct contact picker surface', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
 
-  assert.match(source, /function DirectContactPicker\(\{ actions, contacts, empty \}\)/)
+  assert.match(
+    source,
+    /function DirectContactPicker\(\{ actions, contacts, empty, selectedProfileId \}\)/
+  )
   assert.match(source, /setDirectContactPicker\([\s\S]*picker = \{[\s\S]*contacts: \[\]/)
   assert.match(source, /setDirectContactPickerActions\(actions = \{\}\)/)
-  assert.match(source, /<DirectContactPicker[\s\S]*contacts=\{directContactPicker\.contacts\}/)
+  assert.match(source, /<DirectComposer[\s\S]*contactPicker=\{directContactPicker\}/)
+  assert.match(source, /<DirectContactPicker[\s\S]*contacts=\{contactPicker\.contacts\}/)
+  assert.match(source, /selectedProfileId=\{composer\.toProfileId\.trim\(\)\}/)
   assert.match(source, /onClick=\{\(\) => actions\.selectContact\(contact\.profileId\)\}/)
   assert.match(source, /onClick=\{actions\.openPeople\}/)
   assert.match(controller, /createDesktopDirectContactPickerViewModel/)
@@ -159,7 +164,10 @@ test('desktop React owns action and composer disabled state', async () => {
     /const canSend = controls\.canUseHomeChatComposer && Boolean\(draft\.trim\(\)\)/
   )
   assert.match(source, /disabled=\{!canSend\}/)
-  assert.match(source, /disabled=\{!controls\.canSendDirectMessage\}/)
+  assert.match(
+    source,
+    /const canSend =[\s\S]*controls\.canUseDirectComposer &&[\s\S]*Boolean\(composer\.text\.trim\(\)\) &&[\s\S]*Boolean\(composer\.toProfileId\.trim\(\)\)/
+  )
   assert.match(source, /const canPost = controls\.canPostTreehole && Boolean\(draft\.trim\(\)\)/)
   assert.match(source, /disabled=\{!canPost\}/)
   assert.match(
@@ -268,4 +276,36 @@ test('desktop React owns the treehole main post composer draft', async () => {
   assert.doesNotMatch(controller, /els\.treeholeInput\.addEventListener/)
   assert.doesNotMatch(controller, /els\.treeholeForm\.addEventListener/)
   assert.doesNotMatch(controller, /els\.treeholeInput\.value/)
+})
+
+test('desktop React owns the direct message composer draft and recipient', async () => {
+  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+
+  assert.match(
+    source,
+    /function DirectComposer\(\{[\s\S]*actions,[\s\S]*composer,[\s\S]*contactPicker/
+  )
+  assert.match(source, /const \[directComposer, setDirectComposer\] = useState\(\{/)
+  assert.match(source, /text: '',\s*toProfileId: ''/)
+  assert.match(source, /setDirectComposerActions\(actions = \{\}\)/)
+  assert.match(source, /setDirectComposerRecipient\(toProfileId = ''\)/)
+  assert.match(
+    source,
+    /const canSend =[\s\S]*controls\.canUseDirectComposer &&[\s\S]*Boolean\(composer\.text\.trim\(\)\) &&[\s\S]*Boolean\(composer\.toProfileId\.trim\(\)\)/
+  )
+  assert.match(
+    source,
+    /actions\.sendDirectMessage\(\{\s*text: composer\.text\.trim\(\),\s*toProfileId: composer\.toProfileId\.trim\(\)\s*\}\)/
+  )
+  assert.match(source, /value=\{composer\.toProfileId\}/)
+  assert.match(source, /value=\{composer\.text\}/)
+  assert.match(controller, /globalThis\.keposDesktopUi\?\.setDirectComposerActions\(\{/)
+  assert.doesNotMatch(controller, /dmForm: document\.querySelector/)
+  assert.doesNotMatch(controller, /dmInput: document\.querySelector/)
+  assert.doesNotMatch(controller, /dmRecipientInput: document\.querySelector/)
+  assert.doesNotMatch(controller, /els\.dmInput\.addEventListener/)
+  assert.doesNotMatch(controller, /els\.dmRecipientInput\.addEventListener/)
+  assert.doesNotMatch(controller, /els\.dmInput\.value/)
+  assert.doesNotMatch(controller, /els\.dmRecipientInput\.value/)
 })

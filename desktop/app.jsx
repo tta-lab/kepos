@@ -34,8 +34,8 @@ const DEFAULT_CONTROLS = {
   canJoinManualHome: false,
   canLeaveHome: false,
   canPostTreehole: false,
-  canSendDirectMessage: false,
   canTrustProfile: false,
+  canUseDirectComposer: false,
   canUseHomeChatComposer: false
 }
 const EMPTY_LARGE_QR = { isOpen: false, svg: '', title: '' }
@@ -48,6 +48,8 @@ const EMPTY_SHARE_QR_OUTPUTS = {
 const desktopUiBridge = {
   setActiveTab: () => {},
   setControls: () => {},
+  setDirectComposerActions: () => {},
+  setDirectComposerRecipient: () => {},
   setDirectContactPicker: () => {},
   setDirectContactPickerActions: () => {},
   setDirectMessageActions: () => {},
@@ -70,6 +72,12 @@ globalThis.keposDesktopUi = {
   },
   setControls(controls = DEFAULT_CONTROLS) {
     desktopUiBridge.setControls(controls)
+  },
+  setDirectComposerActions(actions = {}) {
+    desktopUiBridge.setDirectComposerActions(actions)
+  },
+  setDirectComposerRecipient(toProfileId = '') {
+    desktopUiBridge.setDirectComposerRecipient(toProfileId)
   },
   setDirectContactPicker(
     picker = {
@@ -139,6 +147,14 @@ function DesktopApp() {
     openPeople: () => {},
     selectContact: () => {}
   })
+  const [directComposer, setDirectComposer] = useState({
+    text: '',
+    toProfileId: ''
+  })
+  const [directComposerActions, setDirectComposerActions] = useState({
+    sendDirectMessage: () => {},
+    updateRecipient: () => {}
+  })
   const [directMessageActions, setDirectMessageActions] = useState({
     acceptMessage: () => {},
     ignoreMessage: () => {}
@@ -168,6 +184,10 @@ function DesktopApp() {
   const [theme, setTheme] = useState(getInitialTheme)
   desktopUiBridge.setActiveTab = setActiveTab
   desktopUiBridge.setControls = setControls
+  desktopUiBridge.setDirectComposerActions = setDirectComposerActions
+  desktopUiBridge.setDirectComposerRecipient = (toProfileId = '') => {
+    setDirectComposer((current) => ({ ...current, toProfileId }))
+  }
   desktopUiBridge.setDirectContactPicker = setDirectContactPicker
   desktopUiBridge.setDirectContactPickerActions = setDirectContactPickerActions
   desktopUiBridge.setDirectMessageActions = setDirectMessageActions
@@ -280,30 +300,14 @@ function DesktopApp() {
               onAccept={directMessageActions.acceptMessage}
               onIgnore={directMessageActions.ignoreMessage}
             />
-            <form id='dmForm' className='composer tall'>
-              <DirectContactPicker
-                actions={directContactPickerActions}
-                contacts={directContactPicker.contacts}
-                empty={directContactPicker.empty}
-              />
-              <details id='advancedDmRecipient' className='advanced advancedComposer'>
-                <summary>Advanced</summary>
-                <label>
-                  Recipient profile id
-                  <input
-                    id='dmRecipientInput'
-                    placeholder='Recipient profile id'
-                    autoComplete='off'
-                    spellCheck='false'
-                  />
-                </label>
-              </details>
-              <textarea id='dmInput' placeholder='Write a direct message' />
-              <button id='dmSendButton' type='submit' disabled={!controls.canSendDirectMessage}>
-                <Send size={17} />
-                Send message
-              </button>
-            </form>
+            <DirectComposer
+              actions={directComposerActions}
+              composer={directComposer}
+              contactPicker={directContactPicker}
+              contactPickerActions={directContactPickerActions}
+              controls={controls}
+              setComposer={setDirectComposer}
+            />
           </section>
 
           <section id='treeholePane' className={activeTab === 'treehole' ? 'pane' : 'pane hidden'}>
@@ -579,6 +583,79 @@ function SectionTitle({ icon, id, text }) {
   )
 }
 
+function DirectComposer({
+  actions,
+  composer,
+  contactPicker,
+  contactPickerActions,
+  controls,
+  setComposer
+}) {
+  const canSend =
+    controls.canUseDirectComposer &&
+    Boolean(composer.text.trim()) &&
+    Boolean(composer.toProfileId.trim())
+
+  function setRecipient(toProfileId) {
+    setComposer((current) => ({ ...current, toProfileId }))
+    actions.updateRecipient({ toProfileId: toProfileId.trim() })
+  }
+
+  function handleSelectContact(profileId) {
+    setRecipient(profileId)
+    contactPickerActions.selectContact(profileId)
+  }
+
+  function handleSubmit(event) {
+    event.preventDefault()
+    if (!canSend) return
+
+    actions.sendDirectMessage({
+      text: composer.text.trim(),
+      toProfileId: composer.toProfileId.trim()
+    })
+    setComposer((current) => ({ ...current, text: '' }))
+  }
+
+  return (
+    <form id='dmForm' className='composer tall' onSubmit={handleSubmit}>
+      <DirectContactPicker
+        actions={{
+          openPeople: contactPickerActions.openPeople,
+          selectContact: handleSelectContact
+        }}
+        contacts={contactPicker.contacts}
+        empty={contactPicker.empty}
+        selectedProfileId={composer.toProfileId.trim()}
+      />
+      <details id='advancedDmRecipient' className='advanced advancedComposer'>
+        <summary>Advanced</summary>
+        <label>
+          Recipient profile id
+          <input
+            id='dmRecipientInput'
+            placeholder='Recipient profile id'
+            autoComplete='off'
+            spellCheck='false'
+            value={composer.toProfileId}
+            onChange={(event) => setRecipient(event.target.value)}
+          />
+        </label>
+      </details>
+      <textarea
+        id='dmInput'
+        placeholder='Write a direct message'
+        value={composer.text}
+        onChange={(event) => setComposer((current) => ({ ...current, text: event.target.value }))}
+      />
+      <button id='dmSendButton' type='submit' disabled={!canSend}>
+        <Send size={17} />
+        Send message
+      </button>
+    </form>
+  )
+}
+
 function TreeholeComposer({ controls, onPost }) {
   const [draft, setDraft] = useState('')
   const canPost = controls.canPostTreehole && Boolean(draft.trim())
@@ -694,7 +771,7 @@ function DirectMessageList({ messages, onAccept, onIgnore }) {
   )
 }
 
-function DirectContactPicker({ actions, contacts, empty }) {
+function DirectContactPicker({ actions, contacts, empty, selectedProfileId }) {
   return (
     <div id='dmContactList' className='contactList'>
       {contacts.length === 0 ? (
@@ -709,7 +786,11 @@ function DirectContactPicker({ actions, contacts, empty }) {
         contacts.map((contact) => (
           <button
             key={contact.profileId}
-            className={contact.isSelected ? 'contactButton activeContactButton' : 'contactButton'}
+            className={
+              contact.profileId === selectedProfileId || contact.isSelected
+                ? 'contactButton activeContactButton'
+                : 'contactButton'
+            }
             type='button'
             onClick={() => actions.selectContact(contact.profileId)}
           >

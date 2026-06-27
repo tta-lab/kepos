@@ -43,9 +43,6 @@ const els = {
   copyHomeQrButton: document.querySelector('#copyHomeQrButton'),
   copyProfileQrButton: document.querySelector('#copyProfileQrButton'),
   createButton: document.querySelector('#createButton'),
-  dmForm: document.querySelector('#dmForm'),
-  dmInput: document.querySelector('#dmInput'),
-  dmRecipientInput: document.querySelector('#dmRecipientInput'),
   dmTab: document.querySelector('#dmTab'),
   homeQrForm: document.querySelector('#homeQrForm'),
   homeQrInput: document.querySelector('#homeQrInput'),
@@ -70,6 +67,7 @@ let dmSession = null
 let homeJoinDetails = null
 let largeQrReturnFocus = null
 let pendingCommand = null
+let directComposerRecipientProfileId = ''
 let shareQrOutputs = {
   homeSvg: '',
   homeUri: '',
@@ -132,6 +130,11 @@ const treeholeRuntime = backendRuntime.treehole
 globalThis.keposDesktopUi?.setDirectContactPickerActions({
   openPeople: () => setTab('people'),
   selectContact: (profileId) => selectDirectContact(profileId)
+})
+globalThis.keposDesktopUi?.setDirectComposerActions({
+  sendDirectMessage: ({ text, toProfileId }) =>
+    dispatchCommand('sendDmMessage', { text, toProfileId }),
+  updateRecipient: ({ toProfileId }) => updateDirectComposerRecipient(toProfileId)
 })
 globalThis.keposDesktopUi?.setDirectMessageActions({
   acceptMessage: (message) => dispatchCommand('acceptMessageRequest', { message }),
@@ -213,22 +216,9 @@ document.addEventListener('keydown', (event) => {
 els.nickInput.addEventListener('input', () => {
   updateQrOutputs().catch(showError)
 })
-els.dmInput.addEventListener('input', renderControls)
 els.roomKeyInput.addEventListener('input', renderControls)
 els.homeQrInput.addEventListener('input', renderControls)
 els.trustQrInput.addEventListener('input', renderControls)
-els.dmRecipientInput.addEventListener('input', () => {
-  renderDirectContacts()
-  renderControls()
-})
-
-els.dmForm.addEventListener('submit', (event) => {
-  event.preventDefault()
-  dispatchCommand('sendDmMessage', {
-    text: els.dmInput.value.trim(),
-    toProfileId: els.dmRecipientInput.value.trim()
-  })
-})
 
 els.trustForm.addEventListener('submit', (event) => {
   event.preventDefault()
@@ -457,7 +447,6 @@ function sendMessageRequest({ text, toProfileId } = {}) {
 
   if (!result) return
 
-  els.dmInput.value = ''
   render()
 }
 
@@ -607,9 +596,8 @@ function renderControls() {
       !isActionPending && !inRoom && ROOM_KEY_PATTERN.test(els.roomKeyInput.value.trim()),
     canLeaveHome: inRoom && !isActionPending,
     canPostTreehole: Boolean(state.treeholeCanPost),
-    canSendDirectMessage:
-      inRoom && Boolean(els.dmInput.value.trim()) && Boolean(els.dmRecipientInput.value.trim()),
     canTrustProfile: !isActionPending && Boolean(els.trustQrInput.value.trim()),
+    canUseDirectComposer: inRoom,
     canUseHomeChatComposer: inRoom
   }
   globalThis.keposDesktopUi?.setControls(controls)
@@ -634,16 +622,21 @@ function renderDirectContacts() {
   const { contactBook } = getProfileContext()
   const picker = createDesktopDirectContactPickerViewModel({
     contactBook,
-    selectedProfileId: els.dmRecipientInput.value.trim()
+    selectedProfileId: directComposerRecipientProfileId
   })
   globalThis.keposDesktopUi?.setDirectContactPicker(picker)
 }
 
+function updateDirectComposerRecipient(toProfileId = '') {
+  directComposerRecipientProfileId = toProfileId.trim()
+  renderDirectContacts()
+}
+
 function selectDirectContact(profileId = '') {
   if (!profileId) return
-  els.dmRecipientInput.value = profileId
+  directComposerRecipientProfileId = profileId
+  globalThis.keposDesktopUi?.setDirectComposerRecipient(profileId)
   renderDirectContacts()
-  renderControls()
 }
 
 function renderPeople() {
@@ -662,7 +655,7 @@ async function revokeLocalContact(profileId) {
   const result = createDesktopContactRevoke({
     book: contactBook,
     profileId,
-    selectedRecipientProfileId: els.dmRecipientInput.value.trim(),
+    selectedRecipientProfileId: directComposerRecipientProfileId,
     threads
   })
 
@@ -680,7 +673,8 @@ async function revokeLocalContact(profileId) {
   }
 
   if (result.shouldClearRecipient) {
-    els.dmRecipientInput.value = ''
+    directComposerRecipientProfileId = ''
+    globalThis.keposDesktopUi?.setDirectComposerRecipient('')
   }
 
   state = { ...state, notice: 'Trust revoked.' }

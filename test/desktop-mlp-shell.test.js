@@ -258,9 +258,10 @@ test('desktop panes label live and durable surfaces', async () => {
   assert.equal(source.includes('Send DM'), false)
   assert.match(
     source,
-    /className=\{contact\.isSelected \? 'contactButton activeContactButton' : 'contactButton'\}/
+    /contact\.profileId === selectedProfileId \|\| contact\.isSelected[\s\S]*\? 'contactButton activeContactButton'[\s\S]*: 'contactButton'/
   )
-  assert.match(controller, /els\.dmRecipientInput\.addEventListener\('input', \(\) => \{/)
+  assert.match(source, /selectedProfileId=\{composer\.toProfileId\.trim\(\)\}/)
+  assert.doesNotMatch(controller, /els\.dmRecipientInput\.addEventListener/)
   assert.match(controller, /renderDirectContacts\(\)/)
   assert.equal(controller.includes('button.title = contact.profileId'), false)
   assert.match(styles, /\.paneLabel/)
@@ -364,14 +365,15 @@ test('desktop composers disable unavailable sends', async () => {
     /const canSend = controls\.canUseHomeChatComposer && Boolean\(draft\.trim\(\)\)/
   )
   assert.match(source, /disabled=\{!canSend\}/)
-  assert.match(source, /disabled=\{!controls\.canSendDirectMessage\}/)
+  assert.match(
+    source,
+    /const canSend =[\s\S]*controls\.canUseDirectComposer &&[\s\S]*Boolean\(composer\.text\.trim\(\)\) &&[\s\S]*Boolean\(composer\.toProfileId\.trim\(\)\)/
+  )
   assert.match(source, /const canPost = controls\.canPostTreehole && Boolean\(draft\.trim\(\)\)/)
   assert.match(source, /disabled=\{!canPost\}/)
   assert.match(controller, /canUseHomeChatComposer: inRoom/)
-  assert.match(
-    controller,
-    /canSendDirectMessage:\s*inRoom && Boolean\(els\.dmInput\.value\.trim\(\)\) && Boolean\(els\.dmRecipientInput\.value\.trim\(\)\)/
-  )
+  assert.match(controller, /canUseDirectComposer: inRoom/)
+  assert.doesNotMatch(controller, /canSendDirectMessage:/)
   assert.match(controller, /canPostTreehole: Boolean\(state\.treeholeCanPost\)/)
 })
 

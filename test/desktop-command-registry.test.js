@@ -81,13 +81,17 @@ test('desktop direct message command carries composer fields as payload', async 
 
   assert.match(
     source,
-    /dispatchCommand\('sendDmMessage', \{\s*text: els\.dmInput\.value\.trim\(\),\s*toProfileId: els\.dmRecipientInput\.value\.trim\(\)\s*\}\)/
+    /sendDirectMessage: \(\{ text, toProfileId \}\) =>\s*dispatchCommand\('sendDmMessage', \{ text, toProfileId \}\)/
   )
+  assert.match(source, /globalThis\.keposDesktopUi\?\.setDirectComposerActions\(\{/)
   assert.match(
     source,
     /sendDmMessage: \(payload\) => sendMessageRequest\(readCommandPayload\(payload\)\)/
   )
   assert.match(source, /function sendMessageRequest\(\{ text, toProfileId \} = \{\}\)/)
+  assert.doesNotMatch(source, /dmForm: document\.querySelector/)
+  assert.doesNotMatch(source, /dmInput: document\.querySelector/)
+  assert.doesNotMatch(source, /dmRecipientInput: document\.querySelector/)
   assert.doesNotMatch(
     source,
     /function sendMessageRequest\(\) \{\s*const toProfileId = els\.dmRecipientInput\.value\.trim\(\)\s*const text = els\.dmInput\.value\.trim\(\)/
