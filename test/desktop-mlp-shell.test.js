@@ -207,6 +207,7 @@ test('desktop error handling keeps raw exception detail advanced', async () => {
 
 test('desktop primary panes expose short empty states before content arrives', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
 
   assert.match(source, /id='messageList'[^>]+data-empty='No messages yet'/)
@@ -229,6 +230,7 @@ test('desktop primary panes expose short empty states before content arrives', a
   assert.match(styles, /content:\s*attr\(data-empty\)/)
   assert.match(styles, /\.list:empty::after/)
   assert.match(styles, /content:\s*attr\(data-empty-detail\)/)
+  assert.match(controller, /createDesktopHomeChatViewModel/)
 })
 
 test('desktop panes label live and durable surfaces', async () => {

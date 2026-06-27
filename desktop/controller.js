@@ -7,6 +7,7 @@ import {
   createDesktopTreeholeControlSendResult
 } from '../src/desktop-control-service.js'
 import { createDesktopDirectMessageListViewModel } from '../src/desktop-direct-view-model.js'
+import { createDesktopHomeChatViewModel } from '../src/desktop-home-chat-view-model.js'
 import { createDesktopHomeJoinDetails } from '../src/desktop-home-join-service.js'
 import { createDesktopPeopleViewModel } from '../src/desktop-people-view-model.js'
 import { createDesktopProfileContext } from '../src/desktop-profile-context.js'
@@ -665,18 +666,30 @@ function updateComposerButtons() {
 }
 
 function renderMessages() {
-  const messages = session?.messages || []
+  const messages = createDesktopHomeChatViewModel({
+    messages: session?.messages || []
+  })
   els.messageList.replaceChildren(
     ...messages.map((message) => {
       const item = document.createElement('li')
-      item.className = `item ${message.direction === 'out' ? 'outgoing' : 'incoming'}`
-      item.innerHTML = `
-        <p class="meta">${escapeHtml(message.nick)}</p>
-        <p>${escapeHtml(message.text)}</p>
-      `
+      item.className = message.className
+      item.append(renderHomeChatMessageContent(message))
       return item
     })
   )
+}
+
+function renderHomeChatMessageContent(message) {
+  const fragment = document.createDocumentFragment()
+  const meta = document.createElement('p')
+  const text = document.createElement('p')
+
+  meta.className = 'meta'
+  meta.textContent = message.meta
+  text.textContent = message.text
+  fragment.append(meta, text)
+
+  return fragment
 }
 
 function renderDirectMessages() {
