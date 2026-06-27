@@ -16,9 +16,7 @@ import {
   createSignedTrustInvitePayload,
   encodeQrUri
 } from '../src/signed-qr-payload.ts'
-import { createDesktopDmRuntime } from '../src/desktop-dm-runtime.js'
-import { createDesktopHomeRuntime } from '../src/desktop-home-runtime.js'
-import { createDesktopTreeholeRuntime } from '../src/desktop-treehole-runtime.js'
+import { createDesktopBackendRuntime } from '../src/desktop-backend-runtime.js'
 import {
   getDesktopLocalProfile,
   loadDesktopContactBook,
@@ -136,32 +134,29 @@ const commands = createDesktopCommandRegistry({
 const backendBridge = createDesktopBackendBridge({
   dispatch: (command, payload) => commands.dispatch(command, payload)
 })
-const dmRuntime = createDesktopDmRuntime({
-  onSessionChanged: (nextSession) => {
+const backendRuntime = createDesktopBackendRuntime({
+  emit: (event, payload) => backendBridge.emit(event, payload),
+  onDmSessionChanged: (nextSession) => {
     dmSession = nextSession
     render()
-  }
-})
-const homeRuntime = createDesktopHomeRuntime({
-  onControl: (message, peer) => handleControl(message, peer).catch(showError),
-  onError: (error) => backendBridge.emit('errorReceived', error),
-  onPeerCount: (peers) => {
-    state = { ...state, peers }
-    render()
   },
-  onSessionChanged: (nextSession) => {
+  onHomeControl: (message, peer) => handleControl(message, peer).catch(showError),
+  onHomeSessionChanged: (nextSession) => {
     session = nextSession
     render()
   },
   onVerifiedHello: (message, peer) => sendTreeholeBootstrap(peer, message.profileId)
 })
-const treeholeRuntime = createDesktopTreeholeRuntime({
-  onError: (error) => backendBridge.emit('errorReceived', error),
-  onStateChanged: (snapshot) => backendBridge.emit('treeholeStateChanged', snapshot)
-})
+const dmRuntime = backendRuntime.dm
+const homeRuntime = backendRuntime.home
+const treeholeRuntime = backendRuntime.treehole
 
 backendBridge.subscribe('treeholeStateChanged', (snapshot) => {
   state = setDesktopTreehole(state, snapshot)
+  render()
+})
+backendBridge.subscribe('peerCountChanged', ({ peers }) => {
+  state = { ...state, peers }
   render()
 })
 backendBridge.subscribe('errorReceived', showError)
@@ -467,9 +462,7 @@ function getDesktopProfile(displayName) {
 }
 
 async function leaveRoom() {
-  await dmRuntime.closeAll()
-  await homeRuntime.leave()
-  await treeholeRuntime.close()
+  await backendRuntime.closeAll()
   session = null
   dmSession = null
   homeJoinDetails = null
@@ -479,8 +472,7 @@ async function leaveRoom() {
 }
 
 function configureTreeholeRuntime() {
-  homeRuntime.configure({ homeJoinDetails, session })
-  treeholeRuntime.configure({ homeJoinDetails, session })
+  backendRuntime.configure({ homeJoinDetails, session })
 }
 
 function sendChat() {

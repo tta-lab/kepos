@@ -56,11 +56,10 @@ test('desktop controller routes commands through the backend bridge', async () =
 test('desktop controller routes treehole runtime updates through backend bridge events', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
 
-  assert.match(source, /createDesktopTreeholeRuntime/)
-  assert.match(source, /backendBridge\.emit\('treeholeStateChanged'/)
+  assert.match(source, /createDesktopBackendRuntime/)
+  assert.match(source, /const treeholeRuntime = backendRuntime\.treehole/)
   assert.match(source, /backendBridge\.subscribe\('treeholeStateChanged'/)
   assert.match(source, /setDesktopTreehole\(state, snapshot\)/)
-  assert.match(source, /backendBridge\.emit\('errorReceived'/)
   assert.match(source, /backendBridge\.subscribe\('errorReceived', showError\)/)
   assert.doesNotMatch(source, /import Hyperswarm/)
   assert.doesNotMatch(source, /createTreeholeBase/)
@@ -70,8 +69,9 @@ test('desktop controller routes treehole runtime updates through backend bridge 
 test('desktop controller delegates home transport to a runtime boundary', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
 
-  assert.match(source, /createDesktopHomeRuntime/)
-  assert.match(source, /const homeRuntime = createDesktopHomeRuntime/)
+  assert.match(source, /createDesktopBackendRuntime/)
+  assert.match(source, /const homeRuntime = backendRuntime\.home/)
+  assert.match(source, /onHomeControl: \(message, peer\) => handleControl/)
   assert.match(source, /homeRuntime\.join/)
   assert.match(source, /homeRuntime\.sendMessage/)
   assert.doesNotMatch(source, /from '..\/src\/p2p-room\.js'/)
@@ -82,11 +82,20 @@ test('desktop controller delegates home transport to a runtime boundary', async 
 test('desktop controller delegates direct message runtime and storage to a boundary', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
 
-  assert.match(source, /createDesktopDmRuntime/)
-  assert.match(source, /const dmRuntime = createDesktopDmRuntime/)
-  assert.match(source, /dmRuntime\.start/)
+  assert.match(source, /createDesktopBackendRuntime/)
+  assert.match(source, /const backendRuntime = createDesktopBackendRuntime/)
+  assert.match(source, /const dmRuntime = backendRuntime\.dm/)
   assert.match(source, /dmRuntime\.sendMessageOrRequest/)
   assert.doesNotMatch(source, /from '..\/src\/dm-thread-runtime\.js'/)
   assert.doesNotMatch(source, /from '..\/src\/dm-message-storage\.ts'/)
   assert.doesNotMatch(source, /from '..\/src\/dm-thread-storage\.js'/)
+})
+
+test('desktop controller uses one backend runtime facade for long lived runtimes', async () => {
+  const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+
+  assert.match(source, /createDesktopBackendRuntime/)
+  assert.doesNotMatch(source, /from '..\/src\/desktop-dm-runtime\.js'/)
+  assert.doesNotMatch(source, /from '..\/src\/desktop-home-runtime\.js'/)
+  assert.doesNotMatch(source, /from '..\/src\/desktop-treehole-runtime\.js'/)
 })
