@@ -97,6 +97,27 @@ test('desktop React owns the status labels surface', async () => {
   assert.doesNotMatch(controller, /els\.errorDetailLabel\.textContent/)
 })
 
+test('desktop React owns tab and pane active state', async () => {
+  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+
+  assert.match(source, /setActiveTab\(tab = 'chat'\)/)
+  assert.match(source, /const \[activeTab, setActiveTab\] = useState\('chat'\)/)
+  assert.match(source, /isActive=\{activeTab === 'chat'\}/)
+  assert.match(source, /className=\{isActive \? 'railButton active' : 'railButton'\}/)
+  assert.match(source, /className=\{activeTab === 'chat' \? 'pane' : 'pane hidden'\}/)
+  assert.match(controller, /globalThis\.keposDesktopUi\?\.setActiveTab\(state\.activeTab\)/)
+  assert.doesNotMatch(controller, /els\.chatPane\.classList\.toggle/)
+  assert.doesNotMatch(controller, /els\.dmPane\.classList\.toggle/)
+  assert.doesNotMatch(controller, /els\.treeholePane\.classList\.toggle/)
+  assert.doesNotMatch(controller, /els\.peoplePane\.classList\.toggle/)
+  assert.doesNotMatch(controller, /els\.chatTab\.classList\.toggle/)
+  assert.doesNotMatch(controller, /els\.dmTab\.classList\.toggle/)
+  assert.doesNotMatch(controller, /els\.treeholeTab\.classList\.toggle/)
+  assert.doesNotMatch(controller, /els\.peopleTab\.classList\.toggle/)
+  assert.doesNotMatch(controller, /function updateTabCurrentState\(\)/)
+})
+
 test('desktop React owns the large QR dialog surface', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')

@@ -36,6 +36,7 @@ const EMPTY_SHARE_QR_OUTPUTS = {
   profileUri: ''
 }
 const desktopUiBridge = {
+  setActiveTab: () => {},
   setDirectContactPicker: () => {},
   setDirectContactPickerActions: () => {},
   setDirectMessageActions: () => {},
@@ -51,6 +52,9 @@ const desktopUiBridge = {
 }
 
 globalThis.keposDesktopUi = {
+  setActiveTab(tab = 'chat') {
+    desktopUiBridge.setActiveTab(tab)
+  },
   setDirectContactPicker(
     picker = {
       contacts: [],
@@ -99,6 +103,7 @@ globalThis.keposDesktopUi = {
 }
 
 function DesktopApp() {
+  const [activeTab, setActiveTab] = useState('chat')
   const [directContactPicker, setDirectContactPicker] = useState({
     contacts: [],
     empty: {
@@ -132,6 +137,7 @@ function DesktopApp() {
   const [treeholePosts, setTreeholePosts] = useState([])
   const [status, setStatus] = useState(DEFAULT_STATUS)
   const [theme, setTheme] = useState(getInitialTheme)
+  desktopUiBridge.setActiveTab = setActiveTab
   desktopUiBridge.setDirectContactPicker = setDirectContactPicker
   desktopUiBridge.setDirectContactPickerActions = setDirectContactPickerActions
   desktopUiBridge.setDirectMessageActions = setDirectMessageActions
@@ -160,28 +166,34 @@ function DesktopApp() {
         <aside className='appRail' aria-label='Kepos views'>
           <div className='mark'>K</div>
           <nav className='railNav' aria-label='Main views'>
-            <button
+            <RailButton
               id='chatTab'
-              className='railButton active'
-              type='button'
+              icon={<MessageCircle size={19} />}
+              isActive={activeTab === 'chat'}
+              label='Home'
               title='Home chat'
-              aria-current='page'
-            >
-              <MessageCircle size={19} />
-              <span className='railLabel'>Home</span>
-            </button>
-            <button id='dmTab' className='railButton' type='button' title='Direct messages'>
-              <Send size={19} />
-              <span className='railLabel'>Direct</span>
-            </button>
-            <button id='treeholeTab' className='railButton' type='button' title='Treehole'>
-              <Sprout size={19} />
-              <span className='railLabel'>Treehole</span>
-            </button>
-            <button id='peopleTab' className='railButton' type='button' title='People'>
-              <Users size={19} />
-              <span className='railLabel'>People</span>
-            </button>
+            />
+            <RailButton
+              id='dmTab'
+              icon={<Send size={19} />}
+              isActive={activeTab === 'dm'}
+              label='Direct'
+              title='Direct messages'
+            />
+            <RailButton
+              id='treeholeTab'
+              icon={<Sprout size={19} />}
+              isActive={activeTab === 'treehole'}
+              label='Treehole'
+              title='Treehole'
+            />
+            <RailButton
+              id='peopleTab'
+              icon={<Users size={19} />}
+              isActive={activeTab === 'people'}
+              label='People'
+              title='People'
+            />
           </nav>
         </aside>
 
@@ -223,7 +235,7 @@ function DesktopApp() {
             </div>
           </header>
 
-          <section id='chatPane' className='pane'>
+          <section id='chatPane' className={activeTab === 'chat' ? 'pane' : 'pane hidden'}>
             <PaneLabel eyebrow='live' title='Live home chat' />
             <HomeChatList messages={homeMessages} />
             <form id='chatForm' className='composer'>
@@ -235,7 +247,7 @@ function DesktopApp() {
             </form>
           </section>
 
-          <section id='dmPane' className='pane hidden'>
+          <section id='dmPane' className={activeTab === 'dm' ? 'pane' : 'pane hidden'}>
             <PaneLabel eyebrow='durable' title='Direct messages' />
             <DirectMessageList
               messages={directMessages}
@@ -268,7 +280,7 @@ function DesktopApp() {
             </form>
           </section>
 
-          <section id='treeholePane' className='pane hidden'>
+          <section id='treeholePane' className={activeTab === 'treehole' ? 'pane' : 'pane hidden'}>
             <PaneLabel eyebrow='durable' title='Durable treehole' />
             <TreeholeList actions={treeholeActions} posts={treeholePosts} />
             <form id='treeholeForm' className='composer tall'>
@@ -283,7 +295,7 @@ function DesktopApp() {
             </form>
           </section>
 
-          <section id='peoplePane' className='pane hidden'>
+          <section id='peoplePane' className={activeTab === 'people' ? 'pane' : 'pane hidden'}>
             <PaneLabel eyebrow='trusted' title='People' />
             <PeopleLists
               actions={peopleActions}
@@ -519,6 +531,21 @@ function SectionTitle({ icon, id, text }) {
       {icon}
       <span>{text}</span>
     </p>
+  )
+}
+
+function RailButton({ icon, id, isActive, label, title }) {
+  return (
+    <button
+      id={id}
+      className={isActive ? 'railButton active' : 'railButton'}
+      type='button'
+      title={title}
+      aria-current={isActive ? 'page' : undefined}
+    >
+      {icon}
+      <span className='railLabel'>{label}</span>
+    </button>
   )
 }
 

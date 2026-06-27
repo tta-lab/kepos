@@ -41,7 +41,6 @@ const BLOCKING_COMMANDS = new Set(['joinHome', 'joinHomeUri', 'leaveHome', 'trus
 const els = {
   chatForm: document.querySelector('#chatForm'),
   chatInput: document.querySelector('#chatInput'),
-  chatPane: document.querySelector('#chatPane'),
   chatSendButton: document.querySelector('#chatSendButton'),
   chatTab: document.querySelector('#chatTab'),
   copyHomeQrButton: document.querySelector('#copyHomeQrButton'),
@@ -49,7 +48,6 @@ const els = {
   createButton: document.querySelector('#createButton'),
   dmForm: document.querySelector('#dmForm'),
   dmInput: document.querySelector('#dmInput'),
-  dmPane: document.querySelector('#dmPane'),
   dmRecipientInput: document.querySelector('#dmRecipientInput'),
   dmSendButton: document.querySelector('#dmSendButton'),
   dmTab: document.querySelector('#dmTab'),
@@ -62,14 +60,12 @@ const els = {
   leaveButton: document.querySelector('#leaveButton'),
   lobbyForm: document.querySelector('#lobbyForm'),
   nickInput: document.querySelector('#nickInput'),
-  peoplePane: document.querySelector('#peoplePane'),
   peopleTab: document.querySelector('#peopleTab'),
   roomKeyInput: document.querySelector('#roomKeyInput'),
   showLargeHomeQrButton: document.querySelector('#showLargeHomeQrButton'),
   showLargeProfileQrButton: document.querySelector('#showLargeProfileQrButton'),
   treeholeForm: document.querySelector('#treeholeForm'),
   treeholeInput: document.querySelector('#treeholeInput'),
-  treeholePane: document.querySelector('#treeholePane'),
   treeholePostPolicy: document.querySelector('#treeholePostPolicy'),
   treeholeSendButton: document.querySelector('#treeholeSendButton'),
   treeholeTab: document.querySelector('#treeholeTab'),
@@ -612,15 +608,7 @@ function render() {
   els.treeholePostPolicy.hidden = state.treeholeCanPost
   updateComposerButtons()
 
-  els.chatPane.classList.toggle('hidden', state.activeTab !== 'chat')
-  els.dmPane.classList.toggle('hidden', state.activeTab !== 'dm')
-  els.treeholePane.classList.toggle('hidden', state.activeTab !== 'treehole')
-  els.peoplePane.classList.toggle('hidden', state.activeTab !== 'people')
-  els.chatTab.classList.toggle('active', state.activeTab === 'chat')
-  els.dmTab.classList.toggle('active', state.activeTab === 'dm')
-  els.treeholeTab.classList.toggle('active', state.activeTab === 'treehole')
-  els.peopleTab.classList.toggle('active', state.activeTab === 'people')
-  updateTabCurrentState()
+  globalThis.keposDesktopUi?.setActiveTab(state.activeTab)
 
   renderMessages()
   renderDirectMessages()
@@ -636,21 +624,6 @@ function renderStatus() {
     state
   })
   globalThis.keposDesktopUi?.setStatus(status)
-}
-
-function updateTabCurrentState() {
-  for (const [tab, element] of [
-    ['chat', els.chatTab],
-    ['dm', els.dmTab],
-    ['treehole', els.treeholeTab],
-    ['people', els.peopleTab]
-  ]) {
-    if (state.activeTab === tab) {
-      element.setAttribute('aria-current', 'page')
-    } else {
-      element.removeAttribute('aria-current')
-    }
-  }
 }
 
 function updateActionButtons() {

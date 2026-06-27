@@ -59,8 +59,9 @@ test('desktop people UI uses trusted friends copy', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
 
-  assert.match(source, /id='peopleTab'[^>]+title='People'/)
-  assert.match(source, /<span className='railLabel'>People<\/span>/)
+  assert.match(source, /id='peopleTab'[\s\S]*title='People'/)
+  assert.match(source, /label='People'/)
+  assert.match(source, /<span className='railLabel'>\{label\}<\/span>/)
   assert.match(source, /id='peoplePane'/)
   assert.match(source, /<PaneLabel eyebrow='trusted' title='People' \/>/)
   assert.match(source, /Trusted friends/)
@@ -76,14 +77,8 @@ test('desktop people UI uses trusted friends copy', async () => {
     controller,
     /els\.peopleTab\.addEventListener\('click', \(\) => setTab\('people'\)\)/
   )
-  assert.match(
-    controller,
-    /els\.peoplePane\.classList\.toggle\('hidden', state\.activeTab !== 'people'\)/
-  )
-  assert.match(
-    controller,
-    /els\.peopleTab\.classList\.toggle\('active', state\.activeTab === 'people'\)/
-  )
+  assert.match(source, /className=\{activeTab === 'people' \? 'pane' : 'pane hidden'\}/)
+  assert.match(source, /isActive=\{activeTab === 'people'\}/)
   assert.equal(source.includes("text='Contacts'"), false)
   assert.equal(controller.includes('No trusted contacts'), false)
   assert.equal(controller.includes('notice: `Revoked ${shorten(profileId)}.`'), false)
@@ -255,8 +250,9 @@ test('desktop panes label live and durable surfaces', async () => {
     assert.match(source, new RegExp(text), `${text} is missing`)
   }
 
-  assert.match(source, /id='dmTab'[^>]+title='Direct messages'/)
-  assert.match(source, /<span className='railLabel'>Direct<\/span>/)
+  assert.match(source, /id='dmTab'[\s\S]*title='Direct messages'/)
+  assert.match(source, /label='Direct'/)
+  assert.match(source, /<span className='railLabel'>\{label\}<\/span>/)
   assert.equal(source.includes("<span className='railLabel'>DM</span>"), false)
   assert.match(source, /Send message/)
   assert.equal(source.includes('Send DM'), false)
@@ -277,15 +273,11 @@ test('desktop rail keeps current view accessible', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
 
-  assert.match(source, /id='chatTab'[\s\S]+aria-current='page'/)
-  assert.match(controller, /function updateTabCurrentState\(\)/)
-  assert.match(controller, /element\.setAttribute\('aria-current', 'page'\)/)
-  assert.match(controller, /element\.removeAttribute\('aria-current'\)/)
-  assert.equal(
-    controller.indexOf("els.peopleTab.classList.toggle('active'") <
-      controller.indexOf('updateTabCurrentState()'),
-    true
-  )
+  assert.match(source, /function RailButton\(\{ icon, id, isActive, label, title \}\)/)
+  assert.match(source, /aria-current=\{isActive \? 'page' : undefined\}/)
+  assert.match(source, /className=\{isActive \? 'railButton active' : 'railButton'\}/)
+  assert.match(controller, /globalThis\.keposDesktopUi\?\.setActiveTab\(state\.activeTab\)/)
+  assert.doesNotMatch(controller, /function updateTabCurrentState\(\)/)
 })
 
 test('desktop MLP shell has responsive polish for narrow screens', async () => {
