@@ -159,10 +159,8 @@ test('desktop panes label live and durable surfaces', async () => {
   assert.match(source, /Send message/)
   assert.equal(source.includes('Send DM'), false)
   assert.match(controller, /button\.classList\.toggle\('activeContactButton'/)
-  assert.match(
-    controller,
-    /els\.dmRecipientInput\.addEventListener\('input', renderDirectContacts\)/
-  )
+  assert.match(controller, /els\.dmRecipientInput\.addEventListener\('input', \(\) => \{/)
+  assert.match(controller, /renderDirectContacts\(\)/)
   assert.equal(controller.includes('button.title = contact.profileId'), false)
   assert.match(styles, /\.paneLabel/)
   assert.match(styles, /\.paneEyebrow/)
@@ -181,6 +179,30 @@ test('desktop treehole composer has an explicit owner-only disabled state', asyn
   assert.match(controller, /els\.treeholeInput\.disabled = !state\.treeholeCanPost/)
   assert.match(controller, /els\.treeholePostPolicy\.hidden = state\.treeholeCanPost/)
   assert.match(styles, /\.disabledComposer/)
+})
+
+test('desktop composers disable unavailable sends', async () => {
+  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+
+  for (const id of ['chatSendButton', 'dmSendButton', 'treeholeSendButton']) {
+    assert.match(source, new RegExp(`id='${id}'`), `${id} is missing`)
+    assert.match(controller, new RegExp(`${id}: document\\.querySelector\\('#${id}'\\)`))
+  }
+
+  assert.match(controller, /function updateComposerButtons\(\)/)
+  assert.match(
+    controller,
+    /els\.chatSendButton\.disabled = !inRoom \|\| !els\.chatInput\.value\.trim\(\)/
+  )
+  assert.match(
+    controller,
+    /els\.dmSendButton\.disabled =\s*!inRoom \|\| !els\.dmInput\.value\.trim\(\) \|\| !els\.dmRecipientInput\.value\.trim\(\)/
+  )
+  assert.match(
+    controller,
+    /els\.treeholeSendButton\.disabled =\s*!inRoom \|\| !state\.treeholeCanPost \|\| !els\.treeholeInput\.value\.trim\(\)/
+  )
 })
 
 test('desktop shell exposes Neo Cozy light and Indie Console dark themes', async () => {

@@ -62,6 +62,7 @@ const els = {
   chatForm: document.querySelector('#chatForm'),
   chatInput: document.querySelector('#chatInput'),
   chatPane: document.querySelector('#chatPane'),
+  chatSendButton: document.querySelector('#chatSendButton'),
   chatTab: document.querySelector('#chatTab'),
   contactList: document.querySelector('#contactList'),
   createButton: document.querySelector('#createButton'),
@@ -71,6 +72,7 @@ const els = {
   dmList: document.querySelector('#dmList'),
   dmPane: document.querySelector('#dmPane'),
   dmRecipientInput: document.querySelector('#dmRecipientInput'),
+  dmSendButton: document.querySelector('#dmSendButton'),
   dmTab: document.querySelector('#dmTab'),
   homeQrForm: document.querySelector('#homeQrForm'),
   homeQrCode: document.querySelector('#homeQrCode'),
@@ -103,6 +105,7 @@ const els = {
   treeholeList: document.querySelector('#treeholeList'),
   treeholePane: document.querySelector('#treeholePane'),
   treeholePostPolicy: document.querySelector('#treeholePostPolicy'),
+  treeholeSendButton: document.querySelector('#treeholeSendButton'),
   treeholeStatusLabel: document.querySelector('#treeholeStatusLabel'),
   treeholeTab: document.querySelector('#treeholeTab'),
   trustAliasInput: document.querySelector('#trustAliasInput'),
@@ -177,7 +180,13 @@ els.largeQrDialog.addEventListener('click', (event) => {
 els.nickInput.addEventListener('input', () => {
   updateQrOutputs().catch(showError)
 })
-els.dmRecipientInput.addEventListener('input', renderDirectContacts)
+els.chatInput.addEventListener('input', updateComposerButtons)
+els.dmInput.addEventListener('input', updateComposerButtons)
+els.treeholeInput.addEventListener('input', updateComposerButtons)
+els.dmRecipientInput.addEventListener('input', () => {
+  renderDirectContacts()
+  updateComposerButtons()
+})
 
 els.chatForm.addEventListener('submit', (event) => {
   event.preventDefault()
@@ -763,6 +772,7 @@ function render() {
   els.treeholeForm.classList.toggle('disabledComposer', !state.treeholeCanPost)
   els.treeholeInput.disabled = !state.treeholeCanPost
   els.treeholePostPolicy.hidden = state.treeholeCanPost
+  updateComposerButtons()
 
   els.chatPane.classList.toggle('hidden', state.activeTab !== 'chat')
   els.dmPane.classList.toggle('hidden', state.activeTab !== 'dm')
@@ -778,6 +788,15 @@ function render() {
   renderDirectContacts()
   renderContacts()
   renderPosts()
+}
+
+function updateComposerButtons() {
+  const inRoom = state.view === 'room'
+  els.chatSendButton.disabled = !inRoom || !els.chatInput.value.trim()
+  els.dmSendButton.disabled =
+    !inRoom || !els.dmInput.value.trim() || !els.dmRecipientInput.value.trim()
+  els.treeholeSendButton.disabled =
+    !inRoom || !state.treeholeCanPost || !els.treeholeInput.value.trim()
 }
 
 function renderMessages() {
@@ -824,6 +843,7 @@ function renderDirectContacts() {
       button.addEventListener('click', () => {
         els.dmRecipientInput.value = contact.profileId
         renderDirectContacts()
+        updateComposerButtons()
       })
       return button
     })

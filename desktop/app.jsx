@@ -104,7 +104,7 @@ function DesktopApp() {
             />
             <form id='chatForm' className='composer'>
               <input id='chatInput' placeholder='Write to the home' autoComplete='off' />
-              <button type='submit'>
+              <button id='chatSendButton' type='submit'>
                 <Send size={17} />
                 Send
               </button>
@@ -134,7 +134,7 @@ function DesktopApp() {
                 </label>
               </details>
               <textarea id='dmInput' placeholder='Write a direct message' />
-              <button type='submit'>
+              <button id='dmSendButton' type='submit'>
                 <Send size={17} />
                 Send message
               </button>
@@ -154,7 +154,7 @@ function DesktopApp() {
                 Only the owner can post here.
               </p>
               <textarea id='treeholeInput' placeholder='Post to the treehole' />
-              <button type='submit'>
+              <button id='treeholeSendButton' type='submit'>
                 <Sprout size={17} />
                 Post
               </button>
