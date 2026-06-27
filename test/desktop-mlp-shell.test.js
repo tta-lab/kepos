@@ -105,6 +105,8 @@ test('desktop people pane surfaces pending message requests', async () => {
 test('desktop keeps inline QR codes as advanced share detail', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
 
+  assert.match(source, /id='copyHomeQrButton'[\s\S]*Copy Home QR/)
+  assert.match(source, /id='copyProfileQrButton'[\s\S]*Copy Profile QR/)
   assert.equal(source.indexOf("id='homeQrCode'") > source.indexOf("id='advancedHomeShare'"), true)
   assert.equal(
     source.indexOf("id='profileQrCode'") > source.indexOf("id='advancedProfileShare'"),
@@ -122,6 +124,22 @@ test('desktop keeps inline QR codes as advanced share detail', async () => {
   assert.match(source, /Profile QR details/)
   assert.equal(source.includes('My home URI'), false)
   assert.equal(source.includes('My profile URI'), false)
+})
+
+test('desktop QR sharing exposes copy actions without surfacing raw URI copy', async () => {
+  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+
+  assert.match(source, /Copy Home QR/)
+  assert.match(source, /Copy Profile QR/)
+  assert.match(controller, /copyHomeQrButton: document\.querySelector\('#copyHomeQrButton'\)/)
+  assert.match(controller, /copyProfileQrButton: document\.querySelector\('#copyProfileQrButton'\)/)
+  assert.match(controller, /els\.copyHomeQrButton\.addEventListener\('click', \(\) =>/)
+  assert.match(controller, /els\.copyProfileQrButton\.addEventListener\('click', \(\) =>/)
+  assert.match(controller, /navigator\.clipboard\.writeText\(value\)/)
+  assert.match(controller, /notice: 'Home QR copied\.'/)
+  assert.match(controller, /notice: 'Profile QR copied\.'/)
+  assert.equal(source.includes('Copy URI'), false)
 })
 
 test('desktop normal UI copy avoids raw home address language', async () => {

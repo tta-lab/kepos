@@ -1,4 +1,4 @@
-/* global document */
+/* global document, navigator */
 
 import Hyperswarm from 'hyperswarm'
 import os from 'node:os'
@@ -68,6 +68,8 @@ const els = {
   chatSendButton: document.querySelector('#chatSendButton'),
   chatTab: document.querySelector('#chatTab'),
   contactList: document.querySelector('#contactList'),
+  copyHomeQrButton: document.querySelector('#copyHomeQrButton'),
+  copyProfileQrButton: document.querySelector('#copyProfileQrButton'),
   createButton: document.querySelector('#createButton'),
   dmForm: document.querySelector('#dmForm'),
   dmContactList: document.querySelector('#dmContactList'),
@@ -182,6 +184,12 @@ els.showLargeHomeQrButton.addEventListener('click', () => {
 })
 els.showLargeProfileQrButton.addEventListener('click', () => {
   showLargeQr({ title: 'Profile QR', uri: els.profileQrOutput.value }).catch(showError)
+})
+els.copyHomeQrButton.addEventListener('click', () => {
+  copyQrValue({ notice: 'Home QR copied.', value: els.homeQrOutput.value }).catch(showError)
+})
+els.copyProfileQrButton.addEventListener('click', () => {
+  copyQrValue({ notice: 'Profile QR copied.', value: els.profileQrOutput.value }).catch(showError)
 })
 els.largeQrCloseButton.addEventListener('click', hideLargeQr)
 els.largeQrDialog.addEventListener('click', (event) => {
@@ -441,6 +449,14 @@ async function showLargeQr({ title, uri }) {
     width: 520
   })
   els.largeQrDialog.classList.remove('hidden')
+}
+
+async function copyQrValue({ notice, value }) {
+  if (!value.trim()) return
+
+  await navigator.clipboard.writeText(value)
+  state = { ...state, notice }
+  render()
 }
 
 function hideLargeQr() {

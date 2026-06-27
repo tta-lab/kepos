@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { flushSync } from 'react-dom'
 import {
+  Copy,
   Home,
   LogOut,
   MessageCircle,
@@ -210,10 +211,16 @@ function DesktopApp() {
             </form>
 
             <form id='homeQrForm' className='panel qrPanel'>
-              <button id='showLargeHomeQrButton' type='button'>
-                <QrCode size={17} />
-                Invite a friend
-              </button>
+              <div className='actions'>
+                <button id='showLargeHomeQrButton' type='button'>
+                  <QrCode size={17} />
+                  Invite a friend
+                </button>
+                <button id='copyHomeQrButton' type='button'>
+                  <Copy size={17} />
+                  Copy Home QR
+                </button>
+              </div>
               <details id='advancedHomeShare' className='advanced'>
                 <summary>Advanced</summary>
                 <div id='homeQrCode' className='qrCode' aria-label='My home QR code' />
@@ -249,10 +256,16 @@ function DesktopApp() {
             </summary>
 
             <form id='trustForm' className='panel qrPanel'>
-              <button id='showLargeProfileQrButton' type='button'>
-                <QrCode size={17} />
-                Show my profile
-              </button>
+              <div className='actions'>
+                <button id='showLargeProfileQrButton' type='button'>
+                  <QrCode size={17} />
+                  Show my profile
+                </button>
+                <button id='copyProfileQrButton' type='button'>
+                  <Copy size={17} />
+                  Copy Profile QR
+                </button>
+              </div>
               <details id='advancedProfileShare' className='advanced'>
                 <summary>Advanced</summary>
                 <div id='profileQrCode' className='qrCode' aria-label='My profile QR code' />
