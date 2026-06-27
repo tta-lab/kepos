@@ -19,9 +19,20 @@ import {
 } from 'lucide-react'
 
 const THEME_STORAGE_KEY = 'kepos.desktop.theme'
+const desktopUiBridge = {
+  setHomeMessages: () => {}
+}
+
+globalThis.keposDesktopUi = {
+  setHomeMessages(messages = []) {
+    desktopUiBridge.setHomeMessages(messages)
+  }
+}
 
 function DesktopApp() {
+  const [homeMessages, setHomeMessages] = useState([])
   const [theme, setTheme] = useState(getInitialTheme)
+  desktopUiBridge.setHomeMessages = setHomeMessages
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
@@ -103,13 +114,7 @@ function DesktopApp() {
 
           <section id='chatPane' className='pane'>
             <PaneLabel eyebrow='live' title='Live home chat' />
-            <ol
-              id='messageList'
-              className='list'
-              aria-label='Home chat messages'
-              data-empty='No messages yet'
-              data-empty-detail='Send the first line from this desktop.'
-            />
+            <HomeChatList messages={homeMessages} />
             <form id='chatForm' className='composer'>
               <input id='chatInput' placeholder='Write to the home' autoComplete='off' />
               <button id='chatSendButton' type='submit'>
@@ -393,6 +398,25 @@ function PaneLabel({ eyebrow, title }) {
       <p className='paneEyebrow'>{eyebrow}</p>
       <h2 className='paneTitle'>{title}</h2>
     </div>
+  )
+}
+
+function HomeChatList({ messages }) {
+  return (
+    <ol
+      id='messageList'
+      className='list'
+      aria-label='Home chat messages'
+      data-empty='No messages yet'
+      data-empty-detail='Send the first line from this desktop.'
+    >
+      {messages.map((message, index) => (
+        <li key={`${message.meta}-${index}-${message.text}`} className={message.className}>
+          <p className='meta'>{message.meta}</p>
+          <p>{message.text}</p>
+        </li>
+      ))}
+    </ol>
   )
 }
 

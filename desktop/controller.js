@@ -71,7 +71,6 @@ const els = {
   largeQrTitle: document.querySelector('#largeQrTitle'),
   leaveButton: document.querySelector('#leaveButton'),
   lobbyForm: document.querySelector('#lobbyForm'),
-  messageList: document.querySelector('#messageList'),
   nickInput: document.querySelector('#nickInput'),
   noticeLabel: document.querySelector('#noticeLabel'),
   peerLabel: document.querySelector('#peerLabel'),
@@ -670,27 +669,7 @@ function renderMessages() {
   const messages = createDesktopHomeChatViewModel({
     messages: session?.messages || []
   })
-  els.messageList.replaceChildren(
-    ...messages.map((message) => {
-      const item = document.createElement('li')
-      item.className = message.className
-      item.append(renderHomeChatMessageContent(message))
-      return item
-    })
-  )
-}
-
-function renderHomeChatMessageContent(message) {
-  const fragment = document.createDocumentFragment()
-  const meta = document.createElement('p')
-  const text = document.createElement('p')
-
-  meta.className = 'meta'
-  meta.textContent = message.meta
-  text.textContent = message.text
-  fragment.append(meta, text)
-
-  return fragment
+  globalThis.keposDesktopUi?.setHomeMessages(messages)
 }
 
 function renderDirectMessages() {

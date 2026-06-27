@@ -33,3 +33,15 @@ test('desktop React entry renders before starting the controller', async () => {
   assert.match(source, /flushSync/)
   assert.match(source, /import\('\.\/controller\.js'\)/)
 })
+
+test('desktop React owns the home chat list surface', async () => {
+  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+
+  assert.match(source, /function HomeChatList\(\{ messages \}\)/)
+  assert.match(source, /globalThis\.keposDesktopUi/)
+  assert.match(source, /setHomeMessages\(messages = \[\]\)/)
+  assert.match(source, /<HomeChatList messages=\{homeMessages\} \/>/)
+  assert.match(controller, /globalThis\.keposDesktopUi\?\.setHomeMessages\(messages\)/)
+  assert.doesNotMatch(controller, /els\.messageList\.replaceChildren/)
+})
