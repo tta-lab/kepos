@@ -383,6 +383,20 @@ test('Android supports Neo Cozy light and Indie Console dark themes', async () =
   assert.match(source, /accent: '#ffcf3d'/)
 })
 
+test('Android theme styles are passed through context instead of mutable module state', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+
+  assert.match(source, /const fallbackMobileStyles = createMobileStyles\(mobileThemes\.neoCozy\)/)
+  assert.match(
+    source,
+    /const themedStyles = useMemo\(\(\) => createMobileStyles\(theme\), \[theme\]\)/
+  )
+  assert.match(source, /MobileThemeContext\.Provider value=\{\{ styles: themedStyles, theme \}\}/)
+  assert.match(source, /const \{ styles, theme \} = useMobileTheme\(\)/)
+  assert.doesNotMatch(source, /let styles = createMobileStyles/)
+  assert.doesNotMatch(source, /styles = useMemo/)
+})
+
 test('desktop UI exposes stable hooks for two-device smoke', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
 

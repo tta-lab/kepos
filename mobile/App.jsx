@@ -153,7 +153,10 @@ const mobileThemes = {
   }
 }
 
+const fallbackMobileStyles = createMobileStyles(mobileThemes.neoCozy)
+
 const MobileThemeContext = React.createContext({
+  styles: fallbackMobileStyles,
   theme: mobileThemes.neoCozy
 })
 
@@ -161,12 +164,11 @@ function useMobileTheme() {
   return React.useContext(MobileThemeContext)
 }
 
-let styles = createMobileStyles(mobileThemes.neoCozy)
-
 export default function App() {
   const colorScheme = useColorScheme()
   const theme = colorScheme === 'dark' ? mobileThemes.indieConsole : mobileThemes.neoCozy
-  styles = useMemo(() => createMobileStyles(theme), [theme])
+  const themedStyles = useMemo(() => createMobileStyles(theme), [theme])
+  const styles = themedStyles
   const [nick, setNick] = useState('Neil')
   const [profileId, setProfileId] = useState(null)
   const [identity, setIdentity] = useState(null)
@@ -772,7 +774,7 @@ export default function App() {
   }
 
   return (
-    <MobileThemeContext.Provider value={{ theme }}>
+    <MobileThemeContext.Provider value={{ styles: themedStyles, theme }}>
       <View style={styles.safe}>
         <StatusBar barStyle={theme.statusBar} />
         <KeyboardAvoidingView
@@ -864,7 +866,7 @@ export default function App() {
 }
 
 function Header({ title, notice, statusLabel }) {
-  const { theme } = useMobileTheme()
+  const { styles, theme } = useMobileTheme()
 
   return (
     <View style={styles.header}>
@@ -891,7 +893,7 @@ function Header({ title, notice, statusLabel }) {
 }
 
 function QrCard({ value }) {
-  const { theme } = useMobileTheme()
+  const { styles, theme } = useMobileTheme()
 
   if (!value) {
     return null
@@ -905,6 +907,8 @@ function QrCard({ value }) {
 }
 
 function QrScanner({ onCancel, onScanned }) {
+  const { styles } = useMobileTheme()
+
   return (
     <View style={styles.scannerOverlay} testID='qr-scanner-overlay'>
       <CameraView
@@ -947,7 +951,7 @@ function Lobby({
   trustQrUri,
   trustedContacts
 }) {
-  const { theme } = useMobileTheme()
+  const { styles, theme } = useMobileTheme()
 
   return (
     <ScrollView
@@ -1058,7 +1062,7 @@ function ChatRoom({
   trustAlias,
   trustQrUri
 }) {
-  const { theme } = useMobileTheme()
+  const { styles, theme } = useMobileTheme()
   const [showRoomAdvanced, setShowRoomAdvanced] = useState(false)
   const roomShort = useMemo(
     () => `${session.roomKey.slice(0, 8)}...${session.roomKey.slice(-8)}`,
@@ -1177,7 +1181,7 @@ function ChatRoom({
 }
 
 function QuickStartPanel({ nick, onCreateRoom, onNickChange, onScanHomeQr, onScanProfileQr }) {
-  const { theme } = useMobileTheme()
+  const { styles, theme } = useMobileTheme()
 
   return (
     <View style={styles.quickStartPanel}>
@@ -1231,6 +1235,8 @@ function PeoplePane({
   trustedContacts,
   trustQrUri
 }) {
+  const { styles } = useMobileTheme()
+
   return (
     <ScrollView contentContainerStyle={styles.peoplePane} keyboardShouldPersistTaps='handled'>
       <MessageRequestManager
@@ -1259,6 +1265,8 @@ function PeoplePane({
 }
 
 function MessageRequestManager({ onAcceptRequest, pendingRequests, profileId }) {
+  const { styles } = useMobileTheme()
+
   if (!pendingRequests?.length) {
     return null
   }
@@ -1320,7 +1328,7 @@ function PeopleActions({
   trustedContacts,
   trustQrUri
 }) {
-  const { theme } = useMobileTheme()
+  const { styles, theme } = useMobileTheme()
   const [showAdvancedShare, setShowAdvancedShare] = useState(false)
   const [showHomeQr, setShowHomeQr] = useState(false)
   const [showProfileQr, setShowProfileQr] = useState(false)
@@ -1477,7 +1485,7 @@ function DirectPane({
   onSend,
   recipient
 }) {
-  const { theme } = useMobileTheme()
+  const { styles, theme } = useMobileTheme()
   const [showAdvancedDmRecipient, setShowAdvancedDmRecipient] = useState(false)
 
   return (
@@ -1575,7 +1583,7 @@ function DirectPane({
 }
 
 function ContactManager({ contacts, onRevokeContact }) {
-  const { theme } = useMobileTheme()
+  const { styles, theme } = useMobileTheme()
 
   if (!contacts?.length) {
     return null
@@ -1605,6 +1613,8 @@ function ContactManager({ contacts, onRevokeContact }) {
 }
 
 function TabButton({ active, label, onPress, testID }) {
+  const { styles } = useMobileTheme()
+
   return (
     <Pressable
       onPress={onPress}
@@ -1617,7 +1627,7 @@ function TabButton({ active, label, onPress, testID }) {
 }
 
 function ChatPane({ draft, messages, onDraftChange, onSend }) {
-  const { theme } = useMobileTheme()
+  const { styles, theme } = useMobileTheme()
 
   return (
     <>
@@ -1655,7 +1665,7 @@ function ChatPane({ draft, messages, onDraftChange, onSend }) {
 }
 
 function TreeholePane({ draft, onComment, onDraftChange, onLike, onPost, posts, status }) {
-  const { theme } = useMobileTheme()
+  const { styles, theme } = useMobileTheme()
 
   return (
     <>
@@ -1697,7 +1707,7 @@ function TreeholePane({ draft, onComment, onDraftChange, onLike, onPost, posts, 
 }
 
 function EmptyTreehole({ status }) {
-  const { theme } = useMobileTheme()
+  const { styles, theme } = useMobileTheme()
 
   return (
     <View style={styles.empty}>
@@ -1709,6 +1719,8 @@ function EmptyTreehole({ status }) {
 }
 
 function PaneLabel({ eyebrow, title }) {
+  const { styles } = useMobileTheme()
+
   return (
     <View style={styles.paneLabel}>
       <Text style={styles.paneEyebrow}>{eyebrow}</Text>
@@ -1718,7 +1730,7 @@ function PaneLabel({ eyebrow, title }) {
 }
 
 function TreeholePost({ onComment, onLike, post }) {
-  const { theme } = useMobileTheme()
+  const { styles, theme } = useMobileTheme()
   const [commentDraft, setCommentDraft] = useState('')
 
   function submitComment() {
@@ -1807,7 +1819,7 @@ function getMobileHomeStatus({ online, session }) {
 }
 
 function EmptyMessages() {
-  const { theme } = useMobileTheme()
+  const { styles, theme } = useMobileTheme()
 
   return (
     <View style={styles.empty}>
@@ -1819,7 +1831,7 @@ function EmptyMessages() {
 }
 
 function EmptyDirectMessages() {
-  const { theme } = useMobileTheme()
+  const { styles, theme } = useMobileTheme()
 
   return (
     <View style={styles.empty}>
@@ -1831,6 +1843,7 @@ function EmptyDirectMessages() {
 }
 
 function DirectBubble({ message, onAcceptRequest }) {
+  const { styles } = useMobileTheme()
   const outgoing = message.direction === 'out'
   const isRequest = message.type === 'kepos.message.request.v1'
 
@@ -1862,6 +1875,7 @@ function DirectBubble({ message, onAcceptRequest }) {
 }
 
 function MessageBubble({ message }) {
+  const { styles } = useMobileTheme()
   const outgoing = message.direction === 'out'
 
   return (
@@ -1873,6 +1887,8 @@ function MessageBubble({ message }) {
 }
 
 function Field({ label, onChangeText, testID, value }) {
+  const { styles } = useMobileTheme()
+
   return (
     <View style={styles.field}>
       <Text style={styles.label}>{label}</Text>
