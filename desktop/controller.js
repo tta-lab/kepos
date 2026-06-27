@@ -6,11 +6,9 @@ import {
   createDesktopControlMessageResult,
   createDesktopTreeholeControlSendResult
 } from '../src/desktop-control-service.js'
+import { createDesktopDirectMessageListViewModel } from '../src/desktop-direct-view-model.js'
 import { createDesktopHomeJoinDetails } from '../src/desktop-home-join-service.js'
-import {
-  createDesktopPeopleViewModel,
-  formatDesktopMessageRequestTitle
-} from '../src/desktop-people-view-model.js'
+import { createDesktopPeopleViewModel } from '../src/desktop-people-view-model.js'
 import { createDesktopProfileContext } from '../src/desktop-profile-context.js'
 import {
   createDesktopMessageRequestAcceptance,
@@ -682,11 +680,14 @@ function renderMessages() {
 }
 
 function renderDirectMessages() {
-  const messages = dmSession?.messages || []
+  const messages = createDesktopDirectMessageListViewModel({
+    messages: dmSession?.messages || [],
+    shortenProfileId: shorten
+  })
   els.dmList.replaceChildren(
     ...messages.map((message) => {
       const item = document.createElement('li')
-      item.className = `item ${message.direction === 'out' ? 'outgoing' : 'incoming'}`
+      item.className = message.className
       item.append(renderDirectMessageContent(message))
       return item
     })
@@ -881,11 +882,11 @@ function renderDirectMessageContent(message) {
   const text = document.createElement('p')
 
   meta.className = 'meta'
-  meta.textContent = displayDirectMessageMeta(message)
+  meta.textContent = message.meta
   text.textContent = message.text
   fragment.append(meta, text)
 
-  if (message.type === 'kepos.message.request.v1' && message.direction === 'in') {
+  if (message.actions) {
     const actions = document.createElement('div')
     const ignoreButton = document.createElement('button')
     const button = document.createElement('button')
@@ -894,35 +895,19 @@ function renderDirectMessageContent(message) {
     ignoreButton.className = 'smallButton'
     ignoreButton.textContent = 'Ignore'
     ignoreButton.addEventListener('click', () => {
-      dispatchCommand('ignoreMessageRequest', { message })
+      dispatchCommand('ignoreMessageRequest', { message: message.actions.ignoreMessage })
     })
     button.type = 'button'
     button.className = 'smallButton'
     button.textContent = 'Accept'
     button.addEventListener('click', () => {
-      dispatchCommand('acceptMessageRequest', { message })
+      dispatchCommand('acceptMessageRequest', { message: message.actions.acceptMessage })
     })
     actions.append(ignoreButton, button)
     fragment.append(actions)
   }
 
   return fragment
-}
-
-function displayDirectMessageMeta(message) {
-  if (message.type === 'kepos.message.request.v1') {
-    return message.direction === 'out'
-      ? 'You asked someone to start a DM'
-      : formatDesktopMessageRequestTitle(message)
-  }
-
-  return message.direction === 'out'
-    ? `You to ${displayDirectPeer(message.toProfileId)}`
-    : `${displayDirectPeer(message.fromProfileId, message.nick)} to you`
-}
-
-function displayDirectPeer(profileId, displayName = '') {
-  return displayName?.trim() || `Profile ${shorten(profileId)}`
 }
 
 async function acceptIncomingMessageRequest(message) {

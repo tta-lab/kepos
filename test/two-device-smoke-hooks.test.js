@@ -228,16 +228,23 @@ test('DM request copy reads as a social action', async () => {
     new URL('../src/desktop-people-view-model.js', import.meta.url),
     'utf8'
   )
+  const desktopDirectViewModel = await readFile(
+    new URL('../src/desktop-direct-view-model.js', import.meta.url),
+    'utf8'
+  )
 
   assert.match(mobile, /: formatMessageRequestTitle\(message\)/)
-  assert.match(desktop, /: formatDesktopMessageRequestTitle\(message\)/)
+  assert.match(desktopDirectViewModel, /formatDesktopMessageRequestTitle/)
   assert.match(mobile, /You asked someone to start a DM/)
-  assert.match(desktop, /You asked someone to start a DM/)
+  assert.match(desktopDirectViewModel, /You asked someone to start a DM/)
   assert.match(desktopPeopleViewModel, /wants to start a DM/)
   assert.match(mobile, /testID='message-request-ignore-button'/)
   assert.match(mobile, /onIgnoreRequest\(message\)/)
   assert.match(desktop, /ignoreButton\.textContent = 'Ignore'/)
-  assert.match(desktop, /dispatchCommand\('ignoreMessageRequest', \{ message \}\)/)
+  assert.match(
+    desktop,
+    /dispatchCommand\('ignoreMessageRequest', \{ message: message\.actions\.ignoreMessage \}\)/
+  )
   assert.match(mobile, /wants to start a DM/)
   assert.match(desktopPeopleViewModel, /wants to start a DM/)
   assert.equal(mobile.includes('asked Profile'), false)
@@ -251,11 +258,15 @@ test('DM request copy reads as a social action', async () => {
 test('direct message meta avoids DM fallback and raw recipient framing', async () => {
   const mobile = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
   const desktop = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const desktopDirectViewModel = await readFile(
+    new URL('../src/desktop-direct-view-model.js', import.meta.url),
+    'utf8'
+  )
 
   assert.match(mobile, /You to \${displayDirectPeer\(message\.toProfileId\)}/)
-  assert.match(desktop, /You to \${displayDirectPeer\(message\.toProfileId\)}/)
+  assert.match(desktopDirectViewModel, /You to \$\{displayDirectPeer\(message\.toProfileId/)
   assert.match(mobile, /\${displayDirectPeer\(message\.fromProfileId, message\.nick\)} to you/)
-  assert.match(desktop, /\${displayDirectPeer\(message\.fromProfileId, message\.nick\)} to you/)
+  assert.match(desktopDirectViewModel, /displayDirectPeer\(message\.fromProfileId/)
   assert.equal(mobile.includes("message.nick || 'DM'"), false)
   assert.equal(desktop.includes("message.nick || 'DM'"), false)
 })
