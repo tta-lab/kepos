@@ -19,6 +19,7 @@ const BLOCKING_COMMANDS = new Set(['joinHome', 'joinHomeUri', 'leaveHome', 'trus
 
 const controllerState = createDesktopControllerState()
 let backendContactBook = null
+let localBackendSession = null
 const renderPresenter = createDesktopRenderPresenter({
   formatTime,
   shortenProfileId: shorten,
@@ -34,29 +35,8 @@ const qrActions = createDesktopQrActions({
   },
   setShareQrOutputs: (outputs) => globalThis.keposDesktopUi?.setShareQrOutputs(outputs)
 })
-const backendSession = createDesktopBackendSession({
-  controllerState,
-  createId,
-  getProfileContext,
-  getCurrentDisplayName,
-  onError: showError,
-  onChanged: () => render(),
-  setContextFormDraft: (draft) => globalThis.keposDesktopUi?.setContextFormDraft(draft),
-  setDirectComposerRecipient: (profileId) => {
-    controllerState.setDirectComposerRecipient(profileId)
-    globalThis.keposDesktopUi?.setDirectComposerRecipient(profileId)
-  },
-  setNotice: (notice) => {
-    controllerState.updateState((state) => ({ ...state, notice }))
-  },
-  shortenProfileId: shorten,
-  storageBasePath: getDesktopStorageBasePath(),
-  updateState: (updater) => {
-    controllerState.updateState(updater)
-  }
-})
 const backendClient = createDesktopRendererBackendClient({
-  localBackend: backendSession.backendHost.bridge
+  createLocalBackend: () => getLocalBackendSession().backendHost.bridge
 })
 const commandDispatcher = createDesktopCommandDispatcher({
   backendClient,
@@ -190,4 +170,32 @@ function formatTime(value) {
 }
 
 globalThis.Pear?.updates?.(() => globalThis.Pear.reload())
-globalThis.Pear?.teardown?.(() => backendSession.roomActions.leaveHome())
+globalThis.Pear?.teardown?.(() => localBackendSession?.roomActions.leaveHome())
+
+function getLocalBackendSession() {
+  if (!localBackendSession) {
+    localBackendSession = createDesktopBackendSession({
+      controllerState,
+      createId,
+      getProfileContext,
+      getCurrentDisplayName,
+      onError: showError,
+      onChanged: () => render(),
+      setContextFormDraft: (draft) => globalThis.keposDesktopUi?.setContextFormDraft(draft),
+      setDirectComposerRecipient: (profileId) => {
+        controllerState.setDirectComposerRecipient(profileId)
+        globalThis.keposDesktopUi?.setDirectComposerRecipient(profileId)
+      },
+      setNotice: (notice) => {
+        controllerState.updateState((state) => ({ ...state, notice }))
+      },
+      shortenProfileId: shorten,
+      storageBasePath: getDesktopStorageBasePath(),
+      updateState: (updater) => {
+        controllerState.updateState(updater)
+      }
+    })
+  }
+
+  return localBackendSession
+}

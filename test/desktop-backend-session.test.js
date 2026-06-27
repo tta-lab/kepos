@@ -47,6 +47,11 @@ test('desktop controller delegates backend session composition to a boundary', a
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
 
   assert.match(source, /createDesktopBackendSession/)
+  assert.match(source, /function getLocalBackendSession\(\)/)
+  assert.match(
+    source,
+    /createLocalBackend: \(\) => getLocalBackendSession\(\)\.backendHost\.bridge/
+  )
   assert.doesNotMatch(source, /createDesktopMessageActions/)
   assert.doesNotMatch(source, /createDesktopMessageRequestActions/)
   assert.doesNotMatch(source, /createDesktopRoomActions/)

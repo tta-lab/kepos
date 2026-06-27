@@ -67,7 +67,10 @@ test('desktop controller routes commands through the backend bridge', async () =
   assert.match(source, /createDesktopRendererBackendClient/)
   assert.match(host, /const bridge = createBackendBridge/)
   assert.match(source, /const backendClient = createDesktopRendererBackendClient/)
-  assert.match(source, /localBackend: backendSession\.backendHost\.bridge/)
+  assert.match(
+    source,
+    /createLocalBackend: \(\) => getLocalBackendSession\(\)\.backendHost\.bridge/
+  )
   assert.match(source, /createDesktopCommandDispatcher\(\{\s*backendClient,/)
   assert.match(source, /await commandDispatcher\.dispatch\(command, payload\)/)
   assert.match(dispatcher, /await backendClient\.dispatch\(command, payload\)/)
