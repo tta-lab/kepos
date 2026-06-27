@@ -287,6 +287,19 @@ test('Android room tabs use product labels', async () => {
   assert.equal(source.includes("label='DM'"), false)
 })
 
+test('Android room tabs are bottom navigation', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+
+  assert.match(source, /<View style={styles\.roomContent}>/)
+  assert.equal(
+    source.indexOf('<View style={styles.roomContent}>') <
+      source.indexOf('<View style={styles.tabs}>'),
+    true
+  )
+  assert.match(source, /tabs: \{\s*borderTopColor: theme\.border,/)
+  assert.doesNotMatch(source, /tabs: \{\s*borderBottomColor: theme\.border,/)
+})
+
 test('Android direct message empty state avoids DM shorthand', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 

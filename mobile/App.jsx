@@ -1093,6 +1093,59 @@ function ChatRoom({
         </View>
       ) : null}
 
+      <View style={styles.roomContent}>
+        {activeTab === 'chat' ? (
+          <ChatPane
+            draft={draft}
+            messages={session.messages}
+            onDraftChange={onDraftChange}
+            onSend={onSend}
+          />
+        ) : activeTab === 'dm' ? (
+          <DirectPane
+            draft={dmDraft}
+            contactOptions={dmContactOptions}
+            messages={dmMessages}
+            onAcceptRequest={onAcceptRequest}
+            onDraftChange={onDmDraftChange}
+            onRecipientChange={onDmRecipientChange}
+            onRevokeContact={onRevokeContact}
+            onSend={onSendDm}
+            recipient={dmRecipient}
+          />
+        ) : activeTab === 'treehole' ? (
+          <TreeholePane
+            draft={treeholeDraft}
+            onDraftChange={onTreeholeDraftChange}
+            onComment={onTreeholeComment}
+            onLike={onTreeholeLike}
+            onPost={onTreeholePost}
+            posts={treeholePosts}
+            status={treeholeStatus}
+          />
+        ) : (
+          <PeoplePane
+            homeQrUri={homeQrUri}
+            myHomeQrUri={myHomeQrUri}
+            onAcceptRequest={onAcceptRequest}
+            onHomeQrChange={onHomeQrChange}
+            onJoinHomeQr={onJoinHomeQr}
+            onRevokeContact={onRevokeContact}
+            onScanHomeQr={onScanHomeQr}
+            onScanProfileQr={onScanProfileQr}
+            onTrustAliasChange={onTrustAliasChange}
+            onTrustProfile={onTrustProfile}
+            onTrustQrChange={onTrustQrChange}
+            pendingRequests={pendingRequests}
+            profileId={profileId}
+            profileQrUri={profileQrUri}
+            trustAlias={trustAlias}
+            trustedContacts={dmContactOptions}
+            trustQrUri={trustQrUri}
+          />
+        )}
+      </View>
+
       <View style={styles.tabs}>
         <TabButton
           active={activeTab === 'chat'}
@@ -1119,57 +1172,6 @@ function ChatRoom({
           testID='people-tab'
         />
       </View>
-
-      {activeTab === 'chat' ? (
-        <ChatPane
-          draft={draft}
-          messages={session.messages}
-          onDraftChange={onDraftChange}
-          onSend={onSend}
-        />
-      ) : activeTab === 'dm' ? (
-        <DirectPane
-          draft={dmDraft}
-          contactOptions={dmContactOptions}
-          messages={dmMessages}
-          onAcceptRequest={onAcceptRequest}
-          onDraftChange={onDmDraftChange}
-          onRecipientChange={onDmRecipientChange}
-          onRevokeContact={onRevokeContact}
-          onSend={onSendDm}
-          recipient={dmRecipient}
-        />
-      ) : activeTab === 'treehole' ? (
-        <TreeholePane
-          draft={treeholeDraft}
-          onDraftChange={onTreeholeDraftChange}
-          onComment={onTreeholeComment}
-          onLike={onTreeholeLike}
-          onPost={onTreeholePost}
-          posts={treeholePosts}
-          status={treeholeStatus}
-        />
-      ) : (
-        <PeoplePane
-          homeQrUri={homeQrUri}
-          myHomeQrUri={myHomeQrUri}
-          onAcceptRequest={onAcceptRequest}
-          onHomeQrChange={onHomeQrChange}
-          onJoinHomeQr={onJoinHomeQr}
-          onRevokeContact={onRevokeContact}
-          onScanHomeQr={onScanHomeQr}
-          onScanProfileQr={onScanProfileQr}
-          onTrustAliasChange={onTrustAliasChange}
-          onTrustProfile={onTrustProfile}
-          onTrustQrChange={onTrustQrChange}
-          pendingRequests={pendingRequests}
-          profileId={profileId}
-          profileQrUri={profileQrUri}
-          trustAlias={trustAlias}
-          trustedContacts={dmContactOptions}
-          trustQrUri={trustQrUri}
-        />
-      )}
     </View>
   )
 }
@@ -2201,9 +2203,13 @@ function createMobileStyles(theme) {
     chat: {
       flex: 1
     },
+    roomContent: {
+      flex: 1,
+      minHeight: 0
+    },
     tabs: {
-      borderBottomColor: theme.border,
-      borderBottomWidth: 1,
+      borderTopColor: theme.border,
+      borderTopWidth: 1,
       flexDirection: 'row',
       gap: 8,
       paddingHorizontal: 18,
