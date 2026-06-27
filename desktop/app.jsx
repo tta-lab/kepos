@@ -28,12 +28,14 @@ const DEFAULT_STATUS = {
   roomKeyLabel: 'not joined',
   treeholeStatusLabel: 'Treehole offline'
 }
+const EMPTY_LARGE_QR = { isOpen: false, svg: '', title: '' }
 const desktopUiBridge = {
   setDirectContactPicker: () => {},
   setDirectContactPickerActions: () => {},
   setDirectMessageActions: () => {},
   setDirectMessages: () => {},
   setHomeMessages: () => {},
+  setLargeQr: () => {},
   setPeople: () => {},
   setPeopleActions: () => {},
   setStatus: () => {},
@@ -65,6 +67,9 @@ globalThis.keposDesktopUi = {
   },
   setHomeMessages(messages = []) {
     desktopUiBridge.setHomeMessages(messages)
+  },
+  setLargeQr(qr = EMPTY_LARGE_QR) {
+    desktopUiBridge.setLargeQr(qr)
   },
   setPeople(people = { messageRequests: [], trustedContacts: [] }) {
     desktopUiBridge.setPeople(people)
@@ -102,6 +107,7 @@ function DesktopApp() {
   })
   const [directMessages, setDirectMessages] = useState([])
   const [homeMessages, setHomeMessages] = useState([])
+  const [largeQr, setLargeQr] = useState(EMPTY_LARGE_QR)
   const [people, setPeople] = useState({ messageRequests: [], trustedContacts: [] })
   const [peopleActions, setPeopleActions] = useState({
     acceptMessageRequest: () => {},
@@ -120,6 +126,7 @@ function DesktopApp() {
   desktopUiBridge.setDirectMessageActions = setDirectMessageActions
   desktopUiBridge.setDirectMessages = setDirectMessages
   desktopUiBridge.setHomeMessages = setHomeMessages
+  desktopUiBridge.setLargeQr = setLargeQr
   desktopUiBridge.setPeople = setPeople
   desktopUiBridge.setPeopleActions = setPeopleActions
   desktopUiBridge.setStatus = setStatus
@@ -430,26 +437,37 @@ function DesktopApp() {
         </aside>
       </main>
 
-      <div
-        id='largeQrDialog'
-        className='largeQrDialog hidden'
-        role='dialog'
-        aria-modal='true'
-        aria-labelledby='largeQrTitle'
-      >
-        <section className='largeQrPanel'>
-          <div className='largeQrHeader'>
-            <p id='largeQrTitle' className='label'>
-              QR
-            </p>
-            <button id='largeQrCloseButton' className='smallButton' type='button'>
-              Close
-            </button>
-          </div>
-          <div id='largeQrCode' className='largeQrCode' aria-label='Large QR code' />
-        </section>
-      </div>
+      <LargeQrDialog qr={largeQr} />
     </>
+  )
+}
+
+function LargeQrDialog({ qr }) {
+  return (
+    <div
+      id='largeQrDialog'
+      className={qr.isOpen ? 'largeQrDialog' : 'largeQrDialog hidden'}
+      role='dialog'
+      aria-modal='true'
+      aria-labelledby='largeQrTitle'
+    >
+      <section className='largeQrPanel'>
+        <div className='largeQrHeader'>
+          <p id='largeQrTitle' className='label'>
+            {qr.title || 'QR'}
+          </p>
+          <button id='largeQrCloseButton' className='smallButton' type='button'>
+            Close
+          </button>
+        </div>
+        <div
+          id='largeQrCode'
+          className='largeQrCode'
+          aria-label='Large QR code'
+          dangerouslySetInnerHTML={{ __html: qr.svg }}
+        />
+      </section>
+    </div>
   )
 }
 

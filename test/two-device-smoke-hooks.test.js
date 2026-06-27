@@ -721,17 +721,20 @@ test('desktop UI exposes stable hooks for two-device smoke', async () => {
 })
 
 test('desktop large QR dialog renders scan-sized QR codes', async () => {
-  const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const app = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
 
   for (const marker of [
     'showLargeQr',
     'hideLargeQr',
     'largeQrCode',
+    'setLargeQr',
+    'dangerouslySetInnerHTML',
     'width: 520',
     'largeQrDialog.hidden'
   ]) {
-    assert.match(`${source}\n${styles}`, new RegExp(marker), `${marker} is missing`)
+    assert.match(`${app}\n${controller}\n${styles}`, new RegExp(marker), `${marker} is missing`)
   }
 })
 

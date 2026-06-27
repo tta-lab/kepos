@@ -60,9 +60,7 @@ const els = {
   joinButton: document.querySelector('#joinButton'),
   joinHomeQrButton: document.querySelector('#joinHomeQrButton'),
   largeQrCloseButton: document.querySelector('#largeQrCloseButton'),
-  largeQrCode: document.querySelector('#largeQrCode'),
   largeQrDialog: document.querySelector('#largeQrDialog'),
-  largeQrTitle: document.querySelector('#largeQrTitle'),
   leaveButton: document.querySelector('#leaveButton'),
   lobbyForm: document.querySelector('#lobbyForm'),
   nickInput: document.querySelector('#nickInput'),
@@ -410,12 +408,15 @@ async function showLargeQr({ returnFocus, title, uri }) {
   if (!uri) return
 
   largeQrReturnFocus = returnFocus
-  els.largeQrTitle.textContent = title
-  els.largeQrCode.innerHTML = await renderDesktopQrSvg(uri, {
+  const svg = await renderDesktopQrSvg(uri, {
     margin: 2,
     width: 520
   })
-  els.largeQrDialog.classList.remove('hidden')
+  globalThis.keposDesktopUi?.setLargeQr({
+    isOpen: true,
+    svg,
+    title
+  })
   els.largeQrCloseButton.focus()
 }
 
@@ -428,8 +429,7 @@ async function copyQrValue({ notice, value }) {
 }
 
 function hideLargeQr() {
-  els.largeQrDialog.classList.add('hidden')
-  els.largeQrCode.replaceChildren()
+  globalThis.keposDesktopUi?.setLargeQr({ isOpen: false, svg: '', title: '' })
   largeQrReturnFocus?.focus()
   largeQrReturnFocus = null
 }

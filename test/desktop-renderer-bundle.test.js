@@ -97,6 +97,23 @@ test('desktop React owns the status labels surface', async () => {
   assert.doesNotMatch(controller, /els\.errorDetailLabel\.textContent/)
 })
 
+test('desktop React owns the large QR dialog surface', async () => {
+  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+
+  assert.match(source, /function LargeQrDialog\(\{ qr \}\)/)
+  assert.match(source, /setLargeQr\(qr = EMPTY_LARGE_QR\)/)
+  assert.match(source, /className=\{qr\.isOpen \? 'largeQrDialog' : 'largeQrDialog hidden'\}/)
+  assert.match(source, /dangerouslySetInnerHTML=\{\{ __html: qr\.svg \}\}/)
+  assert.match(source, /<LargeQrDialog qr=\{largeQr\} \/>/)
+  assert.match(controller, /globalThis\.keposDesktopUi\?\.setLargeQr\(\{/)
+  assert.doesNotMatch(controller, /els\.largeQrTitle\.textContent/)
+  assert.doesNotMatch(controller, /els\.largeQrCode\.innerHTML/)
+  assert.doesNotMatch(controller, /els\.largeQrCode\.replaceChildren/)
+  assert.doesNotMatch(controller, /els\.largeQrDialog\.classList\.add\('hidden'\)/)
+  assert.doesNotMatch(controller, /els\.largeQrDialog\.classList\.remove\('hidden'\)/)
+})
+
 test('desktop React owns the people list surfaces', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
