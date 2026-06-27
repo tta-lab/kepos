@@ -31,7 +31,7 @@ import {
 import { createDesktopStatusViewModel } from '../src/desktop-status-view-model.js'
 import { createDesktopTreeholeViewModel } from '../src/desktop-treehole-view-model.js'
 import { createDesktopBackendBridge } from '../src/desktop-backend-bridge.ts'
-import { createDesktopCommandRegistry } from '../src/desktop-command-registry.ts'
+import { createDesktopCommandHost } from '../src/desktop-command-host.js'
 import { createDesktopRendererBackendClient } from '../src/desktop-renderer-backend-client.js'
 import { getDesktopStorageBasePath } from '../src/desktop-storage-base.js'
 
@@ -51,33 +51,21 @@ let shareQrOutputs = {
   profileSvg: '',
   profileUri: ''
 }
-const commands = createDesktopCommandRegistry({
-  handlers: {
-    acceptMessageRequest: (payload) => {
-      const { message } = readCommandPayload(payload)
-      if (message) return acceptIncomingMessageRequest(message)
-    },
-    commentTreehole: (payload) => commentTreeholePost(readCommandPayload(payload)),
-    ignoreMessageRequest: (payload) => {
-      const { message, profileId } = readCommandPayload(payload)
-      return ignoreIncomingMessageRequest({ message, profileId })
-    },
-    joinHome: (payload) => joinRoom(readCommandPayload(payload)),
-    joinHomeUri: (payload) => joinHomeQr(readCommandPayload(payload)),
-    leaveHome: () => leaveRoom(),
-    likeTreehole: (payload) => {
-      const { postId } = readCommandPayload(payload)
-      return likeTreeholePost(postId)
-    },
-    postTreehole: (payload) => postTreehole(readCommandPayload(payload)),
-    revokeContact: (payload) => {
-      const { profileId } = readCommandPayload(payload)
-      if (profileId) return revokeLocalContact(profileId)
-    },
-    sendDmMessage: (payload) => sendMessageRequest(readCommandPayload(payload)),
-    sendHomeMessage: (payload) => sendChat(readCommandPayload(payload)),
-    sendMessageRequest: () => sendMessageRequest(),
-    trustProfileUri: (payload) => trustProfileQr(readCommandPayload(payload))
+const commands = createDesktopCommandHost({
+  actions: {
+    acceptMessageRequest: acceptIncomingMessageRequest,
+    commentTreehole: commentTreeholePost,
+    ignoreMessageRequest: ignoreIncomingMessageRequest,
+    joinHome: joinRoom,
+    joinHomeUri: joinHomeQr,
+    leaveHome: leaveRoom,
+    likeTreehole: likeTreeholePost,
+    postTreehole,
+    revokeContact: revokeLocalContact,
+    sendDmMessage: sendMessageRequest,
+    sendHomeMessage: sendChat,
+    sendMessageRequest,
+    trustProfileUri: trustProfileQr
   }
 })
 const backendBridge = createDesktopBackendBridge({
@@ -194,10 +182,6 @@ async function dispatchCommand(command, payload) {
 
 function isBlockingCommand(command) {
   return BLOCKING_COMMANDS.has(command)
-}
-
-function readCommandPayload(payload) {
-  return payload && typeof payload === 'object' ? payload : {}
 }
 
 async function joinRoom({ createTreehole, homeAddress = null, mode, roomKey }) {
