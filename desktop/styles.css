@@ -210,6 +210,10 @@ textarea {
   padding: 14px;
 }
 
+.compactPanel {
+  gap: 12px;
+}
+
 .panel label {
   color: #40503f;
   display: grid;
@@ -475,6 +479,26 @@ textarea {
   max-height: 100vh;
   overflow: auto;
   padding: 18px;
+}
+
+.contextGroup {
+  border-bottom: 1px solid #c4cfba;
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+}
+
+.contextHead {
+  display: grid;
+  gap: 4px;
+}
+
+.contextHint {
+  color: #536653;
+  font-size: 12px;
+  line-height: 1.35;
+  margin: 0;
 }
 
 @media (max-width: 1080px) {

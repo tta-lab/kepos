@@ -20,3 +20,18 @@ test('desktop React shell separates navigation, workspace, and context panels', 
   assert.equal(source.indexOf("id='lobbyForm'") > source.indexOf("className='contextPanel'"), true)
   assert.match(styles, /grid-template-columns:\s*88px minmax\(0, 1fr\) 340px/)
 })
+
+test('desktop context panel uses product actions for home and people flows', async () => {
+  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
+
+  assert.match(source, /className='contextGroup homeActions'/)
+  assert.match(source, /Invite a friend/)
+  assert.match(source, /Join a friend&apos;s home/)
+  assert.match(source, /className='contextGroup peopleActions'/)
+  assert.match(source, /Add trusted friend/)
+  assert.equal(source.includes('Trust Profile'), false)
+  assert.equal(source.includes('Join Home URI'), false)
+  assert.match(styles, /\.contextGroup/)
+  assert.match(styles, /\.contextHint/)
+})

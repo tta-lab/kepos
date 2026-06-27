@@ -99,100 +99,116 @@ function DesktopApp() {
         </section>
 
         <aside className='contextPanel' aria-label='Home and people context'>
-          <form id='lobbyForm' className='panel'>
-            <label>
-              Nick
-              <input id='nickInput' autoComplete='off' defaultValue='Desktop' />
-            </label>
-            <div className='actions singleAction'>
-              <button id='createButton' type='button'>
-                <HomeIcon />
-                Create Home
-              </button>
+          <section className='contextGroup homeActions' aria-labelledby='homeActionsTitle'>
+            <div className='contextHead'>
+              <SectionTitle id='homeActionsTitle' icon={<Home size={15} />} text='Home' />
+              <p className='contextHint'>Start your room, invite a friend, or join theirs.</p>
             </div>
-            <details id='advancedJoin' className='advanced'>
-              <summary>Advanced</summary>
+
+            <form id='lobbyForm' className='panel compactPanel'>
               <label>
-                Manual home key
-                <textarea
-                  id='roomKeyInput'
-                  placeholder='64-character manual key'
-                  spellCheck='false'
-                />
+                Nick
+                <input id='nickInput' autoComplete='off' defaultValue='Desktop' />
               </label>
-              <button id='joinButton' type='submit'>
-                <LogOut size={17} />
-                Join Home
+              <div className='actions singleAction'>
+                <button id='createButton' type='button'>
+                  <HomeIcon />
+                  Create Home
+                </button>
+              </div>
+              <details id='advancedJoin' className='advanced'>
+                <summary>Advanced</summary>
+                <label>
+                  Manual home key
+                  <textarea
+                    id='roomKeyInput'
+                    placeholder='64-character manual key'
+                    spellCheck='false'
+                  />
+                </label>
+                <button id='joinButton' type='submit'>
+                  <LogOut size={17} />
+                  Join Home
+                </button>
+              </details>
+            </form>
+
+            <form id='homeQrForm' className='panel qrPanel'>
+              <div id='homeQrCode' className='qrCode' aria-label='My home QR code' />
+              <button id='showLargeHomeQrButton' type='button'>
+                <QrCode size={17} />
+                Invite a friend
               </button>
-            </details>
-          </form>
-
-          <form id='homeQrForm' className='panel qrPanel'>
-            <SectionTitle icon={<Home size={15} />} text='Home' />
-            <div id='homeQrCode' className='qrCode' aria-label='My home QR code' />
-            <button id='showLargeHomeQrButton' type='button'>
-              <QrCode size={17} />
-              Large Home QR
-            </button>
-            <details id='advancedHomeShare' className='advanced'>
-              <summary>Advanced</summary>
+              <details id='advancedHomeShare' className='advanced'>
+                <summary>Advanced</summary>
+                <label>
+                  My home URI
+                  <textarea id='homeQrOutput' className='compactArea' readOnly spellCheck='false' />
+                </label>
+              </details>
               <label>
-                My home URI
-                <textarea id='homeQrOutput' className='compactArea' readOnly spellCheck='false' />
-              </label>
-            </details>
-            <label>
-              Join home URI
-              <textarea
-                id='homeQrInput'
-                className='compactArea'
-                placeholder='kepos://home...'
-                spellCheck='false'
-              />
-            </label>
-            <button id='joinHomeQrButton' type='submit'>
-              <LogOut size={17} />
-              Join Home URI
-            </button>
-          </form>
-
-          <form id='trustForm' className='panel qrPanel'>
-            <SectionTitle icon={<ShieldCheck size={15} />} text='People' />
-            <div id='profileQrCode' className='qrCode' aria-label='My profile QR code' />
-            <button id='showLargeProfileQrButton' type='button'>
-              <QrCode size={17} />
-              Large Profile QR
-            </button>
-            <details id='advancedProfileShare' className='advanced'>
-              <summary>Advanced</summary>
-              <label>
-                My profile URI
+                Join a friend&apos;s home
                 <textarea
-                  id='profileQrOutput'
+                  id='homeQrInput'
                   className='compactArea'
-                  readOnly
+                  placeholder='Paste Home QR text'
                   spellCheck='false'
                 />
               </label>
-            </details>
-            <label>
-              Trust profile URI
-              <textarea
-                id='trustQrInput'
-                className='compactArea'
-                placeholder='kepos://profile...'
-                spellCheck='false'
+              <button id='joinHomeQrButton' type='submit'>
+                <LogOut size={17} />
+                Join home
+              </button>
+            </form>
+          </section>
+
+          <section className='contextGroup peopleActions' aria-labelledby='peopleActionsTitle'>
+            <div className='contextHead'>
+              <SectionTitle
+                id='peopleActionsTitle'
+                icon={<ShieldCheck size={15} />}
+                text='People'
               />
-            </label>
-            <label>
-              Alias
-              <input id='trustAliasInput' autoComplete='off' placeholder='Contact name' />
-            </label>
-            <button id='trustButton' type='submit'>
-              <UserPlus size={17} />
-              Trust Profile
-            </button>
-          </form>
+              <p className='contextHint'>Trust a profile before private home access or DM.</p>
+            </div>
+
+            <form id='trustForm' className='panel qrPanel'>
+              <div id='profileQrCode' className='qrCode' aria-label='My profile QR code' />
+              <button id='showLargeProfileQrButton' type='button'>
+                <QrCode size={17} />
+                Show my profile
+              </button>
+              <details id='advancedProfileShare' className='advanced'>
+                <summary>Advanced</summary>
+                <label>
+                  My profile URI
+                  <textarea
+                    id='profileQrOutput'
+                    className='compactArea'
+                    readOnly
+                    spellCheck='false'
+                  />
+                </label>
+              </details>
+              <label>
+                Friend profile
+                <textarea
+                  id='trustQrInput'
+                  className='compactArea'
+                  placeholder='Paste Profile QR text'
+                  spellCheck='false'
+                />
+              </label>
+              <label>
+                Alias
+                <input id='trustAliasInput' autoComplete='off' placeholder='Contact name' />
+              </label>
+              <button id='trustButton' type='submit'>
+                <UserPlus size={17} />
+                Add trusted friend
+              </button>
+            </form>
+          </section>
 
           <section className='panel contactsPanel'>
             <SectionTitle icon={<Users size={15} />} text='Contacts' />
@@ -241,9 +257,9 @@ function HomeIcon() {
   return <Home size={17} />
 }
 
-function SectionTitle({ icon, text }) {
+function SectionTitle({ icon, id, text }) {
   return (
-    <p className='label sectionTitle'>
+    <p id={id} className='label sectionTitle'>
       {icon}
       <span>{text}</span>
     </p>
