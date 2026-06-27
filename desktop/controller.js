@@ -1,9 +1,6 @@
-/* global document, navigator */
+/* global navigator */
 
-import {
-  createDesktopControlMessageResult,
-  createDesktopTreeholeControlSendResult
-} from '../src/desktop-control-service.js'
+import { createDesktopControlActions } from '../src/desktop-control-actions.js'
 import { createDesktopDirectContactPickerViewModel } from '../src/desktop-direct-contact-picker-view-model.js'
 import { createDesktopDirectMessageListViewModel } from '../src/desktop-direct-view-model.js'
 import { createDesktopHomeChatViewModel } from '../src/desktop-home-chat-view-model.js'
@@ -52,6 +49,23 @@ const qrActions = createDesktopQrActions({
     state = { ...state, notice }
   },
   setShareQrOutputs: (outputs) => globalThis.keposDesktopUi?.setShareQrOutputs(outputs)
+})
+const controlActions = createDesktopControlActions({
+  configureTreeholeRuntime,
+  getDmRuntime: () => dmRuntime,
+  getHomeJoinDetails: () => homeJoinDetails,
+  getHomeRuntime: () => homeRuntime,
+  getProfileContext,
+  getTreeholeRuntime: () => treeholeRuntime,
+  onChanged: () => render(),
+  openTreehole,
+  setHomeJoinDetails: (nextDetails) => {
+    homeJoinDetails = nextDetails
+  },
+  setNotice: (notice) => {
+    state = { ...state, notice }
+  },
+  shortenProfileId: shorten
 })
 const messageRequestActions = createDesktopMessageRequestActions({
   createId,
@@ -128,12 +142,13 @@ const backendHost = createDesktopLocalBackendHost({
       dmSession = nextSession
       render()
     },
-    onHomeControl: (message, peer) => handleControl(message, peer).catch(showError),
+    onHomeControl: (message, peer) => controlActions.handleControl(message, peer).catch(showError),
     onHomeSessionChanged: (nextSession) => {
       session = nextSession
       render()
     },
-    onVerifiedHello: (message, peer) => sendTreeholeBootstrap(peer, message.profileId),
+    onVerifiedHello: (message, peer) =>
+      controlActions.sendTreeholeBootstrap(peer, message.profileId),
     storageBasePath: getDesktopStorageBasePath()
   }
 })
@@ -269,64 +284,6 @@ function configureTreeholeRuntime() {
   backendRuntime.configure({ homeJoinDetails, session })
 }
 
-async function handleControl(message, peer) {
-  if (message.type === 'kepos.message.request.v1') {
-    const context = getProfileContext()
-    const result = await createDesktopControlMessageResult({
-      contactBook: context.contactBook,
-      currentDmSession: dmRuntime.getSession(),
-      fallbackAlias: shorten(message.fromProfileId),
-      message
-    })
-    if (!result) return
-
-    context.saveContactBook(result.book)
-    dmRuntime.appendIncomingRequest(result.appendIncomingRequest)
-    state = { ...state, notice: 'Message request received.' }
-    render()
-    return
-  }
-
-  if (message.type === 'kepos.dm.invite.v1') {
-    const { contactBook, profile } = getProfileContext()
-    const result = await createDesktopControlMessageResult({
-      acceptInviteAsRecipient: (payload) => dmRuntime.acceptInviteAsRecipient(payload),
-      contactBook,
-      currentDmSession: dmRuntime.getSession(),
-      message,
-      recipientEncryptionKeyPair: profile.dmEncryptionKeyPair
-    })
-    if (!result) return
-
-    state = { ...state, notice: 'Direct message ready.' }
-    render()
-    return
-  }
-
-  if (message.type === 'treehole.bootstrap') {
-    const result = await createDesktopControlMessageResult({ message, peer })
-    if (!result) return
-
-    if (result.ownerProfileId && homeJoinDetails) {
-      homeJoinDetails = {
-        ...homeJoinDetails,
-        ownerProfileId: result.ownerProfileId
-      }
-      configureTreeholeRuntime()
-    }
-    await openTreehole(result.bootstrapKey)
-    sendTreeholeWriter(result.sendWriterPeer)
-    return
-  }
-
-  if (message.type === 'treehole.writer') {
-    const result = await createDesktopControlMessageResult({ message, peer })
-    if (!result) return
-
-    await treeholeRuntime.addWriter(result.writer)
-  }
-}
-
 async function openTreehole(bootstrapKey = null) {
   configureTreeholeRuntime()
   await treeholeRuntime.open({
@@ -334,31 +291,6 @@ async function openTreehole(bootstrapKey = null) {
     initialPosts: state.treeholePosts,
     initialStatus: state.treeholeStatus
   })
-}
-
-function sendTreeholeBootstrap(peer, remoteProfileId) {
-  const result = createDesktopTreeholeControlSendResult({
-    createBootstrapControl: (profileId) => treeholeRuntime.createBootstrapControl(profileId),
-    isHomeJoined: homeRuntime.isJoined(),
-    peer,
-    remoteProfileId,
-    type: 'bootstrap'
-  })
-  if (!result) return
-
-  homeRuntime.sendControl(result.peer, result.payload)
-}
-
-function sendTreeholeWriter(peer) {
-  const result = createDesktopTreeholeControlSendResult({
-    createWriterControl: () => treeholeRuntime.createWriterControl(),
-    isHomeJoined: homeRuntime.isJoined(),
-    peer,
-    type: 'writer'
-  })
-  if (!result) return
-
-  homeRuntime.sendControl(result.peer, result.payload)
 }
 
 function setTab(tab) {
