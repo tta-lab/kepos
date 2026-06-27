@@ -1214,7 +1214,6 @@ function ChatRoom({
             onDraftChange={onDmDraftChange}
             onIgnoreRequest={onIgnoreRequest}
             onRecipientChange={onDmRecipientChange}
-            onRevokeContact={onRevokeContact}
             onSend={onSendDm}
             recipient={dmRecipient}
           />
@@ -1662,7 +1661,6 @@ function DirectPane({
   onDraftChange,
   onIgnoreRequest,
   onRecipientChange,
-  onRevokeContact,
   onSend,
   recipient
 }) {
@@ -1694,31 +1692,23 @@ function DirectPane({
             showsHorizontalScrollIndicator={false}
           >
             {contactOptions.map((contact) => (
-              <View key={contact.profileId} style={styles.contactChipGroup}>
-                <Pressable
-                  onPress={() => onRecipientChange(contact.profileId)}
+              <Pressable
+                key={contact.profileId}
+                onPress={() => onRecipientChange(contact.profileId)}
+                style={[
+                  styles.contactChip,
+                  recipient === contact.profileId && styles.activeContactChip
+                ]}
+              >
+                <Text
                   style={[
-                    styles.contactChip,
-                    recipient === contact.profileId && styles.activeContactChip
+                    styles.contactChipText,
+                    recipient === contact.profileId && styles.activeContactChipText
                   ]}
                 >
-                  <Text
-                    style={[
-                      styles.contactChipText,
-                      recipient === contact.profileId && styles.activeContactChipText
-                    ]}
-                  >
-                    {contact.alias}
-                  </Text>
-                </Pressable>
-                <Pressable
-                  accessibilityLabel={`Revoke ${contact.alias}`}
-                  onPress={() => onRevokeContact(contact.profileId)}
-                  style={styles.revokeChip}
-                >
-                  <UserMinus color={theme.danger} size={16} />
-                </Pressable>
-              </View>
+                  {contact.alias}
+                </Text>
+              </Pressable>
             ))}
           </ScrollView>
         ) : null}
@@ -2764,11 +2754,6 @@ function createMobileStyles(theme) {
       paddingHorizontal: 14,
       paddingTop: 14
     },
-    contactChipGroup: {
-      alignItems: 'center',
-      flexDirection: 'row',
-      gap: 4
-    },
     contactChip: {
       backgroundColor: theme.quickPanel,
       borderColor: theme.quickPanelBorder,
@@ -2789,15 +2774,6 @@ function createMobileStyles(theme) {
     },
     activeContactChipText: {
       color: theme.surface
-    },
-    revokeChip: {
-      alignItems: 'center',
-      borderColor: theme.dangerBorder,
-      borderRadius: 8,
-      borderWidth: 1,
-      height: 34,
-      justifyContent: 'center',
-      width: 34
     },
     contactRow: {
       alignItems: 'center',

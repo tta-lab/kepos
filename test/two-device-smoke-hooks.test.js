@@ -390,6 +390,21 @@ test('Android direct message empty state avoids DM shorthand', async () => {
   assert.equal(source.includes('send the first DM.'), false)
 })
 
+test('Android direct message composer keeps revoke in People', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const directPane = source.slice(
+    source.indexOf('function DirectPane('),
+    source.indexOf('function ContactManager(')
+  )
+  const contactManager = source.slice(source.indexOf('function ContactManager('))
+
+  assert.match(directPane, /contactOptions\.map/)
+  assert.equal(directPane.includes('revokeChip'), false)
+  assert.equal(directPane.includes('onRevokeContact'), false)
+  assert.match(contactManager, /onRevokeContact\(contact\.profileId\)/)
+  assert.match(contactManager, /UserMinus/)
+})
+
 test('Android treehole empty state talks about posts', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 
