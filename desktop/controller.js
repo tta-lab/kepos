@@ -10,7 +10,8 @@ import {
   appendLocalSignedDirectMessage,
   appendRemoteMessageRequest,
   appendRemoteSignedDirectMessage,
-  createDirectMessageSession
+  createDirectMessageSession,
+  dismissDirectMessage
 } from '../src/dm-session.js'
 import { createDmEncryptionKeyPair } from '../src/dm-invite.ts'
 import { acceptDmInviteAsRecipient } from '../src/dm-invite-acceptance.js'
@@ -24,7 +25,7 @@ import {
   loadContactBookFromStorage,
   saveContactBookToStorage
 } from '../src/contact-book-storage.js'
-import { listTrustedContacts } from '../src/contact-book.ts'
+import { ignoreMessageRequest, listTrustedContacts } from '../src/contact-book.ts'
 import {
   createHomeJoinSession,
   createHomeJoinSessionFromAddress,
@@ -135,6 +136,10 @@ const commands = createDesktopCommandRegistry({
       if (message) acceptIncomingMessageRequest(message)
     },
     commentTreehole: (payload) => commentTreeholePost(readCommandPayload(payload)),
+    ignoreMessageRequest: (payload) => {
+      const { message, profileId } = readCommandPayload(payload)
+      return ignoreIncomingMessageRequest({ message, profileId })
+    },
     joinHome: (payload) => joinRoom(readCommandPayload(payload)),
     joinHomeUri: () => joinHomeQr(),
     leaveHome: () => leaveRoom(),
@@ -926,6 +931,8 @@ function renderMessageRequests() {
       const label = document.createElement('div')
       const title = document.createElement('p')
       const profileId = document.createElement('p')
+      const actions = document.createElement('div')
+      const ignoreButton = document.createElement('button')
       const button = document.createElement('button')
 
       row.className = 'managedContact'
@@ -933,6 +940,13 @@ function renderMessageRequests() {
       profileId.className = 'mono muted smallText'
       profileId.textContent = request.alias || shorten(request.profileId)
       label.append(title, profileId)
+      actions.className = 'inlineActions'
+      ignoreButton.type = 'button'
+      ignoreButton.className = 'smallButton'
+      ignoreButton.textContent = 'Ignore'
+      ignoreButton.addEventListener('click', () =>
+        dispatchCommand('ignoreMessageRequest', { profileId: request.profileId })
+      )
       button.type = 'button'
       button.className = 'smallButton'
       button.textContent = 'Accept'
@@ -945,7 +959,8 @@ function renderMessageRequests() {
           }
         })
       )
-      row.append(label, button)
+      actions.append(ignoreButton, button)
+      row.append(label, actions)
       return row
     })
   )
@@ -1001,14 +1016,24 @@ function renderDirectMessageContent(message) {
   fragment.append(meta, text)
 
   if (message.type === 'kepos.message.request.v1' && message.direction === 'in') {
+    const actions = document.createElement('div')
+    const ignoreButton = document.createElement('button')
     const button = document.createElement('button')
+    actions.className = 'inlineActions'
+    ignoreButton.type = 'button'
+    ignoreButton.className = 'smallButton'
+    ignoreButton.textContent = 'Ignore'
+    ignoreButton.addEventListener('click', () => {
+      dispatchCommand('ignoreMessageRequest', { message })
+    })
     button.type = 'button'
     button.className = 'smallButton'
     button.textContent = 'Accept'
     button.addEventListener('click', () => {
       dispatchCommand('acceptMessageRequest', { message })
     })
-    fragment.append(button)
+    actions.append(ignoreButton, button)
+    fragment.append(actions)
   }
 
   return fragment
@@ -1050,6 +1075,28 @@ function acceptIncomingMessageRequest(message) {
   openLocalDmThread(result.thread).catch(showError)
   room.broadcastControl(result.invite)
   state = { ...state, notice: 'Message request accepted.' }
+  render()
+}
+
+function ignoreIncomingMessageRequest({ message = null, profileId = '' }) {
+  const requestProfileId = profileId || message?.fromProfileId || message?.profileId
+  if (!requestProfileId) return
+
+  const profile = getDesktopProfile(els.nickInput.value.trim() || 'Desktop')
+  const book = ignoreMessageRequest(loadLocalContactBook(profile.id), {
+    profileId: requestProfileId
+  })
+
+  saveContactBookToStorage({
+    book,
+    storage: globalThis.localStorage
+  })
+
+  if (dmSession && message?.id) {
+    dmSession = dismissDirectMessage(dmSession, { id: message.id })
+  }
+
+  state = { ...state, notice: 'Message request ignored.' }
   render()
 }
 

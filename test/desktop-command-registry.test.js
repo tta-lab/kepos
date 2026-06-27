@@ -44,6 +44,7 @@ test('desktop controller routes UI actions through the command registry', async 
 
   for (const command of [
     'joinHome',
+    'ignoreMessageRequest',
     'leaveHome',
     'sendHomeMessage',
     'sendDmMessage',

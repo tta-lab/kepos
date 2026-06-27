@@ -551,6 +551,14 @@ textarea {
   margin: 0;
 }
 
+.inlineActions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
 .smallText {
   font-size: 0.82rem;
 }

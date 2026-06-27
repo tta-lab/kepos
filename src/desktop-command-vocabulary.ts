@@ -1,6 +1,7 @@
 export const DESKTOP_COMMANDS = [
   'acceptMessageRequest',
   'commentTreehole',
+  'ignoreMessageRequest',
   'joinHome',
   'joinHomeUri',
   'leaveHome',

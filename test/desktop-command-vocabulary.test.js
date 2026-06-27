@@ -11,6 +11,7 @@ test('desktop command vocabulary covers the V1 MLP product actions', () => {
   assert.deepEqual(DESKTOP_COMMANDS, [
     'acceptMessageRequest',
     'commentTreehole',
+    'ignoreMessageRequest',
     'joinHome',
     'joinHomeUri',
     'leaveHome',
