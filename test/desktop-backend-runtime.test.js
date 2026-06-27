@@ -71,3 +71,14 @@ test('desktop backend runtime configures and closes composed runtimes', async ()
   assert.deepEqual(runtime.treehole.options.context, context)
   assert.deepEqual(closed, ['dm:closeAll', 'home:leave', 'treehole:close'])
 })
+
+test('desktop backend runtime passes storage base path to treehole runtime', () => {
+  const runtime = createDesktopBackendRuntime({
+    createDmRuntime: createFakeRuntime('dm'),
+    createHomeRuntime: createFakeRuntime('home'),
+    createTreeholeRuntime: createFakeRuntime('treehole'),
+    storageBasePath: '/app/user-data/kepos/v1'
+  })
+
+  assert.equal(runtime.treehole.options.storageBasePath, '/app/user-data/kepos/v1')
+})

@@ -9,6 +9,8 @@ let backendIpc = null
 let pear = null
 
 function createWindow() {
+  process.env.KEPOS_DESKTOP_STORAGE_BASE_PATH = path.join(app.getPath('userData'), 'kepos', 'v1')
+
   mainWindow = new BrowserWindow({
     height: 760,
     show: false,

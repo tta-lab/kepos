@@ -56,11 +56,14 @@ function createRuntime(overrides = {}) {
       return publisher
     },
     createSwarm: () => swarm,
-    createTreehole: () => treehole,
+    createTreehole: (options) => {
+      treehole.options = options
+      return treehole
+    },
     homeDir: () => '/home/test',
     onError: (error) => errors.push(error.message),
     onStateChanged: (snapshot) => emitted.push(snapshot),
-    pathJoin: (...parts) => parts.join('/')
+    storageBasePath: overrides.storageBasePath
   })
 
   runtime.configure({
@@ -82,6 +85,19 @@ function createRuntime(overrides = {}) {
 
   return { emitted, errors, publisher, runtime, swarm, treehole }
 }
+
+test('desktop treehole runtime uses injected storage base path', async () => {
+  const { runtime, treehole } = createRuntime({
+    storageBasePath: '/app/user-data/kepos/v1'
+  })
+
+  await runtime.open({ bootstrapKey: 'e'.repeat(64) })
+
+  assert.equal(
+    treehole.options.storage,
+    '/app/user-data/kepos/v1/kepos-treehole-dddddddddddddddd-eeeeeeeeeeeeeeee'
+  )
+})
 
 test('desktop treehole runtime opens, publishes state, and closes lifecycle resources', async () => {
   const { emitted, publisher, runtime, swarm, treehole } = createRuntime()

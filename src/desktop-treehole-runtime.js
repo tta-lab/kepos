@@ -1,12 +1,12 @@
 import Hyperswarm from 'hyperswarm'
 import os from 'node:os'
-import path from 'node:path'
 import { createTreeholeBase } from './treehole-base.js'
 import {
   canGrantTreeholeWriter,
   canShareTreeholeBootstrap,
   createTreeholeSessionOptions
 } from './treehole-policy.ts'
+import { createTreeholeStoragePath } from './treehole-storage.js'
 import { createTreeholeStatePublisher } from './treehole-state-publisher.js'
 import { serializeTreeholeState } from './treehole-view.js'
 
@@ -17,7 +17,7 @@ export function createDesktopTreeholeRuntime({
   homeDir = () => os.homedir(),
   onError = () => {},
   onStateChanged = () => {},
-  pathJoin = path.join,
+  storageBasePath = null,
   serialize = serializeTreeholeState
 } = {}) {
   let session = null
@@ -184,8 +184,11 @@ export function createDesktopTreeholeRuntime({
   }
 
   function treeholeStoragePath(roomKey, bootstrapKey) {
-    const suffix = bootstrapKey ? bootstrapKey.slice(0, 16) : 'host'
-    return pathJoin(homeDir(), `.kepos-treehole-${roomKey.slice(0, 16)}-${suffix}`)
+    return createTreeholeStoragePath({
+      basePath: storageBasePath || homeDir(),
+      bootstrapKey,
+      roomKey
+    })
   }
 
   return {

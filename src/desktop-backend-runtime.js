@@ -10,7 +10,8 @@ export function createDesktopBackendRuntime({
   onDmSessionChanged = () => {},
   onHomeControl = () => {},
   onHomeSessionChanged = () => {},
-  onVerifiedHello = () => {}
+  onVerifiedHello = () => {},
+  storageBasePath = null
 } = {}) {
   const dm = createDmRuntime({
     onSessionChanged: (session) => {
@@ -30,7 +31,8 @@ export function createDesktopBackendRuntime({
   })
   const treehole = createTreeholeRuntime({
     onError: (error) => emit('errorReceived', error),
-    onStateChanged: (snapshot) => emit('treeholeStateChanged', snapshot)
+    onStateChanged: (snapshot) => emit('treeholeStateChanged', snapshot),
+    storageBasePath
   })
 
   function configure(context) {

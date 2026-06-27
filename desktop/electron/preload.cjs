@@ -29,3 +29,7 @@ contextBridge.exposeInMainWorld('keposBackend', {
     }
   }
 })
+
+contextBridge.exposeInMainWorld('keposDesktopConfig', {
+  storageBasePath: process.env.KEPOS_DESKTOP_STORAGE_BASE_PATH
+})

@@ -28,6 +28,7 @@ import {
 import { createDesktopBackendBridge } from '../src/desktop-backend-bridge.ts'
 import { createDesktopCommandRegistry } from '../src/desktop-command-registry.ts'
 import { createDesktopRendererBackendClient } from '../src/desktop-renderer-backend-client.js'
+import { getDesktopStorageBasePath } from '../src/desktop-storage-base.js'
 
 const ROOM_KEY_PATTERN = /^[0-9a-f]{64}$/
 const BLOCKING_COMMANDS = new Set(['joinHome', 'joinHomeUri', 'leaveHome', 'trustProfileUri'])
@@ -144,7 +145,8 @@ const backendRuntime = createDesktopBackendRuntime({
     session = nextSession
     render()
   },
-  onVerifiedHello: (message, peer) => sendTreeholeBootstrap(peer, message.profileId)
+  onVerifiedHello: (message, peer) => sendTreeholeBootstrap(peer, message.profileId),
+  storageBasePath: getDesktopStorageBasePath()
 })
 const dmRuntime = backendRuntime.dm
 const homeRuntime = backendRuntime.home
