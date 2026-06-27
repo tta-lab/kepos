@@ -95,6 +95,16 @@ test('Android raw own QR text stays behind advanced people controls', async () =
   )
 })
 
+test('DM request copy reads as a social action', async () => {
+  const mobile = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const desktop = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+
+  assert.match(mobile, /wants to start a DM/)
+  assert.match(desktop, /wants to start a DM/)
+  assert.equal(mobile.includes('request ${outgoing ?'), false)
+  assert.equal(desktop.includes('message request ${message.direction'), false)
+})
+
 test('Android room has a People tab for QR and trusted contacts', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 

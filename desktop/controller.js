@@ -927,10 +927,12 @@ function displayDirectMessageMeta(message) {
   if (message.type === 'kepos.message.request.v1') {
     const peer = message.direction === 'out' ? message.toProfileId : message.fromProfileId
 
-    return `message request ${message.direction === 'out' ? 'to' : 'from'} ${shorten(peer)}`
+    return message.direction === 'out'
+      ? `You asked Profile ${shorten(peer)} to start a DM`
+      : `Profile ${shorten(peer)} wants to start a DM`
   }
 
-  return `${message.nick || 'DM'} to ${message.toProfileId}`
+  return `${message.nick || 'DM'} to ${shorten(message.toProfileId)}`
 }
 
 function acceptIncomingMessageRequest(message) {

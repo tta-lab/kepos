@@ -1557,7 +1557,9 @@ function DirectBubble({ message, onAcceptRequest }) {
     <View style={[styles.bubble, outgoing ? styles.outBubble : styles.inBubble]}>
       <Text style={[styles.bubbleMeta, !outgoing && styles.inBubbleMeta]}>
         {isRequest
-          ? `request ${outgoing ? 'to' : 'from'} ${shortenProfileId(peer)}`
+          ? outgoing
+            ? `You asked Profile ${shortenProfileId(peer)} to start a DM`
+            : `Profile ${shortenProfileId(peer)} wants to start a DM`
           : `${message.nick || 'DM'} to ${shortenProfileId(message.toProfileId)}`}
       </Text>
       <Text style={[styles.bubbleText, !outgoing && styles.inBubbleText]}>{message.text}</Text>
