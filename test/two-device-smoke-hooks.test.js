@@ -2,6 +2,16 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 
+async function readDesktopUiSource() {
+  const app = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const shell = await readFile(new URL('../desktop/shell-components.jsx', import.meta.url), 'utf8')
+  const context = await readFile(
+    new URL('../desktop/context-components.jsx', import.meta.url),
+    'utf8'
+  )
+  return `${app}\n${shell}\n${context}`
+}
+
 test('Android UI exposes stable hooks for two-device smoke', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 
@@ -223,7 +233,7 @@ test('Android paste QR fallback stays behind advanced people controls', async ()
 
 test('DM request copy reads as a social action', async () => {
   const mobile = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
-  const desktopApp = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const desktopApp = await readDesktopUiSource()
   const desktop = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const desktopBindings = await readFile(
     new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
@@ -716,7 +726,7 @@ test('Android theme styles are passed through context instead of mutable module 
 })
 
 test('desktop UI exposes stable hooks for two-device smoke', async () => {
-  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const source = await readDesktopUiSource()
 
   for (const id of [
     'showLargeHomeQrButton',
@@ -742,7 +752,7 @@ test('desktop UI exposes stable hooks for two-device smoke', async () => {
 })
 
 test('desktop large QR dialog renders scan-sized QR codes', async () => {
-  const app = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const app = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const actions = await readFile(new URL('../src/desktop-qr-actions.js', import.meta.url), 'utf8')
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
@@ -765,7 +775,7 @@ test('desktop large QR dialog renders scan-sized QR codes', async () => {
 })
 
 test('desktop large QR dialog is keyboard reachable', async () => {
-  const app = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const app = await readDesktopUiSource()
   const bindings = await readFile(
     new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
     'utf8'

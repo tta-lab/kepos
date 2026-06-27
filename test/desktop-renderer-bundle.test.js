@@ -5,7 +5,11 @@ import test from 'node:test'
 async function readDesktopUiSource() {
   const app = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const shell = await readFile(new URL('../desktop/shell-components.jsx', import.meta.url), 'utf8')
-  return `${app}\n${shell}`
+  const context = await readFile(
+    new URL('../desktop/context-components.jsx', import.meta.url),
+    'utf8'
+  )
+  return `${app}\n${shell}\n${context}`
 }
 
 test('desktop renderer loads the bundled CommonJS entrypoint', async () => {

@@ -9,7 +9,11 @@ async function readDesktopAppSource() {
 async function readDesktopUiSource() {
   const app = await readDesktopAppSource()
   const shell = await readFile(new URL('../desktop/shell-components.jsx', import.meta.url), 'utf8')
-  return `${app}\n${shell}`
+  const context = await readFile(
+    new URL('../desktop/context-components.jsx', import.meta.url),
+    'utf8'
+  )
+  return `${app}\n${shell}\n${context}`
 }
 
 test('desktop React shell separates navigation, workspace, and context panels', async () => {
@@ -26,8 +30,24 @@ test('desktop React shell separates navigation, workspace, and context panels', 
     source.indexOf("className='workspace'") < source.indexOf("className='contextPanel'"),
     true
   )
-  assert.equal(source.indexOf("id='lobbyForm'") > source.indexOf("className='contextPanel'"), true)
+  assert.equal(source.indexOf('<ContextPanel') > source.indexOf("className='contextPanel'"), true)
+  assert.match(await readDesktopUiSource(), /id='lobbyForm'/)
   assert.match(styles, /grid-template-columns:\s*88px minmax\(0, 1fr\) 340px/)
+})
+
+test('desktop context actions live behind a dedicated component boundary', async () => {
+  const source = await readDesktopAppSource()
+  const context = await readFile(
+    new URL('../desktop/context-components.jsx', import.meta.url),
+    'utf8'
+  )
+
+  assert.match(source, /import \{ ContextPanel \} from '\.\/context-components\.jsx'/)
+  assert.match(source, /<ContextPanel[\s\S]*shareQrOutputs=\{shareQrOutputs\}/)
+  assert.match(context, /export function ContextPanel\(/)
+  assert.match(context, /const ROOM_KEY_PATTERN = \/\^\[0-9a-f\]\{64\}\$\//)
+  assert.doesNotMatch(source, /function ContextPanel\(/)
+  assert.doesNotMatch(source, /function QrShareOutput\(/)
 })
 
 test('desktop context panel uses product actions for home and people flows', async () => {

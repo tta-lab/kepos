@@ -2,9 +2,19 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import { describe, test } from 'node:test'
 
+async function readDesktopUiSource() {
+  const app = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const shell = await readFile(new URL('../desktop/shell-components.jsx', import.meta.url), 'utf8')
+  const context = await readFile(
+    new URL('../desktop/context-components.jsx', import.meta.url),
+    'utf8'
+  )
+  return `${app}\n${shell}\n${context}`
+}
+
 describe('manual key debug UI boundary', () => {
   test('desktop keeps manual home key entry inside an advanced section', async () => {
-    const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+    const source = await readDesktopUiSource()
 
     assert.match(source, /<details[^>]+id='advancedJoin'/)
     assert.match(source, /<summary>Advanced<\/summary>/)
@@ -12,7 +22,7 @@ describe('manual key debug UI boundary', () => {
   })
 
   test('desktop keeps raw share URIs inside advanced sections', async () => {
-    const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+    const source = await readDesktopUiSource()
 
     assert.match(source, /detailsId='advancedHomeShare'/)
     assert.match(source, /detailsId='advancedProfileShare'/)
@@ -28,7 +38,7 @@ describe('manual key debug UI boundary', () => {
   })
 
   test('desktop keeps manual DM recipient entry inside an advanced section', async () => {
-    const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+    const source = await readDesktopUiSource()
 
     assert.match(source, /<details[^>]+id='advancedDmRecipient'/)
     assert.equal(
@@ -50,7 +60,7 @@ describe('manual key debug UI boundary', () => {
   })
 
   test('manual home key buttons still use product join copy', async () => {
-    const desktop = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+    const desktop = await readDesktopUiSource()
     const mobile = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 
     assert.match(desktop, /Join home/)
