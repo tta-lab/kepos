@@ -57,6 +57,7 @@ import {
   setDesktopTab,
   setDesktopTreehole
 } from '../src/desktop-state.js'
+import { createDesktopBackendBridge } from '../src/desktop-backend-bridge.ts'
 import { createDesktopCommandRegistry } from '../src/desktop-command-registry.ts'
 
 const ROOM_KEY_PATTERN = /^[0-9a-f]{64}$/
@@ -163,6 +164,9 @@ const commands = createDesktopCommandRegistry({
     trustProfileUri: () => trustProfileQr()
   }
 })
+const backendBridge = createDesktopBackendBridge({
+  dispatch: (command, payload) => commands.dispatch(command, payload)
+})
 
 els.createButton.addEventListener('click', () => {
   dispatchCommand('joinHome', { createTreehole: true, mode: 'host' })
@@ -262,7 +266,7 @@ async function dispatchCommand(command, payload) {
   }
 
   try {
-    await commands.dispatch(command, payload)
+    await backendBridge.dispatch(command, payload)
   } catch (error) {
     showError(error)
   } finally {
