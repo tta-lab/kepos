@@ -28,11 +28,15 @@ This is the map of content for Kepos architecture docs.
    - Visual style board for the selected theme pair: Neo Cozy for light, Indie Console for dark.
    - Quiet Cyber is not included as a V1 MLP style candidate.
 
-7. `docs/v1.20-smoke-guide.md`
+7. `docs/v1.15-mlp-implementation-audit.md`
+   - Current V1 MLP implementation audit: finished UX/model evidence, remaining desktop worker bridge, and next phase.
+   - Use this before deciding whether to keep polishing UI or start architecture migration.
+
+8. `docs/v1.20-smoke-guide.md`
    - Desktop and Android manual smoke checklist for V1 parity.
    - Use this before calling V1 ready.
 
-8. `docs/v1.21-cross-device-smoke.md`
+9. `docs/v1.21-cross-device-smoke.md`
    - Agent recipe for validating desktop/Android product paths.
    - Use this before reporting cross-device work as ready.
 

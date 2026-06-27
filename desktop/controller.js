@@ -889,6 +889,24 @@ function renderDirectContacts() {
   const contacts = listTrustedContacts(loadLocalContactBook(profile.id))
   const selectedProfileId = els.dmRecipientInput.value.trim()
 
+  if (!contacts.length) {
+    const empty = document.createElement('div')
+    empty.className = 'contactEmpty'
+    const title = document.createElement('p')
+    title.className = 'contactEmptyTitle'
+    title.textContent = 'No trusted friends yet'
+    const copy = document.createElement('p')
+    copy.className = 'contactEmptyCopy'
+    copy.textContent = 'Add a trusted friend before starting a direct message.'
+    const button = document.createElement('button')
+    button.type = 'button'
+    button.textContent = 'Add trusted friend'
+    button.addEventListener('click', () => setTab('people'))
+    empty.append(title, copy, button)
+    els.dmContactList.replaceChildren(empty)
+    return
+  }
+
   els.dmContactList.replaceChildren(
     ...contacts.map((contact) => {
       const button = document.createElement('button')

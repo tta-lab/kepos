@@ -531,6 +531,30 @@ textarea {
   gap: 8px;
 }
 
+.contactEmpty {
+  background: var(--empty-bg);
+  border: 1px dashed var(--border-strong);
+  border-radius: 8px;
+  display: grid;
+  gap: 8px;
+  max-width: 360px;
+  padding: 12px;
+}
+
+.contactEmptyTitle {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 800;
+  margin: 0;
+}
+
+.contactEmptyCopy {
+  color: var(--ink-muted);
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 0;
+}
+
 .contactButton {
   background: var(--success-soft);
   border-color: var(--border-strong);

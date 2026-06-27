@@ -264,6 +264,22 @@ test('desktop panes label live and durable surfaces', async () => {
   assert.match(styles, /\.activeContactButton/)
 })
 
+test('desktop direct messages links zero-contact state to People', async () => {
+  const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
+
+  assert.match(controller, /if \(!contacts\.length\) \{/)
+  assert.match(controller, /empty\.className = 'contactEmpty'/)
+  assert.match(controller, /title\.textContent = 'No trusted friends yet'/)
+  assert.match(
+    controller,
+    /copy\.textContent = 'Add a trusted friend before starting a direct message\.'/
+  )
+  assert.match(controller, /button\.textContent = 'Add trusted friend'/)
+  assert.match(controller, /button\.addEventListener\('click', \(\) => setTab\('people'\)\)/)
+  assert.match(styles, /\.contactEmpty/)
+})
+
 test('desktop treehole composer has an explicit owner-only disabled state', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
