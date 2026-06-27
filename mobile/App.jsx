@@ -325,7 +325,7 @@ export default function App() {
       setTreeholePolicy(createTreeholePolicyFromContactBook(result.book))
       setTrustAlias('')
       setTrustQrUri('')
-      setNotice(`Trusted ${shortenProfileId(result.profileId)}.`)
+      setNotice('Trusted friend added.')
     } catch (error) {
       console.error('Could not read Profile QR', error)
       setNotice('Could not read this Profile QR.')
@@ -368,7 +368,7 @@ export default function App() {
         revokedAt: result.revokedAt
       })
     )
-    setNotice(`Revoked ${shortenProfileId(contactProfileId)}.`)
+    setNotice('Trust revoked.')
   }
 
   async function startQrScan(target) {
@@ -671,7 +671,7 @@ export default function App() {
         threadId
       })
     )
-    setNotice(`Accepted message request from ${shortenProfileId(request.fromProfileId)}.`)
+    setNotice('Message request accepted.')
   }
 
   async function saveMobileDmThread(thread) {

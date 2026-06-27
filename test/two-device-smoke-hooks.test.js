@@ -183,6 +183,28 @@ test('normal error notices avoid raw exception text', async () => {
   assert.match(desktop, /Something went wrong\./)
 })
 
+test('mobile success notices avoid profile id snippets', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+
+  assert.match(source, /setNotice\('Trusted friend added\.'\)/)
+  assert.match(source, /setNotice\('Trust revoked\.'\)/)
+  assert.match(source, /setNotice\('Message request accepted\.'\)/)
+  assert.equal(
+    source.includes('setNotice(`Trusted ${shortenProfileId(result.profileId)}.`)'),
+    false
+  )
+  assert.equal(
+    source.includes('setNotice(`Revoked ${shortenProfileId(contactProfileId)}.`)'),
+    false
+  )
+  assert.equal(
+    source.includes(
+      'setNotice(`Accepted message request from ${shortenProfileId(request.fromProfileId)}.`)'
+    ),
+    false
+  )
+})
+
 test('Android header shows product home status instead of raw peer count', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 
