@@ -1260,6 +1260,7 @@ function DirectPane({
 
   return (
     <>
+      <PaneLabel eyebrow='durable' title='Direct messages' />
       <FlatList
         contentContainerStyle={styles.messageList}
         data={messages}
@@ -1394,6 +1395,7 @@ function TabButton({ active, label, onPress, testID }) {
 function ChatPane({ draft, messages, onDraftChange, onSend }) {
   return (
     <>
+      <PaneLabel eyebrow='live' title='Live home chat' />
       <FlatList
         contentContainerStyle={styles.messageList}
         data={messages}
@@ -1424,6 +1426,7 @@ function ChatPane({ draft, messages, onDraftChange, onSend }) {
 function TreeholePane({ draft, onComment, onDraftChange, onLike, onPost, posts, status }) {
   return (
     <>
+      <PaneLabel eyebrow='durable' title='Durable treehole' />
       <FlatList
         contentContainerStyle={styles.treeholeList}
         data={posts}
@@ -1466,6 +1469,15 @@ function EmptyTreehole({ status }) {
       <MessageCircle color='#56715f' size={34} />
       <Text style={styles.emptyTitle}>No treeholes yet</Text>
       <Text style={styles.emptyCopy}>{treeholeStatusText(status)}</Text>
+    </View>
+  )
+}
+
+function PaneLabel({ eyebrow, title }) {
+  return (
+    <View style={styles.paneLabel}>
+      <Text style={styles.paneEyebrow}>{eyebrow}</Text>
+      <Text style={styles.paneTitle}>{title}</Text>
     </View>
   )
 }
@@ -1996,6 +2008,24 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     gap: 10,
     padding: 18
+  },
+  paneLabel: {
+    borderBottomColor: '#d9dfcf',
+    borderBottomWidth: 1,
+    gap: 2,
+    paddingHorizontal: 18,
+    paddingVertical: 10
+  },
+  paneEyebrow: {
+    color: '#6f766b',
+    fontSize: 11,
+    fontWeight: '900',
+    textTransform: 'uppercase'
+  },
+  paneTitle: {
+    color: '#162119',
+    fontSize: 17,
+    fontWeight: '800'
   },
   empty: {
     alignItems: 'center',

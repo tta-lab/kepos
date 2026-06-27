@@ -149,6 +149,17 @@ test('Android header shows product home status instead of raw peer count', async
   assert.equal(source.includes('{online} peer'), false)
 })
 
+test('Android room panes label live and durable surfaces', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+
+  for (const text of ['Live home chat', 'Direct messages', 'Durable treehole']) {
+    assert.match(source, new RegExp(text), `${text} is missing`)
+  }
+
+  assert.match(source, /paneEyebrow:/)
+  assert.match(source, /paneTitle:/)
+})
+
 test('Android room has a People tab for QR and trusted contacts', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 
