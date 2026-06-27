@@ -87,6 +87,10 @@ test('desktop people UI uses trusted friends copy', async () => {
 test('desktop people pane surfaces pending message requests', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const actions = await readFile(
+    new URL('../src/desktop-message-request-actions.js', import.meta.url),
+    'utf8'
+  )
 
   assert.match(source, /id='requestList'/)
   assert.match(source, /Message requests/)
@@ -105,8 +109,11 @@ test('desktop people pane surfaces pending message requests', async () => {
     controller,
     /ignoreMessageRequest: \(profileId\) => dispatchCommand\('ignoreMessageRequest'/
   )
-  assert.match(controller, /createDesktopMessageRequestAcceptance/)
-  assert.match(controller, /createDesktopMessageRequestIgnore/)
+  assert.match(controller, /createDesktopMessageRequestActions/)
+  assert.match(controller, /acceptMessageRequest: messageRequestActions\.acceptMessageRequest/)
+  assert.match(controller, /ignoreMessageRequest: messageRequestActions\.ignoreMessageRequest/)
+  assert.match(actions, /createDesktopMessageRequestAcceptance/)
+  assert.match(actions, /createDesktopMessageRequestIgnore/)
 })
 
 test('desktop keeps inline QR codes as advanced share detail', async () => {
@@ -158,8 +165,12 @@ test('desktop QR sharing exposes copy actions without surfacing raw URI copy', a
 test('desktop normal UI copy avoids raw home address language', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const roomActions = await readFile(
+    new URL('../src/desktop-room-actions.js', import.meta.url),
+    'utf8'
+  )
   const state = await readFile(new URL('../src/desktop-state.js', import.meta.url), 'utf8')
-  const desktopCopy = `${source}\n${controller}\n${state}`
+  const desktopCopy = `${source}\n${controller}\n${roomActions}\n${state}`
 
   assert.match(source, /Create my home/)
   assert.match(desktopCopy, /Create or join a home\./)

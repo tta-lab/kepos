@@ -9,11 +9,8 @@ import { createDesktopDirectMessageListViewModel } from '../src/desktop-direct-v
 import { createDesktopHomeChatViewModel } from '../src/desktop-home-chat-view-model.js'
 import { createDesktopPeopleViewModel } from '../src/desktop-people-view-model.js'
 import { createDesktopProfileContext } from '../src/desktop-profile-context.js'
-import {
-  createDesktopMessageRequestAcceptance,
-  createDesktopMessageRequestIgnore
-} from '../src/desktop-message-request-service.js'
 import { createDesktopMessageActions } from '../src/desktop-message-actions.js'
+import { createDesktopMessageRequestActions } from '../src/desktop-message-request-actions.js'
 import { createDesktopRoomActions } from '../src/desktop-room-actions.js'
 import {
   applyDesktopProfileTrustQr,
@@ -57,6 +54,17 @@ const messageActions = createDesktopMessageActions({
     session = nextSession
   }
 })
+const messageRequestActions = createDesktopMessageRequestActions({
+  createId,
+  getDmRuntime: () => dmRuntime,
+  getDmSession: () => dmSession,
+  getHomeRuntime: () => homeRuntime,
+  getProfileContext,
+  onChanged: () => render(),
+  setNotice: (notice) => {
+    state = { ...state, notice }
+  }
+})
 const roomActions = createDesktopRoomActions({
   closeAll: () => backendRuntime.closeAll(),
   configureTreeholeRuntime,
@@ -83,9 +91,9 @@ const roomActions = createDesktopRoomActions({
 })
 const backendHost = createDesktopLocalBackendHost({
   actions: {
-    acceptMessageRequest: acceptIncomingMessageRequest,
+    acceptMessageRequest: messageRequestActions.acceptMessageRequest,
     commentTreehole: messageActions.commentTreehole,
-    ignoreMessageRequest: ignoreIncomingMessageRequest,
+    ignoreMessageRequest: messageRequestActions.ignoreMessageRequest,
     joinHome: roomActions.joinHome,
     joinHomeUri: roomActions.joinHomeUri,
     leaveHome: roomActions.leaveHome,
@@ -509,46 +517,6 @@ async function revokeLocalContact(profileId) {
   }
 
   state = { ...state, notice: 'Trust revoked.' }
-  render()
-}
-
-async function acceptIncomingMessageRequest(message) {
-  if (!homeRuntime.isJoined() || !dmSession) return
-
-  const context = getProfileContext()
-  const result = await createDesktopMessageRequestAcceptance({
-    acceptMessageRequest: (payload) => dmRuntime.acceptMessageRequest(payload),
-    acceptedAt: Date.now(),
-    book: context.contactBook,
-    message,
-    threadId: createId()
-  })
-
-  if (!result) return
-
-  context.saveContactBook(result.book)
-  homeRuntime.broadcastControl(result.invite)
-  state = { ...state, notice: 'Message request accepted.' }
-  render()
-}
-
-function ignoreIncomingMessageRequest({ message = null, profileId = '' }) {
-  const context = getProfileContext()
-  const result = createDesktopMessageRequestIgnore({
-    book: context.contactBook,
-    hasDmSession: Boolean(dmSession),
-    message,
-    profileId
-  })
-  if (!result) return
-
-  context.saveContactBook(result.book)
-
-  if (result.dismissedMessageId) {
-    dmRuntime.dismissMessage({ id: result.dismissedMessageId })
-  }
-
-  state = { ...state, notice: 'Message request ignored.' }
   render()
 }
 
