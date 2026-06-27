@@ -30,6 +30,7 @@ import {
   setDesktopTab,
   setDesktopTreehole
 } from '../src/desktop-state.js'
+import { createDesktopTreeholeViewModel } from '../src/desktop-treehole-view-model.js'
 import { createDesktopBackendBridge } from '../src/desktop-backend-bridge.ts'
 import { createDesktopCommandRegistry } from '../src/desktop-command-registry.ts'
 import { createDesktopRendererBackendClient } from '../src/desktop-renderer-backend-client.js'
@@ -964,23 +965,45 @@ function ignoreIncomingMessageRequest({ message = null, profileId = '' }) {
 }
 
 function renderPosts() {
+  const posts = createDesktopTreeholeViewModel({
+    formatTime,
+    posts: state.treeholePosts,
+    shortenProfileId: shorten
+  })
+
   els.treeholeList.replaceChildren(
-    ...state.treeholePosts.map((post) => {
+    ...posts.map((post) => {
       const item = document.createElement('li')
-      item.className = 'item post'
-      item.innerHTML = `
-        <div class="postHead">
-          <p class="meta">${escapeHtml(displayPostAuthor(post))}</p>
-          <p class="time">${formatTime(post.createdAt)}</p>
-        </div>
-        <p>${escapeHtml(post.text)}</p>
-        <p class="stats">${post.commentCount || 0} comments · ${post.likeCount || 0} likes</p>
-      `
+      item.className = post.className
+      item.append(renderPostContent(post))
       item.append(renderPostComments(post))
       item.append(renderPostActions(post))
       return item
     })
   )
+}
+
+function renderPostContent(post) {
+  const fragment = document.createDocumentFragment()
+  const head = document.createElement('div')
+  const author = document.createElement('p')
+  const time = document.createElement('p')
+  const text = document.createElement('p')
+  const stats = document.createElement('p')
+
+  head.className = 'postHead'
+  author.className = 'meta'
+  author.textContent = post.authorLabel
+  time.className = 'time'
+  time.textContent = post.timeLabel
+  text.textContent = post.text
+  stats.className = 'stats'
+  stats.textContent = post.statsLabel
+
+  head.append(author, time)
+  fragment.append(head, text, stats)
+
+  return fragment
 }
 
 function renderPostComments(post) {
@@ -990,11 +1013,14 @@ function renderPostComments(post) {
   comments.replaceChildren(
     ...(post.comments || []).map((comment) => {
       const item = document.createElement('div')
-      item.className = 'comment'
-      item.innerHTML = `
-        <p class="meta">${escapeHtml(displayPostAuthor(comment))}</p>
-        <p>${escapeHtml(comment.text)}</p>
-      `
+      const author = document.createElement('p')
+      const text = document.createElement('p')
+
+      item.className = comment.className
+      author.className = 'meta'
+      author.textContent = comment.authorLabel
+      text.textContent = comment.text
+      item.append(author, text)
       return item
     })
   )
@@ -1010,7 +1036,9 @@ function renderPostActions(post) {
   likeButton.type = 'button'
   likeButton.className = 'smallButton'
   likeButton.textContent = 'Like'
-  likeButton.addEventListener('click', () => dispatchCommand('likeTreehole', { postId: post.id }))
+  likeButton.addEventListener('click', () =>
+    dispatchCommand('likeTreehole', { postId: post.actions.likePostId })
+  )
 
   const form = document.createElement('form')
   form.className = 'commentForm'
@@ -1029,7 +1057,7 @@ function renderPostActions(post) {
   form.addEventListener('submit', (event) => {
     event.preventDefault()
     if (!input.value.trim()) return
-    dispatchCommand('commentTreehole', { postId: post.id, text: input.value })
+    dispatchCommand('commentTreehole', { postId: post.actions.commentPostId, text: input.value })
     input.value = ''
     submit.disabled = true
   })
@@ -1080,14 +1108,6 @@ function getDesktopErrorNotice(error) {
   return 'Something went wrong.'
 }
 
-function displayPostAuthor(post) {
-  return post.authorDisplayName || post.author || shortenProfileId(post.authorProfileId) || 'anon'
-}
-
-function shortenProfileId(value) {
-  return value ? shorten(value) : ''
-}
-
 function createId() {
   return globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`
 }
@@ -1101,15 +1121,6 @@ function formatTime(value) {
     hour: '2-digit',
     minute: '2-digit'
   })
-}
-
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;')
 }
 
 globalThis.Pear?.updates?.(() => globalThis.Pear.reload())

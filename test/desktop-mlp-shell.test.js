@@ -231,6 +231,7 @@ test('desktop primary panes expose short empty states before content arrives', a
   assert.match(styles, /\.list:empty::after/)
   assert.match(styles, /content:\s*attr\(data-empty-detail\)/)
   assert.match(controller, /createDesktopHomeChatViewModel/)
+  assert.match(controller, /createDesktopTreeholeViewModel/)
 })
 
 test('desktop panes label live and durable surfaces', async () => {
