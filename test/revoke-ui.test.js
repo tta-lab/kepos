@@ -9,6 +9,10 @@ test('desktop exposes contact revoke controls that update trust and DM threads',
     'utf8'
   )
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const session = await readFile(
+    new URL('../src/desktop-backend-session.js', import.meta.url),
+    'utf8'
+  )
   const backendActions = await readFile(
     new URL('../src/desktop-backend-actions.js', import.meta.url),
     'utf8'
@@ -19,7 +23,7 @@ test('desktop exposes contact revoke controls that update trust and DM threads',
   )
 
   assert.match(`${app}\n${people}`, /id='contactList'/)
-  assert.match(controller, /createDesktopBackendActions/)
+  assert.match(session, /createDesktopBackendActions/)
   assert.match(backendActions, /revokeContact: trustActions\?\.revokeContact/)
   assert.match(actions, /createDesktopContactRevoke/)
   assert.match(actions, /async function revokeContact/)

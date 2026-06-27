@@ -229,7 +229,12 @@ test('desktop people pane surfaces pending message requests', async () => {
     bindings,
     /ignoreMessageRequest: \(profileId\) => dispatchCommand\('ignoreMessageRequest'/
   )
-  assert.match(controller, /createDesktopMessageRequestActions/)
+  const session = await readFile(
+    new URL('../src/desktop-backend-session.js', import.meta.url),
+    'utf8'
+  )
+
+  assert.match(session, /createDesktopMessageRequestActions/)
   assert.match(
     backendActions,
     /acceptMessageRequest: messageRequestActions\?\.acceptMessageRequest/

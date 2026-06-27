@@ -1,36 +1,20 @@
 /* global navigator */
 
-import { createDesktopBackendActions } from '../src/desktop-backend-actions.js'
+import { createDesktopBackendSession } from '../src/desktop-backend-session.js'
 import { createDesktopBackendSubscriptions } from '../src/desktop-backend-subscriptions.js'
 import { createDesktopCommandDispatcher } from '../src/desktop-command-dispatcher.js'
-import { createDesktopControlActions } from '../src/desktop-control-actions.js'
 import { createDesktopProfileContext } from '../src/desktop-profile-context.js'
-import { createDesktopMessageActions } from '../src/desktop-message-actions.js'
-import { createDesktopMessageRequestActions } from '../src/desktop-message-request-actions.js'
 import { createDesktopQrActions } from '../src/desktop-qr-actions.js'
 import { createDesktopRenderPresenter } from '../src/desktop-render-presenter.js'
-import { createDesktopRoomActions } from '../src/desktop-room-actions.js'
 import { setDesktopTab } from '../src/desktop-state.js'
-import { createDesktopLocalBackendHost } from '../src/desktop-local-backend-host.js'
 import { createDesktopRendererBackendClient } from '../src/desktop-renderer-backend-client.js'
 import { getDesktopStorageBasePath } from '../src/desktop-storage-base.js'
-import { createDesktopTrustActions } from '../src/desktop-trust-actions.js'
 import { createDesktopControllerState } from '../src/desktop-controller-state.js'
 import { createDesktopUiActionBindings } from '../src/desktop-ui-action-bindings.js'
 
 const BLOCKING_COMMANDS = new Set(['joinHome', 'joinHomeUri', 'leaveHome', 'trustProfileUri'])
 
 const controllerState = createDesktopControllerState()
-const messageActions = createDesktopMessageActions({
-  createId,
-  getDmRuntime: () => dmRuntime,
-  getDmSession: () => controllerState.getDmSession(),
-  getHomeRuntime: () => homeRuntime,
-  getSession: () => controllerState.getSession(),
-  getTreeholeCanPost: () => controllerState.getState().treeholeCanPost,
-  getTreeholeRuntime: () => treeholeRuntime,
-  onChanged: () => render()
-})
 const renderPresenter = createDesktopRenderPresenter({
   formatTime,
   shortenProfileId: shorten,
@@ -46,94 +30,29 @@ const qrActions = createDesktopQrActions({
   },
   setShareQrOutputs: (outputs) => globalThis.keposDesktopUi?.setShareQrOutputs(outputs)
 })
-const controlActions = createDesktopControlActions({
-  configureTreeholeRuntime,
-  getDmRuntime: () => dmRuntime,
-  getHomeJoinDetails: () => controllerState.getHomeJoinDetails(),
-  getHomeRuntime: () => homeRuntime,
-  getProfileContext,
-  getTreeholeRuntime: () => treeholeRuntime,
-  onChanged: () => render(),
-  openTreehole,
-  setHomeJoinDetails: (nextDetails) => {
-    controllerState.setHomeJoinDetails(nextDetails)
-  },
-  setNotice: (notice) => {
-    controllerState.updateState((state) => ({ ...state, notice }))
-  },
-  shortenProfileId: shorten
-})
-const messageRequestActions = createDesktopMessageRequestActions({
+const backendSession = createDesktopBackendSession({
+  controllerState,
   createId,
-  getDmRuntime: () => dmRuntime,
-  getDmSession: () => controllerState.getDmSession(),
-  getHomeRuntime: () => homeRuntime,
   getProfileContext,
-  onChanged: () => render(),
-  setNotice: (notice) => {
-    controllerState.updateState((state) => ({ ...state, notice }))
-  }
-})
-const roomActions = createDesktopRoomActions({
-  closeAll: () => backendRuntime.closeAll(),
-  configureTreeholeRuntime,
   getCurrentDisplayName,
-  getDmRuntime: () => dmRuntime,
-  getHomeRuntime: () => homeRuntime,
-  getProfileContext,
-  getTreeholeRuntime: () => treeholeRuntime,
-  onChanged: () => render(),
-  openTreehole,
-  setContextFormDraft: (draft) => globalThis.keposDesktopUi?.setContextFormDraft(draft),
-  setDmSession: (nextSession) => {
-    controllerState.setDmSession(nextSession)
-  },
-  setHomeJoinDetails: (nextDetails) => {
-    controllerState.setHomeJoinDetails(nextDetails)
-  },
-  setSession: (nextSession) => {
-    controllerState.setSession(nextSession)
-  },
-  updateState: (updater) => {
-    controllerState.updateState(updater)
-  }
-})
-const trustActions = createDesktopTrustActions({
-  configureTreeholeRuntime,
-  getDmRuntime: () => dmRuntime,
-  getHomeJoinDetails: () => controllerState.getHomeJoinDetails(),
-  getProfileContext,
-  getSelectedRecipientProfileId: () => controllerState.getDirectComposerRecipientProfileId(),
+  onError: showError,
   onChanged: () => render(),
   setContextFormDraft: (draft) => globalThis.keposDesktopUi?.setContextFormDraft(draft),
   setDirectComposerRecipient: (profileId) => {
     controllerState.setDirectComposerRecipient(profileId)
     globalThis.keposDesktopUi?.setDirectComposerRecipient(profileId)
   },
-  setHomeJoinDetails: (nextDetails) => {
-    controllerState.setHomeJoinDetails(nextDetails)
-  },
   setNotice: (notice) => {
     controllerState.updateState((state) => ({ ...state, notice }))
-  }
-})
-const backendActions = createDesktopBackendActions({
-  messageActions,
-  messageRequestActions,
-  roomActions,
-  trustActions
-})
-const backendHost = createDesktopLocalBackendHost({
-  actions: backendActions,
-  runtimeOptions: {
-    onHomeControl: (message, peer) => controlActions.handleControl(message, peer).catch(showError),
-    onVerifiedHello: (message, peer) =>
-      controlActions.sendTreeholeBootstrap(peer, message.profileId),
-    storageBasePath: getDesktopStorageBasePath()
+  },
+  shortenProfileId: shorten,
+  storageBasePath: getDesktopStorageBasePath(),
+  updateState: (updater) => {
+    controllerState.updateState(updater)
   }
 })
 const backendClient = createDesktopRendererBackendClient({
-  localBackend: backendHost.bridge
+  localBackend: backendSession.backendHost.bridge
 })
 const commandDispatcher = createDesktopCommandDispatcher({
   backendClient,
@@ -141,10 +60,6 @@ const commandDispatcher = createDesktopCommandDispatcher({
   onError: showError,
   onPendingChanged: () => render()
 })
-const backendRuntime = backendHost.runtime
-const dmRuntime = backendHost.dmRuntime
-const homeRuntime = backendHost.homeRuntime
-const treeholeRuntime = backendHost.treeholeRuntime
 
 createDesktopUiActionBindings({
   dispatchCommand,
@@ -191,22 +106,6 @@ function getCurrentDisplayName() {
 
 function getProfileContext(displayName = getCurrentDisplayName()) {
   return createDesktopProfileContext({ displayName })
-}
-
-function configureTreeholeRuntime() {
-  backendRuntime.configure({
-    homeJoinDetails: controllerState.getHomeJoinDetails(),
-    session: controllerState.getSession()
-  })
-}
-
-async function openTreehole(bootstrapKey = null) {
-  configureTreeholeRuntime()
-  await treeholeRuntime.open({
-    bootstrapKey,
-    initialPosts: controllerState.getState().treeholePosts,
-    initialStatus: controllerState.getState().treeholeStatus
-  })
 }
 
 function setTab(tab) {
@@ -281,4 +180,4 @@ function formatTime(value) {
 }
 
 globalThis.Pear?.updates?.(() => globalThis.Pear.reload())
-globalThis.Pear?.teardown?.(() => roomActions.leaveHome())
+globalThis.Pear?.teardown?.(() => backendSession.roomActions.leaveHome())
