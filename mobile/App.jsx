@@ -1873,11 +1873,12 @@ function TreeholePane({ canPost, draft, onComment, onDraftChange, onLike, onPost
       <View style={styles.treeholeComposer}>
         <View style={styles.treeholeComposerFields}>
           <TextInput
+            editable={canPost}
             multiline
             onChangeText={onDraftChange}
             placeholder='Post to the treehole'
             placeholderTextColor={theme.placeholder}
-            style={styles.treeholeInput}
+            style={[styles.treeholeInput, !canPost && styles.disabledTreeholeInput]}
             testID='treehole-post-input'
             value={draft}
           />
@@ -3038,6 +3039,11 @@ function createMobileStyles(theme) {
       minHeight: 64,
       paddingHorizontal: 13,
       paddingVertical: 10
+    },
+    disabledTreeholeInput: {
+      backgroundColor: theme.field,
+      borderColor: theme.disabledBorder,
+      color: theme.inkMuted
     }
   })
 }

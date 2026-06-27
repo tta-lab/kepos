@@ -426,6 +426,8 @@ test('Android treehole composer explains owner-only posting', async () => {
   assert.match(source, /const canSubmitPost = canPost && draft\.trim\(\)/)
   assert.match(source, /const showOwnerOnlyHint = status === 'ready' && !canPost/)
   assert.match(source, /Only the owner can post here\./)
+  assert.match(source, /editable=\{canPost\}/)
+  assert.match(source, /!canPost && styles\.disabledTreeholeInput/)
   assert.match(source, /disabled=\{!canSubmitPost\}/)
   assert.match(source, /!canSubmitPost && styles\.disabledSendButton/)
 })
