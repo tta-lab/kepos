@@ -43,7 +43,7 @@ function DesktopApp() {
             </button>
             <button id='dmTab' className='railButton' type='button' title='Direct messages'>
               <Send size={19} />
-              <span className='railLabel'>DM</span>
+              <span className='railLabel'>Direct</span>
             </button>
             <button id='treeholeTab' className='railButton' type='button' title='Treehole'>
               <Sprout size={19} />

@@ -114,6 +114,9 @@ test('desktop panes label live and durable surfaces', async () => {
     assert.match(source, new RegExp(text), `${text} is missing`)
   }
 
+  assert.match(source, /id='dmTab'[^>]+title='Direct messages'/)
+  assert.match(source, /<span className='railLabel'>Direct<\/span>/)
+  assert.equal(source.includes("<span className='railLabel'>DM</span>"), false)
   assert.match(source, /Send message/)
   assert.equal(source.includes('Send DM'), false)
   assert.match(styles, /\.paneLabel/)
