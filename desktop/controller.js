@@ -117,13 +117,13 @@ const commands = createDesktopCommandRegistry({
       const { postId } = readCommandPayload(payload)
       return likeTreeholePost(postId)
     },
-    postTreehole: () => postTreehole(),
+    postTreehole: (payload) => postTreehole(readCommandPayload(payload)),
     revokeContact: (payload) => {
       const { profileId } = readCommandPayload(payload)
       if (profileId) return revokeLocalContact(profileId)
     },
-    sendDmMessage: () => sendMessageRequest(),
-    sendHomeMessage: () => sendChat(),
+    sendDmMessage: (payload) => sendMessageRequest(readCommandPayload(payload)),
+    sendHomeMessage: (payload) => sendChat(readCommandPayload(payload)),
     sendMessageRequest: () => sendMessageRequest(),
     trustProfileUri: () => trustProfileQr()
   }
@@ -225,17 +225,24 @@ els.dmRecipientInput.addEventListener('input', () => {
 
 els.chatForm.addEventListener('submit', (event) => {
   event.preventDefault()
-  dispatchCommand('sendHomeMessage')
+  dispatchCommand('sendHomeMessage', {
+    text: els.chatInput.value.trim()
+  })
 })
 
 els.dmForm.addEventListener('submit', (event) => {
   event.preventDefault()
-  dispatchCommand('sendDmMessage')
+  dispatchCommand('sendDmMessage', {
+    text: els.dmInput.value.trim(),
+    toProfileId: els.dmRecipientInput.value.trim()
+  })
 })
 
 els.treeholeForm.addEventListener('submit', (event) => {
   event.preventDefault()
-  dispatchCommand('postTreehole')
+  dispatchCommand('postTreehole', {
+    text: els.treeholeInput.value.trim()
+  })
 })
 
 els.trustForm.addEventListener('submit', (event) => {
@@ -457,8 +464,7 @@ function configureTreeholeRuntime() {
   backendRuntime.configure({ homeJoinDetails, session })
 }
 
-function sendChat() {
-  const text = els.chatInput.value.trim()
+function sendChat({ text } = {}) {
   if (!homeRuntime.isJoined() || !session || !text) return
 
   const message = {
@@ -472,9 +478,7 @@ function sendChat() {
   render()
 }
 
-function sendMessageRequest() {
-  const toProfileId = els.dmRecipientInput.value.trim()
-  const text = els.dmInput.value.trim()
+function sendMessageRequest({ text, toProfileId } = {}) {
   if (!homeRuntime.isJoined() || !dmSession || !toProfileId || !text) return
 
   const result = dmRuntime.sendMessageOrRequest({
@@ -492,8 +496,7 @@ function sendMessageRequest() {
   render()
 }
 
-async function postTreehole() {
-  const text = els.treeholeInput.value.trim()
+async function postTreehole({ text } = {}) {
   if (!text || !state.treeholeCanPost) return
 
   await treeholeRuntime.post({

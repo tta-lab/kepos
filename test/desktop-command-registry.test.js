@@ -59,3 +59,51 @@ test('desktop controller routes UI actions through the command registry', async 
     assert.match(source, new RegExp(`dispatchCommand\\('${command}'`), `${command} is not routed`)
   }
 })
+
+test('desktop home message command carries composer text as payload', async () => {
+  const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+
+  assert.match(
+    source,
+    /dispatchCommand\('sendHomeMessage', \{\s*text: els\.chatInput\.value\.trim\(\)\s*\}\)/
+  )
+  assert.match(source, /sendHomeMessage: \(payload\) => sendChat\(readCommandPayload\(payload\)\)/)
+  assert.match(source, /function sendChat\(\{ text \} = \{\}\)/)
+  assert.doesNotMatch(
+    source,
+    /function sendChat\(\) \{\s*const text = els\.chatInput\.value\.trim\(\)/
+  )
+})
+
+test('desktop direct message command carries composer fields as payload', async () => {
+  const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+
+  assert.match(
+    source,
+    /dispatchCommand\('sendDmMessage', \{\s*text: els\.dmInput\.value\.trim\(\),\s*toProfileId: els\.dmRecipientInput\.value\.trim\(\)\s*\}\)/
+  )
+  assert.match(
+    source,
+    /sendDmMessage: \(payload\) => sendMessageRequest\(readCommandPayload\(payload\)\)/
+  )
+  assert.match(source, /function sendMessageRequest\(\{ text, toProfileId \} = \{\}\)/)
+  assert.doesNotMatch(
+    source,
+    /function sendMessageRequest\(\) \{\s*const toProfileId = els\.dmRecipientInput\.value\.trim\(\)\s*const text = els\.dmInput\.value\.trim\(\)/
+  )
+})
+
+test('desktop treehole post command carries composer text as payload', async () => {
+  const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+
+  assert.match(
+    source,
+    /dispatchCommand\('postTreehole', \{\s*text: els\.treeholeInput\.value\.trim\(\)\s*\}\)/
+  )
+  assert.match(source, /postTreehole: \(payload\) => postTreehole\(readCommandPayload\(payload\)\)/)
+  assert.match(source, /async function postTreehole\(\{ text \} = \{\}\)/)
+  assert.doesNotMatch(
+    source,
+    /async function postTreehole\(\) \{\s*const text = els\.treeholeInput\.value\.trim\(\)/
+  )
+})
