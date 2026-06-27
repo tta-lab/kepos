@@ -16,7 +16,7 @@ function createBackend(label, calls) {
   }
 }
 
-test('desktop renderer backend client uses local bridge by default', async () => {
+test('desktop renderer backend client falls back to local bridge by default', async () => {
   const calls = []
   const client = createDesktopRendererBackendClient({
     localBackend: createBackend('local', calls),
@@ -31,6 +31,26 @@ test('desktop renderer backend client uses local bridge by default', async () =>
     ['local', 'dispatch', 'joinHome', { mode: 'host' }],
     ['local', 'subscribe', 'statusChanged'],
     ['local', 'unsubscribe', 'statusChanged']
+  ])
+})
+
+test('desktop renderer backend client uses connected preload bridge in auto mode', async () => {
+  const calls = []
+  const preload = createBackend('preload', calls)
+  preload.isConnected = () => true
+  const client = createDesktopRendererBackendClient({
+    localBackend: createBackend('local', calls),
+    preloadBackend: preload
+  })
+
+  assert.equal(await client.dispatch('joinHome', { mode: 'host' }), 'preload:joinHome')
+  const unsubscribe = client.subscribe('statusChanged', () => {})
+  unsubscribe()
+
+  assert.deepEqual(calls, [
+    ['preload', 'dispatch', 'joinHome', { mode: 'host' }],
+    ['preload', 'subscribe', 'statusChanged'],
+    ['preload', 'unsubscribe', 'statusChanged']
   ])
 })
 

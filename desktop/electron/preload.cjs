@@ -1,7 +1,12 @@
 const { contextBridge, ipcRenderer } = require('electron')
 
 let nextListenerId = 1
+let backendConnected = false
 const listeners = new Map()
+
+ipcRenderer.on('kepos:backend:connected', (_event, connected) => {
+  backendConnected = connected === true
+})
 
 ipcRenderer.on('kepos:backend:event', (_event, message) => {
   const listener = listeners.get(message?.listenerId)
@@ -13,6 +18,9 @@ ipcRenderer.on('kepos:backend:event', (_event, message) => {
 contextBridge.exposeInMainWorld('keposBackend', {
   dispatch(command, payload) {
     return ipcRenderer.invoke('kepos:backend:dispatch', command, payload)
+  },
+  isConnected() {
+    return backendConnected
   },
   subscribe(event, handler) {
     if (typeof handler !== 'function') {

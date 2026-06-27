@@ -26,6 +26,7 @@ const DESKTOP_EVENTS = [
 ]
 
 const DISPATCH_CHANNEL = 'kepos:backend:dispatch'
+const CONNECTED_CHANNEL = 'kepos:backend:connected'
 const EVENT_CHANNEL = 'kepos:backend:event'
 const SUBSCRIBE_CHANNEL = 'kepos:backend:subscribe'
 const UNSUBSCRIBE_CHANNEL = 'kepos:backend:unsubscribe'
@@ -37,6 +38,7 @@ function createDesktopElectronBackendBridge({ dispatch, ipcMain, webContents }) 
   const subscriptions = new Map()
   let currentWebContents = webContents
   let currentDispatch = dispatch
+  let backendConnected = false
 
   ipcMain.handle(DISPATCH_CHANNEL, (_event, command, payload) => {
     assertCommand(command)
@@ -62,6 +64,8 @@ function createDesktopElectronBackendBridge({ dispatch, ipcMain, webContents }) 
       }
 
       currentDispatch = backend.dispatch
+      backendConnected = true
+      currentWebContents.send(CONNECTED_CHANNEL, true)
     },
     emit(event, payload) {
       assertEvent(event)
@@ -79,6 +83,7 @@ function createDesktopElectronBackendBridge({ dispatch, ipcMain, webContents }) 
     events: DESKTOP_EVENTS,
     setWebContents(nextWebContents) {
       currentWebContents = nextWebContents
+      if (backendConnected) currentWebContents.send(CONNECTED_CHANNEL, true)
     }
   }
 }

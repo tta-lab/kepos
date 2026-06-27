@@ -1,6 +1,6 @@
 export function createDesktopRendererBackendClient({
   localBackend,
-  mode = 'local',
+  mode = 'auto',
   preloadBackend = globalThis.keposBackend
 }) {
   return {
@@ -17,6 +17,10 @@ export function createDesktopRendererBackendClient({
 
 function selectBackend({ localBackend, mode, preloadBackend }) {
   if (mode === 'preload') return requirePreloadBackend(preloadBackend)
+  if (mode === 'auto' && isConnectedPreloadBackend(preloadBackend)) {
+    return preloadBackend
+  }
+
   return localBackend
 }
 
@@ -30,4 +34,17 @@ function requirePreloadBackend(preloadBackend) {
   }
 
   return preloadBackend
+}
+
+function isConnectedPreloadBackend(preloadBackend) {
+  if (!preloadBackend) return false
+  if (
+    typeof preloadBackend.dispatch !== 'function' ||
+    typeof preloadBackend.subscribe !== 'function'
+  ) {
+    return false
+  }
+
+  if (typeof preloadBackend.isConnected === 'function') return preloadBackend.isConnected()
+  return preloadBackend.isConnected === true
 }

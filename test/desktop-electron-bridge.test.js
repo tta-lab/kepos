@@ -17,6 +17,9 @@ test('desktop preload exposes a narrow backend bridge api', async () => {
   const source = await readFile(new URL('../desktop/electron/preload.cjs', import.meta.url), 'utf8')
 
   assert.match(source, /contextBridge\.exposeInMainWorld\('keposBackend'/)
+  assert.match(source, /let backendConnected = false/)
+  assert.match(source, /ipcRenderer\.on\('kepos:backend:connected'/)
+  assert.match(source, /isConnected\(\)/)
   assert.match(source, /ipcRenderer\.invoke\('kepos:backend:dispatch'/)
   assert.match(source, /ipcRenderer\.send\('kepos:backend:unsubscribe'/)
   assert.doesNotMatch(source, /require\('\.\.\/src\//)
@@ -142,4 +145,47 @@ test('desktop registered backend ipc can connect a real backend dispatch', async
   })
 
   assert.equal(await dispatch({}, 'joinHome', { mode: 'host' }), 'joinHome:host')
+})
+
+test('desktop electron backend ipc notifies the renderer when backend connects', () => {
+  const { registerDesktopBackendIpc } = require('../desktop/electron/backend-ipc.cjs')
+  const sent = []
+  const ipcMain = {
+    handle() {},
+    on() {}
+  }
+  const bridge = registerDesktopBackendIpc({
+    ipcMain,
+    webContents: { send: (channel, payload) => sent.push([channel, payload]) }
+  })
+
+  bridge.connectBackend({
+    dispatch: () => undefined
+  })
+
+  assert.deepEqual(sent, [['kepos:backend:connected', true]])
+})
+
+test('desktop electron backend ipc reports connected state to a recreated window', () => {
+  const { registerDesktopBackendIpc } = require('../desktop/electron/backend-ipc.cjs')
+  const firstSent = []
+  const secondSent = []
+  const ipcMain = {
+    handle() {},
+    on() {}
+  }
+  const bridge = registerDesktopBackendIpc({
+    ipcMain,
+    webContents: { send: (channel, payload) => firstSent.push([channel, payload]) }
+  })
+
+  bridge.connectBackend({
+    dispatch: () => undefined
+  })
+  bridge.setWebContents({
+    send: (channel, payload) => secondSent.push([channel, payload])
+  })
+
+  assert.deepEqual(firstSent, [['kepos:backend:connected', true]])
+  assert.deepEqual(secondSent, [['kepos:backend:connected', true]])
 })
