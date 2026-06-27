@@ -151,6 +151,10 @@ export default function App() {
     () => (contactBook ? listTrustedContacts(contactBook) : []),
     [contactBook]
   )
+  const pendingMessageRequests = useMemo(
+    () => (contactBook ? Array.from(contactBook.pendingRequestsByProfileId.values()) : []),
+    [contactBook]
+  )
   const homeStatusLabel = getMobileHomeStatus({ online: peerCount, session })
 
   useEffect(() => {
@@ -740,6 +744,8 @@ export default function App() {
                 onTreeholeComment={sendTreeholeComment}
                 onTreeholeLike={sendTreeholeLike}
                 onTreeholePost={sendTreeholePost}
+                pendingRequests={pendingMessageRequests}
+                profileId={profileId}
                 profileQrUri={profileQrUri}
                 session={session}
                 treeholeDraft={treeholeDraft}
@@ -961,6 +967,8 @@ function ChatRoom({
   onTreeholeDraftChange,
   onTreeholeLike,
   onTreeholePost,
+  pendingRequests,
+  profileId,
   profileQrUri,
   session,
   treeholeDraft,
@@ -1063,6 +1071,7 @@ function ChatRoom({
         <PeoplePane
           homeQrUri={homeQrUri}
           myHomeQrUri={myHomeQrUri}
+          onAcceptRequest={onAcceptRequest}
           onHomeQrChange={onHomeQrChange}
           onJoinHomeQr={onJoinHomeQr}
           onRevokeContact={onRevokeContact}
@@ -1071,6 +1080,8 @@ function ChatRoom({
           onTrustAliasChange={onTrustAliasChange}
           onTrustProfile={onTrustProfile}
           onTrustQrChange={onTrustQrChange}
+          pendingRequests={pendingRequests}
+          profileId={profileId}
           profileQrUri={profileQrUri}
           trustAlias={trustAlias}
           trustedContacts={dmContactOptions}
@@ -1118,6 +1129,7 @@ function QuickStartPanel({ nick, onCreateRoom, onNickChange, onScanHomeQr, onSca
 function PeoplePane({
   homeQrUri,
   myHomeQrUri,
+  onAcceptRequest,
   onHomeQrChange,
   onJoinHomeQr,
   onRevokeContact,
@@ -1126,6 +1138,8 @@ function PeoplePane({
   onTrustAliasChange,
   onTrustProfile,
   onTrustQrChange,
+  pendingRequests,
+  profileId,
   profileQrUri,
   trustAlias,
   trustedContacts,
@@ -1133,6 +1147,11 @@ function PeoplePane({
 }) {
   return (
     <ScrollView contentContainerStyle={styles.peoplePane} keyboardShouldPersistTaps='handled'>
+      <MessageRequestManager
+        onAcceptRequest={onAcceptRequest}
+        pendingRequests={pendingRequests}
+        profileId={profileId}
+      />
       <PeopleActions
         homeQrUri={homeQrUri}
         myHomeQrUri={myHomeQrUri}
@@ -1150,6 +1169,52 @@ function PeoplePane({
         trustQrUri={trustQrUri}
       />
     </ScrollView>
+  )
+}
+
+function MessageRequestManager({ onAcceptRequest, pendingRequests, profileId }) {
+  if (!pendingRequests?.length) {
+    return null
+  }
+
+  return (
+    <View style={styles.panel}>
+      <Text style={styles.panelTitle}>Message requests</Text>
+      {pendingRequests.map((request) => {
+        const canAccept = Boolean(
+          profileId && request.requestId && request.senderEncryptionPublicKey
+        )
+
+        return (
+          <View key={request.profileId} style={styles.requestCard}>
+            <View style={styles.requestText}>
+              <Text style={styles.requestTitle}>Someone wants to start a DM</Text>
+              <Text style={styles.contactProfile}>
+                {request.alias || shortenProfileId(request.profileId)}
+              </Text>
+            </View>
+            <Pressable
+              disabled={!canAccept}
+              onPress={() =>
+                onAcceptRequest({
+                  createdAt: request.requestedAt,
+                  fromProfileId: request.profileId,
+                  requestId: request.requestId,
+                  senderEncryptionPublicKey: request.senderEncryptionPublicKey,
+                  text: '',
+                  toProfileId: profileId,
+                  type: 'kepos.message.request.v1'
+                })
+              }
+              style={[styles.requestButton, !canAccept && styles.disabledButton]}
+              testID='people-message-request-accept-button'
+            >
+              <Text style={styles.requestButtonText}>Accept</Text>
+            </Pressable>
+          </View>
+        )
+      })}
+    </View>
   )
 }
 
@@ -2289,6 +2354,23 @@ const styles = StyleSheet.create({
     color: '#6f766b',
     fontSize: 12,
     marginTop: 2
+  },
+  requestCard: {
+    alignItems: 'center',
+    borderBottomColor: '#d9dfcf',
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    gap: 10,
+    justifyContent: 'space-between',
+    paddingVertical: 10
+  },
+  requestText: {
+    flex: 1
+  },
+  requestTitle: {
+    color: '#162119',
+    fontSize: 15,
+    fontWeight: '800'
   },
   revokeButton: {
     alignItems: 'center',

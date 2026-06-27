@@ -324,6 +324,20 @@ test('Android people UI uses trusted friends copy', async () => {
   assert.equal(source.includes('<Text style={styles.panelTitle}>Contacts</Text>'), false)
 })
 
+test('Android people pane surfaces pending message requests', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+
+  assert.match(source, /pendingRequestsByProfileId\.values\(\)/)
+  assert.match(source, /pendingRequests={pendingMessageRequests}/)
+  assert.match(source, /function MessageRequestManager\(/)
+  assert.match(source, /Message requests/)
+  assert.match(source, /Someone wants to start a DM/)
+  assert.match(source, /testID='people-message-request-accept-button'/)
+  assert.match(source, /fromProfileId: request\.profileId/)
+  assert.match(source, /toProfileId: profileId/)
+  assert.match(source, /senderEncryptionPublicKey: request\.senderEncryptionPublicKey/)
+})
+
 test('Android lobby and room reuse the same people action UI', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 
