@@ -10,28 +10,24 @@ import { createDesktopMessageRequestActions } from '../src/desktop-message-reque
 import { createDesktopQrActions } from '../src/desktop-qr-actions.js'
 import { createDesktopRenderPresenter } from '../src/desktop-render-presenter.js'
 import { createDesktopRoomActions } from '../src/desktop-room-actions.js'
-import { createDesktopState, setDesktopTab } from '../src/desktop-state.js'
+import { setDesktopTab } from '../src/desktop-state.js'
 import { createDesktopLocalBackendHost } from '../src/desktop-local-backend-host.js'
 import { createDesktopRendererBackendClient } from '../src/desktop-renderer-backend-client.js'
 import { getDesktopStorageBasePath } from '../src/desktop-storage-base.js'
 import { createDesktopTrustActions } from '../src/desktop-trust-actions.js'
+import { createDesktopControllerState } from '../src/desktop-controller-state.js'
 import { createDesktopUiActionBindings } from '../src/desktop-ui-action-bindings.js'
 
 const BLOCKING_COMMANDS = new Set(['joinHome', 'joinHomeUri', 'leaveHome', 'trustProfileUri'])
 
-let state = createDesktopState()
-let session = null
-let dmSession = null
-let homeJoinDetails = null
-let directComposerRecipientProfileId = ''
-let currentDisplayName = 'Desktop'
+const controllerState = createDesktopControllerState()
 const messageActions = createDesktopMessageActions({
   createId,
   getDmRuntime: () => dmRuntime,
-  getDmSession: () => dmSession,
+  getDmSession: () => controllerState.getDmSession(),
   getHomeRuntime: () => homeRuntime,
-  getSession: () => session,
-  getTreeholeCanPost: () => state.treeholeCanPost,
+  getSession: () => controllerState.getSession(),
+  getTreeholeCanPost: () => controllerState.getState().treeholeCanPost,
   getTreeholeRuntime: () => treeholeRuntime,
   onChanged: () => render()
 })
@@ -46,36 +42,36 @@ const qrActions = createDesktopQrActions({
   onChanged: () => render(),
   setLargeQr: (qr) => globalThis.keposDesktopUi?.setLargeQr(qr),
   setNotice: (notice) => {
-    state = { ...state, notice }
+    controllerState.updateState((state) => ({ ...state, notice }))
   },
   setShareQrOutputs: (outputs) => globalThis.keposDesktopUi?.setShareQrOutputs(outputs)
 })
 const controlActions = createDesktopControlActions({
   configureTreeholeRuntime,
   getDmRuntime: () => dmRuntime,
-  getHomeJoinDetails: () => homeJoinDetails,
+  getHomeJoinDetails: () => controllerState.getHomeJoinDetails(),
   getHomeRuntime: () => homeRuntime,
   getProfileContext,
   getTreeholeRuntime: () => treeholeRuntime,
   onChanged: () => render(),
   openTreehole,
   setHomeJoinDetails: (nextDetails) => {
-    homeJoinDetails = nextDetails
+    controllerState.setHomeJoinDetails(nextDetails)
   },
   setNotice: (notice) => {
-    state = { ...state, notice }
+    controllerState.updateState((state) => ({ ...state, notice }))
   },
   shortenProfileId: shorten
 })
 const messageRequestActions = createDesktopMessageRequestActions({
   createId,
   getDmRuntime: () => dmRuntime,
-  getDmSession: () => dmSession,
+  getDmSession: () => controllerState.getDmSession(),
   getHomeRuntime: () => homeRuntime,
   getProfileContext,
   onChanged: () => render(),
   setNotice: (notice) => {
-    state = { ...state, notice }
+    controllerState.updateState((state) => ({ ...state, notice }))
   }
 })
 const roomActions = createDesktopRoomActions({
@@ -90,35 +86,35 @@ const roomActions = createDesktopRoomActions({
   openTreehole,
   setContextFormDraft: (draft) => globalThis.keposDesktopUi?.setContextFormDraft(draft),
   setDmSession: (nextSession) => {
-    dmSession = nextSession
+    controllerState.setDmSession(nextSession)
   },
   setHomeJoinDetails: (nextDetails) => {
-    homeJoinDetails = nextDetails
+    controllerState.setHomeJoinDetails(nextDetails)
   },
   setSession: (nextSession) => {
-    session = nextSession
+    controllerState.setSession(nextSession)
   },
   updateState: (updater) => {
-    state = updater(state)
+    controllerState.updateState(updater)
   }
 })
 const trustActions = createDesktopTrustActions({
   configureTreeholeRuntime,
   getDmRuntime: () => dmRuntime,
-  getHomeJoinDetails: () => homeJoinDetails,
+  getHomeJoinDetails: () => controllerState.getHomeJoinDetails(),
   getProfileContext,
-  getSelectedRecipientProfileId: () => directComposerRecipientProfileId,
+  getSelectedRecipientProfileId: () => controllerState.getDirectComposerRecipientProfileId(),
   onChanged: () => render(),
   setContextFormDraft: (draft) => globalThis.keposDesktopUi?.setContextFormDraft(draft),
   setDirectComposerRecipient: (profileId) => {
-    directComposerRecipientProfileId = profileId
+    controllerState.setDirectComposerRecipient(profileId)
     globalThis.keposDesktopUi?.setDirectComposerRecipient(profileId)
   },
   setHomeJoinDetails: (nextDetails) => {
-    homeJoinDetails = nextDetails
+    controllerState.setHomeJoinDetails(nextDetails)
   },
   setNotice: (notice) => {
-    state = { ...state, notice }
+    controllerState.updateState((state) => ({ ...state, notice }))
   }
 })
 const backendActions = createDesktopBackendActions({
@@ -163,17 +159,17 @@ createDesktopUiActionBindings({
 
 createDesktopBackendSubscriptions({
   backendClient,
-  getState: () => state,
+  getState: () => controllerState.getState(),
   onError: showError,
   onRender: () => render(),
   setDmSession: (nextSession) => {
-    dmSession = nextSession
+    controllerState.setDmSession(nextSession)
   },
   setHomeSession: (nextSession) => {
-    session = nextSession
+    controllerState.setSession(nextSession)
   },
   setState: (nextState) => {
-    state = nextState
+    controllerState.setState(nextState)
   }
 })
 
@@ -185,12 +181,12 @@ async function dispatchCommand(command, payload) {
 }
 
 function updateDisplayName(displayName = 'Desktop') {
-  currentDisplayName = displayName.trim() || 'Desktop'
+  controllerState.setCurrentDisplayName(displayName)
   qrActions.updateQrOutputs().catch(showError)
 }
 
 function getCurrentDisplayName() {
-  return currentDisplayName
+  return controllerState.getCurrentDisplayName()
 }
 
 function getProfileContext(displayName = getCurrentDisplayName()) {
@@ -198,20 +194,23 @@ function getProfileContext(displayName = getCurrentDisplayName()) {
 }
 
 function configureTreeholeRuntime() {
-  backendRuntime.configure({ homeJoinDetails, session })
+  backendRuntime.configure({
+    homeJoinDetails: controllerState.getHomeJoinDetails(),
+    session: controllerState.getSession()
+  })
 }
 
 async function openTreehole(bootstrapKey = null) {
   configureTreeholeRuntime()
   await treeholeRuntime.open({
     bootstrapKey,
-    initialPosts: state.treeholePosts,
-    initialStatus: state.treeholeStatus
+    initialPosts: controllerState.getState().treeholePosts,
+    initialStatus: controllerState.getState().treeholeStatus
   })
 }
 
 function setTab(tab) {
-  state = setDesktopTab(state, tab)
+  controllerState.updateState((state) => setDesktopTab(state, tab))
   render()
 }
 
@@ -219,29 +218,32 @@ function render() {
   const { contactBook } = getProfileContext()
   renderPresenter.render({
     contactBook,
-    directComposerRecipientProfileId,
-    dmSession,
+    directComposerRecipientProfileId: controllerState.getDirectComposerRecipientProfileId(),
+    dmSession: controllerState.getDmSession(),
     pendingCommand: commandDispatcher.getPendingCommand(),
-    session,
-    state
+    session: controllerState.getSession(),
+    state: controllerState.getState()
   })
 }
 
 function updateDirectComposerRecipient(toProfileId = '') {
-  directComposerRecipientProfileId = toProfileId.trim()
+  controllerState.setDirectComposerRecipient(toProfileId)
   render()
 }
 
 function selectDirectContact(profileId = '') {
-  if (!profileId) return
-  directComposerRecipientProfileId = profileId
+  if (!controllerState.selectDirectContact(profileId)) return
   globalThis.keposDesktopUi?.setDirectComposerRecipient(profileId)
   render()
 }
 
 function showError(error) {
   console.error(error)
-  state = { ...state, lastError: error.message, notice: getDesktopErrorNotice(error) }
+  controllerState.updateState((state) => ({
+    ...state,
+    lastError: error.message,
+    notice: getDesktopErrorNotice(error)
+  }))
   render()
 }
 
