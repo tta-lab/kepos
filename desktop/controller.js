@@ -2,7 +2,10 @@
 
 import { listTrustedContacts } from '../src/contact-book.ts'
 import { createDesktopBackendRuntime } from '../src/desktop-backend-runtime.js'
-import { createDesktopControlMessageResult } from '../src/desktop-control-service.js'
+import {
+  createDesktopControlMessageResult,
+  createDesktopTreeholeControlSendResult
+} from '../src/desktop-control-service.js'
 import { createDesktopHomeJoinDetails } from '../src/desktop-home-join-service.js'
 import { createDesktopProfileContext } from '../src/desktop-profile-context.js'
 import {
@@ -556,17 +559,28 @@ async function openTreehole(bootstrapKey = null) {
 }
 
 function sendTreeholeBootstrap(peer, remoteProfileId) {
-  if (!homeRuntime.isJoined() || !peer) return
+  const result = createDesktopTreeholeControlSendResult({
+    createBootstrapControl: (profileId) => treeholeRuntime.createBootstrapControl(profileId),
+    isHomeJoined: homeRuntime.isJoined(),
+    peer,
+    remoteProfileId,
+    type: 'bootstrap'
+  })
+  if (!result) return
 
-  const payload = treeholeRuntime.createBootstrapControl(remoteProfileId)
-  if (payload) homeRuntime.sendControl(peer, payload)
+  homeRuntime.sendControl(result.peer, result.payload)
 }
 
 function sendTreeholeWriter(peer) {
-  if (!homeRuntime.isJoined() || !peer) return
+  const result = createDesktopTreeholeControlSendResult({
+    createWriterControl: () => treeholeRuntime.createWriterControl(),
+    isHomeJoined: homeRuntime.isJoined(),
+    peer,
+    type: 'writer'
+  })
+  if (!result) return
 
-  const payload = treeholeRuntime.createWriterControl()
-  if (payload) homeRuntime.sendControl(peer, payload)
+  homeRuntime.sendControl(result.peer, result.payload)
 }
 
 function canPostToCurrentTreehole() {

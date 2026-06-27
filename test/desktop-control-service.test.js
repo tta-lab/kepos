@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { createContactBook } from '../src/contact-book.ts'
-import { createDesktopControlMessageResult } from '../src/desktop-control-service.js'
+import {
+  createDesktopControlMessageResult,
+  createDesktopTreeholeControlSendResult
+} from '../src/desktop-control-service.js'
 import { createDmEncryptionKeyPair } from '../src/dm-invite.ts'
 import { createMessageRequest } from '../src/message-request.ts'
 import { createSigningKeyPair } from '../src/signed-record.ts'
@@ -124,5 +127,54 @@ test('desktop control service maps treehole writer control to writer intent', as
   assert.deepEqual(result, {
     kind: 'treehole_writer',
     writer: message
+  })
+})
+
+test('desktop control service skips outbound treehole control when home is unavailable', () => {
+  const result = createDesktopTreeholeControlSendResult({
+    isHomeJoined: false,
+    peer: 'peer-1',
+    type: 'bootstrap'
+  })
+
+  assert.equal(result, null)
+})
+
+test('desktop control service maps outbound treehole bootstrap control to send intent', () => {
+  const result = createDesktopTreeholeControlSendResult({
+    createBootstrapControl: (remoteProfileId) => ({
+      remoteProfileId,
+      type: 'treehole.bootstrap'
+    }),
+    isHomeJoined: true,
+    peer: 'peer-1',
+    remoteProfileId: 'profile-1',
+    type: 'bootstrap'
+  })
+
+  assert.deepEqual(result, {
+    payload: {
+      remoteProfileId: 'profile-1',
+      type: 'treehole.bootstrap'
+    },
+    peer: 'peer-1'
+  })
+})
+
+test('desktop control service maps outbound treehole writer control to send intent', () => {
+  const result = createDesktopTreeholeControlSendResult({
+    createWriterControl: () => ({
+      type: 'treehole.writer'
+    }),
+    isHomeJoined: true,
+    peer: 'peer-1',
+    type: 'writer'
+  })
+
+  assert.deepEqual(result, {
+    payload: {
+      type: 'treehole.writer'
+    },
+    peer: 'peer-1'
   })
 })

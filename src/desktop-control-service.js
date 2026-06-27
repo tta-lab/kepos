@@ -59,3 +59,28 @@ export async function createDesktopControlMessageResult({
 
   return null
 }
+
+export function createDesktopTreeholeControlSendResult({
+  createBootstrapControl,
+  createWriterControl,
+  isHomeJoined,
+  peer,
+  remoteProfileId = '',
+  type
+}) {
+  if (!isHomeJoined || !peer) return null
+
+  const payload =
+    type === 'bootstrap'
+      ? createBootstrapControl?.(remoteProfileId)
+      : type === 'writer'
+        ? createWriterControl?.()
+        : null
+
+  if (!payload) return null
+
+  return {
+    payload,
+    peer
+  }
+}
