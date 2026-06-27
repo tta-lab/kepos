@@ -115,7 +115,8 @@ test('desktop people pane surfaces pending message requests', async () => {
   assert.match(controller, /ignoreButton\.textContent = 'Ignore'/)
   assert.match(controller, /dispatchCommand\('acceptMessageRequest'/)
   assert.match(controller, /dispatchCommand\('ignoreMessageRequest'/)
-  assert.match(controller, /ignoreMessageRequest\(loadLocalContactBook\(profile\.id\), \{/)
+  assert.match(controller, /createDesktopMessageRequestAcceptance/)
+  assert.match(controller, /createDesktopMessageRequestIgnore/)
 })
 
 test('desktop keeps inline QR codes as advanced share detail', async () => {

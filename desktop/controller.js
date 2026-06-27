@@ -2,7 +2,7 @@
 
 import QRCode from 'qrcode'
 import { applyMessageRequestToContactBook } from '../src/message-request.ts'
-import { ignoreMessageRequest, listTrustedContacts } from '../src/contact-book.ts'
+import { listTrustedContacts } from '../src/contact-book.ts'
 import {
   createSignedHomeAddressPayload,
   createSignedTrustInvitePayload,
@@ -11,6 +11,10 @@ import {
 import { createDesktopBackendRuntime } from '../src/desktop-backend-runtime.js'
 import { createDesktopHomeJoinDetails } from '../src/desktop-home-join-service.js'
 import { createDesktopProfileContext } from '../src/desktop-profile-context.js'
+import {
+  createDesktopMessageRequestAcceptance,
+  createDesktopMessageRequestIgnore
+} from '../src/desktop-message-request-service.js'
 import { applyDesktopHomeQr, applyDesktopProfileTrustQr } from '../src/desktop-qr-service.js'
 import { createDesktopContactRevoke } from '../src/desktop-revoke-service.js'
 import {
@@ -946,10 +950,11 @@ async function acceptIncomingMessageRequest(message) {
   if (!homeRuntime.isJoined() || !dmSession) return
 
   const context = getProfileContext()
-  const result = await dmRuntime.acceptMessageRequest({
+  const result = await createDesktopMessageRequestAcceptance({
+    acceptMessageRequest: (payload) => dmRuntime.acceptMessageRequest(payload),
     acceptedAt: Date.now(),
     book: context.contactBook,
-    remoteProfileId: message.fromProfileId,
+    message,
     threadId: createId()
   })
 
@@ -962,18 +967,19 @@ async function acceptIncomingMessageRequest(message) {
 }
 
 function ignoreIncomingMessageRequest({ message = null, profileId = '' }) {
-  const requestProfileId = profileId || message?.fromProfileId || message?.profileId
-  if (!requestProfileId) return
-
   const context = getProfileContext()
-  const book = ignoreMessageRequest(context.contactBook, {
-    profileId: requestProfileId
+  const result = createDesktopMessageRequestIgnore({
+    book: context.contactBook,
+    hasDmSession: Boolean(dmSession),
+    message,
+    profileId
   })
+  if (!result) return
 
-  context.saveContactBook(book)
+  context.saveContactBook(result.book)
 
-  if (dmSession && message?.id) {
-    dmRuntime.dismissMessage({ id: message.id })
+  if (result.dismissedMessageId) {
+    dmRuntime.dismissMessage({ id: result.dismissedMessageId })
   }
 
   state = { ...state, notice: 'Message request ignored.' }
