@@ -202,7 +202,7 @@ function DesktopApp() {
                 <summary>Advanced</summary>
                 <div id='homeQrCode' className='qrCode' aria-label='My home QR code' />
                 <label>
-                  My home URI
+                  Home QR details
                   <textarea id='homeQrOutput' className='compactArea' readOnly spellCheck='false' />
                 </label>
               </details>
@@ -241,7 +241,7 @@ function DesktopApp() {
                 <summary>Advanced</summary>
                 <div id='profileQrCode' className='qrCode' aria-label='My profile QR code' />
                 <label>
-                  My profile URI
+                  Profile QR details
                   <textarea
                     id='profileQrOutput'
                     className='compactArea'

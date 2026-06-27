@@ -75,6 +75,10 @@ test('desktop keeps inline QR codes as advanced share detail', async () => {
     source.indexOf("id='showLargeProfileQrButton'") < source.indexOf("id='profileQrCode'"),
     true
   )
+  assert.match(source, /Home QR details/)
+  assert.match(source, /Profile QR details/)
+  assert.equal(source.includes('My home URI'), false)
+  assert.equal(source.includes('My profile URI'), false)
 })
 
 test('desktop normal UI copy avoids raw home address language', async () => {
