@@ -50,6 +50,7 @@ import { serializeTreeholeState } from '../src/treehole-view.js'
 import { getOrCreateLocalProfile } from '../src/local-profile.js'
 import {
   createDesktopState,
+  getDesktopHomeStatus,
   setDesktopRoom,
   setDesktopTab,
   setDesktopTreehole
@@ -74,6 +75,7 @@ const els = {
   homeQrCode: document.querySelector('#homeQrCode'),
   homeQrInput: document.querySelector('#homeQrInput'),
   homeQrOutput: document.querySelector('#homeQrOutput'),
+  homeStatusLabel: document.querySelector('#homeStatusLabel'),
   joinButton: document.querySelector('#joinButton'),
   joinHomeQrButton: document.querySelector('#joinHomeQrButton'),
   largeQrCloseButton: document.querySelector('#largeQrCloseButton'),
@@ -747,11 +749,12 @@ function render() {
   els.leaveButton.disabled = !inRoom
   els.joinButton.disabled = inRoom
   els.createButton.disabled = inRoom
+  els.homeStatusLabel.textContent = getDesktopHomeStatus(state)
   els.roomKeyLabel.textContent = inRoom ? shorten(state.roomKey) : 'not joined'
   els.profileIdLabel.textContent = session?.profileId ? shorten(session.profileId) : 'not ready'
   els.peerLabel.textContent = String(state.peers)
   els.noticeLabel.textContent = state.notice
-  els.treeholeStatusLabel.textContent = `home treehole ${state.treeholeStatus}`
+  els.treeholeStatusLabel.textContent = `Treehole ${state.treeholeStatus}`
   els.treeholeForm.classList.toggle('disabledComposer', !state.treeholeCanPost)
   els.treeholeInput.disabled = !state.treeholeCanPost
   els.treeholePostPolicy.hidden = state.treeholeCanPost

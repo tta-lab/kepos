@@ -269,17 +269,24 @@ function DesktopApp() {
 
           <section className='panel roomMeta'>
             <p className='label'>Home</p>
-            <p id='roomKeyLabel' className='mono muted'>
-              not joined
-            </p>
-            <p className='label'>Profile</p>
-            <p id='profileIdLabel' className='mono muted'>
-              not ready
+            <p id='homeStatusLabel' className='metric'>
+              Offline
             </p>
             <p className='label'>Peers</p>
             <p id='peerLabel' className='metric'>
               0
             </p>
+            <details id='advancedStatus' className='advanced'>
+              <summary>Advanced</summary>
+              <p className='label'>Home</p>
+              <p id='roomKeyLabel' className='mono muted'>
+                not joined
+              </p>
+              <p className='label'>Profile</p>
+              <p id='profileIdLabel' className='mono muted'>
+                not ready
+              </p>
+            </details>
             <button id='leaveButton' type='button' disabled>
               <LogOut size={17} />
               Leave

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
 import {
   createDesktopState,
+  getDesktopHomeStatus,
   setDesktopRoom,
   setDesktopTab,
   setDesktopTreehole
@@ -52,5 +53,22 @@ describe('desktop state', () => {
 
   test('setDesktopTab rejects unknown tabs', () => {
     assert.throws(() => setDesktopTab(createDesktopState(), 'settings'), /Unknown tab/)
+  })
+
+  test('getDesktopHomeStatus uses product status words', () => {
+    assert.equal(getDesktopHomeStatus(createDesktopState()), 'Offline')
+    assert.equal(
+      getDesktopHomeStatus(setDesktopRoom(createDesktopState(), { roomKey: 'a'.repeat(64) })),
+      'Looking for peers'
+    )
+    assert.equal(
+      getDesktopHomeStatus(
+        setDesktopRoom(createDesktopState(), {
+          peers: 2,
+          roomKey: 'a'.repeat(64)
+        })
+      ),
+      'Connected'
+    )
   })
 })

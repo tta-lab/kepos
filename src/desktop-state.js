@@ -47,3 +47,11 @@ export function setDesktopTreehole(state, treehole) {
     treeholeStatus: treehole.status || state.treeholeStatus
   }
 }
+
+export function getDesktopHomeStatus(state) {
+  if (state.view !== 'room') {
+    return 'Offline'
+  }
+
+  return state.peers > 0 ? 'Connected' : 'Looking for peers'
+}
