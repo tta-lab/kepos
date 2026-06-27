@@ -95,6 +95,27 @@ test('Android raw own QR text stays behind advanced people controls', async () =
   )
 })
 
+test('Android paste QR fallback stays behind advanced people controls', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+
+  assert.equal(
+    source.indexOf("testID='join-home-uri-input'") > source.indexOf('showAdvancedShare ? ('),
+    true
+  )
+  assert.equal(
+    source.indexOf("testID='join-home-uri-button'") > source.indexOf('showAdvancedShare ? ('),
+    true
+  )
+  assert.equal(
+    source.indexOf("testID='trust-profile-uri-input'") > source.indexOf('showAdvancedShare ? ('),
+    true
+  )
+  assert.equal(
+    source.indexOf("testID='trust-profile-button'") > source.indexOf('showAdvancedShare ? ('),
+    true
+  )
+})
+
 test('DM request copy reads as a social action', async () => {
   const mobile = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
   const desktop = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
