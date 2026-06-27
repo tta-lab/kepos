@@ -120,17 +120,20 @@ test('desktop keeps inline QR codes as advanced share detail', async () => {
 
   assert.match(source, /id='copyHomeQrButton'[\s\S]*Copy Home QR/)
   assert.match(source, /id='copyProfileQrButton'[\s\S]*Copy Profile QR/)
-  assert.equal(source.indexOf("id='homeQrCode'") > source.indexOf("id='advancedHomeShare'"), true)
   assert.equal(
-    source.indexOf("id='profileQrCode'") > source.indexOf("id='advancedProfileShare'"),
+    source.indexOf("qrId='homeQrCode'") > source.indexOf("detailsId='advancedHomeShare'"),
     true
   )
   assert.equal(
-    source.indexOf("id='showLargeHomeQrButton'") < source.indexOf("id='homeQrCode'"),
+    source.indexOf("qrId='profileQrCode'") > source.indexOf("detailsId='advancedProfileShare'"),
     true
   )
   assert.equal(
-    source.indexOf("id='showLargeProfileQrButton'") < source.indexOf("id='profileQrCode'"),
+    source.indexOf("id='showLargeHomeQrButton'") < source.indexOf("qrId='homeQrCode'"),
+    true
+  )
+  assert.equal(
+    source.indexOf("id='showLargeProfileQrButton'") < source.indexOf("qrId='profileQrCode'"),
     true
   )
   assert.match(source, /Home QR details/)

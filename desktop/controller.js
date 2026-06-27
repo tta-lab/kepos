@@ -54,9 +54,7 @@ const els = {
   dmSendButton: document.querySelector('#dmSendButton'),
   dmTab: document.querySelector('#dmTab'),
   homeQrForm: document.querySelector('#homeQrForm'),
-  homeQrCode: document.querySelector('#homeQrCode'),
   homeQrInput: document.querySelector('#homeQrInput'),
-  homeQrOutput: document.querySelector('#homeQrOutput'),
   joinButton: document.querySelector('#joinButton'),
   joinHomeQrButton: document.querySelector('#joinHomeQrButton'),
   largeQrCloseButton: document.querySelector('#largeQrCloseButton'),
@@ -66,8 +64,6 @@ const els = {
   nickInput: document.querySelector('#nickInput'),
   peoplePane: document.querySelector('#peoplePane'),
   peopleTab: document.querySelector('#peopleTab'),
-  profileQrCode: document.querySelector('#profileQrCode'),
-  profileQrOutput: document.querySelector('#profileQrOutput'),
   roomKeyInput: document.querySelector('#roomKeyInput'),
   showLargeHomeQrButton: document.querySelector('#showLargeHomeQrButton'),
   showLargeProfileQrButton: document.querySelector('#showLargeProfileQrButton'),
@@ -89,6 +85,12 @@ let dmSession = null
 let homeJoinDetails = null
 let largeQrReturnFocus = null
 let pendingCommand = null
+let shareQrOutputs = {
+  homeSvg: '',
+  homeUri: '',
+  profileSvg: '',
+  profileUri: ''
+}
 const commands = createDesktopCommandRegistry({
   handlers: {
     acceptMessageRequest: (payload) => {
@@ -192,21 +194,21 @@ els.showLargeHomeQrButton.addEventListener('click', () => {
   showLargeQr({
     returnFocus: els.showLargeHomeQrButton,
     title: 'Home QR',
-    uri: els.homeQrOutput.value
+    uri: shareQrOutputs.homeUri
   }).catch(showError)
 })
 els.showLargeProfileQrButton.addEventListener('click', () => {
   showLargeQr({
     returnFocus: els.showLargeProfileQrButton,
     title: 'Profile QR',
-    uri: els.profileQrOutput.value
+    uri: shareQrOutputs.profileUri
   }).catch(showError)
 })
 els.copyHomeQrButton.addEventListener('click', () => {
-  copyQrValue({ notice: 'Home QR copied.', value: els.homeQrOutput.value }).catch(showError)
+  copyQrValue({ notice: 'Home QR copied.', value: shareQrOutputs.homeUri }).catch(showError)
 })
 els.copyProfileQrButton.addEventListener('click', () => {
-  copyQrValue({ notice: 'Profile QR copied.', value: els.profileQrOutput.value }).catch(showError)
+  copyQrValue({ notice: 'Profile QR copied.', value: shareQrOutputs.profileUri }).catch(showError)
 })
 els.largeQrCloseButton.addEventListener('click', hideLargeQr)
 els.largeQrDialog.addEventListener('click', (event) => {
@@ -394,14 +396,11 @@ function trustProfileQr({ alias = '', displayName = 'Desktop', uri } = {}) {
 
 async function updateQrOutputs() {
   const { profile } = getProfileContext()
-  const { homeSvg, homeUri, profileSvg, profileUri } = await createDesktopShareQrOutputs({
+  shareQrOutputs = await createDesktopShareQrOutputs({
     profile
   })
 
-  els.profileQrOutput.value = profileUri
-  els.homeQrOutput.value = homeUri
-  els.profileQrCode.innerHTML = profileSvg
-  els.homeQrCode.innerHTML = homeSvg
+  globalThis.keposDesktopUi?.setShareQrOutputs(shareQrOutputs)
 }
 
 async function showLargeQr({ returnFocus, title, uri }) {

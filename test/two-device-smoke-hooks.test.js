@@ -699,8 +699,6 @@ test('desktop UI exposes stable hooks for two-device smoke', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
 
   for (const id of [
-    'homeQrOutput',
-    'profileQrOutput',
     'showLargeHomeQrButton',
     'showLargeProfileQrButton',
     'largeQrDialog',
@@ -718,6 +716,9 @@ test('desktop UI exposes stable hooks for two-device smoke', async () => {
   ]) {
     assert.match(source, new RegExp(`id=['"]${id}['"]`), `${id} is missing`)
   }
+
+  assert.match(source, /outputId='homeQrOutput'/)
+  assert.match(source, /outputId='profileQrOutput'/)
 })
 
 test('desktop large QR dialog renders scan-sized QR codes', async () => {
@@ -746,11 +747,11 @@ test('desktop large QR dialog is keyboard reachable', async () => {
   assert.match(controller, /let largeQrReturnFocus = null/)
   assert.match(
     controller,
-    /showLargeQr\(\{[\s\S]*returnFocus: els\.showLargeHomeQrButton,[\s\S]*title: 'Home QR',[\s\S]*uri: els\.homeQrOutput\.value[\s\S]*\}\)/
+    /showLargeQr\(\{[\s\S]*returnFocus: els\.showLargeHomeQrButton,[\s\S]*title: 'Home QR',[\s\S]*uri: shareQrOutputs\.homeUri[\s\S]*\}\)/
   )
   assert.match(
     controller,
-    /showLargeQr\(\{[\s\S]*returnFocus: els\.showLargeProfileQrButton,[\s\S]*title: 'Profile QR',[\s\S]*uri: els\.profileQrOutput\.value[\s\S]*\}\)/
+    /showLargeQr\(\{[\s\S]*returnFocus: els\.showLargeProfileQrButton,[\s\S]*title: 'Profile QR',[\s\S]*uri: shareQrOutputs\.profileUri[\s\S]*\}\)/
   )
   assert.match(controller, /largeQrReturnFocus = returnFocus/)
   assert.match(controller, /els\.largeQrCloseButton\.focus\(\)/)

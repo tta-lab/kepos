@@ -29,6 +29,12 @@ const DEFAULT_STATUS = {
   treeholeStatusLabel: 'Treehole offline'
 }
 const EMPTY_LARGE_QR = { isOpen: false, svg: '', title: '' }
+const EMPTY_SHARE_QR_OUTPUTS = {
+  homeSvg: '',
+  homeUri: '',
+  profileSvg: '',
+  profileUri: ''
+}
 const desktopUiBridge = {
   setDirectContactPicker: () => {},
   setDirectContactPickerActions: () => {},
@@ -38,6 +44,7 @@ const desktopUiBridge = {
   setLargeQr: () => {},
   setPeople: () => {},
   setPeopleActions: () => {},
+  setShareQrOutputs: () => {},
   setStatus: () => {},
   setTreeholeActions: () => {},
   setTreeholePosts: () => {}
@@ -77,6 +84,9 @@ globalThis.keposDesktopUi = {
   setPeopleActions(actions = {}) {
     desktopUiBridge.setPeopleActions(actions)
   },
+  setShareQrOutputs(outputs = EMPTY_SHARE_QR_OUTPUTS) {
+    desktopUiBridge.setShareQrOutputs(outputs)
+  },
   setStatus(status = DEFAULT_STATUS) {
     desktopUiBridge.setStatus(status)
   },
@@ -114,6 +124,7 @@ function DesktopApp() {
     ignoreMessageRequest: () => {},
     revokeContact: () => {}
   })
+  const [shareQrOutputs, setShareQrOutputs] = useState(EMPTY_SHARE_QR_OUTPUTS)
   const [treeholeActions, setTreeholeActions] = useState({
     commentPost: () => {},
     likePost: () => {}
@@ -129,6 +140,7 @@ function DesktopApp() {
   desktopUiBridge.setLargeQr = setLargeQr
   desktopUiBridge.setPeople = setPeople
   desktopUiBridge.setPeopleActions = setPeopleActions
+  desktopUiBridge.setShareQrOutputs = setShareQrOutputs
   desktopUiBridge.setStatus = setStatus
   desktopUiBridge.setTreeholeActions = setTreeholeActions
   desktopUiBridge.setTreeholePosts = setTreeholePosts
@@ -327,14 +339,15 @@ function DesktopApp() {
                   Copy Home QR
                 </button>
               </div>
-              <details id='advancedHomeShare' className='advanced'>
-                <summary>Advanced</summary>
-                <div id='homeQrCode' className='qrCode' aria-label='My home QR code' />
-                <label>
-                  Home QR details
-                  <textarea id='homeQrOutput' className='compactArea' readOnly spellCheck='false' />
-                </label>
-              </details>
+              <QrShareOutput
+                detailsId='advancedHomeShare'
+                label='Home QR details'
+                outputId='homeQrOutput'
+                qrId='homeQrCode'
+                qrLabel='My home QR code'
+                svg={shareQrOutputs.homeSvg}
+                uri={shareQrOutputs.homeUri}
+              />
               <label>
                 Join a friend&apos;s home
                 <textarea
@@ -372,19 +385,15 @@ function DesktopApp() {
                   Copy Profile QR
                 </button>
               </div>
-              <details id='advancedProfileShare' className='advanced'>
-                <summary>Advanced</summary>
-                <div id='profileQrCode' className='qrCode' aria-label='My profile QR code' />
-                <label>
-                  Profile QR details
-                  <textarea
-                    id='profileQrOutput'
-                    className='compactArea'
-                    readOnly
-                    spellCheck='false'
-                  />
-                </label>
-              </details>
+              <QrShareOutput
+                detailsId='advancedProfileShare'
+                label='Profile QR details'
+                outputId='profileQrOutput'
+                qrId='profileQrCode'
+                qrLabel='My profile QR code'
+                svg={shareQrOutputs.profileSvg}
+                uri={shareQrOutputs.profileUri}
+              />
               <label>
                 Friend profile
                 <textarea
@@ -439,6 +448,24 @@ function DesktopApp() {
 
       <LargeQrDialog qr={largeQr} />
     </>
+  )
+}
+
+function QrShareOutput({ detailsId, label, outputId, qrId, qrLabel, svg, uri }) {
+  return (
+    <details id={detailsId} className='advanced'>
+      <summary>Advanced</summary>
+      <div
+        id={qrId}
+        className='qrCode'
+        aria-label={qrLabel}
+        dangerouslySetInnerHTML={{ __html: svg }}
+      />
+      <label>
+        {label}
+        <textarea id={outputId} className='compactArea' readOnly spellCheck='false' value={uri} />
+      </label>
+    </details>
   )
 }
 

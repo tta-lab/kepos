@@ -114,6 +114,25 @@ test('desktop React owns the large QR dialog surface', async () => {
   assert.doesNotMatch(controller, /els\.largeQrDialog\.classList\.remove\('hidden'\)/)
 })
 
+test('desktop React owns inline QR share outputs', async () => {
+  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+
+  assert.match(source, /function QrShareOutput\(/)
+  assert.match(source, /setShareQrOutputs\(outputs = EMPTY_SHARE_QR_OUTPUTS\)/)
+  assert.match(source, /dangerouslySetInnerHTML=\{\{ __html: svg \}\}/)
+  assert.match(source, /value=\{uri\}/)
+  assert.match(source, /svg=\{shareQrOutputs\.homeSvg\}/)
+  assert.match(source, /uri=\{shareQrOutputs\.homeUri\}/)
+  assert.match(source, /svg=\{shareQrOutputs\.profileSvg\}/)
+  assert.match(source, /uri=\{shareQrOutputs\.profileUri\}/)
+  assert.match(controller, /globalThis\.keposDesktopUi\?\.setShareQrOutputs\(shareQrOutputs\)/)
+  assert.doesNotMatch(controller, /els\.profileQrOutput\.value =/)
+  assert.doesNotMatch(controller, /els\.homeQrOutput\.value =/)
+  assert.doesNotMatch(controller, /els\.profileQrCode\.innerHTML/)
+  assert.doesNotMatch(controller, /els\.homeQrCode\.innerHTML/)
+})
+
 test('desktop React owns the people list surfaces', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
