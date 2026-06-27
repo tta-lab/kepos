@@ -10,13 +10,9 @@ import {
 } from '../src/signed-qr-payload.ts'
 import { createDesktopBackendRuntime } from '../src/desktop-backend-runtime.js'
 import { createDesktopHomeJoinDetails } from '../src/desktop-home-join-service.js'
+import { createDesktopProfileContext } from '../src/desktop-profile-context.js'
 import { applyDesktopHomeQr, applyDesktopProfileTrustQr } from '../src/desktop-qr-service.js'
 import { createDesktopContactRevoke } from '../src/desktop-revoke-service.js'
-import {
-  getDesktopLocalProfile,
-  loadDesktopContactBook,
-  saveDesktopContactBook
-} from '../src/desktop-local-adapters.js'
 import {
   createDesktopState,
   getDesktopHomeStatus,
@@ -296,9 +292,8 @@ function readCommandPayload(payload) {
 async function joinRoom({ createTreehole, homeAddress = null, mode, roomKey }) {
   await leaveRoom()
 
-  const nick = els.nickInput.value.trim() || 'Desktop'
-  const profile = getDesktopProfile(nick)
-  const contactBook = loadLocalContactBook(profile.id)
+  const nick = getCurrentDisplayName()
+  const { contactBook, profile, storage } = getProfileContext(nick)
   const homeJoin = createDesktopHomeJoinDetails({
     contactBook,
     homeAddress,
@@ -312,7 +307,7 @@ async function joinRoom({ createTreehole, homeAddress = null, mode, roomKey }) {
   homeJoinDetails = homeJoin.homeJoinDetails
   session = homeJoin.session
   configureTreeholeRuntime()
-  dmSession = await dmRuntime.start({ nick, profile, storage: globalThis.localStorage })
+  dmSession = await dmRuntime.start({ nick, profile, storage })
   state = setDesktopRoom(state, {
     mode: homeJoin.mode,
     nick,
@@ -342,9 +337,9 @@ async function joinRoom({ createTreehole, homeAddress = null, mode, roomKey }) {
 async function joinHomeQr({ displayName = 'Desktop', uri } = {}) {
   if (!uri) return
 
-  const profile = getDesktopProfile(displayName)
+  const { contactBook, profile } = getProfileContext(displayName)
   const homeAddress = applyDesktopHomeQr({
-    book: loadLocalContactBook(profile.id),
+    book: contactBook,
     localProfileId: profile.id,
     uri
   })
@@ -360,16 +355,17 @@ async function joinHomeQr({ displayName = 'Desktop', uri } = {}) {
 function trustProfileQr({ alias = '', displayName = 'Desktop', uri } = {}) {
   if (!uri) return
 
-  const profile = getDesktopProfile(displayName)
+  const context = getProfileContext(displayName)
+  const { contactBook, profile } = context
   const result = applyDesktopProfileTrustQr({
     alias,
-    book: loadLocalContactBook(profile.id),
+    book: contactBook,
     localIdentity: profile.identity,
     localProfileId: profile.id,
     uri
   })
 
-  saveDesktopContactBook({ book: result.book })
+  context.saveContactBook(result.book)
 
   if (homeJoinDetails?.profileId === profile.id) {
     homeJoinDetails = {
@@ -385,7 +381,7 @@ function trustProfileQr({ alias = '', displayName = 'Desktop', uri } = {}) {
 }
 
 async function updateQrOutputs() {
-  const profile = getDesktopProfile(els.nickInput.value.trim() || 'Desktop')
+  const { profile } = getProfileContext()
   const profileUri = encodeQrUri(
     createSignedTrustInvitePayload({
       displayName: profile.displayName,
@@ -447,12 +443,12 @@ function hideLargeQr() {
   largeQrReturnFocus = null
 }
 
-function loadLocalContactBook(ownerProfileId) {
-  return loadDesktopContactBook({ ownerProfileId })
+function getCurrentDisplayName() {
+  return els.nickInput.value.trim() || 'Desktop'
 }
 
-function getDesktopProfile(displayName) {
-  return getDesktopLocalProfile({ displayName })
+function getProfileContext(displayName = getCurrentDisplayName()) {
+  return createDesktopProfileContext({ displayName })
 }
 
 async function leaveRoom() {
@@ -517,14 +513,14 @@ async function handleControl(message, peer) {
     const currentDmSession = dmRuntime.getSession()
     if (!currentDmSession || message.toProfileId !== currentDmSession.localProfileId) return
 
-    const book = loadLocalContactBook(currentDmSession.localProfileId)
-    const nextBook = applyMessageRequestToContactBook(book, {
+    const context = getProfileContext()
+    const nextBook = applyMessageRequestToContactBook(context.contactBook, {
       alias: shorten(message.fromProfileId),
       request: message,
       source: 'home_room'
     })
 
-    saveDesktopContactBook({ book: nextBook })
+    context.saveContactBook(nextBook)
     dmRuntime.appendIncomingRequest(message)
     state = { ...state, notice: 'Message request received.' }
     render()
@@ -535,11 +531,10 @@ async function handleControl(message, peer) {
     const currentDmSession = dmRuntime.getSession()
     if (!currentDmSession || message.toProfileId !== currentDmSession.localProfileId) return
 
-    const profile = getDesktopProfile(els.nickInput.value.trim() || 'Desktop')
-    const book = loadLocalContactBook(profile.id)
+    const { contactBook, profile } = getProfileContext()
     await dmRuntime.acceptInviteAsRecipient({
       acceptedAt: Date.now(),
-      contactBook: book,
+      contactBook,
       invite: message,
       recipientEncryptionKeyPair: profile.dmEncryptionKeyPair
     })
@@ -699,8 +694,8 @@ function renderDirectMessages() {
 function renderDirectContacts() {
   if (!els.dmContactList) return
 
-  const profile = getDesktopProfile(els.nickInput.value.trim() || 'Desktop')
-  const contacts = listTrustedContacts(loadLocalContactBook(profile.id))
+  const { contactBook } = getProfileContext()
+  const contacts = listTrustedContacts(contactBook)
   const selectedProfileId = els.dmRecipientInput.value.trim()
 
   if (!contacts.length) {
@@ -741,8 +736,8 @@ function renderDirectContacts() {
 function renderContacts() {
   if (!els.contactList) return
 
-  const profile = getDesktopProfile(els.nickInput.value.trim() || 'Desktop')
-  const contacts = listTrustedContacts(loadLocalContactBook(profile.id))
+  const { contactBook } = getProfileContext()
+  const contacts = listTrustedContacts(contactBook)
 
   if (contacts.length === 0) {
     const empty = document.createElement('p')
@@ -801,8 +796,8 @@ function formatTrustTime(trustedAt) {
 function renderMessageRequests() {
   if (!els.requestList) return
 
-  const profile = getDesktopProfile(els.nickInput.value.trim() || 'Desktop')
-  const requests = Array.from(loadLocalContactBook(profile.id).pendingRequestsByProfileId.values())
+  const { contactBook } = getProfileContext()
+  const requests = Array.from(contactBook.pendingRequestsByProfileId.values())
 
   if (requests.length === 0) {
     const empty = document.createElement('p')
@@ -866,16 +861,17 @@ function formatMessageRequestTitle(request) {
 }
 
 async function revokeLocalContact(profileId) {
-  const profile = getDesktopProfile(els.nickInput.value.trim() || 'Desktop')
+  const context = getProfileContext()
+  const { contactBook, profile } = context
   const threads = dmRuntime.loadThreads()
   const result = createDesktopContactRevoke({
-    book: loadLocalContactBook(profile.id),
+    book: contactBook,
     profileId,
     selectedRecipientProfileId: els.dmRecipientInput.value.trim(),
     threads
   })
 
-  saveDesktopContactBook({ book: result.book })
+  context.saveContactBook(result.book)
   dmRuntime.replaceThreads(result.nextThreads)
 
   await dmRuntime.closeThreads(result.revokedThreadIds)
@@ -949,17 +945,17 @@ function displayDirectPeer(profileId, displayName = '') {
 async function acceptIncomingMessageRequest(message) {
   if (!homeRuntime.isJoined() || !dmSession) return
 
-  const profile = getDesktopProfile(els.nickInput.value.trim() || 'Desktop')
+  const context = getProfileContext()
   const result = await dmRuntime.acceptMessageRequest({
     acceptedAt: Date.now(),
-    book: loadLocalContactBook(profile.id),
+    book: context.contactBook,
     remoteProfileId: message.fromProfileId,
     threadId: createId()
   })
 
   if (!result) return
 
-  saveDesktopContactBook({ book: result.book })
+  context.saveContactBook(result.book)
   homeRuntime.broadcastControl(result.invite)
   state = { ...state, notice: 'Message request accepted.' }
   render()
@@ -969,12 +965,12 @@ function ignoreIncomingMessageRequest({ message = null, profileId = '' }) {
   const requestProfileId = profileId || message?.fromProfileId || message?.profileId
   if (!requestProfileId) return
 
-  const profile = getDesktopProfile(els.nickInput.value.trim() || 'Desktop')
-  const book = ignoreMessageRequest(loadLocalContactBook(profile.id), {
+  const context = getProfileContext()
+  const book = ignoreMessageRequest(context.contactBook, {
     profileId: requestProfileId
   })
 
-  saveDesktopContactBook({ book })
+  context.saveContactBook(book)
 
   if (dmSession && message?.id) {
     dmRuntime.dismissMessage({ id: message.id })

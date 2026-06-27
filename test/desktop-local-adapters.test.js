@@ -48,8 +48,11 @@ test('desktop local adapters save and load the local contact book', () => {
   )
 })
 
-test('desktop controller uses local adapters instead of direct profile storage imports', async () => {
-  const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+test('desktop profile context uses local adapters instead of direct profile storage imports', async () => {
+  const source = await readFile(
+    new URL('../src/desktop-profile-context.js', import.meta.url),
+    'utf8'
+  )
 
   assert.match(source, /getDesktopLocalProfile/)
   assert.match(source, /loadDesktopContactBook/)
