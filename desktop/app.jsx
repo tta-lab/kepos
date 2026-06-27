@@ -211,7 +211,7 @@ function DesktopApp() {
                 <textarea
                   id='homeQrInput'
                   className='compactArea'
-                  placeholder='Paste Home QR text'
+                  placeholder='Paste Home QR'
                   spellCheck='false'
                 />
               </label>
@@ -255,7 +255,7 @@ function DesktopApp() {
                 <textarea
                   id='trustQrInput'
                   className='compactArea'
-                  placeholder='Paste Profile QR text'
+                  placeholder='Paste Profile QR'
                   spellCheck='false'
                 />
               </label>

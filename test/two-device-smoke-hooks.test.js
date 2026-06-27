@@ -43,6 +43,8 @@ test('Android lobby uses product action words for QR and trust flows', async () 
     'Join a home',
     'My Profile QR',
     'Friend profile',
+    'Paste Home QR',
+    'Paste Profile QR',
     'Add trusted friend'
   ]) {
     assert.match(source, new RegExp(text), `${text} is missing`)
@@ -52,6 +54,8 @@ test('Android lobby uses product action words for QR and trust flows', async () 
   assert.equal(source.includes('Profile trust'), false)
   assert.equal(source.includes('Join Home URI'), false)
   assert.equal(source.includes('Trust Profile'), false)
+  assert.equal(source.includes('Paste Home QR text'), false)
+  assert.equal(source.includes('Paste Profile QR text'), false)
 })
 
 test('Android lobby starts with compact product choices', async () => {

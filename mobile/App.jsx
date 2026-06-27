@@ -1212,7 +1212,7 @@ function PeopleActions({
             autoCorrect={false}
             multiline
             onChangeText={onHomeQrChange}
-            placeholder='Paste Home QR text'
+            placeholder='Paste Home QR'
             placeholderTextColor='#8b9188'
             style={styles.keyInput}
             testID='join-home-uri-input'
@@ -1237,7 +1237,7 @@ function PeopleActions({
             autoCorrect={false}
             multiline
             onChangeText={onTrustQrChange}
-            placeholder='Paste Profile QR text'
+            placeholder='Paste Profile QR'
             placeholderTextColor='#8b9188'
             style={styles.keyInput}
             testID='trust-profile-uri-input'
