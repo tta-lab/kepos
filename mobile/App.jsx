@@ -1319,7 +1319,7 @@ function QuickStartPanel({
         >
           <ArrowRight color={profileReady ? theme.accentStrong : theme.placeholder} size={18} />
           <Text style={[styles.secondaryButtonText, !profileReady && styles.disabledButtonText]}>
-            Scan Home QR
+            Join a home
           </Text>
         </Pressable>
         <Pressable
@@ -1330,7 +1330,7 @@ function QuickStartPanel({
         >
           <Plus color={profileReady ? theme.accentStrong : theme.placeholder} size={18} />
           <Text style={[styles.secondaryButtonText, !profileReady && styles.disabledButtonText]}>
-            Scan Profile QR
+            Trust a friend
           </Text>
         </Pressable>
       </View>
