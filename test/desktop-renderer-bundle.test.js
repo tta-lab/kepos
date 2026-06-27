@@ -343,6 +343,11 @@ test('desktop React owns context form drafts and QR actions', async () => {
   assert.match(source, /value=\{form\.homeQrUri\}/)
   assert.match(source, /value=\{form\.trustQrUri\}/)
   assert.match(source, /value=\{form\.trustAlias\}/)
+  assert.match(source, /actions\.createHome\(\{ displayName \}\)/)
+  assert.match(
+    source,
+    /actions\.joinManualHome\(\{ displayName, roomKey: form\.roomKey\.trim\(\) \}\)/
+  )
   assert.match(controller, /createDesktopUiActionBindings/)
   assert.doesNotMatch(controller, /lobbyForm: document\.querySelector/)
   assert.doesNotMatch(controller, /homeQrForm: document\.querySelector/)

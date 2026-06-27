@@ -20,10 +20,11 @@ export function createDesktopUiActionBindings({
           value: qrActions.getShareQrOutputs().profileUri
         })
         .catch(onError),
-    createHome: () => dispatchCommand('joinHome', { createTreehole: true, mode: 'host' }),
+    createHome: ({ displayName } = {}) =>
+      dispatchCommand('joinHome', { createTreehole: true, displayName, mode: 'host' }),
     joinHomeQr: ({ displayName, uri }) => dispatchCommand('joinHomeUri', { displayName, uri }),
-    joinManualHome: ({ roomKey }) =>
-      dispatchCommand('joinHome', { createTreehole: false, mode: 'peer', roomKey }),
+    joinManualHome: ({ displayName, roomKey }) =>
+      dispatchCommand('joinHome', { createTreehole: false, displayName, mode: 'peer', roomKey }),
     showLargeHomeQr: ({ returnFocus }) =>
       qrActions
         .showLargeQr({

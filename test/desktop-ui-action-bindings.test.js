@@ -68,8 +68,8 @@ test('desktop UI action bindings route renderer actions to command payloads', as
     updateDisplayName: (displayName) => calls.push(['updateDisplayName', displayName])
   })
 
-  actions.context.createHome()
-  actions.context.joinManualHome({ roomKey: 'room' })
+  actions.context.createHome({ displayName: 'Me' })
+  actions.context.joinManualHome({ displayName: 'Me', roomKey: 'room' })
   actions.context.joinHomeQr({ displayName: 'Ada', uri: 'kepos://join' })
   actions.context.trustProfileQr({ alias: 'Ada', displayName: 'Me', uri: 'kepos://profile' })
   await actions.context.copyHomeQr()
@@ -95,8 +95,12 @@ test('desktop UI action bindings route renderer actions to command payloads', as
   actions.treeholeComposer.postTreehole({ text: 'main post' })
 
   assert.deepEqual(calls, [
-    ['dispatch', 'joinHome', { createTreehole: true, mode: 'host' }],
-    ['dispatch', 'joinHome', { createTreehole: false, mode: 'peer', roomKey: 'room' }],
+    ['dispatch', 'joinHome', { createTreehole: true, displayName: 'Me', mode: 'host' }],
+    [
+      'dispatch',
+      'joinHome',
+      { createTreehole: false, displayName: 'Me', mode: 'peer', roomKey: 'room' }
+    ],
     ['dispatch', 'joinHomeUri', { displayName: 'Ada', uri: 'kepos://join' }],
     ['dispatch', 'trustProfileUri', { alias: 'Ada', displayName: 'Me', uri: 'kepos://profile' }],
     ['copyQrValue', { notice: 'Home QR copied.', value: 'kepos://home' }],

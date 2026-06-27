@@ -31,10 +31,10 @@ export function createDesktopRoomActions({
     onChanged()
   }
 
-  async function joinHome({ createTreehole, homeAddress = null, mode, roomKey } = {}) {
+  async function joinHome({ createTreehole, displayName, homeAddress = null, mode, roomKey } = {}) {
     await leaveHome()
 
-    const nick = getCurrentDisplayName()
+    const nick = displayName?.trim() || getCurrentDisplayName()
     const { contactBook, profile, storage } = getProfileContext(nick)
     const homeJoin = createHomeJoinDetails({
       contactBook,

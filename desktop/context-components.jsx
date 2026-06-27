@@ -22,7 +22,7 @@ export function ContextPanel({ actions, controls, form, setForm, shareQrOutputs 
   function handleManualJoin(event) {
     event.preventDefault()
     if (!canJoinManualHome) return
-    actions.joinManualHome({ roomKey: form.roomKey.trim() })
+    actions.joinManualHome({ displayName, roomKey: form.roomKey.trim() })
   }
 
   function handleHomeQrJoin(event) {
@@ -67,7 +67,7 @@ export function ContextPanel({ actions, controls, form, setForm, shareQrOutputs 
               id='createButton'
               type='button'
               disabled={!controls.canCreateHome}
-              onClick={() => actions.createHome()}
+              onClick={() => actions.createHome({ displayName })}
             >
               <HomeIcon />
               Create my home

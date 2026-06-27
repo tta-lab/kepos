@@ -93,14 +93,14 @@ function createHarness(overrides = {}) {
 test('desktop room actions create a host home and start runtimes', async () => {
   const harness = createHarness()
 
-  await harness.actions.joinHome({ createTreehole: true, mode: 'host' })
+  await harness.actions.joinHome({ createTreehole: true, displayName: 'Ada', mode: 'host' })
 
   assert.deepEqual(harness.homeJoinDetails, {
     ownerProfileId: null,
     profileId: 'profile-1',
     roomKey: 'created-room'
   })
-  assert.deepEqual(harness.session, { id: 'home-session', nick: 'Neil' })
+  assert.deepEqual(harness.session, { id: 'home-session', nick: 'Ada' })
   assert.deepEqual(harness.dmSession, { id: 'dm-session' })
   assert.equal(harness.state.view, 'room')
   assert.equal(harness.state.notice, 'Home joined.')
@@ -113,8 +113,8 @@ test('desktop room actions create a host home and start runtimes', async () => {
     [
       'dm.start',
       {
-        nick: 'Neil',
-        profile: { displayName: 'Neil', id: 'profile-1' },
+        nick: 'Ada',
+        profile: { displayName: 'Ada', id: 'profile-1' },
         storage: { key: 'storage' }
       }
     ],
