@@ -17,6 +17,9 @@ test('android smoke is wired through Maestro', async () => {
   assert.match(script, /android\.permission\.CAMERA/)
   assert.match(script, /KEYCODE_WAKEUP/)
   assert.match(script, /cmd', 'statusbar', 'collapse/)
+  assert.match(script, /reverse', 'tcp:8081', 'tcp:8081/)
+  assert.match(script, /127\.0\.0\.1:8081\/status/)
+  assert.match(script, /ensureMetroServer/)
 
   const flow = await readFile(new URL('../.maestro/android-smoke.yaml', import.meta.url), 'utf8')
   assert.match(flow, /appId: io\.guion\.kepos/)

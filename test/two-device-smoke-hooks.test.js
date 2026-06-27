@@ -54,6 +54,18 @@ test('Android lobby uses product action words for QR and trust flows', async () 
   assert.equal(source.includes('Trust Profile'), false)
 })
 
+test('Android room has a People tab for QR and trusted contacts', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+
+  assert.match(source, /testID='people-tab'/)
+  assert.match(source, /label='Home'/)
+  assert.match(source, /activeTab === 'people'/)
+  assert.match(source, /<PeoplePane/)
+  assert.match(source, /My Home QR/)
+  assert.match(source, /My Profile QR/)
+  assert.match(source, /ContactManager/)
+})
+
 test('Android QR scanner keeps the camera preview visible', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 

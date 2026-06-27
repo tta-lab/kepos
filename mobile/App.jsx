@@ -704,23 +704,35 @@ export default function App() {
                 dmMessages={dmMessages}
                 dmRecipient={dmRecipient}
                 activeTab={activeTab}
+                homeQrUri={homeQrUri}
+                myHomeQrUri={myHomeQrUri}
                 onAcceptRequest={acceptIncomingMessageRequest}
                 onDraftChange={setDraft}
                 onDmDraftChange={setDmDraft}
                 onDmRecipientChange={setDmRecipient}
+                onHomeQrChange={setHomeQrUri}
+                onJoinHomeQr={joinHomeQr}
                 onLeave={leaveRoom}
                 onRevokeContact={revokeTrustedContact}
+                onScanHomeQr={() => startQrScan('home')}
+                onScanProfileQr={() => startQrScan('profile')}
                 onSend={sendMessage}
                 onSendDm={sendMessageRequest}
                 onTabChange={setActiveTab}
+                onTrustAliasChange={setTrustAlias}
+                onTrustProfile={trustProfileQr}
+                onTrustQrChange={setTrustQrUri}
                 onTreeholeDraftChange={setTreeholeDraft}
                 onTreeholeComment={sendTreeholeComment}
                 onTreeholeLike={sendTreeholeLike}
                 onTreeholePost={sendTreeholePost}
+                profileQrUri={profileQrUri}
                 session={session}
                 treeholeDraft={treeholeDraft}
                 treeholePosts={treeholePosts}
                 treeholeStatus={treeholeStatus}
+                trustAlias={trustAlias}
+                trustQrUri={trustQrUri}
               />
             ) : (
               <Lobby
@@ -1003,23 +1015,35 @@ function ChatRoom({
   dmContactOptions,
   dmMessages,
   dmRecipient,
+  homeQrUri,
+  myHomeQrUri,
   onAcceptRequest,
   onDraftChange,
   onDmDraftChange,
   onDmRecipientChange,
+  onHomeQrChange,
+  onJoinHomeQr,
   onLeave,
   onRevokeContact,
+  onScanHomeQr,
+  onScanProfileQr,
   onSend,
   onSendDm,
   onTabChange,
+  onTrustAliasChange,
+  onTrustProfile,
+  onTrustQrChange,
   onTreeholeComment,
   onTreeholeDraftChange,
   onTreeholeLike,
   onTreeholePost,
+  profileQrUri,
   session,
   treeholeDraft,
   treeholePosts,
-  treeholeStatus
+  treeholeStatus,
+  trustAlias,
+  trustQrUri
 }) {
   const roomShort = useMemo(
     () => `${session.roomKey.slice(0, 8)}...${session.roomKey.slice(-8)}`,
@@ -1043,7 +1067,7 @@ function ChatRoom({
       <View style={styles.tabs}>
         <TabButton
           active={activeTab === 'chat'}
-          label='Chat'
+          label='Home'
           onPress={() => onTabChange('chat')}
           testID='chat-tab'
         />
@@ -1058,6 +1082,12 @@ function ChatRoom({
           label='Treehole'
           onPress={() => onTabChange('treehole')}
           testID='treehole-tab'
+        />
+        <TabButton
+          active={activeTab === 'people'}
+          label='People'
+          onPress={() => onTabChange('people')}
+          testID='people-tab'
         />
       </View>
 
@@ -1080,7 +1110,7 @@ function ChatRoom({
           onSend={onSendDm}
           recipient={dmRecipient}
         />
-      ) : (
+      ) : activeTab === 'treehole' ? (
         <TreeholePane
           draft={treeholeDraft}
           onDraftChange={onTreeholeDraftChange}
@@ -1090,8 +1120,127 @@ function ChatRoom({
           posts={treeholePosts}
           status={treeholeStatus}
         />
+      ) : (
+        <PeoplePane
+          homeQrUri={homeQrUri}
+          myHomeQrUri={myHomeQrUri}
+          onHomeQrChange={onHomeQrChange}
+          onJoinHomeQr={onJoinHomeQr}
+          onRevokeContact={onRevokeContact}
+          onScanHomeQr={onScanHomeQr}
+          onScanProfileQr={onScanProfileQr}
+          onTrustAliasChange={onTrustAliasChange}
+          onTrustProfile={onTrustProfile}
+          onTrustQrChange={onTrustQrChange}
+          profileQrUri={profileQrUri}
+          trustAlias={trustAlias}
+          trustedContacts={dmContactOptions}
+          trustQrUri={trustQrUri}
+        />
       )}
     </View>
+  )
+}
+
+function PeoplePane({
+  homeQrUri,
+  myHomeQrUri,
+  onHomeQrChange,
+  onJoinHomeQr,
+  onRevokeContact,
+  onScanHomeQr,
+  onScanProfileQr,
+  onTrustAliasChange,
+  onTrustProfile,
+  onTrustQrChange,
+  profileQrUri,
+  trustAlias,
+  trustedContacts,
+  trustQrUri
+}) {
+  return (
+    <ScrollView contentContainerStyle={styles.peoplePane} keyboardShouldPersistTaps='handled'>
+      <View style={styles.panel}>
+        <Text style={styles.panelTitle}>My Home QR</Text>
+        <QrCard value={myHomeQrUri} />
+        <Pressable
+          onPress={onScanHomeQr}
+          style={styles.secondaryButton}
+          testID='scan-home-qr-button'
+        >
+          <Text style={styles.secondaryButtonText}>Scan Home QR</Text>
+        </Pressable>
+        <TextInput
+          autoCapitalize='none'
+          autoCorrect={false}
+          multiline
+          onChangeText={onHomeQrChange}
+          placeholder='Paste Home QR text'
+          placeholderTextColor='#8b9188'
+          style={styles.keyInput}
+          testID='join-home-uri-input'
+          value={homeQrUri}
+        />
+        <Pressable
+          disabled={!homeQrUri.trim()}
+          onPress={onJoinHomeQr}
+          style={[styles.secondaryButton, !homeQrUri.trim() && styles.disabledButton]}
+          testID='join-home-uri-button'
+        >
+          <ArrowRight color={homeQrUri.trim() ? '#143d2b' : '#8b9188'} size={18} />
+          <Text
+            style={[styles.secondaryButtonText, !homeQrUri.trim() && styles.disabledButtonText]}
+          >
+            Join a home
+          </Text>
+        </Pressable>
+      </View>
+
+      <View style={styles.panel}>
+        <Text style={styles.panelTitle}>My Profile QR</Text>
+        <QrCard value={profileQrUri} />
+        <Pressable
+          onPress={onScanProfileQr}
+          style={styles.secondaryButton}
+          testID='scan-profile-qr-button'
+        >
+          <Text style={styles.secondaryButtonText}>Scan Profile QR</Text>
+        </Pressable>
+        <Text style={styles.panelCopy}>Friend profile</Text>
+        <TextInput
+          autoCapitalize='none'
+          autoCorrect={false}
+          multiline
+          onChangeText={onTrustQrChange}
+          placeholder='Paste Profile QR text'
+          placeholderTextColor='#8b9188'
+          style={styles.keyInput}
+          testID='trust-profile-uri-input'
+          value={trustQrUri}
+        />
+        <Field
+          label='Alias'
+          onChangeText={onTrustAliasChange}
+          testID='trust-profile-alias-input'
+          value={trustAlias}
+        />
+        <Pressable
+          disabled={!trustQrUri.trim()}
+          onPress={onTrustProfile}
+          style={[styles.secondaryButton, !trustQrUri.trim() && styles.disabledButton]}
+          testID='trust-profile-button'
+        >
+          <Plus color={trustQrUri.trim() ? '#143d2b' : '#8b9188'} size={18} />
+          <Text
+            style={[styles.secondaryButtonText, !trustQrUri.trim() && styles.disabledButtonText]}
+          >
+            Add trusted friend
+          </Text>
+        </Pressable>
+      </View>
+
+      <ContactManager contacts={trustedContacts} onRevokeContact={onRevokeContact} />
+    </ScrollView>
   )
 }
 
@@ -1633,6 +1782,10 @@ const styles = StyleSheet.create({
   },
   lobbyScroll: {
     flex: 1
+  },
+  peoplePane: {
+    gap: 14,
+    padding: 18
   },
   panel: {
     backgroundColor: '#f6f1e4',
