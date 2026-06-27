@@ -1244,7 +1244,7 @@ function PeopleActions({
             value={trustQrUri}
           />
           <Field
-            label='Alias'
+            label='Friend name'
             onChangeText={onTrustAliasChange}
             testID='trust-profile-alias-input'
             value={trustAlias}

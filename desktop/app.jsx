@@ -260,8 +260,8 @@ function DesktopApp() {
                 />
               </label>
               <label>
-                Alias
-                <input id='trustAliasInput' autoComplete='off' placeholder='Contact name' />
+                Friend name
+                <input id='trustAliasInput' autoComplete='off' placeholder='Friend name' />
               </label>
               <button id='trustButton' type='submit'>
                 <UserPlus size={17} />
