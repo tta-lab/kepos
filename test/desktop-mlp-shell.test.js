@@ -185,12 +185,11 @@ test('desktop status panel keeps raw ids in advanced details', async () => {
     source.indexOf("id='errorDetailLabel'") > source.indexOf("id='advancedStatus'"),
     true
   )
-  assert.match(controller, /els\.homeStatusLabel\.textContent = getDesktopHomeStatus\(state\)/)
-  assert.match(
-    controller,
-    /els\.treeholeStatusLabel\.textContent = getDesktopTreeholeStatus\(state\)/
-  )
-  assert.match(controller, /els\.errorDetailLabel\.textContent = state\.lastError \|\| 'none'/)
+  assert.match(source, /\{status\.homeStatusLabel\}/)
+  assert.match(source, /\{status\.treeholeStatusLabel\}/)
+  assert.match(source, /\{status\.errorDetailLabel\}/)
+  assert.match(controller, /createDesktopStatusViewModel/)
+  assert.match(controller, /globalThis\.keposDesktopUi\?\.setStatus\(status\)/)
   assert.equal(source.includes('treehole idle'), false)
   assert.equal(source.includes("<p className='label'>Peers</p>"), false)
   assert.equal(controller.includes('Treehole ${state.treeholeStatus}'), false)
@@ -199,9 +198,13 @@ test('desktop status panel keeps raw ids in advanced details', async () => {
 test('desktop error handling keeps raw exception detail advanced', async () => {
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const state = await readFile(new URL('../src/desktop-state.js', import.meta.url), 'utf8')
+  const statusViewModel = await readFile(
+    new URL('../src/desktop-status-view-model.js', import.meta.url),
+    'utf8'
+  )
 
   assert.match(state, /lastError: ''/)
-  assert.match(controller, /errorDetailLabel: document\.querySelector\('#errorDetailLabel'\)/)
+  assert.match(statusViewModel, /errorDetailLabel: state\?\.lastError \|\| 'none'/)
   assert.match(controller, /notice: getDesktopErrorNotice\(error\)/)
   assert.match(controller, /function getDesktopErrorNotice\(error\)/)
   assert.match(controller, /Could not read this Home QR\./)

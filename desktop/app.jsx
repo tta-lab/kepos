@@ -19,6 +19,15 @@ import {
 } from 'lucide-react'
 
 const THEME_STORAGE_KEY = 'kepos.desktop.theme'
+const DEFAULT_STATUS = {
+  errorDetailLabel: 'none',
+  homeStatusLabel: 'Offline',
+  noticeLabel: 'Create or join a home.',
+  peerLabel: '0',
+  profileIdLabel: 'not ready',
+  roomKeyLabel: 'not joined',
+  treeholeStatusLabel: 'Treehole offline'
+}
 const desktopUiBridge = {
   setDirectContactPicker: () => {},
   setDirectContactPickerActions: () => {},
@@ -27,6 +36,7 @@ const desktopUiBridge = {
   setHomeMessages: () => {},
   setPeople: () => {},
   setPeopleActions: () => {},
+  setStatus: () => {},
   setTreeholeActions: () => {},
   setTreeholePosts: () => {}
 }
@@ -61,6 +71,9 @@ globalThis.keposDesktopUi = {
   },
   setPeopleActions(actions = {}) {
     desktopUiBridge.setPeopleActions(actions)
+  },
+  setStatus(status = DEFAULT_STATUS) {
+    desktopUiBridge.setStatus(status)
   },
   setTreeholeActions(actions = {}) {
     desktopUiBridge.setTreeholeActions(actions)
@@ -100,6 +113,7 @@ function DesktopApp() {
     likePost: () => {}
   })
   const [treeholePosts, setTreeholePosts] = useState([])
+  const [status, setStatus] = useState(DEFAULT_STATUS)
   const [theme, setTheme] = useState(getInitialTheme)
   desktopUiBridge.setDirectContactPicker = setDirectContactPicker
   desktopUiBridge.setDirectContactPickerActions = setDirectContactPickerActions
@@ -108,6 +122,7 @@ function DesktopApp() {
   desktopUiBridge.setHomeMessages = setHomeMessages
   desktopUiBridge.setPeople = setPeople
   desktopUiBridge.setPeopleActions = setPeopleActions
+  desktopUiBridge.setStatus = setStatus
   desktopUiBridge.setTreeholeActions = setTreeholeActions
   desktopUiBridge.setTreeholePosts = setTreeholePosts
 
@@ -157,10 +172,10 @@ function DesktopApp() {
               <p className='kicker'>private garden</p>
               <h1>Kepos Home</h1>
               <p id='noticeLabel' className='notice'>
-                Create or join a home.
+                {status.noticeLabel}
               </p>
               <p id='treeholeStatusLabel' className='subnotice'>
-                Treehole offline
+                {status.treeholeStatusLabel}
               </p>
             </div>
             <div className='themeSwitch' role='group' aria-label='Theme'>
@@ -386,25 +401,25 @@ function DesktopApp() {
           <section className='panel roomMeta'>
             <p className='label'>Home</p>
             <p id='homeStatusLabel' className='metric'>
-              Offline
+              {status.homeStatusLabel}
             </p>
             <p className='label'>Online</p>
             <p id='peerLabel' className='metric'>
-              0
+              {status.peerLabel}
             </p>
             <details id='advancedStatus' className='advanced'>
               <summary>Advanced</summary>
               <p className='label'>Home</p>
               <p id='roomKeyLabel' className='mono muted'>
-                not joined
+                {status.roomKeyLabel}
               </p>
               <p className='label'>Profile</p>
               <p id='profileIdLabel' className='mono muted'>
-                not ready
+                {status.profileIdLabel}
               </p>
               <p className='label'>Error detail</p>
               <p id='errorDetailLabel' className='mono muted'>
-                none
+                {status.errorDetailLabel}
               </p>
             </details>
             <button id='leaveButton' type='button' disabled>

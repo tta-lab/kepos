@@ -77,6 +77,26 @@ test('desktop React owns the direct contact picker surface', async () => {
   assert.doesNotMatch(controller, /els\.dmContactList\.replaceChildren/)
 })
 
+test('desktop React owns the status labels surface', async () => {
+  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+
+  assert.match(source, /setStatus\(status = DEFAULT_STATUS\)/)
+  assert.match(source, /\{status\.noticeLabel\}/)
+  assert.match(source, /\{status\.treeholeStatusLabel\}/)
+  assert.match(source, /\{status\.homeStatusLabel\}/)
+  assert.match(source, /\{status\.peerLabel\}/)
+  assert.match(source, /\{status\.roomKeyLabel\}/)
+  assert.match(source, /\{status\.profileIdLabel\}/)
+  assert.match(source, /\{status\.errorDetailLabel\}/)
+  assert.match(controller, /createDesktopStatusViewModel/)
+  assert.match(controller, /globalThis\.keposDesktopUi\?\.setStatus\(status\)/)
+  assert.doesNotMatch(controller, /els\.homeStatusLabel\.textContent/)
+  assert.doesNotMatch(controller, /els\.noticeLabel\.textContent/)
+  assert.doesNotMatch(controller, /els\.treeholeStatusLabel\.textContent/)
+  assert.doesNotMatch(controller, /els\.errorDetailLabel\.textContent/)
+})
+
 test('desktop React owns the people list surfaces', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')

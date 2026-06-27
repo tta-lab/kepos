@@ -24,12 +24,11 @@ import {
 import { createDesktopContactRevoke } from '../src/desktop-revoke-service.js'
 import {
   createDesktopState,
-  getDesktopHomeStatus,
-  getDesktopTreeholeStatus,
   setDesktopRoom,
   setDesktopTab,
   setDesktopTreehole
 } from '../src/desktop-state.js'
+import { createDesktopStatusViewModel } from '../src/desktop-status-view-model.js'
 import { createDesktopTreeholeViewModel } from '../src/desktop-treehole-view-model.js'
 import { createDesktopBackendBridge } from '../src/desktop-backend-bridge.ts'
 import { createDesktopCommandRegistry } from '../src/desktop-command-registry.ts'
@@ -54,12 +53,10 @@ const els = {
   dmRecipientInput: document.querySelector('#dmRecipientInput'),
   dmSendButton: document.querySelector('#dmSendButton'),
   dmTab: document.querySelector('#dmTab'),
-  errorDetailLabel: document.querySelector('#errorDetailLabel'),
   homeQrForm: document.querySelector('#homeQrForm'),
   homeQrCode: document.querySelector('#homeQrCode'),
   homeQrInput: document.querySelector('#homeQrInput'),
   homeQrOutput: document.querySelector('#homeQrOutput'),
-  homeStatusLabel: document.querySelector('#homeStatusLabel'),
   joinButton: document.querySelector('#joinButton'),
   joinHomeQrButton: document.querySelector('#joinHomeQrButton'),
   largeQrCloseButton: document.querySelector('#largeQrCloseButton'),
@@ -69,15 +66,11 @@ const els = {
   leaveButton: document.querySelector('#leaveButton'),
   lobbyForm: document.querySelector('#lobbyForm'),
   nickInput: document.querySelector('#nickInput'),
-  noticeLabel: document.querySelector('#noticeLabel'),
-  peerLabel: document.querySelector('#peerLabel'),
   peoplePane: document.querySelector('#peoplePane'),
   peopleTab: document.querySelector('#peopleTab'),
   profileQrCode: document.querySelector('#profileQrCode'),
   profileQrOutput: document.querySelector('#profileQrOutput'),
-  profileIdLabel: document.querySelector('#profileIdLabel'),
   roomKeyInput: document.querySelector('#roomKeyInput'),
-  roomKeyLabel: document.querySelector('#roomKeyLabel'),
   showLargeHomeQrButton: document.querySelector('#showLargeHomeQrButton'),
   showLargeProfileQrButton: document.querySelector('#showLargeProfileQrButton'),
   treeholeForm: document.querySelector('#treeholeForm'),
@@ -85,7 +78,6 @@ const els = {
   treeholePane: document.querySelector('#treeholePane'),
   treeholePostPolicy: document.querySelector('#treeholePostPolicy'),
   treeholeSendButton: document.querySelector('#treeholeSendButton'),
-  treeholeStatusLabel: document.querySelector('#treeholeStatusLabel'),
   treeholeTab: document.querySelector('#treeholeTab'),
   trustAliasInput: document.querySelector('#trustAliasInput'),
   trustButton: document.querySelector('#trustButton'),
@@ -615,13 +607,7 @@ function render() {
   els.leaveButton.disabled = !inRoom || isActionPending
   els.createButton.disabled = inRoom || isActionPending
   updateActionButtons()
-  els.homeStatusLabel.textContent = getDesktopHomeStatus(state)
-  els.roomKeyLabel.textContent = inRoom ? shorten(state.roomKey) : 'not joined'
-  els.profileIdLabel.textContent = session?.profileId ? shorten(session.profileId) : 'not ready'
-  els.peerLabel.textContent = String(state.peers)
-  els.noticeLabel.textContent = state.notice
-  els.errorDetailLabel.textContent = state.lastError || 'none'
-  els.treeholeStatusLabel.textContent = getDesktopTreeholeStatus(state)
+  renderStatus()
   els.treeholeForm.classList.toggle('disabledComposer', !state.treeholeCanPost)
   els.treeholeInput.disabled = !state.treeholeCanPost
   els.treeholePostPolicy.hidden = state.treeholeCanPost
@@ -642,6 +628,15 @@ function render() {
   renderDirectContacts()
   renderPeople()
   renderPosts()
+}
+
+function renderStatus() {
+  const status = createDesktopStatusViewModel({
+    session,
+    shortenProfileId: shorten,
+    state
+  })
+  globalThis.keposDesktopUi?.setStatus(status)
 }
 
 function updateTabCurrentState() {
