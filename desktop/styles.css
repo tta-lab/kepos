@@ -27,6 +27,9 @@
   --empty-bg: rgba(255, 253, 247, 0.72);
   --disabled: #b8beb1;
   --comment-border: #9bb68d;
+  --focus: #ef6b4a;
+  --shadow-soft: 0 10px 30px rgba(49, 63, 44, 0.08);
+  --shadow-tight: 0 6px 18px rgba(20, 61, 43, 0.12);
   color-scheme: light;
 }
 
@@ -55,11 +58,20 @@
   --empty-bg: rgba(34, 42, 73, 0.72);
   --disabled: #4a5269;
   --comment-border: #ffcf3d;
+  --focus: #ffcf3d;
+  --shadow-soft: 0 14px 34px rgba(3, 6, 16, 0.34);
+  --shadow-tight: 0 8px 20px rgba(0, 0, 0, 0.3);
   color-scheme: dark;
 }
 
 body {
-  background: var(--surface);
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--surface-context) 18%, transparent),
+      transparent 38%
+    ),
+    var(--surface);
   color: var(--ink);
   font-family: ui-monospace, 'SFMono-Regular', 'SF Mono', Consolas, 'Liberation Mono', monospace;
   margin: 0;
@@ -87,6 +99,12 @@ button {
   justify-content: center;
   min-height: 38px;
   padding: 0 14px;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    color 140ms ease,
+    transform 140ms ease;
 }
 
 button svg {
@@ -97,6 +115,20 @@ button:disabled {
   background: var(--disabled);
   border-color: var(--disabled);
   cursor: not-allowed;
+  transform: none;
+}
+
+button:not(:disabled):hover {
+  box-shadow: var(--shadow-tight);
+  transform: translateY(-1px);
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
 }
 
 input,
@@ -107,7 +139,16 @@ textarea {
   color: var(--ink);
   outline: none;
   padding: 10px;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
   width: 100%;
+}
+
+input:focus,
+textarea:focus {
+  border-color: var(--focus);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 18%, transparent);
 }
 
 textarea {
@@ -197,6 +238,9 @@ textarea {
   grid-template-rows: auto 1fr;
   justify-items: center;
   padding: 18px 10px;
+  position: sticky;
+  top: 0;
+  z-index: 5;
 }
 
 .mark {
@@ -251,7 +295,7 @@ textarea {
   color: var(--ink-soft);
   font-size: 11px;
   font-weight: 900;
-  letter-spacing: 0.02em;
+  letter-spacing: 0;
   margin: 0;
   text-transform: uppercase;
 }
@@ -264,6 +308,7 @@ textarea {
   gap: 14px;
   margin-bottom: 14px;
   padding: 14px;
+  box-shadow: var(--shadow-soft);
 }
 
 .compactPanel {
@@ -289,7 +334,7 @@ textarea {
   cursor: pointer;
   font-size: 11px;
   font-weight: 900;
-  letter-spacing: 0.02em;
+  letter-spacing: 0;
   text-transform: uppercase;
 }
 
@@ -335,11 +380,13 @@ textarea {
 .workspace {
   display: grid;
   grid-template-rows: auto 1fr;
+  min-height: 100vh;
   min-width: 0;
 }
 
 .topbar {
   align-items: end;
+  background: color-mix(in srgb, var(--surface-raised) 62%, transparent);
   border-bottom: 1px solid var(--border);
   display: flex;
   gap: 16px;
@@ -408,7 +455,7 @@ textarea {
   color: var(--ink-soft);
   font-size: 11px;
   font-weight: 900;
-  letter-spacing: 0.02em;
+  letter-spacing: 0;
   margin: 0;
   text-transform: uppercase;
 }
@@ -464,6 +511,8 @@ textarea {
   background: var(--surface-raised);
   border: 1px solid var(--border);
   border-radius: 8px;
+  box-shadow: var(--shadow-soft);
+  line-height: 1.45;
   max-width: 720px;
   padding: 12px;
 }
@@ -480,7 +529,7 @@ textarea {
 }
 
 .outgoing .meta {
-  color: var(--accent);
+  color: color-mix(in srgb, var(--accent-ink) 76%, transparent);
 }
 
 .incoming {
@@ -576,11 +625,13 @@ textarea {
 
 .managedContact {
   align-items: center;
-  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface-raised) 78%, transparent);
+  border: 1px solid var(--border);
+  border-radius: 8px;
   display: grid;
   gap: 10px;
   grid-template-columns: 1fr auto;
-  padding-bottom: 10px;
+  padding: 10px;
 }
 
 .managedContact p {
@@ -619,6 +670,7 @@ textarea {
 }
 
 .dangerButton {
+  background: transparent;
   border-color: var(--danger-border);
   color: var(--danger);
 }
@@ -699,6 +751,9 @@ textarea {
   cursor: pointer;
   list-style: none;
   padding: 8px;
+  transition:
+    background 140ms ease,
+    box-shadow 140ms ease;
 }
 
 .contextGroup > summary::-webkit-details-marker {
@@ -732,5 +787,87 @@ textarea {
     border-top: 1px solid var(--border-strong);
     grid-column: 1 / -1;
     max-height: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .shell {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  .appRail {
+    align-items: center;
+    border-bottom: 1px solid var(--border-strong);
+    border-right: 0;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto;
+    justify-items: stretch;
+    padding: 10px;
+  }
+
+  .mark {
+    height: 40px;
+    width: 40px;
+  }
+
+  .railNav {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    padding: 0 0 0 10px;
+  }
+
+  .railButton {
+    height: 48px;
+  }
+
+  .topbar {
+    align-items: stretch;
+    flex-direction: column;
+    min-height: 0;
+    padding: 18px;
+  }
+
+  .topbar h1 {
+    font-size: 26px;
+  }
+
+  .themeSwitch {
+    width: 100%;
+  }
+
+  .paneLabel,
+  .list,
+  .composer {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .composer,
+  .commentForm,
+  .postActions {
+    grid-template-columns: 1fr;
+  }
+
+  .composer button,
+  .commentForm button,
+  .postActions button {
+    width: 100%;
+  }
+
+  .actions {
+    grid-template-columns: 1fr;
+  }
+
+  .managedContact {
+    grid-template-columns: 1fr;
+  }
+
+  .inlineActions {
+    justify-content: stretch;
+  }
+
+  .inlineActions button {
+    flex: 1 1 0;
   }
 }

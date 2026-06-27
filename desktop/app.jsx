@@ -38,7 +38,13 @@ function DesktopApp() {
         <aside className='appRail' aria-label='Kepos views'>
           <div className='mark'>K</div>
           <nav className='railNav' aria-label='Main views'>
-            <button id='chatTab' className='railButton active' type='button' title='Home chat'>
+            <button
+              id='chatTab'
+              className='railButton active'
+              type='button'
+              title='Home chat'
+              aria-current='page'
+            >
               <MessageCircle size={19} />
               <span className='railLabel'>Home</span>
             </button>

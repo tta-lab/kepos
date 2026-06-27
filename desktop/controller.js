@@ -612,6 +612,7 @@ function render() {
   els.dmTab.classList.toggle('active', state.activeTab === 'dm')
   els.treeholeTab.classList.toggle('active', state.activeTab === 'treehole')
   els.peopleTab.classList.toggle('active', state.activeTab === 'people')
+  updateTabCurrentState()
 
   renderMessages()
   renderDirectMessages()
@@ -619,6 +620,21 @@ function render() {
   renderMessageRequests()
   renderContacts()
   renderPosts()
+}
+
+function updateTabCurrentState() {
+  for (const [tab, element] of [
+    ['chat', els.chatTab],
+    ['dm', els.dmTab],
+    ['treehole', els.treeholeTab],
+    ['people', els.peopleTab]
+  ]) {
+    if (state.activeTab === tab) {
+      element.setAttribute('aria-current', 'page')
+    } else {
+      element.removeAttribute('aria-current')
+    }
+  }
 }
 
 function updateActionButtons() {

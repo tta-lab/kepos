@@ -264,6 +264,37 @@ test('desktop panes label live and durable surfaces', async () => {
   assert.match(styles, /\.activeContactButton/)
 })
 
+test('desktop rail keeps current view accessible', async () => {
+  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+
+  assert.match(source, /id='chatTab'[\s\S]+aria-current='page'/)
+  assert.match(controller, /function updateTabCurrentState\(\)/)
+  assert.match(controller, /element\.setAttribute\('aria-current', 'page'\)/)
+  assert.match(controller, /element\.removeAttribute\('aria-current'\)/)
+  assert.equal(
+    controller.indexOf("els.peopleTab.classList.toggle('active'") <
+      controller.indexOf('updateTabCurrentState()'),
+    true
+  )
+})
+
+test('desktop MLP shell has responsive polish for narrow screens', async () => {
+  const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
+
+  assert.match(styles, /--focus:/)
+  assert.match(styles, /--shadow-soft:/)
+  assert.match(styles, /button:not\(:disabled\):hover/)
+  assert.match(styles, /:focus-visible/)
+  assert.match(styles, /@media \(max-width: 720px\)/)
+  assert.match(styles, /grid-template-columns:\s*repeat\(4, minmax\(0, 1fr\)\)/)
+  assert.match(
+    styles,
+    /\.composer,\s*\.commentForm,\s*\.postActions\s*\{\s*grid-template-columns: 1fr;/
+  )
+  assert.match(styles, /\.managedContact\s*\{[\s\S]*border-radius: 8px/)
+})
+
 test('desktop direct messages links zero-contact state to People', async () => {
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
