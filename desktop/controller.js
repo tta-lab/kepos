@@ -14,6 +14,7 @@ import {
   createDesktopMessageRequestAcceptance,
   createDesktopMessageRequestIgnore
 } from '../src/desktop-message-request-service.js'
+import { createDesktopMessageActions } from '../src/desktop-message-actions.js'
 import {
   applyDesktopHomeQr,
   applyDesktopProfileTrustQr,
@@ -49,20 +50,33 @@ let shareQrOutputs = {
   profileSvg: '',
   profileUri: ''
 }
+const messageActions = createDesktopMessageActions({
+  createId,
+  getDmRuntime: () => dmRuntime,
+  getDmSession: () => dmSession,
+  getHomeRuntime: () => homeRuntime,
+  getSession: () => session,
+  getTreeholeCanPost: () => state.treeholeCanPost,
+  getTreeholeRuntime: () => treeholeRuntime,
+  onChanged: () => render(),
+  setSession: (nextSession) => {
+    session = nextSession
+  }
+})
 const backendHost = createDesktopLocalBackendHost({
   actions: {
     acceptMessageRequest: acceptIncomingMessageRequest,
-    commentTreehole: commentTreeholePost,
+    commentTreehole: messageActions.commentTreehole,
     ignoreMessageRequest: ignoreIncomingMessageRequest,
     joinHome: joinRoom,
     joinHomeUri: joinHomeQr,
     leaveHome: leaveRoom,
-    likeTreehole: likeTreeholePost,
-    postTreehole,
+    likeTreehole: messageActions.likeTreehole,
+    postTreehole: messageActions.postTreehole,
     revokeContact: revokeLocalContact,
-    sendDmMessage: sendMessageRequest,
-    sendHomeMessage: sendChat,
-    sendMessageRequest,
+    sendDmMessage: messageActions.sendDmMessage,
+    sendHomeMessage: messageActions.sendHomeMessage,
+    sendMessageRequest: messageActions.sendDmMessage,
     trustProfileUri: trustProfileQr
   },
   runtimeOptions: {
@@ -339,46 +353,6 @@ function configureTreeholeRuntime() {
   backendRuntime.configure({ homeJoinDetails, session })
 }
 
-function sendChat({ text } = {}) {
-  if (!homeRuntime.isJoined() || !session || !text) return
-
-  const message = {
-    at: Date.now(),
-    id: createId(),
-    text
-  }
-
-  session = homeRuntime.sendMessage(message)
-  render()
-}
-
-function sendMessageRequest({ text, toProfileId } = {}) {
-  if (!homeRuntime.isJoined() || !dmSession || !toProfileId || !text) return
-
-  const result = dmRuntime.sendMessageOrRequest({
-    broadcastControl: (request) => homeRuntime.broadcastControl(request),
-    createdAt: Date.now(),
-    messageId: createId(),
-    requestId: createId(),
-    text,
-    toProfileId
-  })
-
-  if (!result) return
-
-  render()
-}
-
-async function postTreehole({ text } = {}) {
-  if (!text || !state.treeholeCanPost) return
-
-  await treeholeRuntime.post({
-    createdAt: Date.now(),
-    id: createId(),
-    text
-  })
-}
-
 async function handleControl(message, peer) {
   if (message.type === 'kepos.message.request.v1') {
     const context = getProfileContext()
@@ -646,24 +620,6 @@ function renderPosts() {
     shortenProfileId: shorten
   })
   globalThis.keposDesktopUi?.setTreeholePosts(posts)
-}
-
-async function commentTreeholePost({ postId, text }) {
-  if (!text.trim()) return
-
-  await treeholeRuntime.comment({
-    createdAt: Date.now(),
-    id: createId(),
-    postId,
-    text
-  })
-}
-
-async function likeTreeholePost(postId) {
-  await treeholeRuntime.like({
-    createdAt: Date.now(),
-    postId
-  })
 }
 
 function showError(error) {

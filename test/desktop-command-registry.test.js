@@ -69,6 +69,10 @@ test('desktop controller routes UI actions through the command host', async () =
 test('desktop home message command carries composer text as payload', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const host = await readFile(new URL('../src/desktop-command-host.js', import.meta.url), 'utf8')
+  const actions = await readFile(
+    new URL('../src/desktop-message-actions.js', import.meta.url),
+    'utf8'
+  )
 
   assert.match(
     source,
@@ -79,8 +83,8 @@ test('desktop home message command carries composer text as payload', async () =
     host,
     /sendHomeMessage: \(payload\) => actions\.sendHomeMessage\(readCommandPayload\(payload\)\)/
   )
-  assert.match(source, /sendHomeMessage: sendChat/)
-  assert.match(source, /function sendChat\(\{ text \} = \{\}\)/)
+  assert.match(source, /sendHomeMessage: messageActions\.sendHomeMessage/)
+  assert.match(actions, /sendHomeMessage\(\{ text \} = \{\}\)/)
   assert.doesNotMatch(
     source,
     /function sendChat\(\) \{\s*const text = els\.chatInput\.value\.trim\(\)/
@@ -90,6 +94,10 @@ test('desktop home message command carries composer text as payload', async () =
 test('desktop direct message command carries composer fields as payload', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const host = await readFile(new URL('../src/desktop-command-host.js', import.meta.url), 'utf8')
+  const actions = await readFile(
+    new URL('../src/desktop-message-actions.js', import.meta.url),
+    'utf8'
+  )
 
   assert.match(
     source,
@@ -100,8 +108,8 @@ test('desktop direct message command carries composer fields as payload', async 
     host,
     /sendDmMessage: \(payload\) => actions\.sendDmMessage\(readCommandPayload\(payload\)\)/
   )
-  assert.match(source, /sendDmMessage: sendMessageRequest/)
-  assert.match(source, /function sendMessageRequest\(\{ text, toProfileId \} = \{\}\)/)
+  assert.match(source, /sendDmMessage: messageActions\.sendDmMessage/)
+  assert.match(actions, /sendDmMessage\(\{ text, toProfileId \} = \{\}\)/)
   assert.doesNotMatch(source, /dmForm: document\.querySelector/)
   assert.doesNotMatch(source, /dmInput: document\.querySelector/)
   assert.doesNotMatch(source, /dmRecipientInput: document\.querySelector/)
@@ -114,6 +122,10 @@ test('desktop direct message command carries composer fields as payload', async 
 test('desktop treehole post command carries composer text as payload', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const host = await readFile(new URL('../src/desktop-command-host.js', import.meta.url), 'utf8')
+  const actions = await readFile(
+    new URL('../src/desktop-message-actions.js', import.meta.url),
+    'utf8'
+  )
 
   assert.match(
     source,
@@ -124,8 +136,8 @@ test('desktop treehole post command carries composer text as payload', async () 
     host,
     /postTreehole: \(payload\) => actions\.postTreehole\(readCommandPayload\(payload\)\)/
   )
-  assert.match(source, /postTreehole,\n/)
-  assert.match(source, /async function postTreehole\(\{ text \} = \{\}\)/)
+  assert.match(source, /postTreehole: messageActions\.postTreehole/)
+  assert.match(actions, /async postTreehole\(\{ text \} = \{\}\)/)
   assert.doesNotMatch(
     source,
     /async function postTreehole\(\) \{\s*const text = els\.treeholeInput\.value\.trim\(\)/

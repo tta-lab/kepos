@@ -82,6 +82,10 @@ test('desktop controller routes treehole runtime updates through backend bridge 
 
 test('desktop controller delegates home transport to a runtime boundary', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const actions = await readFile(
+    new URL('../src/desktop-message-actions.js', import.meta.url),
+    'utf8'
+  )
   const host = await readFile(
     new URL('../src/desktop-local-backend-host.js', import.meta.url),
     'utf8'
@@ -91,7 +95,7 @@ test('desktop controller delegates home transport to a runtime boundary', async 
   assert.match(source, /const homeRuntime = backendHost\.homeRuntime/)
   assert.match(source, /onHomeControl: \(message, peer\) => handleControl/)
   assert.match(source, /homeRuntime\.join/)
-  assert.match(source, /homeRuntime\.sendMessage/)
+  assert.match(actions, /homeRuntime\.sendMessage/)
   assert.doesNotMatch(source, /from '..\/src\/p2p-room\.js'/)
   assert.doesNotMatch(source, /from '..\/src\/chat-session\.js'/)
   assert.doesNotMatch(source, /from '..\/src\/home-presence\.ts'/)
@@ -99,6 +103,10 @@ test('desktop controller delegates home transport to a runtime boundary', async 
 
 test('desktop controller delegates direct message runtime and storage to a boundary', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const actions = await readFile(
+    new URL('../src/desktop-message-actions.js', import.meta.url),
+    'utf8'
+  )
   const host = await readFile(
     new URL('../src/desktop-local-backend-host.js', import.meta.url),
     'utf8'
@@ -107,7 +115,7 @@ test('desktop controller delegates direct message runtime and storage to a bound
   assert.match(host, /createDesktopBackendRuntime/)
   assert.match(source, /const backendRuntime = backendHost\.runtime/)
   assert.match(source, /const dmRuntime = backendHost\.dmRuntime/)
-  assert.match(source, /dmRuntime\.sendMessageOrRequest/)
+  assert.match(actions, /dmRuntime\?\.sendMessageOrRequest/)
   assert.doesNotMatch(source, /from '..\/src\/dm-thread-runtime\.js'/)
   assert.doesNotMatch(source, /from '..\/src\/dm-message-storage\.ts'/)
   assert.doesNotMatch(source, /from '..\/src\/dm-thread-storage\.js'/)
