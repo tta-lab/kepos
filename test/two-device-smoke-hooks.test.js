@@ -733,6 +733,7 @@ test('desktop UI exposes stable hooks for two-device smoke', async () => {
 test('desktop large QR dialog renders scan-sized QR codes', async () => {
   const app = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const actions = await readFile(new URL('../src/desktop-qr-actions.js', import.meta.url), 'utf8')
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
 
   for (const marker of [
@@ -744,32 +745,37 @@ test('desktop large QR dialog renders scan-sized QR codes', async () => {
     'width: 520',
     'largeQrDialog.hidden'
   ]) {
-    assert.match(`${app}\n${controller}\n${styles}`, new RegExp(marker), `${marker} is missing`)
+    assert.match(
+      `${app}\n${controller}\n${actions}\n${styles}`,
+      new RegExp(marker),
+      `${marker} is missing`
+    )
   }
 })
 
 test('desktop large QR dialog is keyboard reachable', async () => {
   const app = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const actions = await readFile(new URL('../src/desktop-qr-actions.js', import.meta.url), 'utf8')
 
   assert.match(app, /aria-labelledby='largeQrTitle'/)
-  assert.match(controller, /let largeQrReturnFocus = null/)
+  assert.match(actions, /let largeQrReturnFocus = null/)
   assert.match(app, /actions\.showLargeHomeQr\(\{ returnFocus: event\.currentTarget \}\)/)
   assert.match(app, /actions\.showLargeProfileQr\(\{ returnFocus: event\.currentTarget \}\)/)
   assert.match(
     controller,
-    /showLargeHomeQr: \(\{ returnFocus \}\) =>[\s\S]*showLargeQr\(\{ returnFocus, title: 'Home QR', uri: shareQrOutputs\.homeUri \}\)/
+    /showLargeHomeQr: \(\{ returnFocus \}\) =>[\s\S]*qrActions[\s\S]*\.showLargeQr\(\{[\s\S]*title: 'Home QR'/
   )
   assert.match(
     controller,
-    /showLargeProfileQr: \(\{ returnFocus \}\) =>[\s\S]*showLargeQr\(\{ returnFocus, title: 'Profile QR', uri: shareQrOutputs\.profileUri \}\)/
+    /showLargeProfileQr: \(\{ returnFocus \}\) =>[\s\S]*qrActions[\s\S]*\.showLargeQr\(\{[\s\S]*title: 'Profile QR'/
   )
-  assert.match(controller, /largeQrReturnFocus = returnFocus/)
+  assert.match(actions, /largeQrReturnFocus = returnFocus/)
   assert.match(app, /id='largeQrCloseButton'[\s\S]*autoFocus=\{qr\.isOpen\}/)
-  assert.match(controller, /largeQrReturnFocus\?\.focus\(\)/)
+  assert.match(actions, /largeQrReturnFocus\?\.focus\(\)/)
   assert.match(app, /event\.key === 'Escape'/)
   assert.match(app, /event\.target === event\.currentTarget/)
-  assert.match(controller, /hideLargeQr: \(\) => hideLargeQr\(\)/)
+  assert.match(controller, /hideLargeQr: \(\) => qrActions\.hideLargeQr\(\)/)
 })
 
 test('debug two-device smoke covers live DM exchange and restart persistence', async () => {

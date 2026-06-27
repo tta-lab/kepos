@@ -11,8 +11,8 @@ import { createDesktopPeopleViewModel } from '../src/desktop-people-view-model.j
 import { createDesktopProfileContext } from '../src/desktop-profile-context.js'
 import { createDesktopMessageActions } from '../src/desktop-message-actions.js'
 import { createDesktopMessageRequestActions } from '../src/desktop-message-request-actions.js'
+import { createDesktopQrActions } from '../src/desktop-qr-actions.js'
 import { createDesktopRoomActions } from '../src/desktop-room-actions.js'
-import { createDesktopShareQrOutputs, renderDesktopQrSvg } from '../src/desktop-qr-service.js'
 import { createDesktopState, setDesktopTab, setDesktopTreehole } from '../src/desktop-state.js'
 import { createDesktopStatusViewModel } from '../src/desktop-status-view-model.js'
 import { createDesktopTreeholeViewModel } from '../src/desktop-treehole-view-model.js'
@@ -27,16 +27,9 @@ let state = createDesktopState()
 let session = null
 let dmSession = null
 let homeJoinDetails = null
-let largeQrReturnFocus = null
 let pendingCommand = null
 let directComposerRecipientProfileId = ''
 let currentDisplayName = 'Desktop'
-let shareQrOutputs = {
-  homeSvg: '',
-  homeUri: '',
-  profileSvg: '',
-  profileUri: ''
-}
 const messageActions = createDesktopMessageActions({
   createId,
   getDmRuntime: () => dmRuntime,
@@ -49,6 +42,16 @@ const messageActions = createDesktopMessageActions({
   setSession: (nextSession) => {
     session = nextSession
   }
+})
+const qrActions = createDesktopQrActions({
+  copyText: (value) => navigator.clipboard.writeText(value),
+  getProfileContext,
+  onChanged: () => render(),
+  setLargeQr: (qr) => globalThis.keposDesktopUi?.setLargeQr(qr),
+  setNotice: (notice) => {
+    state = { ...state, notice }
+  },
+  setShareQrOutputs: (outputs) => globalThis.keposDesktopUi?.setShareQrOutputs(outputs)
 })
 const messageRequestActions = createDesktopMessageRequestActions({
   createId,
@@ -144,21 +147,36 @@ const treeholeRuntime = backendHost.treeholeRuntime
 
 globalThis.keposDesktopUi?.setContextFormActions({
   copyHomeQr: () =>
-    copyQrValue({ notice: 'Home QR copied.', value: shareQrOutputs.homeUri }).catch(showError),
+    qrActions
+      .copyQrValue({ notice: 'Home QR copied.', value: qrActions.getShareQrOutputs().homeUri })
+      .catch(showError),
   copyProfileQr: () =>
-    copyQrValue({ notice: 'Profile QR copied.', value: shareQrOutputs.profileUri }).catch(
-      showError
-    ),
+    qrActions
+      .copyQrValue({
+        notice: 'Profile QR copied.',
+        value: qrActions.getShareQrOutputs().profileUri
+      })
+      .catch(showError),
   createHome: () => dispatchCommand('joinHome', { createTreehole: true, mode: 'host' }),
   joinHomeQr: ({ displayName, uri }) => dispatchCommand('joinHomeUri', { displayName, uri }),
   joinManualHome: ({ roomKey }) =>
     dispatchCommand('joinHome', { createTreehole: false, mode: 'peer', roomKey }),
   showLargeHomeQr: ({ returnFocus }) =>
-    showLargeQr({ returnFocus, title: 'Home QR', uri: shareQrOutputs.homeUri }).catch(showError),
+    qrActions
+      .showLargeQr({
+        returnFocus,
+        title: 'Home QR',
+        uri: qrActions.getShareQrOutputs().homeUri
+      })
+      .catch(showError),
   showLargeProfileQr: ({ returnFocus }) =>
-    showLargeQr({ returnFocus, title: 'Profile QR', uri: shareQrOutputs.profileUri }).catch(
-      showError
-    ),
+    qrActions
+      .showLargeQr({
+        returnFocus,
+        title: 'Profile QR',
+        uri: qrActions.getShareQrOutputs().profileUri
+      })
+      .catch(showError),
   trustProfileQr: ({ alias, displayName, uri }) =>
     dispatchCommand('trustProfileUri', { alias, displayName, uri }),
   updateDisplayName: ({ displayName }) => updateDisplayName(displayName)
@@ -185,7 +203,7 @@ globalThis.keposDesktopUi?.setPeopleActions({
   revokeContact: (profileId) => dispatchCommand('revokeContact', { profileId })
 })
 globalThis.keposDesktopUi?.setShellActions({
-  hideLargeQr: () => hideLargeQr(),
+  hideLargeQr: () => qrActions.hideLargeQr(),
   leaveHome: () => dispatchCommand('leaveHome'),
   setTab: (tab) => setTab(tab)
 })
@@ -207,7 +225,7 @@ backendClient.subscribe('peerCountChanged', ({ peers }) => {
 })
 backendClient.subscribe('errorReceived', showError)
 
-updateQrOutputs().catch(showError)
+qrActions.updateQrOutputs().catch(showError)
 render()
 
 async function dispatchCommand(command, payload) {
@@ -236,45 +254,7 @@ function isBlockingCommand(command) {
 
 function updateDisplayName(displayName = 'Desktop') {
   currentDisplayName = displayName.trim() || 'Desktop'
-  updateQrOutputs().catch(showError)
-}
-
-async function updateQrOutputs() {
-  const { profile } = getProfileContext()
-  shareQrOutputs = await createDesktopShareQrOutputs({
-    profile
-  })
-
-  globalThis.keposDesktopUi?.setShareQrOutputs(shareQrOutputs)
-}
-
-async function showLargeQr({ returnFocus, title, uri }) {
-  if (!uri) return
-
-  largeQrReturnFocus = returnFocus
-  const svg = await renderDesktopQrSvg(uri, {
-    margin: 2,
-    width: 520
-  })
-  globalThis.keposDesktopUi?.setLargeQr({
-    isOpen: true,
-    svg,
-    title
-  })
-}
-
-async function copyQrValue({ notice, value }) {
-  if (!value.trim()) return
-
-  await navigator.clipboard.writeText(value)
-  state = { ...state, notice }
-  render()
-}
-
-function hideLargeQr() {
-  globalThis.keposDesktopUi?.setLargeQr({ isOpen: false, svg: '', title: '' })
-  largeQrReturnFocus?.focus()
-  largeQrReturnFocus = null
+  qrActions.updateQrOutputs().catch(showError)
 }
 
 function getCurrentDisplayName() {

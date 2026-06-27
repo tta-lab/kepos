@@ -150,6 +150,7 @@ test('desktop keeps inline QR codes as advanced share detail', async () => {
 test('desktop QR sharing exposes copy actions without surfacing raw URI copy', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const actions = await readFile(new URL('../src/desktop-qr-actions.js', import.meta.url), 'utf8')
 
   assert.match(source, /Copy Home QR/)
   assert.match(source, /Copy Profile QR/)
@@ -160,9 +161,10 @@ test('desktop QR sharing exposes copy actions without surfacing raw URI copy', a
   )
   assert.match(controller, /copyHomeQr: \(\) =>/)
   assert.match(controller, /copyProfileQr: \(\) =>/)
-  assert.match(controller, /navigator\.clipboard\.writeText\(value\)/)
+  assert.match(controller, /copyText: \(value\) => navigator\.clipboard\.writeText\(value\)/)
   assert.match(controller, /notice: 'Home QR copied\.'/)
   assert.match(controller, /notice: 'Profile QR copied\.'/)
+  assert.match(actions, /setNotice\(notice\)/)
   assert.equal(source.includes('Copy URI'), false)
 })
 
