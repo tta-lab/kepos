@@ -1,0 +1,298 @@
+# V1 MLP Desktop React Architecture
+
+This document records the V1 MLP direction for the desktop app.
+
+The goal is not to make the current UI look nicer. The goal is to reshape the
+desktop app into a product-grade architecture before polishing the interface.
+
+## Decision
+
+Kepos desktop should move to:
+
+```text
+Electron renderer React UI
+  -> preload/main bridge
+  -> Bare worker
+  -> Hyperswarm / Corestore / Autobase / DM / Treehole
+```
+
+Mobile keeps the matching shape:
+
+```text
+React Native UI
+  -> bare-rpc
+  -> Bare worklet
+  -> Hyperswarm / Corestore / Autobase / DM / Treehole
+```
+
+The shared part is not the visual component tree. The shared part is the
+protocol, domain model, backend commands, and session state vocabulary.
+
+## Why Change Desktop
+
+The current desktop app runs, but it is still shaped like a protocol test
+client:
+
+- Electron renderer directly owns too much app/backend behavior.
+- The UI exposes keys, URIs, profile ids, and status strings as primary product
+  objects.
+- Desktop and mobile have different runtime boundaries even though both need the
+  same P2P backend model.
+- V2 and V3 require a stronger local backend boundary for audio streaming, watch
+  rooms, local service tunnels, and RetroArch launch/tunnel control.
+
+Running is not the same as being the final architecture.
+
+## Pear/Bare Interpretation
+
+Pear and Bare make the P2P/backend layer portable. They do not make one UI
+framework portable across desktop and mobile.
+
+The useful cross-platform idea is:
+
+```text
+UI shell -> local bridge/RPC -> Bare backend worker
+```
+
+On desktop, the UI shell is Electron. On mobile, the UI shell is React Native.
+The backend worker should become the long-lived product core.
+
+This also follows the official Pear desktop pattern more closely: Electron owns
+the view layer, and peer-to-peer code lives in a Bare worker behind a bridge.
+
+## Why React On Desktop
+
+Desktop should use React for the MLP UI because the product surface is no longer
+a small test page.
+
+The V1 MLP needs:
+
+- a real navigation model for Home, DM, Treehole, and People
+- reusable action controls using lucide icons
+- stateful empty/loading/error views
+- QR dialogs and copy/paste actions
+- contact chips, request states, revoke states, and trust flows
+- future room surfaces for V2 listening/watch rooms and V3 game sessions
+
+Plain DOM can still do this, but React makes the intended product structure
+clearer and easier to maintain.
+
+The reason to use React is not fashion. It is that the UI is becoming a stateful
+application, not a static control panel.
+
+## Non-Goals
+
+This decision does not mean:
+
+- sharing one React component tree between desktop and mobile
+- using React Native on desktop
+- adding a central server
+- rewriting the protocol/domain modules
+- shipping V2 or V3 features in the V1 MLP pass
+- keeping P2P logic in the React renderer
+
+React is the desktop view layer. Bare remains the local backend runtime.
+
+## Target Desktop Boundaries
+
+### Renderer
+
+The renderer should own:
+
+- layout
+- components
+- local UI state
+- form drafts
+- dialogs
+- route/tab selection
+- rendering session snapshots
+
+The renderer should not own:
+
+- Hyperswarm
+- Corestore
+- Autobase
+- treehole replication
+- DM replication
+- long-running P2P lifecycle
+- local service tunnels
+
+### Main / Preload Bridge
+
+The bridge should own:
+
+- starting and stopping the Bare worker
+- passing storage paths and launch arguments
+- exposing a narrow typed API to the renderer
+- forwarding worker events to the renderer
+- cleaning up worker lifecycle on quit
+
+The bridge should be small. It is a door, not the app.
+
+### Bare Worker
+
+The worker should own:
+
+- home join/create lifecycle
+- P2P room transport
+- signed home hello control messages
+- treehole open/bootstrap/writer flow
+- DM request/invite/thread flow
+- persistence adapters that need local backend storage
+- future audio/watch/game/tunnel backends
+
+The worker should speak a command/event protocol that mobile can mirror.
+
+## Shared Command Model
+
+Before the React UI gets large, desktop and mobile should converge on a shared
+command vocabulary.
+
+Examples:
+
+```text
+joinHome
+leaveHome
+sendHomeMessage
+trustProfileUri
+joinHomeUri
+sendMessageRequest
+acceptMessageRequest
+sendDmMessage
+postTreehole
+commentTreehole
+likeTreehole
+revokeContact
+```
+
+Events should also be shared where possible:
+
+```text
+statusChanged
+peerCountChanged
+homeMessageReceived
+dmMessageReceived
+dmThreadChanged
+treeholeStateChanged
+contactBookChanged
+errorReceived
+```
+
+The exact transport can differ between desktop and mobile, but the commands and
+payload shapes should not drift without a reason.
+
+## MLP Product Shape
+
+The V1 MLP should make Kepos feel like a private home, not a debugging panel.
+
+Recommended desktop information architecture:
+
+```text
+Left rail:
+  Home
+  DM
+  Treehole
+  People
+
+Bottom:
+  Profile
+  Settings / Advanced
+  Leave
+
+Main pane:
+  Current conversation or room surface
+
+Right pane or modal:
+  Home QR
+  Profile QR
+  trusted people
+  session status
+```
+
+The main user actions are:
+
+```text
+Create My Home
+Trust a Friend
+Join a Home
+Send a Message
+Post to Treehole
+Revoke Trust
+```
+
+Keys and raw ids stay available, but they should move to advanced/debug surfaces.
+
+## Lucide Direction
+
+Use lucide for action language:
+
+- `Home` for home
+- `MessageCircle` for chat and DM
+- `Sprout` or `Trees` for treehole/private garden
+- `Users` for people
+- `UserPlus` for trust
+- `UserMinus` for revoke
+- `QrCode` for share/scan
+- `Copy` for copy URI
+- `ShieldCheck` for trusted state
+- `LogOut` for leave
+- `Send` for send
+- `Heart` for like
+
+Icons should clarify controls. They should not become decoration.
+
+## Implementation Order
+
+1. Extract desktop backend behavior behind a worker-shaped command/event boundary.
+2. Move desktop P2P/backend runtime into a Bare worker through `pear-runtime`.
+3. Keep the current UI working through the new bridge.
+4. Add React build path for the desktop renderer.
+5. Rebuild the V1 MLP UI in React using the same command/event API.
+6. Align mobile command names and event payloads where they differ.
+7. Run desktop smoke, contact smoke, Android bundle checks, and cross-device smoke.
+
+This order avoids mixing architecture migration with visual redesign.
+
+## Risks
+
+### Migration Cost
+
+Moving backend behavior out of the renderer will touch many files.
+
+Mitigation: keep the first worker boundary close to the existing function names
+and state snapshots. Do not redesign protocol logic at the same time.
+
+### Duplicate UI Work
+
+Desktop React and React Native will not share components.
+
+Mitigation: share domain state and commands, not components. Copy visual ideas
+when useful, but do not force a cross-platform component abstraction.
+
+### Bridge Drift
+
+Desktop and mobile command payloads may diverge.
+
+Mitigation: define shared command/event names in a small module before the React
+UI grows.
+
+### Overbuilding MLP
+
+React can tempt the app into adding features while the V1 product still needs
+clarity.
+
+Mitigation: V1 MLP changes should only reorganize existing V1 features.
+
+## Recommendation
+
+Use this as the V1 MLP architecture target:
+
+```text
+Electron + React + lucide
+Bare worker backend via pear-runtime
+shared command/event vocabulary with mobile
+raw keys and ids hidden behind advanced/debug UI
+```
+
+Do the worker split before the full React redesign. The worker split is the
+architecture decision. React is the desktop product UI decision.

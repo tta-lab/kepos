@@ -24,13 +24,25 @@ This is the map of content for Kepos architecture docs.
    - TypeScript boundary for V1 protocol/domain modules versus platform runtime glue.
    - Use this before adding new shared protocol code.
 
-6. `docs/v1-smoke-guide.md`
+6. `docs/project-direction.md`
+   - Current product, technical, and architecture direction read.
+   - Use this before discussing future product shapes or architecture bets.
+
+7. `docs/v1-mlp-desktop-react-architecture.md`
+   - V1 MLP desktop direction: Electron React UI, lucide controls, and Bare worker backend.
+   - Use this before redesigning desktop UI or moving desktop P2P/runtime code.
+
+8. `docs/v1-mlp-ux-after-architecture-switch.md`
+   - V1 MLP UX direction after the desktop React/Bare worker architecture switch.
+   - Use this when reorganizing desktop and mobile product flows.
+
+9. `docs/v1-smoke-guide.md`
    - Desktop and Android manual smoke checklist for V1 parity.
    - Use this before calling V1 ready.
 
-7. `docs/cross-device-smoke.md`
-   - Agent recipe for validating desktop/Android product paths.
-   - Use this before reporting cross-device work as ready.
+10. `docs/cross-device-smoke.md`
+    - Agent recipe for validating desktop/Android product paths.
+    - Use this before reporting cross-device work as ready.
 
 ## Core Architecture
 
@@ -53,6 +65,32 @@ This is the map of content for Kepos architecture docs.
 5. `docs/qr-code-matching.md`
    - QR envelope, profile/home/message request payloads, and matching flows.
 
+## Future Architecture
+
+1. `docs/v2-roadmap.md`
+   - V2 sequence: presence, listening room, and one-to-one watch room.
+   - Use this before discussing V2 scope or ordering.
+
+2. `docs/v2-listening-room.md`
+   - V2 listening room as one host live audio stream.
+   - Use this when discussing local file audio, PCM socket input, and shared room listening.
+
+3. `docs/v2-watch-room.md`
+   - V2 watch room as one host OBS-compatible live A/V stream to one trusted viewer.
+   - Use this when discussing one-to-one watch rooms or OBS-compatible ingest.
+
+4. `docs/future-local-service-tunnel.md`
+   - Trusted session-scoped localhost TCP tunnel for sharing local services.
+   - Use this when discussing RetroArch tunnels, local web app sharing, or port-forward-like features.
+
+5. `docs/v3-desktop-retroarch-game-sessions.md`
+   - V3 desktop-only RetroArch game sessions from trusted homes.
+   - Use this when discussing co-play, ROM peer transfer, and emulator reuse.
+
+6. `docs/v3-retroarch-game-seed-list.md`
+   - First and second batch game candidates for V3 RetroArch sessions.
+   - Use this when choosing desktop netplay test games.
+
 ## Research
 
 1. `docs/research-signing-canonical-encoding.md`
@@ -66,6 +104,10 @@ This is the map of content for Kepos architecture docs.
 
 4. `docs/research-local-storage-migrations.md`
    - Local persistence layout, migration policy, and corrupt data handling.
+
+5. `docs/research-retroarch-netplay-tunnel.md`
+   - RetroArch netplay TCP tunnel feasibility for V3 game sessions.
+   - Use this before implementing the RetroArch launch or tunnel probe.
 
 ## User-Facing Overview
 
