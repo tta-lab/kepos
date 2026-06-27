@@ -181,6 +181,19 @@ test('desktop treehole composer has an explicit owner-only disabled state', asyn
   assert.match(styles, /\.disabledComposer/)
 })
 
+test('desktop treehole comment composer disables empty comments', async () => {
+  const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+
+  assert.match(controller, /submit\.disabled = true/)
+  assert.match(
+    controller,
+    /input\.addEventListener\('input', \(\) => \{\s*submit\.disabled = !input\.value\.trim\(\)\s*\}\)/
+  )
+  assert.match(controller, /if \(!input\.value\.trim\(\)\) return/)
+  assert.match(controller, /input\.value = ''/)
+  assert.match(controller, /submit\.disabled = true/)
+})
+
 test('desktop composers disable unavailable sends', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')

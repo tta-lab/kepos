@@ -1108,10 +1108,17 @@ function renderPostActions(post) {
   submit.type = 'submit'
   submit.className = 'smallButton'
   submit.textContent = 'Comment'
+  submit.disabled = true
+  input.addEventListener('input', () => {
+    submit.disabled = !input.value.trim()
+  })
   form.append(input, submit)
   form.addEventListener('submit', (event) => {
     event.preventDefault()
+    if (!input.value.trim()) return
     dispatchCommand('commentTreehole', { postId: post.id, text: input.value })
+    input.value = ''
+    submit.disabled = true
   })
 
   actions.append(likeButton, form)
