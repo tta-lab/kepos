@@ -2,6 +2,12 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 
+async function readDesktopUiSource() {
+  const app = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const shell = await readFile(new URL('../desktop/shell-components.jsx', import.meta.url), 'utf8')
+  return `${app}\n${shell}`
+}
+
 test('desktop renderer loads the bundled CommonJS entrypoint', async () => {
   const html = await readFile(new URL('../desktop/index.html', import.meta.url), 'utf8')
 
@@ -27,7 +33,7 @@ test('desktop scripts build the renderer bundle before launch', async () => {
 })
 
 test('desktop React entry renders before starting the controller', async () => {
-  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const source = await readDesktopUiSource()
 
   assert.match(source, /createRoot\(document\.querySelector\('#root'\)\)/)
   assert.match(source, /flushSync/)
@@ -35,7 +41,7 @@ test('desktop React entry renders before starting the controller', async () => {
 })
 
 test('desktop React owns the home chat list surface', async () => {
-  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const presenter = await readFile(
     new URL('../src/desktop-render-presenter.js', import.meta.url),
@@ -51,7 +57,7 @@ test('desktop React owns the home chat list surface', async () => {
 })
 
 test('desktop React owns the home chat composer draft', async () => {
-  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
 
   assert.match(source, /function HomeChatComposer\(\{ controls, onSend \}\)/)
@@ -75,7 +81,7 @@ test('desktop React owns the home chat composer draft', async () => {
 })
 
 test('desktop React owns the direct message list surface', async () => {
-  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const presenter = await readFile(
     new URL('../src/desktop-render-presenter.js', import.meta.url),
@@ -94,7 +100,7 @@ test('desktop React owns the direct message list surface', async () => {
 })
 
 test('desktop React owns the direct contact picker surface', async () => {
-  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const presenter = await readFile(
     new URL('../src/desktop-render-presenter.js', import.meta.url),
@@ -119,7 +125,7 @@ test('desktop React owns the direct contact picker surface', async () => {
 })
 
 test('desktop React owns the status labels surface', async () => {
-  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const presenter = await readFile(
     new URL('../src/desktop-render-presenter.js', import.meta.url),
@@ -144,7 +150,7 @@ test('desktop React owns the status labels surface', async () => {
 })
 
 test('desktop React owns tab and pane active state', async () => {
-  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const presenter = await readFile(
     new URL('../src/desktop-render-presenter.js', import.meta.url),
@@ -182,7 +188,7 @@ test('desktop React owns tab and pane active state', async () => {
 })
 
 test('desktop React owns action and composer disabled state', async () => {
-  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const presenter = await readFile(
     new URL('../src/desktop-render-presenter.js', import.meta.url),
@@ -221,7 +227,7 @@ test('desktop React owns action and composer disabled state', async () => {
 })
 
 test('desktop React owns the large QR dialog surface', async () => {
-  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const actions = await readFile(new URL('../src/desktop-qr-actions.js', import.meta.url), 'utf8')
 
@@ -254,7 +260,7 @@ test('desktop React owns the large QR dialog surface', async () => {
 })
 
 test('desktop React owns shell busy and leave action', async () => {
-  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const bindings = await readFile(
     new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
@@ -268,7 +274,8 @@ test('desktop React owns shell busy and leave action', async () => {
   assert.match(source, /setShellBusy\(isBusy = false\)/)
   assert.match(source, /const \[isShellBusy, setShellBusy\] = useState\(false\)/)
   assert.match(source, /document\.body\.setAttribute\('aria-busy', String\(isShellBusy\)\)/)
-  assert.match(source, /onClick=\{shellActions\.leaveHome\}/)
+  assert.match(source, /<HomeStatusPanel[\s\S]*onLeave=\{shellActions\.leaveHome\}/)
+  assert.match(source, /onClick=\{onLeave\}/)
   assert.match(presenter, /ui\?\.setShellBusy\(isActionPending\)/)
   assert.match(bindings, /leaveHome: \(\) => dispatchCommand\('leaveHome'\)/)
   assert.doesNotMatch(controller, /leaveButton: document\.querySelector/)
@@ -277,7 +284,7 @@ test('desktop React owns shell busy and leave action', async () => {
 })
 
 test('desktop React owns inline QR share outputs', async () => {
-  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const actions = await readFile(new URL('../src/desktop-qr-actions.js', import.meta.url), 'utf8')
 
@@ -301,7 +308,7 @@ test('desktop React owns inline QR share outputs', async () => {
 })
 
 test('desktop React owns context form drafts and QR actions', async () => {
-  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
 
   assert.match(source, /function ContextPanel\(\{/)
@@ -337,7 +344,7 @@ test('desktop React owns context form drafts and QR actions', async () => {
 })
 
 test('desktop React owns the people list surfaces', async () => {
-  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const presenter = await readFile(
     new URL('../src/desktop-render-presenter.js', import.meta.url),
@@ -361,7 +368,7 @@ test('desktop React owns the people list surfaces', async () => {
 })
 
 test('desktop React owns the treehole post list surface', async () => {
-  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const presenter = await readFile(
     new URL('../src/desktop-render-presenter.js', import.meta.url),
@@ -383,7 +390,7 @@ test('desktop React owns the treehole post list surface', async () => {
 })
 
 test('desktop React owns the treehole main post composer draft', async () => {
-  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
 
   assert.match(source, /function TreeholeComposer\(\{ controls, onPost \}\)/)
@@ -405,7 +412,7 @@ test('desktop React owns the treehole main post composer draft', async () => {
 })
 
 test('desktop React owns the direct message composer draft and recipient', async () => {
-  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
 
   assert.match(

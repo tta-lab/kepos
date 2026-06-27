@@ -2,17 +2,26 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 
+async function readDesktopAppSource() {
+  return await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+}
+
+async function readDesktopUiSource() {
+  const app = await readDesktopAppSource()
+  const shell = await readFile(new URL('../desktop/shell-components.jsx', import.meta.url), 'utf8')
+  return `${app}\n${shell}`
+}
+
 test('desktop React shell separates navigation, workspace, and context panels', async () => {
-  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const source = await readDesktopAppSource()
+  const shell = await readFile(new URL('../desktop/shell-components.jsx', import.meta.url), 'utf8')
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
 
-  assert.match(source, /className='appRail'/)
+  assert.match(source, /<AppRail activeTab=\{activeTab\} shellActions=\{shellActions\} \/>/)
   assert.match(source, /className='workspace'/)
   assert.match(source, /className='contextPanel'/)
-  assert.equal(
-    source.indexOf("className='appRail'") < source.indexOf("className='workspace'"),
-    true
-  )
+  assert.match(shell, /className='appRail'/)
+  assert.equal(source.indexOf('<AppRail') < source.indexOf("className='workspace'"), true)
   assert.equal(
     source.indexOf("className='workspace'") < source.indexOf("className='contextPanel'"),
     true
@@ -22,7 +31,7 @@ test('desktop React shell separates navigation, workspace, and context panels', 
 })
 
 test('desktop context panel uses product actions for home and people flows', async () => {
-  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const source = await readDesktopUiSource()
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
 
   assert.match(source, /<h1>Kepos Home<\/h1>/)
@@ -56,7 +65,7 @@ test('desktop context panel uses product actions for home and people flows', asy
 })
 
 test('desktop trust form shows friend name copy once', async () => {
-  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const source = await readDesktopUiSource()
   const labelBlock = source.match(/<label>[\s\S]*?id='trustAliasInput'[\s\S]*?<\/label>/)?.[0]
 
   assert.ok(labelBlock)
@@ -64,7 +73,7 @@ test('desktop trust form shows friend name copy once', async () => {
 })
 
 test('desktop people UI uses trusted friends copy', async () => {
-  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const presenter = await readFile(
     new URL('../src/desktop-render-presenter.js', import.meta.url),
@@ -105,7 +114,7 @@ test('desktop people UI uses trusted friends copy', async () => {
 })
 
 test('desktop people pane surfaces pending message requests', async () => {
-  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const backendActions = await readFile(
     new URL('../src/desktop-backend-actions.js', import.meta.url),
@@ -155,7 +164,7 @@ test('desktop people pane surfaces pending message requests', async () => {
 })
 
 test('desktop keeps inline QR codes as advanced share detail', async () => {
-  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const source = await readDesktopUiSource()
 
   assert.match(source, /id='copyHomeQrButton'[\s\S]*Copy Home QR/)
   assert.match(source, /id='copyProfileQrButton'[\s\S]*Copy Profile QR/)
@@ -182,7 +191,7 @@ test('desktop keeps inline QR codes as advanced share detail', async () => {
 })
 
 test('desktop QR sharing exposes copy actions without surfacing raw URI copy', async () => {
-  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const actions = await readFile(new URL('../src/desktop-qr-actions.js', import.meta.url), 'utf8')
   const bindings = await readFile(
@@ -207,7 +216,7 @@ test('desktop QR sharing exposes copy actions without surfacing raw URI copy', a
 })
 
 test('desktop normal UI copy avoids raw home address language', async () => {
-  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const roomActions = await readFile(
     new URL('../src/desktop-room-actions.js', import.meta.url),
@@ -227,7 +236,7 @@ test('desktop normal UI copy avoids raw home address language', async () => {
 })
 
 test('desktop status panel keeps raw ids in advanced details', async () => {
-  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const presenter = await readFile(
     new URL('../src/desktop-render-presenter.js', import.meta.url),
@@ -274,7 +283,7 @@ test('desktop error handling keeps raw exception detail advanced', async () => {
 })
 
 test('desktop primary panes expose short empty states before content arrives', async () => {
-  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const presenter = await readFile(
     new URL('../src/desktop-render-presenter.js', import.meta.url),
@@ -307,7 +316,7 @@ test('desktop primary panes expose short empty states before content arrives', a
 })
 
 test('desktop panes label live and durable surfaces', async () => {
-  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const presenter = await readFile(
     new URL('../src/desktop-render-presenter.js', import.meta.url),
@@ -340,7 +349,7 @@ test('desktop panes label live and durable surfaces', async () => {
 })
 
 test('desktop rail keeps current view accessible', async () => {
-  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const presenter = await readFile(
     new URL('../src/desktop-render-presenter.js', import.meta.url),
@@ -373,7 +382,7 @@ test('desktop MLP shell has responsive polish for narrow screens', async () => {
 })
 
 test('desktop direct messages links zero-contact state to People', async () => {
-  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const bindings = await readFile(
     new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
@@ -396,7 +405,7 @@ test('desktop direct messages links zero-contact state to People', async () => {
 })
 
 test('desktop treehole composer has an explicit owner-only disabled state', async () => {
-  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const presenter = await readFile(
     new URL('../src/desktop-render-presenter.js', import.meta.url),
@@ -420,7 +429,7 @@ test('desktop treehole composer has an explicit owner-only disabled state', asyn
 })
 
 test('desktop treehole comment composer disables empty comments', async () => {
-  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const bindings = await readFile(
     new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
@@ -443,7 +452,7 @@ test('desktop treehole comment composer disables empty comments', async () => {
 })
 
 test('desktop composers disable unavailable sends', async () => {
-  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const presenter = await readFile(
     new URL('../src/desktop-render-presenter.js', import.meta.url),
@@ -473,7 +482,7 @@ test('desktop composers disable unavailable sends', async () => {
 })
 
 test('desktop context actions disable unavailable joins and trust', async () => {
-  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const presenter = await readFile(
     new URL('../src/desktop-render-presenter.js', import.meta.url),
@@ -497,7 +506,7 @@ test('desktop context actions disable unavailable joins and trust', async () => 
 })
 
 test('desktop context actions expose a pending lock during blocking commands', async () => {
-  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const dispatcher = await readFile(
     new URL('../src/desktop-command-dispatcher.js', import.meta.url),
@@ -531,7 +540,7 @@ test('desktop context actions expose a pending lock during blocking commands', a
 })
 
 test('desktop shell exposes Neo Cozy light and Indie Console dark themes', async () => {
-  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const source = await readDesktopUiSource()
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
 
   assert.match(source, /id='lightThemeButton'/)
