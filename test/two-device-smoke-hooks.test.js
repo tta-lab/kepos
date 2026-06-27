@@ -183,6 +183,13 @@ test('Android room panes label live and durable surfaces', async () => {
   assert.match(source, /paneTitle:/)
 })
 
+test('Android treehole empty state talks about posts', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+
+  assert.match(source, /No posts yet/)
+  assert.equal(source.includes('No treeholes yet'), false)
+})
+
 test('Android room has a People tab for QR and trusted contacts', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 

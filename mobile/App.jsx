@@ -1514,7 +1514,7 @@ function EmptyTreehole({ status }) {
   return (
     <View style={styles.empty}>
       <MessageCircle color='#56715f' size={34} />
-      <Text style={styles.emptyTitle}>No treeholes yet</Text>
+      <Text style={styles.emptyTitle}>No posts yet</Text>
       <Text style={styles.emptyCopy}>{treeholeStatusText(status)}</Text>
     </View>
   )
