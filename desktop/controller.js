@@ -83,7 +83,6 @@ const els = {
   showLargeProfileQrButton: document.querySelector('#showLargeProfileQrButton'),
   treeholeForm: document.querySelector('#treeholeForm'),
   treeholeInput: document.querySelector('#treeholeInput'),
-  treeholeList: document.querySelector('#treeholeList'),
   treeholePane: document.querySelector('#treeholePane'),
   treeholePostPolicy: document.querySelector('#treeholePostPolicy'),
   treeholeSendButton: document.querySelector('#treeholeSendButton'),
@@ -162,6 +161,10 @@ globalThis.keposDesktopUi?.setPeopleActions({
   acceptMessageRequest: (message) => dispatchCommand('acceptMessageRequest', { message }),
   ignoreMessageRequest: (profileId) => dispatchCommand('ignoreMessageRequest', { profileId }),
   revokeContact: (profileId) => dispatchCommand('revokeContact', { profileId })
+})
+globalThis.keposDesktopUi?.setTreeholeActions({
+  commentPost: ({ postId, text }) => dispatchCommand('commentTreehole', { postId, text }),
+  likePost: (postId) => dispatchCommand('likeTreehole', { postId })
 })
 
 backendClient.subscribe('treeholeStateChanged', (snapshot) => {
@@ -815,100 +818,7 @@ function renderPosts() {
     posts: state.treeholePosts,
     shortenProfileId: shorten
   })
-
-  els.treeholeList.replaceChildren(
-    ...posts.map((post) => {
-      const item = document.createElement('li')
-      item.className = post.className
-      item.append(renderPostContent(post))
-      item.append(renderPostComments(post))
-      item.append(renderPostActions(post))
-      return item
-    })
-  )
-}
-
-function renderPostContent(post) {
-  const fragment = document.createDocumentFragment()
-  const head = document.createElement('div')
-  const author = document.createElement('p')
-  const time = document.createElement('p')
-  const text = document.createElement('p')
-  const stats = document.createElement('p')
-
-  head.className = 'postHead'
-  author.className = 'meta'
-  author.textContent = post.authorLabel
-  time.className = 'time'
-  time.textContent = post.timeLabel
-  text.textContent = post.text
-  stats.className = 'stats'
-  stats.textContent = post.statsLabel
-
-  head.append(author, time)
-  fragment.append(head, text, stats)
-
-  return fragment
-}
-
-function renderPostComments(post) {
-  const comments = document.createElement('div')
-  comments.className = 'comments'
-
-  comments.replaceChildren(
-    ...(post.comments || []).map((comment) => {
-      const item = document.createElement('div')
-      const author = document.createElement('p')
-      const text = document.createElement('p')
-
-      item.className = comment.className
-      author.className = 'meta'
-      author.textContent = comment.authorLabel
-      text.textContent = comment.text
-      item.append(author, text)
-      return item
-    })
-  )
-
-  return comments
-}
-
-function renderPostActions(post) {
-  const actions = document.createElement('div')
-  actions.className = 'postActions'
-
-  const likeButton = document.createElement('button')
-  likeButton.type = 'button'
-  likeButton.className = 'smallButton'
-  likeButton.textContent = 'Like'
-  likeButton.addEventListener('click', () =>
-    dispatchCommand('likeTreehole', { postId: post.actions.likePostId })
-  )
-
-  const form = document.createElement('form')
-  form.className = 'commentForm'
-  const input = document.createElement('input')
-  input.placeholder = 'Write a comment'
-  input.className = 'commentInput'
-  const submit = document.createElement('button')
-  submit.type = 'submit'
-  submit.className = 'smallButton'
-  submit.textContent = 'Comment'
-  submit.disabled = true
-  input.addEventListener('input', () => {
-    submit.disabled = !input.value.trim()
-  })
-  form.append(input, submit)
-  form.addEventListener('submit', (event) => {
-    event.preventDefault()
-    if (!input.value.trim()) return
-    dispatchCommand('commentTreehole', { postId: post.actions.commentPostId, text: input.value })
-    input.value = ''
-    submit.disabled = true
-  })
-
-  actions.append(likeButton, form)
-  return actions
+  globalThis.keposDesktopUi?.setTreeholePosts(posts)
 }
 
 async function commentTreeholePost({ postId, text }) {

@@ -325,16 +325,22 @@ test('desktop treehole composer has an explicit owner-only disabled state', asyn
 })
 
 test('desktop treehole comment composer disables empty comments', async () => {
+  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
 
-  assert.match(controller, /submit\.disabled = true/)
+  assert.match(source, /function TreeholePostActions\(\{ actions, post \}\)/)
+  assert.match(source, /const \[draft, setDraft\] = useState\(''\)/)
+  assert.match(source, /const hasDraft = Boolean\(draft\.trim\(\)\)/)
+  assert.match(
+    source,
+    /actions\.commentPost\(\{ postId: post\.actions\.commentPostId, text: draft\.trim\(\) \}\)/
+  )
+  assert.match(source, /setDraft\(''\)/)
+  assert.match(source, /disabled=\{!hasDraft\}/)
   assert.match(
     controller,
-    /input\.addEventListener\('input', \(\) => \{\s*submit\.disabled = !input\.value\.trim\(\)\s*\}\)/
+    /commentPost: \(\{ postId, text \}\) => dispatchCommand\('commentTreehole'/
   )
-  assert.match(controller, /if \(!input\.value\.trim\(\)\) return/)
-  assert.match(controller, /input\.value = ''/)
-  assert.match(controller, /submit\.disabled = true/)
 })
 
 test('desktop composers disable unavailable sends', async () => {

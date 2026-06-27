@@ -80,3 +80,21 @@ test('desktop React owns the people list surfaces', async () => {
   assert.doesNotMatch(controller, /els\.contactList\.replaceChildren/)
   assert.doesNotMatch(controller, /els\.requestList\.replaceChildren/)
 })
+
+test('desktop React owns the treehole post list surface', async () => {
+  const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+
+  assert.match(source, /function TreeholeList\(\{ actions, posts \}\)/)
+  assert.match(source, /setTreeholePosts\(posts = \[\]\)/)
+  assert.match(source, /setTreeholeActions\(actions = \{\}\)/)
+  assert.match(source, /<TreeholeList[\s\S]*posts=\{treeholePosts\}/)
+  assert.match(source, /onClick=\{\(\) => actions\.likePost\(post\.actions\.likePostId\)\}/)
+  assert.match(
+    source,
+    /actions\.commentPost\(\{ postId: post\.actions\.commentPostId, text: draft\.trim\(\) \}\)/
+  )
+  assert.match(controller, /globalThis\.keposDesktopUi\?\.setTreeholePosts\(posts\)/)
+  assert.match(controller, /globalThis\.keposDesktopUi\?\.setTreeholeActions\(\{/)
+  assert.doesNotMatch(controller, /els\.treeholeList\.replaceChildren/)
+})

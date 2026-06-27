@@ -24,7 +24,9 @@ const desktopUiBridge = {
   setDirectMessages: () => {},
   setHomeMessages: () => {},
   setPeople: () => {},
-  setPeopleActions: () => {}
+  setPeopleActions: () => {},
+  setTreeholeActions: () => {},
+  setTreeholePosts: () => {}
 }
 
 globalThis.keposDesktopUi = {
@@ -42,6 +44,12 @@ globalThis.keposDesktopUi = {
   },
   setPeopleActions(actions = {}) {
     desktopUiBridge.setPeopleActions(actions)
+  },
+  setTreeholeActions(actions = {}) {
+    desktopUiBridge.setTreeholeActions(actions)
+  },
+  setTreeholePosts(posts = []) {
+    desktopUiBridge.setTreeholePosts(posts)
   }
 }
 
@@ -58,12 +66,19 @@ function DesktopApp() {
     ignoreMessageRequest: () => {},
     revokeContact: () => {}
   })
+  const [treeholeActions, setTreeholeActions] = useState({
+    commentPost: () => {},
+    likePost: () => {}
+  })
+  const [treeholePosts, setTreeholePosts] = useState([])
   const [theme, setTheme] = useState(getInitialTheme)
   desktopUiBridge.setDirectMessageActions = setDirectMessageActions
   desktopUiBridge.setDirectMessages = setDirectMessages
   desktopUiBridge.setHomeMessages = setHomeMessages
   desktopUiBridge.setPeople = setPeople
   desktopUiBridge.setPeopleActions = setPeopleActions
+  desktopUiBridge.setTreeholeActions = setTreeholeActions
+  desktopUiBridge.setTreeholePosts = setTreeholePosts
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
@@ -186,13 +201,7 @@ function DesktopApp() {
 
           <section id='treeholePane' className='pane hidden'>
             <PaneLabel eyebrow='durable' title='Durable treehole' />
-            <ol
-              id='treeholeList'
-              className='list posts'
-              aria-label='Treehole posts'
-              data-empty='No posts yet'
-              data-empty-detail='Posts from this home will appear here.'
-            />
+            <TreeholeList actions={treeholeActions} posts={treeholePosts} />
             <form id='treeholeForm' className='composer tall'>
               <p id='treeholePostPolicy' className='composerHint' hidden>
                 Only the owner can post here.
@@ -550,6 +559,76 @@ function PeopleLists({ actions, messageRequests, trustedContacts }) {
         </div>
       </section>
     </>
+  )
+}
+
+function TreeholeList({ actions, posts }) {
+  return (
+    <ol
+      id='treeholeList'
+      className='list posts'
+      aria-label='Treehole posts'
+      data-empty='No posts yet'
+      data-empty-detail='Posts from this home will appear here.'
+    >
+      {posts.map((post, index) => (
+        <li key={`${post.timeLabel}-${index}-${post.text}`} className={post.className}>
+          <div className='postHead'>
+            <p className='meta'>{post.authorLabel}</p>
+            <p className='time'>{post.timeLabel}</p>
+          </div>
+          <p>{post.text}</p>
+          <p className='stats'>{post.statsLabel}</p>
+          <div className='comments'>
+            {(post.comments || []).map((comment, commentIndex) => (
+              <div
+                key={`${comment.authorLabel}-${commentIndex}-${comment.text}`}
+                className={comment.className}
+              >
+                <p className='meta'>{comment.authorLabel}</p>
+                <p>{comment.text}</p>
+              </div>
+            ))}
+          </div>
+          <TreeholePostActions actions={actions} post={post} />
+        </li>
+      ))}
+    </ol>
+  )
+}
+
+function TreeholePostActions({ actions, post }) {
+  const [draft, setDraft] = useState('')
+  const hasDraft = Boolean(draft.trim())
+
+  function submitComment(event) {
+    event.preventDefault()
+    if (!draft.trim()) return
+    actions.commentPost({ postId: post.actions.commentPostId, text: draft.trim() })
+    setDraft('')
+  }
+
+  return (
+    <div className='postActions'>
+      <button
+        className='smallButton'
+        type='button'
+        onClick={() => actions.likePost(post.actions.likePostId)}
+      >
+        Like
+      </button>
+      <form className='commentForm' onSubmit={submitComment}>
+        <input
+          className='commentInput'
+          placeholder='Write a comment'
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+        />
+        <button className='smallButton' disabled={!hasDraft} type='submit'>
+          Comment
+        </button>
+      </form>
+    </div>
   )
 }
 
