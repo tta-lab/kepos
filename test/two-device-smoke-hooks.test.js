@@ -69,7 +69,15 @@ test('Android lobby starts with compact product choices', async () => {
   assert.match(source, /Create my home/)
   assert.match(source, /Scan Home QR/)
   assert.match(source, /Scan Profile QR/)
-  assert.equal(source.indexOf('<QuickStartPanel') < source.indexOf('<PeopleActions'), true)
+  assert.match(source, /const \[showPeopleSetup, setShowPeopleSetup\] = useState\(false\)/)
+  assert.match(source, /testID='people-setup-toggle'/)
+  assert.match(source, /People setup/)
+  assert.match(source, /showPeopleSetup \? \(/)
+  assert.equal(
+    source.indexOf('<QuickStartPanel') < source.indexOf("testID='people-setup-toggle'"),
+    true
+  )
+  assert.equal(source.indexOf('<PeopleActions') > source.indexOf('showPeopleSetup ? ('), true)
   assert.equal(source.includes("label='Nick'"), false)
 })
 

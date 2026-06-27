@@ -1026,6 +1026,7 @@ function Lobby({
   trustedContacts
 }) {
   const { styles, theme } = useMobileTheme()
+  const [showPeopleSetup, setShowPeopleSetup] = useState(false)
 
   return (
     <ScrollView
@@ -1043,23 +1044,33 @@ function Lobby({
         profileReady={profileReady}
       />
 
-      <PeopleActions
-        homeQrUri={homeQrUri}
-        myHomeQrUri={myHomeQrUri}
-        onHomeQrChange={onHomeQrChange}
-        onJoinHomeQr={onJoinHomeQr}
-        onRevokeContact={onRevokeContact}
-        onScanHomeQr={onScanHomeQr}
-        onScanProfileQr={onScanProfileQr}
-        onTrustAliasChange={onTrustAliasChange}
-        onTrustProfile={onTrustProfile}
-        onTrustQrChange={onTrustQrChange}
-        profileReady={profileReady}
-        profileQrUri={profileQrUri}
-        trustAlias={trustAlias}
-        trustedContacts={trustedContacts}
-        trustQrUri={trustQrUri}
-      />
+      <Pressable
+        onPress={() => setShowPeopleSetup((value) => !value)}
+        style={styles.secondaryButton}
+        testID='people-setup-toggle'
+      >
+        <Users color={theme.accentStrong} size={18} />
+        <Text style={styles.secondaryButtonText}>People setup</Text>
+      </Pressable>
+      {showPeopleSetup ? (
+        <PeopleActions
+          homeQrUri={homeQrUri}
+          myHomeQrUri={myHomeQrUri}
+          onHomeQrChange={onHomeQrChange}
+          onJoinHomeQr={onJoinHomeQr}
+          onRevokeContact={onRevokeContact}
+          onScanHomeQr={onScanHomeQr}
+          onScanProfileQr={onScanProfileQr}
+          onTrustAliasChange={onTrustAliasChange}
+          onTrustProfile={onTrustProfile}
+          onTrustQrChange={onTrustQrChange}
+          profileReady={profileReady}
+          profileQrUri={profileQrUri}
+          trustAlias={trustAlias}
+          trustedContacts={trustedContacts}
+          trustQrUri={trustQrUri}
+        />
+      ) : null}
 
       <Pressable
         onPress={onToggleAdvancedJoin}
