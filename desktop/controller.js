@@ -12,18 +12,14 @@ import { createDesktopProfileContext } from '../src/desktop-profile-context.js'
 import { createDesktopMessageActions } from '../src/desktop-message-actions.js'
 import { createDesktopMessageRequestActions } from '../src/desktop-message-request-actions.js'
 import { createDesktopRoomActions } from '../src/desktop-room-actions.js'
-import {
-  applyDesktopProfileTrustQr,
-  createDesktopShareQrOutputs,
-  renderDesktopQrSvg
-} from '../src/desktop-qr-service.js'
-import { createDesktopContactRevoke } from '../src/desktop-revoke-service.js'
+import { createDesktopShareQrOutputs, renderDesktopQrSvg } from '../src/desktop-qr-service.js'
 import { createDesktopState, setDesktopTab, setDesktopTreehole } from '../src/desktop-state.js'
 import { createDesktopStatusViewModel } from '../src/desktop-status-view-model.js'
 import { createDesktopTreeholeViewModel } from '../src/desktop-treehole-view-model.js'
 import { createDesktopLocalBackendHost } from '../src/desktop-local-backend-host.js'
 import { createDesktopRendererBackendClient } from '../src/desktop-renderer-backend-client.js'
 import { getDesktopStorageBasePath } from '../src/desktop-storage-base.js'
+import { createDesktopTrustActions } from '../src/desktop-trust-actions.js'
 
 const BLOCKING_COMMANDS = new Set(['joinHome', 'joinHomeUri', 'leaveHome', 'trustProfileUri'])
 
@@ -89,6 +85,25 @@ const roomActions = createDesktopRoomActions({
     state = updater(state)
   }
 })
+const trustActions = createDesktopTrustActions({
+  configureTreeholeRuntime,
+  getDmRuntime: () => dmRuntime,
+  getHomeJoinDetails: () => homeJoinDetails,
+  getProfileContext,
+  getSelectedRecipientProfileId: () => directComposerRecipientProfileId,
+  onChanged: () => render(),
+  setContextFormDraft: (draft) => globalThis.keposDesktopUi?.setContextFormDraft(draft),
+  setDirectComposerRecipient: (profileId) => {
+    directComposerRecipientProfileId = profileId
+    globalThis.keposDesktopUi?.setDirectComposerRecipient(profileId)
+  },
+  setHomeJoinDetails: (nextDetails) => {
+    homeJoinDetails = nextDetails
+  },
+  setNotice: (notice) => {
+    state = { ...state, notice }
+  }
+})
 const backendHost = createDesktopLocalBackendHost({
   actions: {
     acceptMessageRequest: messageRequestActions.acceptMessageRequest,
@@ -99,11 +114,11 @@ const backendHost = createDesktopLocalBackendHost({
     leaveHome: roomActions.leaveHome,
     likeTreehole: messageActions.likeTreehole,
     postTreehole: messageActions.postTreehole,
-    revokeContact: revokeLocalContact,
+    revokeContact: trustActions.revokeContact,
     sendDmMessage: messageActions.sendDmMessage,
     sendHomeMessage: messageActions.sendHomeMessage,
     sendMessageRequest: messageActions.sendDmMessage,
-    trustProfileUri: trustProfileQr
+    trustProfileUri: trustActions.trustProfileUri
   },
   runtimeOptions: {
     onDmSessionChanged: (nextSession) => {
@@ -217,36 +232,6 @@ async function dispatchCommand(command, payload) {
 
 function isBlockingCommand(command) {
   return BLOCKING_COMMANDS.has(command)
-}
-
-function trustProfileQr({ alias = '', displayName = 'Desktop', uri } = {}) {
-  if (!uri) return
-
-  const context = getProfileContext(displayName)
-  const { contactBook, profile } = context
-  const result = applyDesktopProfileTrustQr({
-    alias,
-    book: contactBook,
-    localIdentity: profile.identity,
-    localProfileId: profile.id,
-    uri
-  })
-
-  context.saveContactBook(result.book)
-
-  if (homeJoinDetails?.profileId === profile.id) {
-    homeJoinDetails = {
-      ...homeJoinDetails,
-      treeholePolicy: result.treeholePolicy
-    }
-    configureTreeholeRuntime()
-  }
-  globalThis.keposDesktopUi?.setContextFormDraft({
-    trustAlias: '',
-    trustQrUri: ''
-  })
-  state = { ...state, notice: 'Trusted friend added.' }
-  render()
 }
 
 function updateDisplayName(displayName = 'Desktop') {
@@ -485,39 +470,6 @@ function renderPeople() {
     shortenProfileId: shorten
   })
   globalThis.keposDesktopUi?.setPeople(people)
-}
-
-async function revokeLocalContact(profileId) {
-  const context = getProfileContext()
-  const { contactBook, profile } = context
-  const threads = dmRuntime.loadThreads()
-  const result = createDesktopContactRevoke({
-    book: contactBook,
-    profileId,
-    selectedRecipientProfileId: directComposerRecipientProfileId,
-    threads
-  })
-
-  context.saveContactBook(result.book)
-  dmRuntime.replaceThreads(result.nextThreads)
-
-  await dmRuntime.closeThreads(result.revokedThreadIds)
-
-  if (homeJoinDetails?.profileId === profile.id) {
-    homeJoinDetails = {
-      ...homeJoinDetails,
-      treeholePolicy: result.treeholePolicy
-    }
-    configureTreeholeRuntime()
-  }
-
-  if (result.shouldClearRecipient) {
-    directComposerRecipientProfileId = ''
-    globalThis.keposDesktopUi?.setDirectComposerRecipient('')
-  }
-
-  state = { ...state, notice: 'Trust revoked.' }
-  render()
 }
 
 function renderPosts() {

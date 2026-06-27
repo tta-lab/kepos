@@ -58,6 +58,10 @@ test('desktop context panel uses product actions for home and people flows', asy
 test('desktop people UI uses trusted friends copy', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const actions = await readFile(
+    new URL('../src/desktop-trust-actions.js', import.meta.url),
+    'utf8'
+  )
 
   assert.match(source, /id='peopleTab'[\s\S]*title='People'/)
   assert.match(source, /label='People'/)
@@ -81,7 +85,7 @@ test('desktop people UI uses trusted friends copy', async () => {
   assert.equal(source.includes("text='Contacts'"), false)
   assert.equal(controller.includes('No trusted contacts'), false)
   assert.equal(controller.includes('notice: `Revoked ${shorten(profileId)}.`'), false)
-  assert.match(controller, /notice: 'Trust revoked\.'/)
+  assert.match(actions, /setNotice\('Trust revoked\.'\)/)
 })
 
 test('desktop people pane surfaces pending message requests', async () => {

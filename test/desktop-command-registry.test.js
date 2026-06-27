@@ -173,6 +173,10 @@ test('desktop Home QR join command carries QR text and display name as payload',
 test('desktop Profile QR trust command carries QR text alias and display name as payload', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const host = await readFile(new URL('../src/desktop-command-host.js', import.meta.url), 'utf8')
+  const actions = await readFile(
+    new URL('../src/desktop-trust-actions.js', import.meta.url),
+    'utf8'
+  )
 
   assert.match(
     source,
@@ -183,10 +187,10 @@ test('desktop Profile QR trust command carries QR text alias and display name as
     host,
     /trustProfileUri: \(payload\) => actions\.trustProfileUri\(readCommandPayload\(payload\)\)/
   )
-  assert.match(source, /trustProfileUri: trustProfileQr/)
+  assert.match(source, /trustProfileUri: trustActions\.trustProfileUri/)
   assert.match(
-    source,
-    /function trustProfileQr\(\{ alias = '', displayName = 'Desktop', uri \} = \{\}\)/
+    actions,
+    /function trustProfileUri\(\{ alias = '', displayName = 'Desktop', uri \} = \{\}\)/
   )
   assert.doesNotMatch(source, /trustForm: document\.querySelector/)
   assert.doesNotMatch(source, /trustQrInput: document\.querySelector/)
@@ -195,4 +199,5 @@ test('desktop Profile QR trust command carries QR text alias and display name as
     source,
     /function trustProfileQr\(\) \{\s*const uri = els\.trustQrInput\.value\.trim\(\)/
   )
+  assert.doesNotMatch(source, /function trustProfileQr/)
 })

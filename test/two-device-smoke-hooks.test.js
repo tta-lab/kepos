@@ -323,12 +323,21 @@ test('mobile success notices avoid profile id snippets', async () => {
 })
 
 test('desktop success notices avoid profile id snippets', async () => {
-  const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const messageRequestActions = await readFile(
+    new URL('../src/desktop-message-request-actions.js', import.meta.url),
+    'utf8'
+  )
+  const trustActions = await readFile(
+    new URL('../src/desktop-trust-actions.js', import.meta.url),
+    'utf8'
+  )
+  const source = `${controller}\n${messageRequestActions}\n${trustActions}`
 
-  assert.match(source, /notice: 'Trusted friend added\.'/)
-  assert.match(source, /notice: 'Message request accepted\.'/)
+  assert.match(source, /setNotice\('Trusted friend added\.'\)/)
+  assert.match(source, /setNotice\('Message request accepted\.'\)/)
   assert.match(source, /notice: 'Direct message ready\.'/)
-  assert.match(source, /notice: 'Trust revoked\.'/)
+  assert.match(source, /setNotice\('Trust revoked\.'\)/)
   assert.equal(source.includes("notice: 'DM invite accepted.'"), false)
   assert.equal(source.includes('notice: `Trusted ${shorten(result.profileId)}.`'), false)
   assert.equal(
