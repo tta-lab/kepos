@@ -58,6 +58,10 @@ test('desktop context panel uses product actions for home and people flows', asy
 test('desktop people UI uses trusted friends copy', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const presenter = await readFile(
+    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    'utf8'
+  )
   const actions = await readFile(
     new URL('../src/desktop-trust-actions.js', import.meta.url),
     'utf8'
@@ -70,11 +74,11 @@ test('desktop people UI uses trusted friends copy', async () => {
   assert.match(source, /<PaneLabel eyebrow='trusted' title='People' \/>/)
   assert.match(source, /Trusted friends/)
   assert.match(source, /No trusted friends yet/)
-  assert.match(controller, /createDesktopPeopleViewModel/)
+  assert.match(presenter, /createDesktopPeopleViewModel/)
   assert.match(source, /\{contact\.statusLabel\}/)
   assert.match(source, /\{contact\.sourceLabel\}/)
   assert.match(source, /\{contact\.trustedAtLabel\}/)
-  assert.match(controller, /globalThis\.keposDesktopUi\?\.setPeople\(people\)/)
+  assert.match(presenter, /ui\?\.setPeople\(/)
   assert.match(controller, /revokeContact: \(profileId\) => dispatchCommand\('revokeContact'/)
   assert.equal(source.indexOf("id='contactList'") > source.indexOf("id='peoplePane'"), true)
   assert.match(source, /onSelect=\{\(\) => shellActions\.setTab\('people'\)\}/)
@@ -91,6 +95,10 @@ test('desktop people UI uses trusted friends copy', async () => {
 test('desktop people pane surfaces pending message requests', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const presenter = await readFile(
+    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    'utf8'
+  )
   const actions = await readFile(
     new URL('../src/desktop-message-request-actions.js', import.meta.url),
     'utf8'
@@ -98,7 +106,7 @@ test('desktop people pane surfaces pending message requests', async () => {
 
   assert.match(source, /id='requestList'/)
   assert.match(source, /Message requests/)
-  assert.match(controller, /renderPeople\(\)/)
+  assert.match(presenter, /createDesktopPeopleViewModel/)
   assert.match(source, /messageRequests=\{people\.messageRequests\}/)
   assert.match(source, /No message requests/)
   assert.match(source, /\{request\.title\}/)
@@ -191,6 +199,10 @@ test('desktop normal UI copy avoids raw home address language', async () => {
 test('desktop status panel keeps raw ids in advanced details', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const presenter = await readFile(
+    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    'utf8'
+  )
 
   assert.match(source, /id='homeStatusLabel'/)
   assert.match(source, /Treehole offline/)
@@ -205,8 +217,8 @@ test('desktop status panel keeps raw ids in advanced details', async () => {
   assert.match(source, /\{status\.homeStatusLabel\}/)
   assert.match(source, /\{status\.treeholeStatusLabel\}/)
   assert.match(source, /\{status\.errorDetailLabel\}/)
-  assert.match(controller, /createDesktopStatusViewModel/)
-  assert.match(controller, /globalThis\.keposDesktopUi\?\.setStatus\(status\)/)
+  assert.match(presenter, /createDesktopStatusViewModel/)
+  assert.match(presenter, /ui\?\.setStatus\(/)
   assert.equal(source.includes('treehole idle'), false)
   assert.equal(source.includes("<p className='label'>Peers</p>"), false)
   assert.equal(controller.includes('Treehole ${state.treeholeStatus}'), false)
@@ -234,6 +246,10 @@ test('desktop error handling keeps raw exception detail advanced', async () => {
 test('desktop primary panes expose short empty states before content arrives', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const presenter = await readFile(
+    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    'utf8'
+  )
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
 
   assert.match(source, /id='messageList'[^>]+data-empty='No messages yet'/)
@@ -256,13 +272,17 @@ test('desktop primary panes expose short empty states before content arrives', a
   assert.match(styles, /content:\s*attr\(data-empty\)/)
   assert.match(styles, /\.list:empty::after/)
   assert.match(styles, /content:\s*attr\(data-empty-detail\)/)
-  assert.match(controller, /createDesktopHomeChatViewModel/)
-  assert.match(controller, /createDesktopTreeholeViewModel/)
+  assert.match(presenter, /createDesktopHomeChatViewModel/)
+  assert.match(presenter, /createDesktopTreeholeViewModel/)
 })
 
 test('desktop panes label live and durable surfaces', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const presenter = await readFile(
+    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    'utf8'
+  )
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
 
   for (const text of ['Live home chat', 'Direct messages', 'Durable treehole']) {
@@ -281,7 +301,7 @@ test('desktop panes label live and durable surfaces', async () => {
   )
   assert.match(source, /selectedProfileId=\{composer\.toProfileId\.trim\(\)\}/)
   assert.doesNotMatch(controller, /els\.dmRecipientInput\.addEventListener/)
-  assert.match(controller, /renderDirectContacts\(\)/)
+  assert.match(presenter, /createDesktopDirectContactPickerViewModel/)
   assert.equal(controller.includes('button.title = contact.profileId'), false)
   assert.match(styles, /\.paneLabel/)
   assert.match(styles, /\.paneEyebrow/)
@@ -292,13 +312,17 @@ test('desktop panes label live and durable surfaces', async () => {
 test('desktop rail keeps current view accessible', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const presenter = await readFile(
+    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    'utf8'
+  )
 
   assert.match(source, /function RailButton\(\{ icon, id, isActive, label, onSelect, title \}\)/)
   assert.match(source, /onClick=\{onSelect\}/)
   assert.doesNotMatch(controller, /els\.chatTab\.addEventListener/)
   assert.match(source, /aria-current=\{isActive \? 'page' : undefined\}/)
   assert.match(source, /className=\{isActive \? 'railButton active' : 'railButton'\}/)
-  assert.match(controller, /globalThis\.keposDesktopUi\?\.setActiveTab\(state\.activeTab\)/)
+  assert.match(presenter, /ui\?\.setActiveTab\(state\.activeTab\)/)
   assert.doesNotMatch(controller, /function updateTabCurrentState\(\)/)
 })
 
@@ -321,6 +345,10 @@ test('desktop MLP shell has responsive polish for narrow screens', async () => {
 test('desktop direct messages links zero-contact state to People', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const presenter = await readFile(
+    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    'utf8'
+  )
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
 
   assert.match(source, /className='contactEmpty'/)
@@ -329,13 +357,17 @@ test('desktop direct messages links zero-contact state to People', async () => {
   assert.match(source, /\{empty\.actionLabel\}/)
   assert.match(source, /onClick=\{actions\.openPeople\}/)
   assert.match(controller, /openPeople: \(\) => setTab\('people'\)/)
-  assert.match(controller, /createDesktopDirectContactPickerViewModel/)
+  assert.match(presenter, /createDesktopDirectContactPickerViewModel/)
   assert.match(styles, /\.contactEmpty/)
 })
 
 test('desktop treehole composer has an explicit owner-only disabled state', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const presenter = await readFile(
+    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    'utf8'
+  )
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
 
   assert.match(source, /id='treeholePostPolicy'/)
@@ -346,7 +378,7 @@ test('desktop treehole composer has an explicit owner-only disabled state', asyn
   )
   assert.match(source, /hidden=\{controls\.canPostTreehole\}/)
   assert.match(source, /disabled=\{!controls\.canPostTreehole\}/)
-  assert.match(controller, /canPostTreehole: Boolean\(state\.treeholeCanPost\)/)
+  assert.match(presenter, /canPostTreehole: Boolean\(state\.treeholeCanPost\)/)
   assert.doesNotMatch(controller, /els\.treeholeForm\.classList\.toggle\('disabledComposer'/)
   assert.doesNotMatch(controller, /els\.treeholeInput\.disabled =/)
   assert.doesNotMatch(controller, /els\.treeholePostPolicy\.hidden =/)
@@ -375,12 +407,16 @@ test('desktop treehole comment composer disables empty comments', async () => {
 test('desktop composers disable unavailable sends', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const presenter = await readFile(
+    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    'utf8'
+  )
 
   for (const id of ['chatSendButton', 'dmSendButton', 'treeholeSendButton']) {
     assert.match(source, new RegExp(`id='${id}'`), `${id} is missing`)
   }
 
-  assert.match(controller, /function renderControls\(\)/)
+  assert.match(presenter, /ui\?\.setControls\(\{/)
   assert.match(
     source,
     /const canSend = controls\.canUseHomeChatComposer && Boolean\(draft\.trim\(\)\)/
@@ -392,18 +428,22 @@ test('desktop composers disable unavailable sends', async () => {
   )
   assert.match(source, /const canPost = controls\.canPostTreehole && Boolean\(draft\.trim\(\)\)/)
   assert.match(source, /disabled=\{!canPost\}/)
-  assert.match(controller, /canUseHomeChatComposer: inRoom/)
-  assert.match(controller, /canUseDirectComposer: inRoom/)
+  assert.match(presenter, /canUseHomeChatComposer: inRoom/)
+  assert.match(presenter, /canUseDirectComposer: inRoom/)
   assert.doesNotMatch(controller, /canSendDirectMessage:/)
-  assert.match(controller, /canPostTreehole: Boolean\(state\.treeholeCanPost\)/)
+  assert.match(presenter, /canPostTreehole: Boolean\(state\.treeholeCanPost\)/)
 })
 
 test('desktop context actions disable unavailable joins and trust', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const presenter = await readFile(
+    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    'utf8'
+  )
 
   assert.match(source, /const ROOM_KEY_PATTERN = \/\^\[0-9a-f\]\{64\}\$\//)
-  assert.match(controller, /function renderControls\(\)/)
+  assert.match(presenter, /ui\?\.setControls\(\{/)
   assert.doesNotMatch(controller, /els\.roomKeyInput\.addEventListener/)
   assert.doesNotMatch(controller, /els\.homeQrInput\.addEventListener/)
   assert.doesNotMatch(controller, /els\.trustQrInput\.addEventListener/)
@@ -413,14 +453,18 @@ test('desktop context actions disable unavailable joins and trust', async () => 
   assert.match(source, /disabled=\{!canJoinManualHome\}/)
   assert.match(source, /disabled=\{!canJoinHomeQr\}/)
   assert.match(source, /disabled=\{!canTrustProfile\}/)
-  assert.match(controller, /canUseManualHomeJoin: !isActionPending && !inRoom/)
-  assert.match(controller, /canUseHomeQrJoin: !isActionPending && !inRoom/)
-  assert.match(controller, /canUseTrustProfile: !isActionPending/)
+  assert.match(presenter, /canUseManualHomeJoin: !isActionPending && !inRoom/)
+  assert.match(presenter, /canUseHomeQrJoin: !isActionPending && !inRoom/)
+  assert.match(presenter, /canUseTrustProfile: !isActionPending/)
 })
 
 test('desktop context actions expose a pending lock during blocking commands', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const presenter = await readFile(
+    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    'utf8'
+  )
 
   assert.match(controller, /const BLOCKING_COMMANDS = new Set\(\[/)
   for (const command of ['joinHome', 'joinHomeUri', 'leaveHome', 'trustProfileUri']) {
@@ -434,14 +478,14 @@ test('desktop context actions expose a pending lock during blocking commands', a
     /finally \{\s*if \(pendingCommand === command\) \{\s*pendingCommand = null/
   )
   assert.match(source, /document\.body\.setAttribute\('aria-busy', String\(isShellBusy\)\)/)
-  assert.match(controller, /globalThis\.keposDesktopUi\?\.setShellBusy\(isActionPending\)/)
+  assert.match(presenter, /ui\?\.setShellBusy\(isActionPending\)/)
   assert.match(source, /disabled=\{!controls\.canLeaveHome\}/)
   assert.match(source, /disabled=\{!controls\.canCreateHome\}/)
-  assert.match(controller, /canLeaveHome: inRoom && !isActionPending/)
-  assert.match(controller, /canCreateHome: !inRoom && !isActionPending/)
-  assert.match(controller, /canUseManualHomeJoin: !isActionPending && !inRoom/)
-  assert.match(controller, /canUseHomeQrJoin: !isActionPending && !inRoom/)
-  assert.match(controller, /canUseTrustProfile: !isActionPending/)
+  assert.match(presenter, /canLeaveHome: inRoom && !isActionPending/)
+  assert.match(presenter, /canCreateHome: !inRoom && !isActionPending/)
+  assert.match(presenter, /canUseManualHomeJoin: !isActionPending && !inRoom/)
+  assert.match(presenter, /canUseHomeQrJoin: !isActionPending && !inRoom/)
+  assert.match(presenter, /canUseTrustProfile: !isActionPending/)
 })
 
 test('desktop shell exposes Neo Cozy light and Indie Console dark themes', async () => {

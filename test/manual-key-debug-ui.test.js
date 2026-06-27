@@ -14,14 +14,15 @@ describe('manual key debug UI boundary', () => {
   test('desktop keeps raw share URIs inside advanced sections', async () => {
     const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
 
-    assert.match(source, /<details[^>]+id='advancedHomeShare'/)
-    assert.match(source, /<details[^>]+id='advancedProfileShare'/)
+    assert.match(source, /detailsId='advancedHomeShare'/)
+    assert.match(source, /detailsId='advancedProfileShare'/)
     assert.equal(
-      source.indexOf("id='homeQrOutput'") > source.indexOf("id='advancedHomeShare'"),
+      source.indexOf("outputId='homeQrOutput'") > source.indexOf("detailsId='advancedHomeShare'"),
       true
     )
     assert.equal(
-      source.indexOf("id='profileQrOutput'") > source.indexOf("id='advancedProfileShare'"),
+      source.indexOf("outputId='profileQrOutput'") >
+        source.indexOf("detailsId='advancedProfileShare'"),
       true
     )
   })

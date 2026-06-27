@@ -1,18 +1,13 @@
 /* global navigator */
 
 import { createDesktopControlActions } from '../src/desktop-control-actions.js'
-import { createDesktopDirectContactPickerViewModel } from '../src/desktop-direct-contact-picker-view-model.js'
-import { createDesktopDirectMessageListViewModel } from '../src/desktop-direct-view-model.js'
-import { createDesktopHomeChatViewModel } from '../src/desktop-home-chat-view-model.js'
-import { createDesktopPeopleViewModel } from '../src/desktop-people-view-model.js'
 import { createDesktopProfileContext } from '../src/desktop-profile-context.js'
 import { createDesktopMessageActions } from '../src/desktop-message-actions.js'
 import { createDesktopMessageRequestActions } from '../src/desktop-message-request-actions.js'
 import { createDesktopQrActions } from '../src/desktop-qr-actions.js'
+import { createDesktopRenderPresenter } from '../src/desktop-render-presenter.js'
 import { createDesktopRoomActions } from '../src/desktop-room-actions.js'
 import { createDesktopState, setDesktopTab, setDesktopTreehole } from '../src/desktop-state.js'
-import { createDesktopStatusViewModel } from '../src/desktop-status-view-model.js'
-import { createDesktopTreeholeViewModel } from '../src/desktop-treehole-view-model.js'
 import { createDesktopLocalBackendHost } from '../src/desktop-local-backend-host.js'
 import { createDesktopRendererBackendClient } from '../src/desktop-renderer-backend-client.js'
 import { getDesktopStorageBasePath } from '../src/desktop-storage-base.js'
@@ -39,6 +34,11 @@ const messageActions = createDesktopMessageActions({
   setSession: (nextSession) => {
     session = nextSession
   }
+})
+const renderPresenter = createDesktopRenderPresenter({
+  formatTime,
+  shortenProfileId: shorten,
+  ui: globalThis.keposDesktopUi
 })
 const qrActions = createDesktopQrActions({
   copyText: (value) => navigator.clipboard.writeText(value),
@@ -299,98 +299,27 @@ function setTab(tab) {
 }
 
 function render() {
-  const inRoom = state.view === 'room'
-  const isActionPending = Boolean(pendingCommand)
-  globalThis.keposDesktopUi?.setShellBusy(isActionPending)
-  renderStatus()
-  renderControls()
-
-  globalThis.keposDesktopUi?.setActiveTab(state.activeTab)
-
-  renderMessages()
-  renderDirectMessages()
-  renderDirectContacts()
-  renderPeople()
-  renderPosts()
-}
-
-function renderStatus() {
-  const status = createDesktopStatusViewModel({
+  const { contactBook } = getProfileContext()
+  renderPresenter.render({
+    contactBook,
+    directComposerRecipientProfileId,
+    dmSession,
+    pendingCommand,
     session,
-    shortenProfileId: shorten,
     state
   })
-  globalThis.keposDesktopUi?.setStatus(status)
-}
-
-function renderControls() {
-  const inRoom = state.view === 'room'
-  const isActionPending = Boolean(pendingCommand)
-  const controls = {
-    canCreateHome: !inRoom && !isActionPending,
-    canLeaveHome: inRoom && !isActionPending,
-    canPostTreehole: Boolean(state.treeholeCanPost),
-    canUseDirectComposer: inRoom,
-    canUseHomeChatComposer: inRoom,
-    canUseHomeQrJoin: !isActionPending && !inRoom,
-    canUseManualHomeJoin: !isActionPending && !inRoom,
-    canUseTrustProfile: !isActionPending
-  }
-  globalThis.keposDesktopUi?.setControls(controls)
-}
-
-function renderMessages() {
-  const messages = createDesktopHomeChatViewModel({
-    messages: session?.messages || []
-  })
-  globalThis.keposDesktopUi?.setHomeMessages(messages)
-}
-
-function renderDirectMessages() {
-  const messages = createDesktopDirectMessageListViewModel({
-    messages: dmSession?.messages || [],
-    shortenProfileId: shorten
-  })
-  globalThis.keposDesktopUi?.setDirectMessages(messages)
-}
-
-function renderDirectContacts() {
-  const { contactBook } = getProfileContext()
-  const picker = createDesktopDirectContactPickerViewModel({
-    contactBook,
-    selectedProfileId: directComposerRecipientProfileId
-  })
-  globalThis.keposDesktopUi?.setDirectContactPicker(picker)
 }
 
 function updateDirectComposerRecipient(toProfileId = '') {
   directComposerRecipientProfileId = toProfileId.trim()
-  renderDirectContacts()
+  render()
 }
 
 function selectDirectContact(profileId = '') {
   if (!profileId) return
   directComposerRecipientProfileId = profileId
   globalThis.keposDesktopUi?.setDirectComposerRecipient(profileId)
-  renderDirectContacts()
-}
-
-function renderPeople() {
-  const { contactBook } = getProfileContext()
-  const people = createDesktopPeopleViewModel({
-    contactBook,
-    shortenProfileId: shorten
-  })
-  globalThis.keposDesktopUi?.setPeople(people)
-}
-
-function renderPosts() {
-  const posts = createDesktopTreeholeViewModel({
-    formatTime,
-    posts: state.treeholePosts,
-    shortenProfileId: shorten
-  })
-  globalThis.keposDesktopUi?.setTreeholePosts(posts)
+  render()
 }
 
 function showError(error) {

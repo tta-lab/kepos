@@ -37,12 +37,16 @@ test('desktop React entry renders before starting the controller', async () => {
 test('desktop React owns the home chat list surface', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const presenter = await readFile(
+    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    'utf8'
+  )
 
   assert.match(source, /function HomeChatList\(\{ messages \}\)/)
   assert.match(source, /globalThis\.keposDesktopUi/)
   assert.match(source, /setHomeMessages\(messages = \[\]\)/)
   assert.match(source, /<HomeChatList messages=\{homeMessages\} \/>/)
-  assert.match(controller, /globalThis\.keposDesktopUi\?\.setHomeMessages\(messages\)/)
+  assert.match(presenter, /ui\?\.setHomeMessages\(/)
   assert.doesNotMatch(controller, /els\.messageList\.replaceChildren/)
 })
 
@@ -73,6 +77,10 @@ test('desktop React owns the home chat composer draft', async () => {
 test('desktop React owns the direct message list surface', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const presenter = await readFile(
+    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    'utf8'
+  )
 
   assert.match(source, /function DirectMessageList\(\{ messages, onAccept, onIgnore \}\)/)
   assert.match(source, /setDirectMessages\(messages = \[\]\)/)
@@ -80,7 +88,7 @@ test('desktop React owns the direct message list surface', async () => {
   assert.match(source, /<DirectMessageList[\s\S]*messages=\{directMessages\}/)
   assert.match(source, /onClick=\{\(\) => onIgnore\(message\.actions\.ignoreMessage\)\}/)
   assert.match(source, /onClick=\{\(\) => onAccept\(message\.actions\.acceptMessage\)\}/)
-  assert.match(controller, /globalThis\.keposDesktopUi\?\.setDirectMessages\(messages\)/)
+  assert.match(presenter, /ui\?\.setDirectMessages\(/)
   assert.match(controller, /globalThis\.keposDesktopUi\?\.setDirectMessageActions\(\{/)
   assert.doesNotMatch(controller, /els\.dmList\.replaceChildren/)
 })
@@ -88,6 +96,10 @@ test('desktop React owns the direct message list surface', async () => {
 test('desktop React owns the direct contact picker surface', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const presenter = await readFile(
+    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    'utf8'
+  )
 
   assert.match(
     source,
@@ -100,8 +112,8 @@ test('desktop React owns the direct contact picker surface', async () => {
   assert.match(source, /selectedProfileId=\{composer\.toProfileId\.trim\(\)\}/)
   assert.match(source, /onClick=\{\(\) => actions\.selectContact\(contact\.profileId\)\}/)
   assert.match(source, /onClick=\{actions\.openPeople\}/)
-  assert.match(controller, /createDesktopDirectContactPickerViewModel/)
-  assert.match(controller, /globalThis\.keposDesktopUi\?\.setDirectContactPicker\(picker\)/)
+  assert.match(presenter, /createDesktopDirectContactPickerViewModel/)
+  assert.match(presenter, /ui\?\.setDirectContactPicker\(/)
   assert.match(controller, /globalThis\.keposDesktopUi\?\.setDirectContactPickerActions\(\{/)
   assert.doesNotMatch(controller, /els\.dmContactList\.replaceChildren/)
 })
@@ -109,6 +121,10 @@ test('desktop React owns the direct contact picker surface', async () => {
 test('desktop React owns the status labels surface', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const presenter = await readFile(
+    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    'utf8'
+  )
 
   assert.match(source, /setStatus\(status = DEFAULT_STATUS\)/)
   assert.match(source, /\{status\.noticeLabel\}/)
@@ -118,8 +134,9 @@ test('desktop React owns the status labels surface', async () => {
   assert.match(source, /\{status\.roomKeyLabel\}/)
   assert.match(source, /\{status\.profileIdLabel\}/)
   assert.match(source, /\{status\.errorDetailLabel\}/)
-  assert.match(controller, /createDesktopStatusViewModel/)
-  assert.match(controller, /globalThis\.keposDesktopUi\?\.setStatus\(status\)/)
+  assert.match(controller, /createDesktopRenderPresenter/)
+  assert.match(presenter, /createDesktopStatusViewModel/)
+  assert.match(presenter, /ui\?\.setStatus\(/)
   assert.doesNotMatch(controller, /els\.homeStatusLabel\.textContent/)
   assert.doesNotMatch(controller, /els\.noticeLabel\.textContent/)
   assert.doesNotMatch(controller, /els\.treeholeStatusLabel\.textContent/)
@@ -129,6 +146,10 @@ test('desktop React owns the status labels surface', async () => {
 test('desktop React owns tab and pane active state', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const presenter = await readFile(
+    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    'utf8'
+  )
 
   assert.match(source, /setActiveTab\(tab = 'chat'\)/)
   assert.match(source, /setShellActions\(actions = \{\}\)/)
@@ -139,7 +160,7 @@ test('desktop React owns tab and pane active state', async () => {
   assert.match(source, /onClick=\{onSelect\}/)
   assert.match(source, /className=\{isActive \? 'railButton active' : 'railButton'\}/)
   assert.match(source, /className=\{activeTab === 'chat' \? 'pane' : 'pane hidden'\}/)
-  assert.match(controller, /globalThis\.keposDesktopUi\?\.setActiveTab\(state\.activeTab\)/)
+  assert.match(presenter, /ui\?\.setActiveTab\(state\.activeTab\)/)
   assert.match(controller, /globalThis\.keposDesktopUi\?\.setShellActions\(\{/)
   assert.doesNotMatch(controller, /chatTab: document\.querySelector/)
   assert.doesNotMatch(controller, /dmTab: document\.querySelector/)
@@ -163,6 +184,10 @@ test('desktop React owns tab and pane active state', async () => {
 test('desktop React owns action and composer disabled state', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const presenter = await readFile(
+    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    'utf8'
+  )
 
   assert.match(source, /setControls\(controls = DEFAULT_CONTROLS\)/)
   assert.match(source, /const \[controls, setControls\] = useState\(DEFAULT_CONTROLS\)/)
@@ -189,7 +214,7 @@ test('desktop React owns action and composer disabled state', async () => {
   )
   assert.match(source, /hidden=\{controls\.canPostTreehole\}/)
   assert.match(source, /disabled=\{!controls\.canPostTreehole\}/)
-  assert.match(controller, /globalThis\.keposDesktopUi\?\.setControls\(controls\)/)
+  assert.match(presenter, /ui\?\.setControls\(\{/)
   assert.doesNotMatch(controller, /\.disabled =/)
   assert.doesNotMatch(controller, /classList\.toggle\('disabledComposer'/)
   assert.doesNotMatch(controller, /treeholePostPolicy\.hidden =/)
@@ -231,12 +256,16 @@ test('desktop React owns the large QR dialog surface', async () => {
 test('desktop React owns shell busy and leave action', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const presenter = await readFile(
+    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    'utf8'
+  )
 
   assert.match(source, /setShellBusy\(isBusy = false\)/)
   assert.match(source, /const \[isShellBusy, setShellBusy\] = useState\(false\)/)
   assert.match(source, /document\.body\.setAttribute\('aria-busy', String\(isShellBusy\)\)/)
   assert.match(source, /onClick=\{shellActions\.leaveHome\}/)
-  assert.match(controller, /globalThis\.keposDesktopUi\?\.setShellBusy\(isActionPending\)/)
+  assert.match(presenter, /ui\?\.setShellBusy\(isActionPending\)/)
   assert.match(controller, /leaveHome: \(\) => dispatchCommand\('leaveHome'\)/)
   assert.doesNotMatch(controller, /leaveButton: document\.querySelector/)
   assert.doesNotMatch(controller, /els\.leaveButton\.addEventListener/)
@@ -306,6 +335,10 @@ test('desktop React owns context form drafts and QR actions', async () => {
 test('desktop React owns the people list surfaces', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const presenter = await readFile(
+    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    'utf8'
+  )
 
   assert.match(source, /function PeopleLists\(\{ actions, messageRequests, trustedContacts \}\)/)
   assert.match(source, /setPeople\(people = \{ messageRequests: \[\], trustedContacts: \[\] \}\)/)
@@ -317,7 +350,7 @@ test('desktop React owns the people list surfaces', async () => {
     source,
     /onClick=\{\(\) => actions\.acceptMessageRequest\(request\.acceptMessage\)\}/
   )
-  assert.match(controller, /globalThis\.keposDesktopUi\?\.setPeople\(people\)/)
+  assert.match(presenter, /ui\?\.setPeople\(/)
   assert.match(controller, /globalThis\.keposDesktopUi\?\.setPeopleActions\(\{/)
   assert.doesNotMatch(controller, /els\.contactList\.replaceChildren/)
   assert.doesNotMatch(controller, /els\.requestList\.replaceChildren/)
@@ -326,6 +359,10 @@ test('desktop React owns the people list surfaces', async () => {
 test('desktop React owns the treehole post list surface', async () => {
   const source = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const presenter = await readFile(
+    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    'utf8'
+  )
 
   assert.match(source, /function TreeholeList\(\{ actions, posts \}\)/)
   assert.match(source, /setTreeholePosts\(posts = \[\]\)/)
@@ -336,7 +373,7 @@ test('desktop React owns the treehole post list surface', async () => {
     source,
     /actions\.commentPost\(\{ postId: post\.actions\.commentPostId, text: draft\.trim\(\) \}\)/
   )
-  assert.match(controller, /globalThis\.keposDesktopUi\?\.setTreeholePosts\(posts\)/)
+  assert.match(presenter, /ui\?\.setTreeholePosts\(/)
   assert.match(controller, /globalThis\.keposDesktopUi\?\.setTreeholeActions\(\{/)
   assert.doesNotMatch(controller, /els\.treeholeList\.replaceChildren/)
 })
