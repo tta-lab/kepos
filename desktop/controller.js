@@ -1,8 +1,8 @@
 /* global document, navigator */
 
-import { applyMessageRequestToContactBook } from '../src/message-request.ts'
 import { listTrustedContacts } from '../src/contact-book.ts'
 import { createDesktopBackendRuntime } from '../src/desktop-backend-runtime.js'
+import { createDesktopControlMessageResult } from '../src/desktop-control-service.js'
 import { createDesktopHomeJoinDetails } from '../src/desktop-home-join-service.js'
 import { createDesktopProfileContext } from '../src/desktop-profile-context.js'
 import {
@@ -490,34 +490,32 @@ async function postTreehole({ text } = {}) {
 
 async function handleControl(message, peer) {
   if (message.type === 'kepos.message.request.v1') {
-    const currentDmSession = dmRuntime.getSession()
-    if (!currentDmSession || message.toProfileId !== currentDmSession.localProfileId) return
-
     const context = getProfileContext()
-    const nextBook = applyMessageRequestToContactBook(context.contactBook, {
-      alias: shorten(message.fromProfileId),
-      request: message,
-      source: 'home_room'
+    const result = await createDesktopControlMessageResult({
+      contactBook: context.contactBook,
+      currentDmSession: dmRuntime.getSession(),
+      fallbackAlias: shorten(message.fromProfileId),
+      message
     })
+    if (!result) return
 
-    context.saveContactBook(nextBook)
-    dmRuntime.appendIncomingRequest(message)
+    context.saveContactBook(result.book)
+    dmRuntime.appendIncomingRequest(result.appendIncomingRequest)
     state = { ...state, notice: 'Message request received.' }
     render()
     return
   }
 
   if (message.type === 'kepos.dm.invite.v1') {
-    const currentDmSession = dmRuntime.getSession()
-    if (!currentDmSession || message.toProfileId !== currentDmSession.localProfileId) return
-
     const { contactBook, profile } = getProfileContext()
-    await dmRuntime.acceptInviteAsRecipient({
-      acceptedAt: Date.now(),
+    const result = await createDesktopControlMessageResult({
+      acceptInviteAsRecipient: (payload) => dmRuntime.acceptInviteAsRecipient(payload),
       contactBook,
-      invite: message,
+      currentDmSession: dmRuntime.getSession(),
+      message,
       recipientEncryptionKeyPair: profile.dmEncryptionKeyPair
     })
+    if (!result) return
 
     state = { ...state, notice: 'Direct message ready.' }
     render()
