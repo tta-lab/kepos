@@ -220,6 +220,20 @@ test('normal error notices avoid raw exception text', async () => {
   assert.match(desktop, /Something went wrong\./)
 })
 
+test('Android keeps raw error detail in room advanced status', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+
+  assert.match(source, /const \[lastError, setLastError\] = useState\(''\)/)
+  assert.match(source, /lastError={lastError}/)
+  assert.match(source, /setLastError\(error\.message\)/)
+  assert.match(source, /setLastError\(payload\.message \|\| 'Home connection error'\)/)
+  assert.match(source, /<Text style={styles\.roomLabel}>Error detail<\/Text>/)
+  assert.match(source, /testID='room-error-detail'/)
+  assert.match(source, /\{lastError \|\| 'none'\}/)
+  assert.equal(source.includes('setNotice(error.message)'), false)
+  assert.equal(source.includes('setNotice(payload.message)'), false)
+})
+
 test('mobile success notices avoid profile id snippets', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 

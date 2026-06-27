@@ -192,6 +192,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('chat')
   const [session, setSession] = useState(null)
   const [notice, setNotice] = useState('Create your home or join a friend.')
+  const [lastError, setLastError] = useState('')
   const [peerCount, setPeerCount] = useState(0)
   const [rpc, setRpc] = useState(null)
   const [scanTarget, setScanTarget] = useState(null)
@@ -252,6 +253,7 @@ export default function App() {
       .catch((error) => {
         console.error('Profile storage unavailable', error)
         if (!cancelled) {
+          setLastError(error.message)
           setNotice('Could not load this profile.')
         }
       })
@@ -293,6 +295,7 @@ export default function App() {
       })
     } catch (error) {
       console.error('Could not start home', error)
+      setLastError(error.message)
       setNotice('Could not start this home.')
     }
   }
@@ -332,6 +335,7 @@ export default function App() {
       })
     } catch (error) {
       console.error('Could not join home', error)
+      setLastError(error.message)
       setNotice('Could not join this home.')
     }
   }
@@ -383,6 +387,7 @@ export default function App() {
       })
     } catch (error) {
       console.error('Could not read Home QR', error)
+      setLastError(error.message)
       setNotice('Could not read this Home QR.')
     }
   }
@@ -414,6 +419,7 @@ export default function App() {
       setNotice('Trusted friend added.')
     } catch (error) {
       console.error('Could not read Profile QR', error)
+      setLastError(error.message)
       setNotice('Could not read this Profile QR.')
     }
   }
@@ -638,6 +644,7 @@ export default function App() {
         if (req.command === RPC_DM_MESSAGE) {
           persistIncomingMessageRequest(payload).catch((error) => {
             console.error('Message request unavailable', error)
+            setLastError(error.message)
             setNotice('Could not save this message request.')
           })
           setDmSession((current) => {
@@ -673,6 +680,7 @@ export default function App() {
         if (req.command === RPC_DM_THREAD) {
           saveMobileDmThread(payload).catch((error) => {
             console.error('DM thread unavailable', error)
+            setLastError(error.message)
             setNotice('Could not save this DM thread.')
           })
           return
@@ -701,6 +709,7 @@ export default function App() {
 
         if (req.command === RPC_ERROR) {
           console.error('Home connection error', payload)
+          setLastError(payload.message || 'Home connection error')
           setNotice('Home connection error.')
         }
       })
@@ -710,6 +719,7 @@ export default function App() {
       setNotice('Starting home...')
     } catch (error) {
       console.error('Could not connect home', error)
+      setLastError(error.message)
       setNotice('Could not connect this home.')
     }
   }
@@ -843,6 +853,7 @@ export default function App() {
                   profileId={profileId}
                   profileReady={profileReady}
                   profileQrUri={profileQrUri}
+                  lastError={lastError}
                   session={session}
                   treeholeDraft={treeholeDraft}
                   treeholePosts={treeholePosts}
@@ -1090,6 +1101,7 @@ function ChatRoom({
   profileId,
   profileReady,
   profileQrUri,
+  lastError,
   session,
   treeholeCanPost,
   treeholeDraft,
@@ -1132,6 +1144,10 @@ function ChatRoom({
           <Text style={styles.roomLabel}>Home key</Text>
           <Text style={styles.roomKey} testID='room-home-address'>
             {roomShort}
+          </Text>
+          <Text style={styles.roomLabel}>Error detail</Text>
+          <Text style={styles.roomKey} testID='room-error-detail'>
+            {lastError || 'none'}
           </Text>
         </View>
       ) : null}
