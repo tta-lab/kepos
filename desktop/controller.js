@@ -1,6 +1,5 @@
 /* global document, navigator */
 
-import { createDesktopBackendRuntime } from '../src/desktop-backend-runtime.js'
 import {
   createDesktopControlMessageResult,
   createDesktopTreeholeControlSendResult
@@ -30,8 +29,7 @@ import {
 } from '../src/desktop-state.js'
 import { createDesktopStatusViewModel } from '../src/desktop-status-view-model.js'
 import { createDesktopTreeholeViewModel } from '../src/desktop-treehole-view-model.js'
-import { createDesktopBackendBridge } from '../src/desktop-backend-bridge.ts'
-import { createDesktopCommandHost } from '../src/desktop-command-host.js'
+import { createDesktopLocalBackendHost } from '../src/desktop-local-backend-host.js'
 import { createDesktopRendererBackendClient } from '../src/desktop-renderer-backend-client.js'
 import { getDesktopStorageBasePath } from '../src/desktop-storage-base.js'
 
@@ -51,7 +49,7 @@ let shareQrOutputs = {
   profileSvg: '',
   profileUri: ''
 }
-const commands = createDesktopCommandHost({
+const backendHost = createDesktopLocalBackendHost({
   actions: {
     acceptMessageRequest: acceptIncomingMessageRequest,
     commentTreehole: commentTreeholePost,
@@ -66,31 +64,28 @@ const commands = createDesktopCommandHost({
     sendHomeMessage: sendChat,
     sendMessageRequest,
     trustProfileUri: trustProfileQr
+  },
+  runtimeOptions: {
+    onDmSessionChanged: (nextSession) => {
+      dmSession = nextSession
+      render()
+    },
+    onHomeControl: (message, peer) => handleControl(message, peer).catch(showError),
+    onHomeSessionChanged: (nextSession) => {
+      session = nextSession
+      render()
+    },
+    onVerifiedHello: (message, peer) => sendTreeholeBootstrap(peer, message.profileId),
+    storageBasePath: getDesktopStorageBasePath()
   }
 })
-const backendBridge = createDesktopBackendBridge({
-  dispatch: (command, payload) => commands.dispatch(command, payload)
-})
 const backendClient = createDesktopRendererBackendClient({
-  localBackend: backendBridge
+  localBackend: backendHost.bridge
 })
-const backendRuntime = createDesktopBackendRuntime({
-  emit: (event, payload) => backendBridge.emit(event, payload),
-  onDmSessionChanged: (nextSession) => {
-    dmSession = nextSession
-    render()
-  },
-  onHomeControl: (message, peer) => handleControl(message, peer).catch(showError),
-  onHomeSessionChanged: (nextSession) => {
-    session = nextSession
-    render()
-  },
-  onVerifiedHello: (message, peer) => sendTreeholeBootstrap(peer, message.profileId),
-  storageBasePath: getDesktopStorageBasePath()
-})
-const dmRuntime = backendRuntime.dm
-const homeRuntime = backendRuntime.home
-const treeholeRuntime = backendRuntime.treehole
+const backendRuntime = backendHost.runtime
+const dmRuntime = backendHost.dmRuntime
+const homeRuntime = backendHost.homeRuntime
+const treeholeRuntime = backendHost.treeholeRuntime
 
 globalThis.keposDesktopUi?.setContextFormActions({
   copyHomeQr: () =>

@@ -47,19 +47,31 @@ test('desktop backend bridge validates event subscriptions and supports unsubscr
 
 test('desktop controller routes commands through the backend bridge', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const host = await readFile(
+    new URL('../src/desktop-local-backend-host.js', import.meta.url),
+    'utf8'
+  )
 
-  assert.match(source, /createDesktopBackendBridge/)
+  assert.match(source, /createDesktopLocalBackendHost/)
+  assert.match(host, /createDesktopBackendBridge/)
+  assert.match(host, /createDesktopCommandHost/)
   assert.match(source, /createDesktopRendererBackendClient/)
-  assert.match(source, /const backendBridge = createDesktopBackendBridge/)
+  assert.match(host, /const bridge = createBackendBridge/)
   assert.match(source, /const backendClient = createDesktopRendererBackendClient/)
+  assert.match(source, /localBackend: backendHost\.bridge/)
   assert.match(source, /await backendClient\.dispatch\(command, payload\)/)
 })
 
 test('desktop controller routes treehole runtime updates through backend bridge events', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const host = await readFile(
+    new URL('../src/desktop-local-backend-host.js', import.meta.url),
+    'utf8'
+  )
 
-  assert.match(source, /createDesktopBackendRuntime/)
-  assert.match(source, /const treeholeRuntime = backendRuntime\.treehole/)
+  assert.match(host, /createDesktopBackendRuntime/)
+  assert.match(host, /emit: \(event, payload\) => bridge\.emit\(event, payload\)/)
+  assert.match(source, /const treeholeRuntime = backendHost\.treeholeRuntime/)
   assert.match(source, /backendClient\.subscribe\('treeholeStateChanged'/)
   assert.match(source, /setDesktopTreehole\(state, snapshot\)/)
   assert.match(source, /backendClient\.subscribe\('errorReceived', showError\)/)
@@ -70,9 +82,13 @@ test('desktop controller routes treehole runtime updates through backend bridge 
 
 test('desktop controller delegates home transport to a runtime boundary', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const host = await readFile(
+    new URL('../src/desktop-local-backend-host.js', import.meta.url),
+    'utf8'
+  )
 
-  assert.match(source, /createDesktopBackendRuntime/)
-  assert.match(source, /const homeRuntime = backendRuntime\.home/)
+  assert.match(host, /createDesktopBackendRuntime/)
+  assert.match(source, /const homeRuntime = backendHost\.homeRuntime/)
   assert.match(source, /onHomeControl: \(message, peer\) => handleControl/)
   assert.match(source, /homeRuntime\.join/)
   assert.match(source, /homeRuntime\.sendMessage/)
@@ -83,10 +99,14 @@ test('desktop controller delegates home transport to a runtime boundary', async 
 
 test('desktop controller delegates direct message runtime and storage to a boundary', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const host = await readFile(
+    new URL('../src/desktop-local-backend-host.js', import.meta.url),
+    'utf8'
+  )
 
-  assert.match(source, /createDesktopBackendRuntime/)
-  assert.match(source, /const backendRuntime = createDesktopBackendRuntime/)
-  assert.match(source, /const dmRuntime = backendRuntime\.dm/)
+  assert.match(host, /createDesktopBackendRuntime/)
+  assert.match(source, /const backendRuntime = backendHost\.runtime/)
+  assert.match(source, /const dmRuntime = backendHost\.dmRuntime/)
   assert.match(source, /dmRuntime\.sendMessageOrRequest/)
   assert.doesNotMatch(source, /from '..\/src\/dm-thread-runtime\.js'/)
   assert.doesNotMatch(source, /from '..\/src\/dm-message-storage\.ts'/)
@@ -95,8 +115,13 @@ test('desktop controller delegates direct message runtime and storage to a bound
 
 test('desktop controller uses one backend runtime facade for long lived runtimes', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const host = await readFile(
+    new URL('../src/desktop-local-backend-host.js', import.meta.url),
+    'utf8'
+  )
 
-  assert.match(source, /createDesktopBackendRuntime/)
+  assert.match(source, /createDesktopLocalBackendHost/)
+  assert.match(host, /createDesktopBackendRuntime/)
   assert.doesNotMatch(source, /from '..\/src\/desktop-dm-runtime\.js'/)
   assert.doesNotMatch(source, /from '..\/src\/desktop-home-runtime\.js'/)
   assert.doesNotMatch(source, /from '..\/src\/desktop-treehole-runtime\.js'/)

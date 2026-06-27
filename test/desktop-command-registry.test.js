@@ -38,8 +38,13 @@ test('desktop command registry dispatches known commands and rejects unknown com
 
 test('desktop controller routes UI actions through the command host', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const host = await readFile(
+    new URL('../src/desktop-local-backend-host.js', import.meta.url),
+    'utf8'
+  )
 
-  assert.match(source, /createDesktopCommandHost/)
+  assert.match(source, /createDesktopLocalBackendHost/)
+  assert.match(host, /createDesktopCommandHost/)
   assert.doesNotMatch(source, /createDesktopCommandRegistry/)
   assert.match(source, /function dispatchCommand/)
 
