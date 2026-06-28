@@ -165,6 +165,38 @@ test('mobile setup actions share one icon button component', async () => {
   assert.match(peopleActions, /<MobileActionButton[\s\S]*testID='advanced-share-toggle'/)
 })
 
+test('mobile composers share one send button component', async () => {
+  const source = await readMobileSource()
+  const directPane = source.slice(
+    source.indexOf('function DirectPane('),
+    source.indexOf('function ContactManager(')
+  )
+  const chatPane = source.slice(
+    source.indexOf('function ChatPane('),
+    source.indexOf('function TreeholePane(')
+  )
+  const treeholePane = source.slice(
+    source.indexOf('function TreeholePane('),
+    source.indexOf('function EmptyState(')
+  )
+  const treeholePost = source.slice(
+    source.indexOf('function TreeholePost('),
+    source.indexOf('function EmptyMessages(')
+  )
+  const sendButton = source.slice(
+    source.indexOf('function MobileSendButton('),
+    source.indexOf('function QuickStartPanel(')
+  )
+
+  assert.match(sendButton, /function MobileSendButton\(/)
+  assert.match(sendButton, /isSmall \? styles\.smallSendButton : styles\.sendButton/)
+  assert.match(sendButton, /disabled && styles\.disabledSendButton/)
+  assert.match(directPane, /<MobileSendButton[\s\S]*testID='dm-send-button'/)
+  assert.match(chatPane, /<MobileSendButton[\s\S]*testID='chat-send-button'/)
+  assert.match(treeholePane, /<MobileSendButton[\s\S]*testID='treehole-post-button'/)
+  assert.match(treeholePost, /<MobileSendButton[\s\S]*size='small'/)
+})
+
 test('mobile product notices are announced as polite status updates', async () => {
   const source = await readMobileSource()
   const header = source.slice(

@@ -1384,6 +1384,32 @@ function MobileActionButton({
   )
 }
 
+function MobileSendButton({
+  accessibilityLabel,
+  disabled = false,
+  onPress,
+  size = 'normal',
+  testID
+}) {
+  const { styles, theme } = useMobileTheme()
+  const isSmall = size === 'small'
+
+  return (
+    <Pressable
+      accessibilityLabel={accessibilityLabel}
+      disabled={disabled}
+      onPress={onPress}
+      style={[
+        isSmall ? styles.smallSendButton : styles.sendButton,
+        disabled && styles.disabledSendButton
+      ]}
+      testID={testID}
+    >
+      <Send color={theme.surface} size={isSmall ? 15 : 18} />
+    </Pressable>
+  )
+}
+
 function QuickStartPanel({
   myHomeQrUri,
   nick,
@@ -1851,18 +1877,12 @@ function DirectPane({
             testID='dm-message-input'
             value={draft}
           />
-          <Pressable
+          <MobileSendButton
             accessibilityLabel='Send direct message'
             disabled={!draft.trim() || !recipient.trim()}
             onPress={onSend}
-            style={[
-              styles.sendButton,
-              (!draft.trim() || !recipient.trim()) && styles.disabledSendButton
-            ]}
             testID='dm-send-button'
-          >
-            <Send color={theme.surface} size={18} />
-          </Pressable>
+          />
         </View>
       </View>
     </>
@@ -1963,15 +1983,12 @@ function ChatPane({ draft, messages, onDraftChange, onSend }) {
           testID='chat-message-input'
           value={draft}
         />
-        <Pressable
+        <MobileSendButton
           accessibilityLabel='Send home message'
           disabled={!draft.trim()}
           onPress={onSend}
-          style={[styles.sendButton, !draft.trim() && styles.disabledSendButton]}
           testID='chat-send-button'
-        >
-          <Send color={theme.surface} size={18} />
-        </Pressable>
+        />
       </View>
     </>
   )
@@ -2026,15 +2043,12 @@ function TreeholePane({
             <Text style={styles.composerHint}>Only the owner can post here.</Text>
           ) : null}
         </View>
-        <Pressable
+        <MobileSendButton
           accessibilityLabel='Post to treehole'
           disabled={!canSubmitPost}
           onPress={onPost}
-          style={[styles.sendButton, !canSubmitPost && styles.disabledSendButton]}
           testID='treehole-post-button'
-        >
-          <Send color={theme.surface} size={18} />
-        </Pressable>
+        />
       </View>
     </>
   )
@@ -2128,14 +2142,12 @@ function TreeholePost({ canInteract, onComment, onLike, post }) {
             style={[styles.commentInput, !canInteract && styles.disabledTreeholeInput]}
             value={commentDraft}
           />
-          <Pressable
+          <MobileSendButton
             accessibilityLabel='Send treehole comment'
             disabled={!canSubmitComment}
             onPress={submitComment}
-            style={[styles.smallSendButton, !canSubmitComment && styles.disabledSendButton]}
-          >
-            <Send color={theme.surface} size={15} />
-          </Pressable>
+            size='small'
+          />
         </View>
       </View>
     </View>

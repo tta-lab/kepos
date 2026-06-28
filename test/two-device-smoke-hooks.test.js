@@ -551,7 +551,8 @@ test('Android home chat disables empty sends like other composers', async () => 
 
   assert.match(source, /testID='chat-send-button'/)
   assert.match(source, /disabled=\{!draft\.trim\(\)\}/)
-  assert.match(source, /\[styles\.sendButton, !draft\.trim\(\) && styles\.disabledSendButton\]/)
+  assert.match(source, /function MobileSendButton\(/)
+  assert.match(source, /disabled && styles\.disabledSendButton/)
 })
 
 test('Android icon-only buttons expose accessible labels', async () => {
@@ -725,7 +726,7 @@ test('Android treehole composer explains owner-only posting', async () => {
   assert.match(source, /editable=\{canPost\}/)
   assert.match(source, /!canPost && styles\.disabledTreeholeInput/)
   assert.match(source, /disabled=\{!canSubmitPost\}/)
-  assert.match(source, /!canSubmitPost && styles\.disabledSendButton/)
+  assert.match(source, /<MobileSendButton[\s\S]*disabled=\{!canSubmitPost\}/)
 })
 
 test('Android treehole interactions disable when the profile cannot interact', async () => {
