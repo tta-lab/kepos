@@ -1221,7 +1221,12 @@ function ChatRoom({
             <Settings color={theme.inkSoft} size={15} />
             <Text style={styles.advancedSummary}>Advanced</Text>
           </Pressable>
-          <Pressable accessibilityLabel='Leave home' style={styles.iconButton} onPress={onLeave}>
+          <Pressable
+            accessibilityLabel='Leave home'
+            onPress={onLeave}
+            style={styles.iconButton}
+            testID='leave-home-button'
+          >
             <LogOut color={theme.accentStrong} size={18} />
           </Pressable>
         </View>

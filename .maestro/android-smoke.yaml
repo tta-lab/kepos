@@ -1,40 +1,37 @@
 appId: io.guion.kepos
 ---
 - launchApp
-- assertVisible:
-    id: 'create-home-button'
-- scrollUntilVisible:
-    element:
-      id: 'scan-home-qr-button'
-    direction: DOWN
-- tapOn:
-    id: 'scan-home-qr-button'
-- assertVisible:
-    id: 'qr-scanner-overlay'
-- tapOn:
-    id: 'qr-scanner-cancel'
-- scrollUntilVisible:
-    element:
-      id: 'scan-profile-qr-button'
-    direction: DOWN
-- tapOn:
-    id: 'scan-profile-qr-button'
-- assertVisible:
-    id: 'qr-scanner-overlay'
-- tapOn:
-    id: 'qr-scanner-cancel'
-- scrollUntilVisible:
-    element:
+- runFlow:
+    when:
+      visible:
+        id: 'home-title'
+    commands:
+      - tapOn:
+          id: 'leave-home-button'
+- extendedWaitUntil:
+    visible:
       id: 'create-home-button'
-    direction: UP
+    timeout: 60000
+- tapOn:
+    id: 'quick-scan-home-qr-button'
+- assertVisible:
+    id: 'qr-scanner-overlay'
+- tapOn:
+    id: 'qr-scanner-cancel'
+- tapOn:
+    id: 'quick-scan-profile-qr-button'
+- assertVisible:
+    id: 'qr-scanner-overlay'
+- tapOn:
+    id: 'qr-scanner-cancel'
 - tapOn:
     id: 'create-home-button'
 - extendedWaitUntil:
     visible:
-      id: 'room-home-address'
+      id: 'home-title'
     timeout: 20000
 - assertVisible:
     id: 'chat-tab'
 - tapOn:
     id: 'treehole-tab'
-- assertVisible: 'No treeholes yet'
+- assertVisible: 'No posts yet'
