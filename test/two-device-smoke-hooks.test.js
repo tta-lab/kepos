@@ -206,7 +206,7 @@ test('Android raw own QR text stays behind advanced people controls', async () =
   assert.match(source, /const \[showAdvancedShare, setShowAdvancedShare\] = useState\(false\)/)
   assert.match(source, /testID='advanced-share-toggle'/)
   assert.match(source, /showAdvancedShare \? \(/)
-  assert.match(source, /<Text style={styles\.panelTitle}>QR details<\/Text>/)
+  assert.match(source, /<TaskHeader[\s\S]*eyebrow='Advanced'[\s\S]*title='QR details'/)
   assert.match(source, /placeholder='Home QR details'/)
   assert.match(source, /placeholder='Profile QR details'/)
   assert.equal(

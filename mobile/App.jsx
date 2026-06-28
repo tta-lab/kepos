@@ -1104,7 +1104,11 @@ function Lobby({
       </Pressable>
       {showAdvancedJoin ? (
         <View style={styles.panel}>
-          <Text style={styles.panelTitle}>Manual home key</Text>
+          <TaskHeader
+            description='Use only when QR joining is unavailable.'
+            eyebrow='Advanced'
+            title='Manual home key'
+          />
           <TextInput
             autoCapitalize='none'
             autoCorrect={false}
@@ -1607,7 +1611,11 @@ function PeopleActions({
       </Pressable>
       {showAdvancedShare ? (
         <View style={styles.panel}>
-          <Text style={styles.panelTitle}>QR details</Text>
+          <TaskHeader
+            description='Paste or copy raw QR payloads for debug flows.'
+            eyebrow='Advanced'
+            title='QR details'
+          />
           <Text style={styles.panelCopy}>Join a home</Text>
           <TextInput
             autoCapitalize='none'

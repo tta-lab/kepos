@@ -59,10 +59,28 @@ describe('manual key debug UI boundary', () => {
     assert.match(source, /const \[showAdvancedJoin, setShowAdvancedJoin\] = useState\(false\)/)
     assert.match(source, /showAdvancedJoin \? \(/)
     assert.equal(
-      source.indexOf('<Text style={styles.panelTitle}>Manual home key</Text>') >
-        source.indexOf('showAdvancedJoin ? ('),
+      source.indexOf("title='Manual home key'") > source.indexOf('showAdvancedJoin ? ('),
       true
     )
+  })
+
+  test('mobile advanced panels use task headers for debug-only details', async () => {
+    const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+    const lobby = source.slice(
+      source.indexOf('function Lobby('),
+      source.indexOf('function ChatRoom(')
+    )
+    const peopleActions = source.slice(
+      source.indexOf('function PeopleActions('),
+      source.indexOf('function DirectPane(')
+    )
+
+    assert.match(lobby, /<TaskHeader[\s\S]*eyebrow='Advanced'[\s\S]*title='Manual home key'/)
+    assert.match(lobby, /description='Use only when QR joining is unavailable\.'/)
+    assert.match(peopleActions, /<TaskHeader[\s\S]*eyebrow='Advanced'[\s\S]*title='QR details'/)
+    assert.match(peopleActions, /description='Paste or copy raw QR payloads for debug flows\.'/)
+    assert.equal(lobby.includes('<Text style={styles.panelTitle}>Manual home key</Text>'), false)
+    assert.equal(peopleActions.includes('<Text style={styles.panelTitle}>QR details</Text>'), false)
   })
 
   test('manual home key buttons still use product join copy', async () => {
