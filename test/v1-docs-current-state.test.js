@@ -174,6 +174,15 @@ test('V1 UX docs include mobile shared composer send buttons', async () => {
   assert.match(ux, /one send button component/)
 })
 
+test('V1 UX docs include desktop shared composer send buttons', async () => {
+  const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
+  const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
+
+  assert.match(audit, /desktop Home, Direct, and Treehole composers/)
+  assert.match(ux, /Desktop Home, Direct, and Treehole composers/)
+  assert.match(ux, /one submit button\s+component/)
+})
+
 test('V1 UX docs include mobile shared advanced toggles', async () => {
   const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
   const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')

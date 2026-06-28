@@ -249,7 +249,10 @@ test('desktop panes share product headers with short guidance', async () => {
 
   assert.match(shared, /export function PaneHeader\(/)
   assert.match(shared, /export function SectionTitle\(/)
-  assert.match(panes, /import \{ PaneHeader, RequestActionButton \} from '\.\/ui-components\.jsx'/)
+  assert.match(
+    panes,
+    /import \{ ComposerSubmitButton, PaneHeader, RequestActionButton \} from '\.\/ui-components\.jsx'/
+  )
   assert.match(
     people,
     /import \{ PaneHeader, RequestActionButton, SectionTitle \} from '\.\/ui-components\.jsx'/
@@ -751,6 +754,8 @@ test('desktop treehole comment composer disables empty comments', async () => {
 
 test('desktop composers disable unavailable sends', async () => {
   const source = await readDesktopUiSource()
+  const panes = await readFile(new URL('../desktop/pane-components.jsx', import.meta.url), 'utf8')
+  const shared = await readFile(new URL('../desktop/ui-components.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const presenter = await readFile(
     new URL('../src/desktop-render-presenter.js', import.meta.url),
@@ -761,18 +766,23 @@ test('desktop composers disable unavailable sends', async () => {
     assert.match(source, new RegExp(`id='${id}'`), `${id} is missing`)
   }
 
+  assert.match(shared, /export function ComposerSubmitButton\(\{ disabled, icon, id, label \}\)/)
+  assert.match(shared, /<button id=\{id\} type='submit' disabled=\{disabled\}>/)
+  assert.match(panes, /<ComposerSubmitButton[\s\S]*id='chatSendButton'[\s\S]*label='Send'/)
+  assert.match(panes, /<ComposerSubmitButton[\s\S]*id='dmSendButton'[\s\S]*label='Send message'/)
+  assert.match(panes, /<ComposerSubmitButton[\s\S]*id='treeholeSendButton'[\s\S]*label='Post'/)
   assert.match(presenter, /ui\?\.setControls\(\{/)
   assert.match(
     source,
     /const canSend = controls\.canUseHomeChatComposer && Boolean\(draft\.trim\(\)\)/
   )
-  assert.match(source, /disabled=\{!canSend\}/)
+  assert.match(panes, /<ComposerSubmitButton[\s\S]*disabled=\{!canSend\}/)
   assert.match(
     source,
     /const canSend =[\s\S]*controls\.canUseDirectComposer &&[\s\S]*Boolean\(composer\.text\.trim\(\)\) &&[\s\S]*Boolean\(composer\.toProfileId\.trim\(\)\)/
   )
   assert.match(source, /const canPost = controls\.canPostTreehole && Boolean\(draft\.trim\(\)\)/)
-  assert.match(source, /disabled=\{!canPost\}/)
+  assert.match(panes, /<ComposerSubmitButton[\s\S]*disabled=\{!canPost\}/)
   assert.match(presenter, /canUseHomeChatComposer: inRoom/)
   assert.match(presenter, /canUseDirectComposer: inRoom/)
   assert.doesNotMatch(controller, /canSendDirectMessage:/)

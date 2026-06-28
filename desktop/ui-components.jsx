@@ -34,6 +34,15 @@ export function SectionTitle({ icon, id, text }) {
   )
 }
 
+export function ComposerSubmitButton({ disabled, icon, id, label }) {
+  return (
+    <button id={id} type='submit' disabled={disabled}>
+      {icon}
+      {label}
+    </button>
+  )
+}
+
 export function RequestActionButton({ ariaLabel, onClick, variant }) {
   const isAccept = variant === 'accept'
   const Icon = isAccept ? Check : X

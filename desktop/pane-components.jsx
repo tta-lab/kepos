@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { MessageCircle, Send, Sprout, UserPlus } from 'lucide-react'
-import { PaneHeader, RequestActionButton } from './ui-components.jsx'
+import { ComposerSubmitButton, PaneHeader, RequestActionButton } from './ui-components.jsx'
 
 export function HomePane({ activeTab, controls, messages, onSend }) {
   return (
@@ -85,10 +85,12 @@ function HomeChatComposer({ controls, onSend }) {
         value={draft}
         onChange={(event) => setDraft(event.target.value)}
       />
-      <button id='chatSendButton' type='submit' disabled={!canSend}>
-        <Send size={17} />
-        Send
-      </button>
+      <ComposerSubmitButton
+        disabled={!canSend}
+        icon={<Send size={17} />}
+        id='chatSendButton'
+        label='Send'
+      />
     </form>
   )
 }
@@ -158,10 +160,12 @@ function DirectComposer({
         value={composer.text}
         onChange={(event) => setComposer((current) => ({ ...current, text: event.target.value }))}
       />
-      <button id='dmSendButton' type='submit' disabled={!canSend}>
-        <Send size={17} />
-        Send message
-      </button>
+      <ComposerSubmitButton
+        disabled={!canSend}
+        icon={<Send size={17} />}
+        id='dmSendButton'
+        label='Send message'
+      />
     </form>
   )
 }
@@ -193,10 +197,12 @@ function TreeholeComposer({ controls, onPost }) {
         value={draft}
         onChange={(event) => setDraft(event.target.value)}
       />
-      <button id='treeholeSendButton' type='submit' disabled={!canPost}>
-        <Sprout size={17} />
-        Post
-      </button>
+      <ComposerSubmitButton
+        disabled={!canPost}
+        icon={<Sprout size={17} />}
+        id='treeholeSendButton'
+        label='Post'
+      />
     </form>
   )
 }
