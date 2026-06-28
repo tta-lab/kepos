@@ -35,9 +35,13 @@ import {
   appendLocalMessageRequest,
   appendRemoteSignedDirectMessage,
   appendRemoteMessageRequest,
-  createDirectMessageSession,
-  dismissDirectMessage
+  dismissDirectMessage,
+  restoreDirectMessageSession
 } from '../src/dm-session.js'
+import {
+  loadDmSessionMessagesFromFileSystem,
+  saveDmSessionMessagesToFileSystem
+} from '../src/dm-session-storage.js'
 import { loadDmThreadsFromFileSystem, saveDmThreadsToFileSystem } from '../src/dm-thread-storage.js'
 import {
   acceptMessageRequest,
@@ -284,10 +288,11 @@ export default function App() {
       })
       const homeJoin = createHomeJoinSession({ nick, profile })
       const storageBasePath = await getBackendStorageBasePath()
+      const nextDmSession = await restoreMobileDirectMessageSession()
       setRoomKey(homeJoin.roomKey)
       setSession(homeJoin.session)
-      setDmSession(createDirectMessageSession({ localProfileId: profileId, nick }))
-      setDmMessages([])
+      setDmSession(nextDmSession)
+      setDmMessages(nextDmSession.messages)
       setPeerCount(0)
       setTreeholePosts([])
       setTreeholeCanInteract(false)
@@ -326,9 +331,10 @@ export default function App() {
         profileId,
         roomKey: roomKey.trim()
       })
+      const nextDmSession = await restoreMobileDirectMessageSession()
       setSession(homeJoin.session)
-      setDmSession(createDirectMessageSession({ localProfileId: profileId, nick }))
-      setDmMessages([])
+      setDmSession(nextDmSession)
+      setDmMessages(nextDmSession.messages)
       setPeerCount(0)
       setTreeholePosts([])
       setTreeholeCanInteract(false)
@@ -377,10 +383,11 @@ export default function App() {
         profileId,
         roomKey: result.roomKey
       })
+      const nextDmSession = await restoreMobileDirectMessageSession()
       setRoomKey(homeJoin.roomKey)
       setSession(homeJoin.session)
-      setDmSession(createDirectMessageSession({ localProfileId: profileId, nick }))
-      setDmMessages([])
+      setDmSession(nextDmSession)
+      setDmMessages(nextDmSession.messages)
       setPeerCount(0)
       setTreeholePosts([])
       setTreeholeCanInteract(false)
@@ -583,6 +590,11 @@ export default function App() {
 
     setDmSession(nextSession)
     setDmMessages(nextSession.messages)
+    saveMobileDmSessionMessages(nextSession.messages).catch((error) => {
+      console.error('DM session storage unavailable', error)
+      setLastError(error.message)
+      setNotice('Could not save this message request.')
+    })
     rpc?.request(RPC_DM_SEND).send(
       JSON.stringify({
         at: message.createdAt,
@@ -664,6 +676,11 @@ export default function App() {
 
             const next = appendRemoteMessageRequest(current, payload)
             setDmMessages(next.messages)
+            saveMobileDmSessionMessages(next.messages).catch((error) => {
+              console.error('DM session storage unavailable', error)
+              setLastError(error.message)
+              setNotice('Could not save this message request.')
+            })
             return next
           })
           return
@@ -682,6 +699,11 @@ export default function App() {
                   })
                 : appendRemoteSignedDirectMessage(current, payload)
             setDmMessages(next.messages)
+            saveMobileDmSessionMessages(next.messages).catch((error) => {
+              console.error('DM session storage unavailable', error)
+              setLastError(error.message)
+              setNotice('Could not save this direct message.')
+            })
             return next
           })
           return
@@ -815,9 +837,39 @@ export default function App() {
 
       const nextSession = dismissDirectMessage(current, { id: request.id })
       setDmMessages(nextSession.messages)
+      saveMobileDmSessionMessages(nextSession.messages).catch((error) => {
+        console.error('DM session storage unavailable', error)
+        setLastError(error.message)
+        setNotice('Could not save this message request.')
+      })
       return nextSession
     })
     setNotice('Message request ignored.')
+  }
+
+  async function restoreMobileDirectMessageSession() {
+    const messages = await loadDmSessionMessagesFromFileSystem({
+      baseUri: getRequiredMobileDocumentDirectory(FileSystem),
+      fileSystem: FileSystem,
+      ownerProfileId: profileId
+    })
+
+    return restoreDirectMessageSession({
+      localProfileId: profileId,
+      messages,
+      nick
+    })
+  }
+
+  async function saveMobileDmSessionMessages(messages) {
+    if (!profileId) return
+
+    await saveDmSessionMessagesToFileSystem({
+      baseUri: getRequiredMobileDocumentDirectory(FileSystem),
+      fileSystem: FileSystem,
+      messages,
+      ownerProfileId: profileId
+    })
   }
 
   async function saveMobileDmThread(thread) {

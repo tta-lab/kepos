@@ -1720,7 +1720,10 @@ function normalizeSignedDirectMessage(message, direction, { toProfileId }) {
   };
 }
 function normalizeStoredDirectMessage(message) {
-  const id = cleanRequiredString4(message?.id || message?.requestId || message?.messageId, "Direct message id is required");
+  const id = cleanRequiredString4(
+    message?.id || message?.requestId || message?.messageId,
+    "Direct message id is required"
+  );
   const at = Number.isFinite(message?.at) ? message.at : message?.createdAt || Date.now();
   return {
     ...message,

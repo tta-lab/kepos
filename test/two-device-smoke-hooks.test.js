@@ -756,6 +756,18 @@ test('Android people pane surfaces pending message requests', async () => {
   )
 })
 
+test('Android restores and saves direct request session messages', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+
+  assert.match(source, /restoreDirectMessageSession/)
+  assert.match(source, /loadDmSessionMessagesFromFileSystem/)
+  assert.match(source, /saveDmSessionMessagesToFileSystem/)
+  assert.match(source, /async function restoreMobileDirectMessageSession\(/)
+  assert.match(source, /await restoreMobileDirectMessageSession\(\)/)
+  assert.match(source, /saveMobileDmSessionMessages\(nextSession\.messages\)/)
+  assert.match(source, /saveMobileDmSessionMessages\(next\.messages\)/)
+})
+
 test('Android people pane keeps visible empty states', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
   const messageRequestManager = source.slice(

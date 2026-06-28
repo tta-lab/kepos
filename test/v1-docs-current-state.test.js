@@ -29,5 +29,7 @@ test('V1 smoke docs include the desktop Pear Bare smoke path', async () => {
   assert.match(recipe, /npm run smoke:desktop:pear/)
   assert.match(recipe, /npm run smoke:desktop:contacts:pear/)
   assert.match(recipe, /npm run smoke:two-device:debug:pear/)
-  assert.match(recipe, /revoked trusted contact stays hidden after restart/)
+  assert.match(recipe, /Direct request restart display/)
+  assert.match(recipe, /Direct message request rows remain after app restart/)
+  assert.match(recipe, /revoked trusted contact stays hidden\s+after restart/)
 })

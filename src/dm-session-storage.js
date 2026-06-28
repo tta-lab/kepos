@@ -1,5 +1,6 @@
 const DM_SESSION_MESSAGES_KEY_PREFIX = 'kepos.dmSessionMessages.v1'
 const DM_SESSION_MESSAGES_VERSION = 1
+const DM_SESSION_MESSAGES_FILE_SUFFIX = '.json'
 const MESSAGE_REQUEST_TYPE = 'kepos.message.request.v1'
 
 export function loadDmSessionMessagesFromStorage({ ownerProfileId, storage }) {
@@ -13,6 +14,33 @@ export function loadDmSessionMessagesFromStorage({ ownerProfileId, storage }) {
 export function saveDmSessionMessagesToStorage({ messages, ownerProfileId, storage }) {
   storage?.setItem?.(
     dmSessionMessagesKey(ownerProfileId),
+    JSON.stringify(serializeDmSessionMessages(messages))
+  )
+}
+
+export async function loadDmSessionMessagesFromFileSystem({ baseUri, fileSystem, ownerProfileId }) {
+  try {
+    return deserializeDmSessionMessages(
+      await fileSystem.readAsStringAsync(dmSessionMessagesPath(baseUri, ownerProfileId))
+    )
+  } catch (error) {
+    if (isMissingFileError(error)) return []
+
+    throw new Error('Corrupt DM session message storage', { cause: error })
+  }
+}
+
+export async function saveDmSessionMessagesToFileSystem({
+  baseUri,
+  fileSystem,
+  messages,
+  ownerProfileId
+}) {
+  const dir = dmSessionMessagesDir(baseUri)
+
+  await fileSystem.makeDirectoryAsync(dir, { intermediates: true })
+  await fileSystem.writeAsStringAsync(
+    dmSessionMessagesPath(baseUri, ownerProfileId),
     JSON.stringify(serializeDmSessionMessages(messages))
   )
 }
@@ -65,6 +93,20 @@ function dmSessionMessagesKey(ownerProfileId) {
   )}`
 }
 
+function dmSessionMessagesPath(baseUri, ownerProfileId) {
+  return `${dmSessionMessagesDir(baseUri)}/${encodeURIComponent(
+    cleanRequiredString(ownerProfileId, 'Owner profile id is required')
+  )}${DM_SESSION_MESSAGES_FILE_SUFFIX}`
+}
+
+function dmSessionMessagesDir(baseUri) {
+  if (!baseUri) {
+    throw new Error('App storage directory is unavailable')
+  }
+
+  return `${baseUri.replace(/\/+$/, '')}/kepos/dm/session`
+}
+
 function cleanDirection(direction) {
   if (direction === 'in' || direction === 'out') return direction
 
@@ -83,4 +125,8 @@ function cleanRequiredString(value, message) {
   if (!cleaned) throw new Error(message)
 
   return cleaned
+}
+
+function isMissingFileError(error) {
+  return error instanceof Error && /not found|no such file|enoent/i.test(error.message)
 }
