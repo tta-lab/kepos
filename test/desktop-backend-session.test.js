@@ -100,6 +100,17 @@ test('desktop backend session wires configured direct transport into room action
   await createdHosts[0].actions.joinHome({ createTreehole: true, mode: 'host' })
 
   assert.equal(typeof createdHosts[0].runtimeOptions.createDirectTransport, 'function')
+  const directTransport = createdHosts[0].runtimeOptions.createDirectTransport({
+    addPeer: () => {},
+    advertisedHost: '127.0.0.1',
+    listenHost: '127.0.0.1',
+    mode: 'host'
+  })
+  const directEndpoint = await directTransport.ready
+  await directTransport.close()
+
+  assert.equal(directEndpoint.host, '127.0.0.1')
+  assert.equal(Number.isInteger(directEndpoint.port), true)
   assert.deepEqual(homeJoins[0].homeJoinDetails.directTransport, {
     advertisedHost: '192.168.1.203',
     listenHost: '0.0.0.0',

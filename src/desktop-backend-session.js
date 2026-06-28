@@ -200,6 +200,5 @@ function createDesktopDirectRoomTransport(options) {
 }
 
 function loadNodeTcpApi() {
-  const require = Function('return typeof require === "function" ? require : null')()
-  return require?.('node:net') || null
+  return globalThis.process?.getBuiltinModule?.('node:net') || null
 }

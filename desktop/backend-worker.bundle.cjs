@@ -6377,8 +6377,7 @@ function createDesktopDirectRoomTransport(options) {
   });
 }
 function loadNodeTcpApi() {
-  const require2 = Function('return typeof require === "function" ? require : null')();
-  return require2?.("node:net") || null;
+  return globalThis.process?.getBuiltinModule?.("node:net") || null;
 }
 var init_desktop_backend_session = __esm({
   "src/desktop-backend-session.js"() {
