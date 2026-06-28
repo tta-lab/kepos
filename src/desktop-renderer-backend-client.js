@@ -50,29 +50,8 @@ function subscribeAuto({ event, getLocalBackend, handler, preloadBackend }) {
     }
   }
 
-  let activeBackend = 'local'
   const localBackend = requireLocalBackend(getLocalBackend())
-  let unsubscribeActive = localBackend.subscribe(event, handler)
-  let unsubscribeConnected = () => {}
-
-  if (
-    typeof preloadBackend?.dispatch === 'function' &&
-    typeof preloadBackend?.subscribe === 'function' &&
-    typeof preloadBackend?.onConnected === 'function'
-  ) {
-    unsubscribeConnected = preloadBackend.onConnected((connected) => {
-      if (connected !== true || activeBackend === 'preload') return
-
-      unsubscribeActive()
-      activeBackend = 'preload'
-      unsubscribeActive = preloadBackend.subscribe(event, handler)
-    })
-  }
-
-  return () => {
-    unsubscribeActive()
-    unsubscribeConnected()
-  }
+  return localBackend.subscribe(event, handler)
 }
 
 function selectBackend({ getLocalBackend, mode, preloadBackend }) {
