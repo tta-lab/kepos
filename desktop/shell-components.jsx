@@ -139,6 +139,7 @@ function RailButton({ badgeCount = 0, icon, id, isActive, label, onSelect, title
       className={isActive ? 'railButton active' : 'railButton'}
       type='button'
       title={title}
+      aria-label={getRailButtonLabel(label, badgeCount)}
       aria-current={isActive ? 'page' : undefined}
       onClick={onSelect}
     >
@@ -151,4 +152,12 @@ function RailButton({ badgeCount = 0, icon, id, isActive, label, onSelect, title
       ) : null}
     </button>
   )
+}
+
+function getRailButtonLabel(label, badgeCount) {
+  if (badgeCount > 0) {
+    return `${label}, ${badgeCount} pending`
+  }
+
+  return label
 }

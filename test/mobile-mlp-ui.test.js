@@ -16,6 +16,9 @@ test('mobile tabs surface pending direct and people work without changing tab la
   assert.match(source, /badgeCount=\{tabBadges\.direct\}[\s\S]*testID='dm-tab'/)
   assert.match(source, /badgeCount=\{tabBadges\.people\}[\s\S]*testID='people-tab'/)
   assert.match(source, /function TabButton\(\{ active, badgeCount = 0, icon: Icon, label/)
+  assert.match(source, /accessibilityLabel=\{getTabButtonLabel\(label, badgeCount\)\}/)
+  assert.match(source, /function getTabButtonLabel\(label, badgeCount\) \{/)
+  assert.match(source, /return `\$\{label\}, \$\{badgeCount\} pending`/)
   assert.match(
     source,
     /<View style=\{styles\.tabBadge\} accessibilityLabel=\{`\$\{label\} pending \$\{badgeCount\}`\}>/

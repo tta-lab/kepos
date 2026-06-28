@@ -574,6 +574,9 @@ test('desktop rail surfaces pending direct and people work without changing navi
     shell,
     /function RailButton\(\{ badgeCount = 0, icon, id, isActive, label, onSelect, title \}\)/
   )
+  assert.match(shell, /aria-label=\{getRailButtonLabel\(label, badgeCount\)\}/)
+  assert.match(shell, /function getRailButtonLabel\(label, badgeCount\) \{/)
+  assert.match(shell, /return `\$\{label\}, \$\{badgeCount\} pending`/)
   assert.match(
     shell,
     /<span className='railBadge' aria-label=\{`\$\{label\} pending \$\{badgeCount\}`\}>/

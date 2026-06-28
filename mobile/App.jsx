@@ -1980,6 +1980,7 @@ function TabButton({ active, badgeCount = 0, icon: Icon, label, onPress, testID 
 
   return (
     <Pressable
+      accessibilityLabel={getTabButtonLabel(label, badgeCount)}
       accessibilityRole='tab'
       accessibilityState={{ selected: active }}
       onPress={onPress}
@@ -1995,6 +1996,14 @@ function TabButton({ active, badgeCount = 0, icon: Icon, label, onPress, testID 
       ) : null}
     </Pressable>
   )
+}
+
+function getTabButtonLabel(label, badgeCount) {
+  if (badgeCount > 0) {
+    return `${label}, ${badgeCount} pending`
+  }
+
+  return label
 }
 
 function ChatPane({ draft, messages, onDraftChange, onSend }) {
