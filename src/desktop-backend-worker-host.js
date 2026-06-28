@@ -3,11 +3,13 @@ import { createDesktopBackendWorkerIpcClient } from './desktop-backend-worker-ip
 import { startDesktopBackendWorker } from './desktop-backend-worker-entry.js'
 
 export function createDesktopBackendWorkerHost({
+  createBackendWorkerStream,
   createIpcClient = createDesktopBackendWorkerIpcClient,
   createIpcStreamPair = createLinkedDuplexPair,
   createMainBackendSession,
   startBackendWorker = startDesktopBackendWorker,
-  storageBasePath
+  storageBasePath,
+  workerEntryPath = new URL('./desktop-backend-worker-bare-entry.js', import.meta.url).pathname
 } = {}) {
   let client = null
   let worker = null
@@ -24,17 +26,36 @@ export function createDesktopBackendWorkerHost({
       currentClient?.close()
       return currentWorker?.close?.()
     },
-    start() {
+    async start() {
       if (!worker) {
-        const { clientStream, workerStream } = createIpcStreamPair()
-        worker = startBackendWorker({
-          createMainBackendSession,
-          storageBasePath,
-          stream: workerStream
-        })
-        client = createIpcClient({ stream: clientStream })
+        if (createBackendWorkerStream) {
+          const stream = await createBackendWorkerStream({
+            storageBasePath,
+            workerEntryPath
+          })
+          worker = createWorkerStreamHandle(stream)
+          client = createIpcClient({ stream })
+        } else {
+          const { clientStream, workerStream } = createIpcStreamPair()
+          worker = startBackendWorker({
+            createMainBackendSession,
+            storageBasePath,
+            stream: workerStream
+          })
+          client = createIpcClient({ stream: clientStream })
+        }
       }
-      return Promise.resolve(client.bridge)
+      return client.bridge
+    }
+  }
+}
+
+function createWorkerStreamHandle(stream) {
+  return {
+    close() {
+      if (typeof stream.destroy === 'function') return stream.destroy()
+      if (typeof stream.end === 'function') return stream.end()
+      return undefined
     }
   }
 }

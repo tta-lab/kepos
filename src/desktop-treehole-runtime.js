@@ -1,5 +1,4 @@
 import Hyperswarm from 'hyperswarm'
-import os from 'node:os'
 import { createTreeholeBase } from './treehole-base.js'
 import {
   canGrantTreeholeWriter,
@@ -14,7 +13,7 @@ export function createDesktopTreeholeRuntime({
   createPublisher = createTreeholeStatePublisher,
   createSwarm = () => new Hyperswarm(),
   createTreehole = createTreeholeBase,
-  homeDir = () => os.homedir(),
+  homeDir = defaultDesktopTreeholeStorageBase,
   onError = () => {},
   onStateChanged = () => {},
   storageBasePath = null,
@@ -205,4 +204,11 @@ export function createDesktopTreeholeRuntime({
     comment,
     publishSnapshot
   }
+}
+
+function defaultDesktopTreeholeStorageBase() {
+  const env = globalThis.process?.env || {}
+  const home = env.HOME || env.USERPROFILE
+  if (home) return home
+  throw new Error('Desktop treehole storage base path is required')
 }

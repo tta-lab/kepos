@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 import { createDesktopTreeholeRuntime } from '../src/desktop-treehole-runtime.js'
 
@@ -97,6 +98,15 @@ test('desktop treehole runtime uses injected storage base path', async () => {
     treehole.options.storage,
     '/app/user-data/kepos/v1/kepos-treehole-dddddddddddddddd-eeeeeeeeeeeeeeee'
   )
+})
+
+test('desktop treehole runtime keeps worker path free of node os imports', async () => {
+  const source = await readFile(
+    new URL('../src/desktop-treehole-runtime.js', import.meta.url),
+    'utf8'
+  )
+
+  assert.doesNotMatch(source, /node:os/)
 })
 
 test('desktop treehole runtime opens, publishes state, and closes lifecycle resources', async () => {

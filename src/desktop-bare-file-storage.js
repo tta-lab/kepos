@@ -1,8 +1,8 @@
-import path from 'node:path'
-import fs from 'node:fs'
+import fs from 'bare-fs'
+import path from 'bare-path'
 import { createKeyValueFileStorage } from './desktop-file-storage-core.js'
 
-export function createDesktopFileStorage({ basePath, fs: fileSystem = fs } = {}) {
+export function createDesktopBareFileStorage({ basePath, fileSystem = fs } = {}) {
   return createKeyValueFileStorage({
     basePath,
     fileSystem,

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 import {
   createContactBook,
@@ -160,6 +161,13 @@ test('desktop QR service creates signed profile and home share QR outputs', asyn
   assert.match(result.homeSvg, /^<svg/)
   assert.match(result.profileSvg, /width="172"/)
   assert.match(result.homeSvg, /width="172"/)
+})
+
+test('desktop QR service uses the browser-safe qrcode renderer for Bare worker', async () => {
+  const source = await readFile(new URL('../src/desktop-qr-service.js', import.meta.url), 'utf8')
+
+  assert.match(source, /qrcode\/lib\/browser\.js/)
+  assert.doesNotMatch(source, /from 'qrcode'/)
 })
 
 test('desktop QR service renders large QR SVG for dialogs', async () => {

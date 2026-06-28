@@ -48,11 +48,19 @@ async function connectMainBackend() {
   const { createDesktopBackendWorkerHost } = await import(
     pathToFileURL(path.join(__dirname, '..', '..', 'src', 'desktop-backend-worker-host.js')).href
   )
+  const storageBasePath = getDesktopStorageBasePath()
   mainBackendWorker = createDesktopBackendWorkerHost({
-    storageBasePath: getDesktopStorageBasePath()
+    createBackendWorkerStream: pear ? createPearBackendWorkerStream : undefined,
+    storageBasePath,
+    workerEntryPath: path.join(__dirname, '..', 'backend-worker.bundle.cjs')
   })
   const backendBridge = await mainBackendWorker.start()
   backendIpc.connectBackend(backendBridge)
+}
+
+function createPearBackendWorkerStream({ storageBasePath, workerEntryPath }) {
+  if (!pear) throw new Error('pear-runtime is not ready')
+  return pear.run(workerEntryPath, [storageBasePath])
 }
 
 async function startPearRuntime() {
@@ -73,8 +81,10 @@ async function startPearRuntime() {
 
     pear = runtime
     await runtime.ready()
+    return runtime
   } catch (error) {
     console.error('[pear-runtime] failed to start', error)
+    return null
   }
 }
 
@@ -89,9 +99,9 @@ function getDesktopStorageBasePath() {
   return path.join(app.getPath('userData'), 'kepos', 'v1')
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  if (process.env.KEPOS_SMOKE_DESKTOP !== '1') await startPearRuntime()
   createWindow()
-  if (process.env.KEPOS_SMOKE_DESKTOP !== '1') void startPearRuntime()
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

@@ -43,11 +43,29 @@ test('desktop scripts build the renderer bundle before launch', async () => {
 
   assert.equal(
     packageJson.scripts['desktop:bundle'],
-    'esbuild desktop/app.jsx --bundle --platform=browser --format=iife --define:process.env.NODE_ENV=\\\"production\\\" --minify --outfile=desktop/app.bundle.js && esbuild desktop/controller.js --bundle --platform=browser --format=iife --define:process.env.NODE_ENV=\\\"production\\\" --outfile=desktop/controller.browser.bundle.js && esbuild desktop/controller.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/controller.bundle.cjs && esbuild desktop/local-backend.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/local-backend.bundle.cjs && esbuild desktop/local-profile.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/local-profile.bundle.cjs'
+    'esbuild desktop/app.jsx --bundle --platform=browser --format=iife --define:process.env.NODE_ENV=\\\"production\\\" --minify --outfile=desktop/app.bundle.js && esbuild desktop/controller.js --bundle --platform=browser --format=iife --define:process.env.NODE_ENV=\\\"production\\\" --outfile=desktop/controller.browser.bundle.js && esbuild desktop/controller.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/controller.bundle.cjs && esbuild desktop/local-backend.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/local-backend.bundle.cjs && esbuild desktop/local-profile.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/local-profile.bundle.cjs && esbuild src/desktop-backend-worker-bare-entry.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/backend-worker.bundle.cjs'
   )
   assert.equal(packageJson.scripts.desktop, 'npm run start --prefix desktop')
   assert.equal(desktopPackageJson.scripts.prestart, 'npm run desktop:bundle --prefix ..')
   assert.match(packageJson.scripts['smoke:desktop'], /^npm run desktop:bundle && /)
+})
+
+test('desktop scripts build a transpiled backend worker bundle for Bare', async () => {
+  const packageJson = JSON.parse(
+    await readFile(new URL('../package.json', import.meta.url), 'utf8')
+  )
+  const mainSource = await readFile(
+    new URL('../desktop/electron/main.cjs', import.meta.url),
+    'utf8'
+  )
+
+  assert.match(packageJson.scripts['desktop:bundle'], /desktop-backend-worker-bare-entry\.js/)
+  assert.match(
+    packageJson.scripts['desktop:bundle'],
+    /--outfile=desktop\/backend-worker\.bundle\.cjs/
+  )
+  assert.match(mainSource, /backend-worker\.bundle\.cjs/)
+  assert.doesNotMatch(mainSource, /src'[\s\S]*'desktop-backend-worker-bare-entry\.js'/)
 })
 
 test('desktop React entry renders before starting the controller', async () => {

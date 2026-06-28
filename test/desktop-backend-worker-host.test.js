@@ -79,6 +79,43 @@ test('desktop backend worker host starts only once', async () => {
   assert.deepEqual(calls, ['create'])
 })
 
+test('desktop backend worker host can start from an external worker stream', async () => {
+  const backendBridge = {
+    dispatch: (command, payload) => `${command}:${payload.value}`,
+    subscribe: () => () => {}
+  }
+  const { clientStream, workerStream } = createIpcStreamPair()
+  const server = createDesktopBackendWorkerIpcServer({
+    bridge: backendBridge,
+    stream: workerStream
+  })
+  const calls = []
+  const workerHost = createDesktopBackendWorkerHost({
+    createBackendWorkerStream: ({ storageBasePath, workerEntryPath }) => {
+      calls.push({ storageBasePath, workerEntryPath })
+      return clientStream
+    },
+    startBackendWorker: () => {
+      throw new Error('in-process worker should not start')
+    },
+    storageBasePath: '/user-data/kepos/v1',
+    workerEntryPath: '/app/src/desktop-backend-worker-bare-entry.js'
+  })
+
+  const startedBridge = await workerHost.start()
+
+  assert.equal(await startedBridge.dispatch('joinHome', { value: 'ok' }), 'joinHome:ok')
+  assert.deepEqual(calls, [
+    {
+      storageBasePath: '/user-data/kepos/v1',
+      workerEntryPath: '/app/src/desktop-backend-worker-bare-entry.js'
+    }
+  ])
+
+  workerHost.close()
+  server.close()
+})
+
 test('desktop backend worker host delegates session creation to worker entry', async () => {
   const source = await readFile(
     new URL('../src/desktop-backend-worker-host.js', import.meta.url),
