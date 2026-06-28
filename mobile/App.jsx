@@ -1286,24 +1286,28 @@ function ChatRoom({
       <View style={styles.tabs}>
         <TabButton
           active={activeTab === 'chat'}
+          icon={MessageCircle}
           label='Home'
           onPress={() => onTabChange('chat')}
           testID='chat-tab'
         />
         <TabButton
           active={activeTab === 'dm'}
+          icon={Send}
           label='Direct'
           onPress={() => onTabChange('dm')}
           testID='dm-tab'
         />
         <TabButton
           active={activeTab === 'treehole'}
+          icon={Sprout}
           label='Treehole'
           onPress={() => onTabChange('treehole')}
           testID='treehole-tab'
         />
         <TabButton
           active={activeTab === 'people'}
+          icon={Users}
           label='People'
           onPress={() => onTabChange('people')}
           testID='people-tab'
@@ -1896,8 +1900,8 @@ function ContactManager({ contacts, onRevokeContact }) {
   )
 }
 
-function TabButton({ active, label, onPress, testID }) {
-  const { styles } = useMobileTheme()
+function TabButton({ active, icon: Icon, label, onPress, testID }) {
+  const { styles, theme } = useMobileTheme()
 
   return (
     <Pressable
@@ -1907,6 +1911,7 @@ function TabButton({ active, label, onPress, testID }) {
       style={[styles.tabButton, active && styles.activeTabButton]}
       testID={testID}
     >
+      <Icon color={active ? theme.surface : theme.iconMuted} size={17} style={styles.tabIcon} />
       <Text style={[styles.tabText, active && styles.activeTabText]}>{label}</Text>
     </Pressable>
   )
@@ -2750,6 +2755,7 @@ function createMobileStyles(theme) {
       borderRadius: 8,
       borderWidth: 1,
       flex: 1,
+      gap: 3,
       justifyContent: 'center',
       minHeight: 40
     },
@@ -2761,6 +2767,9 @@ function createMobileStyles(theme) {
       color: theme.inkSoft,
       fontSize: 14,
       fontWeight: '800'
+    },
+    tabIcon: {
+      marginBottom: 1
     },
     activeTabText: {
       color: theme.surface

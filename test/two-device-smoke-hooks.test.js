@@ -521,6 +521,26 @@ test('Android room tabs use product labels', async () => {
   assert.equal(source.includes("label='DM'"), false)
 })
 
+test('Android room tabs use icons for main navigation', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const tabs = source.slice(
+    source.indexOf('<View style={styles.tabs}>'),
+    source.indexOf('function TaskHeader(')
+  )
+  const tabButton = source.slice(
+    source.indexOf('function TabButton('),
+    source.indexOf('function ChatPane(')
+  )
+
+  assert.match(tabs, /icon={MessageCircle}[\s\S]*label='Home'[\s\S]*testID='chat-tab'/)
+  assert.match(tabs, /icon={Send}[\s\S]*label='Direct'[\s\S]*testID='dm-tab'/)
+  assert.match(tabs, /icon={Sprout}[\s\S]*label='Treehole'[\s\S]*testID='treehole-tab'/)
+  assert.match(tabs, /icon={Users}[\s\S]*label='People'[\s\S]*testID='people-tab'/)
+  assert.match(tabButton, /function TabButton\(\{ active, icon: Icon, label, onPress, testID \}\)/)
+  assert.match(tabButton, /<Icon[\s\S]*color=\{active \? theme\.surface : theme\.iconMuted\}/)
+  assert.match(source, /tabIcon: \{/)
+})
+
 test('Android room tabs are bottom navigation', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 
