@@ -256,3 +256,29 @@ test('desktop Profile QR trust command carries QR text alias and display name as
   )
   assert.doesNotMatch(source, /function trustProfileQr/)
 })
+
+test('desktop display name updates are mirrored to the backend command bridge', async () => {
+  const bindings = await readFile(
+    new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
+    'utf8'
+  )
+  const host = await readFile(new URL('../src/desktop-command-host.js', import.meta.url), 'utf8')
+  const backendActions = await readFile(
+    new URL('../src/desktop-backend-actions.js', import.meta.url),
+    'utf8'
+  )
+  const session = await readFile(
+    new URL('../src/desktop-backend-session.js', import.meta.url),
+    'utf8'
+  )
+
+  assert.match(bindings, /updateDisplayName\(displayName\)/)
+  assert.match(bindings, /dispatchCommand\('updateDisplayName', \{ displayName \}\)/)
+  assert.match(
+    host,
+    /updateDisplayName: \(payload\) => actions\.updateDisplayName\(readCommandPayload\(payload\)\)/
+  )
+  assert.match(backendActions, /updateDisplayName: displayNameActions\?\.updateDisplayName/)
+  assert.match(session, /updateDisplayName\(\{ displayName \} = \{\}\)/)
+  assert.match(session, /controllerState\.setCurrentDisplayName\(displayName\)/)
+})

@@ -26,6 +26,12 @@ export function createDesktopBackendSession({
   let homeRuntime = null
   let treeholeRuntime = null
 
+  const displayNameActions = {
+    updateDisplayName({ displayName } = {}) {
+      controllerState.setCurrentDisplayName(displayName)
+      onChanged()
+    }
+  }
   const messageActions = createDesktopMessageActions({
     createId,
     getDmRuntime: () => dmRuntime,
@@ -100,6 +106,7 @@ export function createDesktopBackendSession({
     setNotice
   })
   const backendActions = createDesktopBackendActions({
+    displayNameActions,
     messageActions,
     messageRequestActions,
     roomActions,

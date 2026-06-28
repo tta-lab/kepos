@@ -34,7 +34,8 @@ export function createDesktopCommandHost({ actions }) {
       sendDmMessage: (payload) => actions.sendDmMessage(readCommandPayload(payload)),
       sendHomeMessage: (payload) => actions.sendHomeMessage(readCommandPayload(payload)),
       sendMessageRequest: () => actions.sendMessageRequest(),
-      trustProfileUri: (payload) => actions.trustProfileUri(readCommandPayload(payload))
+      trustProfileUri: (payload) => actions.trustProfileUri(readCommandPayload(payload)),
+      updateDisplayName: (payload) => actions.updateDisplayName(readCommandPayload(payload))
     }
   })
 }

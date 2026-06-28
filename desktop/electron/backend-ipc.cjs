@@ -11,7 +11,8 @@ const DESKTOP_COMMANDS = [
   'sendDmMessage',
   'sendHomeMessage',
   'sendMessageRequest',
-  'trustProfileUri'
+  'trustProfileUri',
+  'updateDisplayName'
 ]
 
 const DESKTOP_EVENTS = [

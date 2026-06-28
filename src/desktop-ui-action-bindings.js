@@ -43,7 +43,10 @@ export function createDesktopUiActionBindings({
         .catch(onError),
     trustProfileQr: ({ alias, displayName, uri }) =>
       dispatchCommand('trustProfileUri', { alias, displayName, uri }),
-    updateDisplayName: ({ displayName }) => updateDisplayName(displayName)
+    updateDisplayName: ({ displayName }) => {
+      updateDisplayName(displayName)
+      return dispatchCommand('updateDisplayName', { displayName })
+    }
   })
 
   ui?.setDirectContactPickerActions({

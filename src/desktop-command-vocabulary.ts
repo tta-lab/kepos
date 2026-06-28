@@ -11,7 +11,8 @@ export const DESKTOP_COMMANDS = [
   'sendDmMessage',
   'sendHomeMessage',
   'sendMessageRequest',
-  'trustProfileUri'
+  'trustProfileUri',
+  'updateDisplayName'
 ] as const
 
 export const DESKTOP_EVENTS = [

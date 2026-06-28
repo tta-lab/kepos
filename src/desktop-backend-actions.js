@@ -1,6 +1,7 @@
 import { DESKTOP_COMMANDS } from './desktop-command-vocabulary.ts'
 
 export function createDesktopBackendActions({
+  displayNameActions,
   messageActions,
   messageRequestActions,
   roomActions,
@@ -19,7 +20,8 @@ export function createDesktopBackendActions({
     sendDmMessage: messageActions?.sendDmMessage,
     sendHomeMessage: messageActions?.sendHomeMessage,
     sendMessageRequest: messageActions?.sendDmMessage,
-    trustProfileUri: trustActions?.trustProfileUri
+    trustProfileUri: trustActions?.trustProfileUri,
+    updateDisplayName: displayNameActions?.updateDisplayName
   }
 
   for (const command of DESKTOP_COMMANDS) {

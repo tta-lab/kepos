@@ -108,6 +108,7 @@ test('desktop UI action bindings route renderer actions to command payloads', as
     ['showLargeQr', { returnFocus: 'home-button', title: 'Home QR', uri: 'kepos://home' }],
     ['showLargeQr', { returnFocus: 'profile-button', title: 'Profile QR', uri: 'kepos://profile' }],
     ['updateDisplayName', 'Me'],
+    ['dispatch', 'updateDisplayName', { displayName: 'Me' }],
     ['setTab', 'people'],
     ['selectDirectContact', 'profile-a'],
     ['dispatch', 'sendDmMessage', { text: 'hello', toProfileId: 'profile-a' }],

@@ -21,7 +21,8 @@ test('desktop command vocabulary covers the V1 MLP product actions', () => {
     'sendDmMessage',
     'sendHomeMessage',
     'sendMessageRequest',
-    'trustProfileUri'
+    'trustProfileUri',
+    'updateDisplayName'
   ])
 })
 

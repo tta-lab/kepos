@@ -41,6 +41,7 @@ test('desktop command host normalizes command payloads before calling actions', 
   await host.dispatch('sendHomeMessage', { text: 'chat' })
   await host.dispatch('sendMessageRequest', { ignored: true })
   await host.dispatch('trustProfileUri', { uri: 'kepos://profile' })
+  await host.dispatch('updateDisplayName', { displayName: 'Ada' })
 
   assert.deepEqual(calls, [
     ['acceptMessageRequest', message],
@@ -55,7 +56,8 @@ test('desktop command host normalizes command payloads before calling actions', 
     ['sendDmMessage', { text: 'dm', toProfileId: 'friend' }],
     ['sendHomeMessage', { text: 'chat' }],
     ['sendMessageRequest', undefined],
-    ['trustProfileUri', { uri: 'kepos://profile' }]
+    ['trustProfileUri', { uri: 'kepos://profile' }],
+    ['updateDisplayName', { displayName: 'Ada' }]
   ])
 })
 

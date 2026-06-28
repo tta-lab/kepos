@@ -6,6 +6,7 @@ import { createDesktopBackendSession } from '../src/desktop-backend-session.js'
 test('desktop backend session composes actions and runtime host behind one boundary', () => {
   const createdHosts = []
   const controllerState = createControllerState()
+  const changes = []
   const session = createDesktopBackendSession({
     controllerState,
     createId: () => 'id-1',
@@ -24,7 +25,7 @@ test('desktop backend session composes actions and runtime host behind one bound
     },
     getCurrentDisplayName: () => 'Desktop',
     getProfileContext: () => createProfileContext(),
-    onChanged: () => {},
+    onChanged: () => changes.push('changed'),
     setContextFormDraft: () => {},
     setDirectComposerRecipient: () => {},
     setNotice: () => {},
@@ -37,6 +38,10 @@ test('desktop backend session composes actions and runtime host behind one bound
   assert.equal(session.dmRuntime.label, 'dm')
   assert.equal(createdHosts[0].runtimeOptions.storageBasePath, '/user-data/kepos/v1')
   assert.equal(typeof createdHosts[0].actions.sendHomeMessage, 'function')
+  assert.equal(typeof createdHosts[0].actions.updateDisplayName, 'function')
+  createdHosts[0].actions.updateDisplayName({ displayName: 'Ada' })
+  assert.equal(controllerState.getCurrentDisplayName(), 'Ada')
+  assert.deepEqual(changes, ['changed'])
   assert.equal(typeof createdHosts[0].runtimeOptions.onHomeControl, 'function')
   assert.equal(typeof session.configureTreeholeRuntime, 'function')
   assert.equal(typeof session.openTreehole, 'function')
@@ -68,15 +73,20 @@ function createControllerState() {
   }
   let dmSession = null
   let homeJoinDetails = null
+  let currentDisplayName = 'Desktop'
   let session = null
 
   return {
     getDirectComposerRecipientProfileId: () => '',
+    getCurrentDisplayName: () => currentDisplayName,
     getDmSession: () => dmSession,
     getHomeJoinDetails: () => homeJoinDetails,
     getSession: () => session,
     getState: () => state,
     setDirectComposerRecipient: () => {},
+    setCurrentDisplayName: (displayName = 'Desktop') => {
+      currentDisplayName = displayName.trim() || 'Desktop'
+    },
     setDmSession: (nextSession) => {
       dmSession = nextSession
     },

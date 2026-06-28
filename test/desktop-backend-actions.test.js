@@ -27,10 +27,12 @@ test('desktop backend actions compose the complete V1 command action map', () =>
     ['acceptMessageRequest', 'ignoreMessageRequest'],
     calls
   )
+  const displayNameActions = createActionGroup('display', ['updateDisplayName'], calls)
   const roomActions = createActionGroup('room', ['joinHome', 'joinHomeUri', 'leaveHome'], calls)
   const trustActions = createActionGroup('trust', ['revokeContact', 'trustProfileUri'], calls)
 
   const actions = createDesktopBackendActions({
+    displayNameActions,
     messageActions,
     messageRequestActions,
     roomActions,
@@ -43,12 +45,14 @@ test('desktop backend actions compose the complete V1 command action map', () =>
   assert.equal(actions.joinHome({ mode: 'host' }), 'room:joinHome')
   assert.equal(actions.trustProfileUri({ uri: 'kepos://profile' }), 'trust:trustProfileUri')
   assert.equal(actions.sendMessageRequest({ text: 'dm' }), 'message:sendDmMessage')
+  assert.equal(actions.updateDisplayName({ displayName: 'Ada' }), 'display:updateDisplayName')
   assert.deepEqual(calls, [
     ['message', 'sendHomeMessage', { text: 'hello' }],
     ['request', 'acceptMessageRequest', { id: 'request-1' }],
     ['room', 'joinHome', { mode: 'host' }],
     ['trust', 'trustProfileUri', { uri: 'kepos://profile' }],
-    ['message', 'sendDmMessage', { text: 'dm' }]
+    ['message', 'sendDmMessage', { text: 'dm' }],
+    ['display', 'updateDisplayName', { displayName: 'Ada' }]
   ])
 })
 
@@ -56,6 +60,7 @@ test('desktop backend actions fail closed when a command action is missing', () 
   assert.throws(
     () =>
       createDesktopBackendActions({
+        displayNameActions: {},
         messageActions: {},
         messageRequestActions: {},
         roomActions: {},
