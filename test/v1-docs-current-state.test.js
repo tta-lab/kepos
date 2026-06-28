@@ -85,6 +85,18 @@ test('V1 UX docs include Home trust source product copy', async () => {
   assert.match(ux, /internal room terminology out of normal trust surfaces/)
 })
 
+test('V1 UX docs use Direct as the product surface name', async () => {
+  const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
+
+  assert.match(ux, /Current implementation status:/)
+  assert.match(ux, /Home chat, Direct, and Treehole panes/)
+  assert.match(ux, /### Direct View/)
+  assert.match(ux, /bottom tabs: Home, Direct, Treehole, People/)
+  assert.doesNotMatch(ux, /Current desktop status:/)
+  assert.doesNotMatch(ux, /### DM View/)
+  assert.doesNotMatch(ux, /bottom tabs: Home, DM, Treehole, People/)
+})
+
 test('V1 DM bootstrap docs no longer claim contact polish remains pending', async () => {
   const dmBootstrap = await readText('../docs/v1.08-dm-bootstrap-security.md')
 
