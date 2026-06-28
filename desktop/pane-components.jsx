@@ -1,6 +1,11 @@
 import React, { useState } from 'react'
-import { MessageCircle, Send, Sprout, UserPlus } from 'lucide-react'
-import { ComposerSubmitButton, PaneHeader, RequestActionButton } from './ui-components.jsx'
+import { Heart, MessageCircle, Send, Sprout, UserPlus } from 'lucide-react'
+import {
+  ActionButton,
+  ComposerSubmitButton,
+  PaneHeader,
+  RequestActionButton
+} from './ui-components.jsx'
 
 export function HomePane({ activeTab, controls, messages, onSend }) {
   return (
@@ -373,13 +378,12 @@ function TreeholePostActions({ actions, post }) {
 
   return (
     <div className='postActions'>
-      <button
+      <ActionButton
         className='smallButton'
-        type='button'
+        icon={<Heart size={15} />}
+        label='Like'
         onClick={() => actions.likePost(post.actions.likePostId)}
-      >
-        Like
-      </button>
+      />
       <form className='commentForm' onSubmit={submitComment}>
         <input
           className='commentInput'
@@ -387,9 +391,12 @@ function TreeholePostActions({ actions, post }) {
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
         />
-        <button className='smallButton' disabled={!hasDraft} type='submit'>
-          Comment
-        </button>
+        <ComposerSubmitButton
+          className='smallButton'
+          disabled={!hasDraft}
+          icon={<MessageCircle size={15} />}
+          label='Comment'
+        />
       </form>
     </div>
   )

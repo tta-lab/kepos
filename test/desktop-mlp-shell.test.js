@@ -253,10 +253,7 @@ test('desktop panes share product headers with short guidance', async () => {
 
   assert.match(shared, /export function PaneHeader\(/)
   assert.match(shared, /export function SectionTitle\(/)
-  assert.match(
-    panes,
-    /import \{ ComposerSubmitButton, PaneHeader, RequestActionButton \} from '\.\/ui-components\.jsx'/
-  )
+  assert.match(panes, /ActionButton,[\s\S]*ComposerSubmitButton,[\s\S]*PaneHeader/)
   assert.match(
     people,
     /import \{ PaneHeader, RequestActionButton, SectionTitle \} from '\.\/ui-components\.jsx'/
@@ -438,7 +435,7 @@ test('desktop request and QR dialog actions use clear icons', async () => {
     /<RequestActionButton[\s\S]*ariaLabel=\{`Accept message request from \$\{request\.title\}`\}[\s\S]*actions\.acceptMessageRequest\(request\.acceptMessage\)[\s\S]*variant='accept'/
   )
   assert.match(source, /actions\.revokeContact[\s\S]*<UserX size=\{15\} \/>[\s\S]*Revoke/)
-  assert.match(source, /import \{ MessageCircle, Send, Sprout, UserPlus \}/)
+  assert.match(source, /import \{ Heart, MessageCircle, Send, Sprout, UserPlus \}/)
   assert.match(
     panes,
     /<RequestActionButton[\s\S]*ariaLabel='Ignore direct message request'[\s\S]*onIgnore\(message\.actions\.ignoreMessage\)[\s\S]*variant='ignore'/
@@ -742,6 +739,7 @@ test('desktop treehole composer has an explicit owner-only disabled state', asyn
 
 test('desktop treehole comment composer disables empty comments', async () => {
   const source = await readDesktopUiSource()
+  const panes = await readFile(new URL('../desktop/pane-components.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const bindings = await readFile(
     new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
@@ -756,7 +754,14 @@ test('desktop treehole comment composer disables empty comments', async () => {
     /actions\.commentPost\(\{ postId: post\.actions\.commentPostId, text: draft\.trim\(\) \}\)/
   )
   assert.match(source, /setDraft\(''\)/)
-  assert.match(source, /disabled=\{!hasDraft\}/)
+  assert.match(
+    panes,
+    /<ActionButton[\s\S]*className='smallButton'[\s\S]*icon=\{<Heart size=\{15\} \/>\}[\s\S]*label='Like'[\s\S]*actions\.likePost\(post\.actions\.likePostId\)/
+  )
+  assert.match(
+    panes,
+    /<ComposerSubmitButton[\s\S]*className='smallButton'[\s\S]*disabled=\{!hasDraft\}[\s\S]*icon=\{<MessageCircle size=\{15\} \/>\}[\s\S]*label='Comment'/
+  )
   assert.match(
     bindings,
     /commentPost: \(\{ postId, text \}\) => dispatchCommand\('commentTreehole'/
@@ -777,11 +782,14 @@ test('desktop composers disable unavailable sends', async () => {
     assert.match(source, new RegExp(`id='${id}'`), `${id} is missing`)
   }
 
-  assert.match(shared, /export function ComposerSubmitButton\(\{ disabled, icon, id, label \}\)/)
+  assert.match(
+    shared,
+    /export function ComposerSubmitButton\(\{ className, disabled, icon, id, label \}\)/
+  )
   assert.match(shared, /export function ActionButton\(/)
   assert.match(
     shared,
-    /<ActionButton disabled=\{disabled\} icon=\{icon\} id=\{id\} label=\{label\} type='submit' \/>/
+    /<ActionButton[\s\S]*className=\{className\}[\s\S]*disabled=\{disabled\}[\s\S]*icon=\{icon\}[\s\S]*id=\{id\}[\s\S]*label=\{label\}[\s\S]*type='submit'/
   )
   assert.match(panes, /<ComposerSubmitButton[\s\S]*id='chatSendButton'[\s\S]*label='Send'/)
   assert.match(panes, /<ComposerSubmitButton[\s\S]*id='dmSendButton'[\s\S]*label='Send message'/)

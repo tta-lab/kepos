@@ -34,17 +34,34 @@ export function SectionTitle({ icon, id, text }) {
   )
 }
 
-export function ActionButton({ disabled = false, icon, id, label, onClick, type = 'button' }) {
+export function ActionButton({
+  className,
+  disabled = false,
+  icon,
+  id,
+  label,
+  onClick,
+  type = 'button'
+}) {
   return (
-    <button id={id} type={type} disabled={disabled} onClick={onClick}>
+    <button className={className} id={id} type={type} disabled={disabled} onClick={onClick}>
       {icon}
       {label}
     </button>
   )
 }
 
-export function ComposerSubmitButton({ disabled, icon, id, label }) {
-  return <ActionButton disabled={disabled} icon={icon} id={id} label={label} type='submit' />
+export function ComposerSubmitButton({ className, disabled, icon, id, label }) {
+  return (
+    <ActionButton
+      className={className}
+      disabled={disabled}
+      icon={icon}
+      id={id}
+      label={label}
+      type='submit'
+    />
+  )
 }
 
 export function RequestActionButton({ ariaLabel, onClick, variant }) {
