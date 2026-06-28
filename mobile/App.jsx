@@ -1083,35 +1083,6 @@ function Lobby({
       />
 
       <Pressable
-        onPress={() => setShowPeopleSetup((value) => !value)}
-        style={styles.secondaryButton}
-        testID='people-setup-toggle'
-      >
-        <Users color={theme.accentStrong} size={18} />
-        <Text style={styles.secondaryButtonText}>People setup</Text>
-      </Pressable>
-      {showPeopleSetup ? (
-        <PeopleActions
-          canJoinHome={true}
-          homeQrUri={homeQrUri}
-          myHomeQrUri={myHomeQrUri}
-          onHomeQrChange={onHomeQrChange}
-          onJoinHomeQr={onJoinHomeQr}
-          onRevokeContact={onRevokeContact}
-          onScanHomeQr={onScanHomeQr}
-          onScanProfileQr={onScanProfileQr}
-          onTrustAliasChange={onTrustAliasChange}
-          onTrustProfile={onTrustProfile}
-          onTrustQrChange={onTrustQrChange}
-          profileReady={profileReady}
-          profileQrUri={profileQrUri}
-          trustAlias={trustAlias}
-          trustedContacts={trustedContacts}
-          trustQrUri={trustQrUri}
-        />
-      ) : null}
-
-      <Pressable
         onPress={onToggleAdvancedJoin}
         style={styles.secondaryButton}
         testID='advanced-join-toggle'
@@ -1149,6 +1120,35 @@ function Lobby({
             </Text>
           </Pressable>
         </View>
+      ) : null}
+
+      <Pressable
+        onPress={() => setShowPeopleSetup((value) => !value)}
+        style={styles.secondaryButton}
+        testID='people-setup-toggle'
+      >
+        <Users color={theme.accentStrong} size={18} />
+        <Text style={styles.secondaryButtonText}>People setup</Text>
+      </Pressable>
+      {showPeopleSetup ? (
+        <PeopleActions
+          canJoinHome={true}
+          homeQrUri={homeQrUri}
+          myHomeQrUri={myHomeQrUri}
+          onHomeQrChange={onHomeQrChange}
+          onJoinHomeQr={onJoinHomeQr}
+          onRevokeContact={onRevokeContact}
+          onScanHomeQr={onScanHomeQr}
+          onScanProfileQr={onScanProfileQr}
+          onTrustAliasChange={onTrustAliasChange}
+          onTrustProfile={onTrustProfile}
+          onTrustQrChange={onTrustQrChange}
+          profileReady={profileReady}
+          profileQrUri={profileQrUri}
+          trustAlias={trustAlias}
+          trustedContacts={trustedContacts}
+          trustQrUri={trustQrUri}
+        />
       ) : null}
     </ScrollView>
   )

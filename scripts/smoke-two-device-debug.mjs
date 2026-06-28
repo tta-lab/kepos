@@ -18,6 +18,7 @@ const maestro = resolveMaestroCommand()
 const userDataDir = await mkdtemp(path.join(os.tmpdir(), 'kepos-two-device-desktop-'))
 const workDir = await mkdtemp(path.join(os.tmpdir(), 'kepos-two-device-'))
 const usePearRuntime = process.argv.includes('--pear')
+const androidDevClientUrl = 'kepos://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8081'
 const androidChatText = 'Android hello'
 const androidDmAfterRestartText = 'Android DM after restart'
 const androidDmAfterRevokeText = 'Android DM after revoke'
@@ -43,6 +44,7 @@ try {
   const androidProfileUri = await readAndroidProfileUri()
   const androidProfile = decodeKeposUri(androidProfileUri)
 
+  await openDesktopPeopleActions(page)
   await page.fill('#trustQrInput', androidProfileUri)
   await page.fill('#trustAliasInput', 'Android smoke')
   await page.click('#trustButton')
@@ -169,10 +171,16 @@ async function launchDesktopApp() {
   return nextPage
 }
 
+async function openDesktopPeopleActions(page) {
+  await page.locator('.peopleActions').evaluate((node) => {
+    node.open = true
+  })
+  await page.locator('#trustQrInput').scrollIntoViewIfNeeded()
+}
+
 async function readAndroidProfileUri() {
-  runAdb(['shell', 'am', 'force-stop', 'io.guion.kepos'])
-  runAdb(['shell', 'monkey', '-p', 'io.guion.kepos', '-c', 'android.intent.category.LAUNCHER', '1'])
-  await delay(8000)
+  launchAndroidDevClient()
+  await waitForAndroidAppSurface()
   await revealAndroidAdvancedShare()
 
   for (let attempt = 0; attempt < 5; attempt++) {
@@ -192,6 +200,24 @@ async function revealAndroidAdvancedShare() {
     flow,
     `appId: io.guion.kepos
 ---
+- runFlow:
+    when:
+      visible:
+        id: 'people-tab'
+    commands:
+      - tapOn:
+          id: 'people-tab'
+- runFlow:
+    when:
+      visible:
+        id: 'lobby-scroll'
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: 'people-setup-toggle'
+          direction: DOWN
+      - tapOn:
+          id: 'people-setup-toggle'
 - scrollUntilVisible:
     element:
       id: 'advanced-share-toggle'
@@ -234,9 +260,8 @@ async function writeAndroidContactBook({ alias, ownerProfileId, trustedProfileId
 }
 
 async function runAndroidJoinFlow(roomKey) {
-  runAdb(['shell', 'am', 'force-stop', 'io.guion.kepos'])
-  runAdb(['shell', 'monkey', '-p', 'io.guion.kepos', '-c', 'android.intent.category.LAUNCHER', '1'])
-  await delay(8000)
+  launchAndroidDevClient()
+  await waitForAndroidAppSurface()
   runAdb(['shell', 'input', 'tap', '1000', '2210'])
   await delay(500)
   const flow = path.join(workDir, 'android-debug-join.yaml')
@@ -248,6 +273,8 @@ async function runAndroidJoinFlow(roomKey) {
     element:
       id: 'advanced-join-toggle'
     direction: DOWN
+    centerElement: true
+    visibilityPercentage: 50
 - tapOn:
     id: 'advanced-join-toggle'
 - scrollUntilVisible:
@@ -273,6 +300,32 @@ async function runAndroidJoinFlow(roomKey) {
 `
   )
   runMaestro(['test', flow])
+}
+
+function launchAndroidDevClient() {
+  runAdb(['reverse', 'tcp:8081', 'tcp:8081'])
+  runAdb(['shell', 'am', 'force-stop', 'io.guion.kepos'])
+  runAdb([
+    'shell',
+    'am',
+    'start',
+    '-a',
+    'android.intent.action.VIEW',
+    '-d',
+    androidDevClientUrl,
+    'io.guion.kepos'
+  ])
+}
+
+async function waitForAndroidAppSurface() {
+  await waitFor(async () => {
+    const xml = await dumpAndroidUi()
+    return (
+      xml.includes('resource-id="lobby-scroll"') ||
+      xml.includes('resource-id="home-title"') ||
+      xml.includes('resource-id="people-tab"')
+    )
+  }, 'Android app surface')
 }
 
 async function sendAndroidChat() {
@@ -455,11 +508,7 @@ async function waitForAndroidText(text) {
 }
 
 function dumpAndroidUi() {
-  const devicePath = '/sdcard/kepos-two-device-window.xml'
-  const localPath = path.join(workDir, 'window.xml')
-  runAdb(['shell', 'uiautomator', 'dump', devicePath])
-  runAdb(['pull', devicePath, localPath])
-  return readFile(localPath, 'utf8')
+  return runAdb(['exec-out', 'uiautomator', 'dump', '/dev/tty'])
 }
 
 function textByResourceId(xml, resourceId) {
@@ -522,7 +571,7 @@ function runAdb(args) {
 }
 
 function runMaestro(args) {
-  for (let attempt = 1; attempt <= 2; attempt += 1) {
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
     const result = spawnSync(maestro, args, {
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe']
@@ -538,13 +587,21 @@ function runMaestro(args) {
     process.stdout.write(result.stdout)
     process.stderr.write(result.stderr)
 
-    if (attempt === 1 && output.includes('MaestroDriverStartupException')) {
+    if (attempt < 3 && isRetriableMaestroEnvironmentError(output)) {
       spawnSync('sleep', ['2'])
       continue
     }
 
     throw new Error(`maestro ${args.join(' ')} failed`)
   }
+}
+
+function isRetriableMaestroEnvironmentError(output) {
+  return (
+    output.includes('MaestroDriverStartupException') ||
+    output.includes('INSTALL_FAILED_VERIFICATION_FAILURE') ||
+    output.includes('StatusRuntimeException: UNAVAILABLE')
+  )
 }
 
 function resolveMaestroCommand() {

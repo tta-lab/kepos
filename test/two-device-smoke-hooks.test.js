@@ -132,6 +132,23 @@ test('Android lobby starts with compact product choices', async () => {
   assert.equal(source.includes("label='Nick'"), false)
 })
 
+test('Android lobby keeps manual join advanced reachable before people setup', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const lobby = source.slice(
+    source.indexOf('function Lobby('),
+    source.indexOf('function ChatRoom(')
+  )
+
+  assert.equal(
+    lobby.indexOf("testID='advanced-join-toggle'") < lobby.indexOf("testID='people-setup-toggle'"),
+    true
+  )
+  assert.equal(
+    lobby.indexOf("testID='manual-home-key-input'") < lobby.indexOf("testID='people-setup-toggle'"),
+    true
+  )
+})
+
 test('Android setup action buttons use icons consistently', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
   const lobby = source.slice(
@@ -1058,17 +1075,30 @@ test('debug two-device smoke covers live DM exchange and restart persistence', a
   for (const marker of [
     "usePearRuntime = process\\.argv\\.includes\\('--pear'\\)",
     "KEPOS_SMOKE_DESKTOP: usePearRuntime \\? undefined : '1'",
+    'openDesktopPeopleActions',
+    'expo-development-client',
+    'waitForAndroidAppSurface',
+    '/dev/tty',
     'sendAndroidMessageRequest',
     'acceptDesktopMessageRequest',
+    'people-tab',
     'advanced-share-toggle',
+    'centerElement: true',
     'sendAndroidDmBody',
     'sendDesktopDmBody',
     'restartBothAppsAndRejoin',
     'verifyDmPersistsAfterRestart',
     'revokeDesktopContact',
     'verifyDesktopDmClosedAfterRevoke',
-    'MaestroDriverStartupException'
+    'MaestroDriverStartupException',
+    'INSTALL_FAILED_VERIFICATION_FAILURE',
+    'StatusRuntimeException: UNAVAILABLE'
   ]) {
     assert.match(source, new RegExp(marker), `${marker} is missing`)
   }
+
+  assert.equal(
+    source.indexOf("id: 'people-tab'") < source.indexOf("id: 'advanced-share-toggle'"),
+    true
+  )
 })
