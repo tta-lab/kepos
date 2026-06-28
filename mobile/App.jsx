@@ -1085,6 +1085,7 @@ function Lobby({
       />
 
       <Pressable
+        accessibilityState={{ expanded: showAdvancedJoin }}
         onPress={onToggleAdvancedJoin}
         style={styles.secondaryButton}
         testID='advanced-join-toggle'
@@ -1125,6 +1126,7 @@ function Lobby({
       ) : null}
 
       <Pressable
+        accessibilityState={{ expanded: showPeopleSetup }}
         onPress={() => setShowPeopleSetup((value) => !value)}
         style={styles.secondaryButton}
         testID='people-setup-toggle'
@@ -1217,6 +1219,7 @@ function ChatRoom({
         </View>
         <View style={styles.roomActions}>
           <Pressable
+            accessibilityState={{ expanded: showRoomAdvanced }}
             onPress={() => setShowRoomAdvanced((value) => !value)}
             style={styles.roomAdvancedButton}
           >
@@ -1387,6 +1390,7 @@ function QuickStartPanel({
           <Text style={styles.primaryButtonText}>Create my home</Text>
         </Pressable>
         <Pressable
+          accessibilityState={{ expanded: showQuickHomeQr }}
           disabled={!profileReady}
           onPress={() => setShowQuickHomeQr((value) => !value)}
           style={[styles.secondaryButton, !profileReady && styles.disabledButton]}
@@ -1590,6 +1594,7 @@ function PeopleActions({
           title='My Home QR'
         />
         <Pressable
+          accessibilityState={{ expanded: showHomeQr }}
           disabled={!profileReady}
           onPress={() => setShowHomeQr((value) => !value)}
           style={[styles.secondaryButton, !profileReady && styles.disabledButton]}
@@ -1624,6 +1629,7 @@ function PeopleActions({
           title='My Profile QR'
         />
         <Pressable
+          accessibilityState={{ expanded: showProfileQr }}
           disabled={!profileReady}
           onPress={() => setShowProfileQr((value) => !value)}
           style={[styles.secondaryButton, !profileReady && styles.disabledButton]}
@@ -1649,6 +1655,7 @@ function PeopleActions({
       </View>
 
       <Pressable
+        accessibilityState={{ expanded: showAdvancedShare }}
         onPress={() => setShowAdvancedShare((value) => !value)}
         style={styles.secondaryButton}
         testID='advanced-share-toggle'
@@ -1847,6 +1854,7 @@ function DirectPane({
           </View>
         )}
         <Pressable
+          accessibilityState={{ expanded: showAdvancedDmRecipient }}
           onPress={() => setShowAdvancedDmRecipient((value) => !value)}
           style={styles.directAdvancedToggle}
           testID='advanced-dm-recipient-toggle'

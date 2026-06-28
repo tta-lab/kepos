@@ -142,6 +142,15 @@ test('V1 UX docs include mobile direct contact and revoke state polish', async (
   assert.match(ux, /trusted-friend revoke actions use an icon/)
 })
 
+test('V1 UX docs include mobile collapsible expanded states', async () => {
+  const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
+  const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
+
+  assert.match(audit, /mobile collapsible controls expose expanded accessibility state/)
+  assert.match(ux, /Mobile collapsible controls now expose expanded accessibility state/)
+  assert.match(ux, /Advanced panels, People setup, QR reveals/)
+})
+
 test('V1 UX docs include Home trust source product copy', async () => {
   const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
   const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')

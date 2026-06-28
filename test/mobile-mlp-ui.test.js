@@ -90,3 +90,45 @@ test('mobile direct contact chips and revoke actions expose trust state', async 
     /accessibilityState=\{\{ selected: recipient === contact\.profileId \}\}/
   )
 })
+
+test('mobile collapsible controls expose expanded state', async () => {
+  const source = await readMobileSource()
+  const lobby = source.slice(
+    source.indexOf('function Lobby('),
+    source.indexOf('function ChatRoom(')
+  )
+  const quickStart = source.slice(
+    source.indexOf('function QuickStartPanel('),
+    source.indexOf('function PeoplePane(')
+  )
+  const room = source.slice(
+    source.indexOf('function ChatRoom('),
+    source.indexOf('function TaskHeader(')
+  )
+  const peopleActions = source.slice(
+    source.indexOf('function PeopleActions('),
+    source.indexOf('function DirectPane(')
+  )
+  const directPane = source.slice(
+    source.indexOf('function DirectPane('),
+    source.indexOf('function ContactManager(')
+  )
+
+  assert.match(
+    lobby,
+    /accessibilityState=\{\{ expanded: showAdvancedJoin \}\}[\s\S]*testID='advanced-join-toggle'/
+  )
+  assert.match(
+    lobby,
+    /accessibilityState=\{\{ expanded: showPeopleSetup \}\}[\s\S]*testID='people-setup-toggle'/
+  )
+  assert.match(quickStart, /accessibilityState=\{\{ expanded: showQuickHomeQr \}\}/)
+  assert.match(room, /accessibilityState=\{\{ expanded: showRoomAdvanced \}\}/)
+  assert.match(peopleActions, /accessibilityState=\{\{ expanded: showHomeQr \}\}/)
+  assert.match(peopleActions, /accessibilityState=\{\{ expanded: showProfileQr \}\}/)
+  assert.match(peopleActions, /accessibilityState=\{\{ expanded: showAdvancedShare \}\}/)
+  assert.match(
+    directPane,
+    /accessibilityState=\{\{ expanded: showAdvancedDmRecipient \}\}[\s\S]*testID='advanced-dm-recipient-toggle'/
+  )
+})
