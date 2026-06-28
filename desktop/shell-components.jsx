@@ -49,12 +49,14 @@ export function Topbar({ setTheme, status, theme }) {
       <div>
         <p className='kicker'>private garden</p>
         <h1>Kepos Home</h1>
-        <p id='noticeLabel' className='notice'>
-          {status.noticeLabel}
-        </p>
-        <p id='treeholeStatusLabel' className='subnotice'>
-          {status.treeholeStatusLabel}
-        </p>
+        <div className='statusStrip' aria-label='Current status'>
+          <p id='noticeLabel' className='statusPill noticePill'>
+            {status.noticeLabel}
+          </p>
+          <p id='treeholeStatusLabel' className='statusPill treeholePill'>
+            {status.treeholeStatusLabel}
+          </p>
+        </div>
       </div>
       <div className='themeSwitch' role='group' aria-label='Theme'>
         <button
@@ -87,14 +89,24 @@ export function Topbar({ setTheme, status, theme }) {
 export function HomeStatusPanel({ controls, onLeave, status }) {
   return (
     <section className='panel roomMeta'>
-      <p className='label'>Home</p>
-      <p id='homeStatusLabel' className='metric'>
-        {status.homeStatusLabel}
-      </p>
-      <p className='label'>Online</p>
-      <p id='peerLabel' className='metric'>
-        {status.peerLabel}
-      </p>
+      <div className='metricGrid'>
+        <div className='metricCard'>
+          <div className='metricLabel'>
+            <p className='label'>Home</p>
+          </div>
+          <p id='homeStatusLabel' className='metric'>
+            {status.homeStatusLabel}
+          </p>
+        </div>
+        <div className='metricCard'>
+          <div className='metricLabel'>
+            <p className='label'>Online</p>
+          </div>
+          <p id='peerLabel' className='metric'>
+            {status.peerLabel}
+          </p>
+        </div>
+      </div>
       <details id='advancedStatus' className='advanced'>
         <summary>Advanced</summary>
         <p className='label'>Home</p>

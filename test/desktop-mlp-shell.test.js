@@ -347,6 +347,25 @@ test('desktop status panel keeps raw ids in advanced details', async () => {
   assert.equal(controller.includes('Treehole ${state.treeholeStatus}'), false)
 })
 
+test('desktop status surfaces use compact visual status treatments', async () => {
+  const source = await readDesktopUiSource()
+  const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
+
+  assert.match(source, /className='statusStrip'/)
+  assert.match(source, /className='statusPill noticePill'/)
+  assert.match(source, /className='statusPill treeholePill'/)
+  assert.match(source, /className='metricGrid'/)
+  assert.match(source, /className='metricCard'/)
+  assert.match(source, /className='metricLabel'/)
+  assert.match(styles, /\.statusStrip/)
+  assert.match(styles, /\.statusPill/)
+  assert.match(styles, /\.noticePill/)
+  assert.match(styles, /\.treeholePill/)
+  assert.match(styles, /\.metricGrid/)
+  assert.match(styles, /\.metricCard/)
+  assert.match(styles, /minmax\(0, 1fr\)/)
+})
+
 test('desktop error handling keeps raw exception detail advanced', async () => {
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const state = await readFile(new URL('../src/desktop-state.js', import.meta.url), 'utf8')

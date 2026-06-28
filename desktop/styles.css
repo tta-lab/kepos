@@ -362,6 +362,29 @@ textarea {
   gap: 8px;
 }
 
+.metricGrid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.metricCard {
+  background: color-mix(in srgb, var(--surface-raised) 72%, transparent);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  min-height: 92px;
+  padding: 12px;
+}
+
+.metricLabel {
+  align-self: start;
+}
+
+.metricLabel .label {
+  margin: 0;
+}
+
 .mono {
   font-size: 13px;
   overflow-wrap: anywhere;
@@ -374,7 +397,10 @@ textarea {
 .metric {
   font-size: 32px;
   font-weight: 900;
-  margin: 0 0 8px;
+  line-height: 0.95;
+  margin: 0;
+  overflow-wrap: anywhere;
+  place-self: end start;
 }
 
 .workspace {
@@ -401,16 +427,34 @@ textarea {
   margin: 4px 0 10px;
 }
 
-.notice {
+.statusStrip {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: 720px;
+}
+
+.statusPill {
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
   font-size: 15px;
   font-weight: 800;
   margin: 0;
+  min-height: 32px;
+  padding: 6px 11px;
 }
 
-.subnotice {
-  color: var(--ink-muted);
+.noticePill {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+  color: var(--accent-ink);
+}
+
+.treeholePill {
+  background: var(--success-soft);
+  color: var(--accent-strong);
   font-size: 12px;
-  margin: 4px 0 0;
 }
 
 .themeSwitch {
