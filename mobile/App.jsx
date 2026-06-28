@@ -1194,7 +1194,7 @@ function ChatRoom({
   trustAlias,
   trustQrUri
 }) {
-  const { styles, theme } = useMobileTheme()
+  const { styles } = useMobileTheme()
   const [showRoomAdvanced, setShowRoomAdvanced] = useState(false)
   const roomShort = getMobileRoomKeyPreview(session)
   const roomSurface = getMobileRoomSurface(activeTab)
@@ -1215,14 +1215,12 @@ function ChatRoom({
             onPress={() => setShowRoomAdvanced((value) => !value)}
             testID='room-advanced-toggle'
           />
-          <Pressable
+          <MobileIconButton
             accessibilityLabel='Leave home'
+            icon={LogOut}
             onPress={onLeave}
-            style={styles.iconButton}
             testID='leave-home-button'
-          >
-            <LogOut color={theme.accentStrong} size={18} />
-          </Pressable>
+          />
         </View>
       </View>
       {showRoomAdvanced ? (
@@ -1377,6 +1375,21 @@ function MobileActionButton({
       >
         {label}
       </Text>
+    </Pressable>
+  )
+}
+
+function MobileIconButton({ accessibilityLabel, icon: Icon, onPress, testID }) {
+  const { styles, theme } = useMobileTheme()
+
+  return (
+    <Pressable
+      accessibilityLabel={accessibilityLabel}
+      onPress={onPress}
+      style={styles.iconButton}
+      testID={testID}
+    >
+      <Icon color={theme.accentStrong} size={18} />
     </Pressable>
   )
 }

@@ -228,6 +228,15 @@ test('V1 UX docs include mobile shared advanced toggles', async () => {
   assert.match(ux, /normal\s+and compact variants/)
 })
 
+test('V1 UX docs include mobile shared top-bar icon controls', async () => {
+  const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
+  const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
+
+  assert.match(audit, /mobile top-bar icon controls/)
+  assert.match(ux, /Mobile top-bar icon controls/)
+  assert.match(ux, /icon-only button component/)
+})
+
 test('V1 UX docs include mobile shared Direct contact chips', async () => {
   const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
   const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')

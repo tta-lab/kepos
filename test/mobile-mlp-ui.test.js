@@ -203,6 +203,29 @@ test('mobile room and direct advanced toggles share one component', async () => 
   assert.match(directPane, /<MobileAdvancedToggle[\s\S]*variant='compact'/)
 })
 
+test('mobile top-bar icon controls share one icon button component', async () => {
+  const source = await readMobileSource()
+  const chatRoom = source.slice(
+    source.indexOf('function ChatRoom('),
+    source.indexOf('function TaskHeader(')
+  )
+  const iconButton = source.slice(
+    source.indexOf('function MobileIconButton('),
+    source.indexOf('function MobileSendButton(')
+  )
+
+  assert.match(
+    iconButton,
+    /function MobileIconButton\(\{ accessibilityLabel, icon: Icon, onPress, testID \}\)/
+  )
+  assert.match(iconButton, /accessibilityLabel=\{accessibilityLabel\}/)
+  assert.match(iconButton, /style=\{styles\.iconButton\}/)
+  assert.match(iconButton, /<Icon color=\{theme\.accentStrong\} size=\{18\} \/>/)
+  assert.match(chatRoom, /<MobileIconButton[\s\S]*accessibilityLabel='Leave home'/)
+  assert.match(chatRoom, /<MobileIconButton[\s\S]*icon=\{LogOut\}/)
+  assert.match(chatRoom, /<MobileIconButton[\s\S]*testID='leave-home-button'/)
+})
+
 test('mobile setup actions share one icon button component', async () => {
   const source = await readMobileSource()
   const lobby = source.slice(
