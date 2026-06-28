@@ -239,6 +239,7 @@ export default function App() {
     [contactBook]
   )
   const homeStatusLabel = getMobileHomeStatus({ online: peerCount, session })
+  const treeholeStatusLabel = getMobileTreeholeStatus(treeholeStatus)
 
   useEffect(() => {
     let cancelled = false
@@ -859,6 +860,7 @@ export default function App() {
               <Header
                 notice={notice}
                 statusLabel={homeStatusLabel}
+                treeholeStatusLabel={treeholeStatusLabel}
                 title={session ? 'Home' : 'Kepos'}
               />
               {session ? (
@@ -942,7 +944,7 @@ export default function App() {
   )
 }
 
-function Header({ title, notice, statusLabel }) {
+function Header({ title, notice, statusLabel, treeholeStatusLabel }) {
   const { styles, theme } = useMobileTheme()
 
   return (
@@ -958,9 +960,14 @@ function Header({ title, notice, statusLabel }) {
           </Text>
         </View>
       </View>
-      <View style={styles.statusPill}>
-        <View style={styles.statusDot} />
-        <Text style={styles.statusText}>{statusLabel}</Text>
+      <View style={styles.mobileStatusStrip}>
+        <View style={styles.homeStatusPill}>
+          <View style={styles.statusDot} />
+          <Text style={styles.statusText}>{statusLabel}</Text>
+        </View>
+        <View style={styles.treeholeStatusPill}>
+          <Text style={styles.treeholeStatusText}>{treeholeStatusLabel}</Text>
+        </View>
       </View>
       <Text style={styles.notice} testID='app-notice'>
         {notice}
@@ -2084,6 +2091,22 @@ function getMobileHomeStatus({ online, session }) {
   return 'Waiting for friends'
 }
 
+function getMobileTreeholeStatus(status) {
+  if (status === 'ready') {
+    return 'Treehole ready'
+  }
+
+  if (status === 'starting') {
+    return 'Treehole starting'
+  }
+
+  if (status === 'waiting' || status === 'waiting-for-bootstrap') {
+    return 'Waiting treehole'
+  }
+
+  return 'Treehole offline'
+}
+
 function getMobileBackendNotice(status) {
   if (
     status === 'joining' ||
@@ -2380,15 +2403,33 @@ function createMobileStyles(theme) {
       fontWeight: '800',
       letterSpacing: 0
     },
-    statusPill: {
+    mobileStatusStrip: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+      marginTop: 16
+    },
+    homeStatusPill: {
       alignItems: 'center',
       alignSelf: 'flex-start',
+      backgroundColor: theme.quickPanel,
       borderColor: theme.borderStrong,
-      borderRadius: 8,
+      borderRadius: 999,
       borderWidth: 1,
       flexDirection: 'row',
       gap: 7,
-      marginTop: 16,
+      paddingHorizontal: 10,
+      paddingVertical: 6
+    },
+    treeholeStatusPill: {
+      alignItems: 'center',
+      alignSelf: 'flex-start',
+      backgroundColor: theme.raised,
+      borderColor: theme.border,
+      borderRadius: 999,
+      borderWidth: 1,
+      minHeight: 32,
       paddingHorizontal: 10,
       paddingVertical: 6
     },
@@ -2401,6 +2442,11 @@ function createMobileStyles(theme) {
     statusText: {
       color: theme.statusText,
       fontSize: 13,
+      fontWeight: '700'
+    },
+    treeholeStatusText: {
+      color: theme.inkSoft,
+      fontSize: 12,
       fontWeight: '700'
     },
     notice: {
