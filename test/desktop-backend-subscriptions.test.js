@@ -72,6 +72,7 @@ test('desktop backend subscriptions update renderer snapshots from backend event
   emit('shareQrOutputsChanged', { homeUri: 'kepos://home', profileUri: 'kepos://profile' })
   emit('treeholeStateChanged', { canPost: false, posts: [], status: 'ready' })
   emit('peerCountChanged', { peers: 3 })
+  emit('transportDebugChanged', { stage: 'flushed' })
   emit('errorReceived', new Error('failed'))
   unsubscribe()
 
@@ -87,8 +88,10 @@ test('desktop backend subscriptions update renderer snapshots from backend event
   assert.equal(state.treeholeStatus, 'ready')
   assert.equal(state.treeholeCanPost, false)
   assert.equal(state.peers, 3)
+  assert.deepEqual(state.transportDebug, { stage: 'flushed' })
   assert.equal(errors[0].message, 'failed')
   assert.deepEqual(renders, [
+    'render',
     'render',
     'render',
     'render',
@@ -108,6 +111,7 @@ test('desktop backend subscriptions update renderer snapshots from backend event
     ['subscribe', 'dmMessageReceived'],
     ['subscribe', 'treeholeStateChanged'],
     ['subscribe', 'peerCountChanged'],
+    ['subscribe', 'transportDebugChanged'],
     ['subscribe', 'shareQrOutputsChanged'],
     ['subscribe', 'errorReceived'],
     ['unsubscribe', 'homeMessageReceived'],
@@ -118,6 +122,7 @@ test('desktop backend subscriptions update renderer snapshots from backend event
     ['unsubscribe', 'dmMessageReceived'],
     ['unsubscribe', 'treeholeStateChanged'],
     ['unsubscribe', 'peerCountChanged'],
+    ['unsubscribe', 'transportDebugChanged'],
     ['unsubscribe', 'shareQrOutputsChanged'],
     ['unsubscribe', 'errorReceived']
   ])

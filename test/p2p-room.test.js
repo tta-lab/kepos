@@ -228,13 +228,58 @@ describe('p2p room backend', () => {
 
     assert.deepEqual(peers, [socket])
   })
+
+  test('join emits transport debug snapshots', async () => {
+    const debugStates = []
+    const room = createP2PRoom({
+      createSwarm: () => new FakeSwarm(),
+      onDebugState: (debug) => debugStates.push(debug)
+    })
+
+    await room.join({ roomKey: 'a'.repeat(64), nick: 'Neil' })
+
+    assert.deepEqual(
+      debugStates.map((state) => state.stage),
+      ['created', 'joined-topic', 'flushed']
+    )
+    assert.deepEqual(debugStates.at(-1), {
+      activeQuery: false,
+      connections: 0,
+      connecting: 0,
+      discovered: 0,
+      destroyed: false,
+      dhtFirewalled: false,
+      dhtNodes: 0,
+      dhtOnline: false,
+      isClient: true,
+      isServer: true,
+      knownPeers: 0,
+      lastPeerClient: false,
+      lastPeerSelf: false,
+      lastPeerTopics: 0,
+      listening: false,
+      localPeers: 0,
+      refreshes: 1,
+      stage: 'flushed',
+      topics: 1
+    })
+  })
 })
 
 class FakeSwarm {
   constructor(joins = [], options = {}) {
     this.joins = joins
     this.options = options
+    this.connections = new Set()
+    this.connecting = 0
+    this.dht = {
+      firewalled: false,
+      nodes: [],
+      online: false
+    }
     this.handlers = new Map()
+    this.peers = new Map()
+    this.joinedTopics = new Map()
     this.destroyed = false
   }
 
@@ -244,9 +289,25 @@ class FakeSwarm {
 
   join(topic, options) {
     this.joins.push({ topic, options })
+    this.joinedTopics.set(topic.toString('hex'), {
+      _activeQuery: null,
+      _discovered: new Set(),
+      _refreshes: 1,
+      isClient: Boolean(options.client),
+      isServer: Boolean(options.server),
+      topic
+    })
     return {
       flushed: () => (this.options.pendingFlush ? new Promise(() => {}) : Promise.resolve())
     }
+  }
+
+  status(topic) {
+    return this.joinedTopics.get(topic.toString('hex')) || null
+  }
+
+  topics() {
+    return Array.from(this.joinedTopics.values(), (discovery) => discovery.topic).values()
   }
 
   destroy() {

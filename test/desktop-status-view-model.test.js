@@ -11,6 +11,7 @@ test('desktop status view model formats the default lobby status', () => {
     peerLabel: '0',
     profileIdLabel: 'not ready',
     roomKeyLabel: 'not joined',
+    transportDebugLabel: 'none',
     treeholeStatusLabel: 'Treehole offline'
   })
 })
@@ -37,7 +38,26 @@ test('desktop status view model formats room and profile status', () => {
       state: {
         ...state,
         lastError: 'raw failure',
-        notice: 'Home ready.'
+        notice: 'Home ready.',
+        transportDebug: {
+          activeQuery: false,
+          connections: 1,
+          connecting: 2,
+          discovered: 4,
+          dhtFirewalled: false,
+          dhtNodes: 3,
+          dhtOnline: true,
+          isClient: true,
+          isServer: true,
+          knownPeers: 3,
+          lastPeerClient: true,
+          lastPeerSelf: false,
+          lastPeerTopics: 1,
+          listening: true,
+          localPeers: 1,
+          stage: 'flushed',
+          topics: 1
+        }
       }
     }),
     {
@@ -47,6 +67,8 @@ test('desktop status view model formats room and profile status', () => {
       peerLabel: '2',
       profileIdLabel: 'bbbbbb',
       roomKeyLabel: 'aaaaaa',
+      transportDebugLabel:
+        'stage=flushed connections=1 connecting=2 knownPeers=3 discovered=4 localPeers=1 topics=1 client=yes server=yes listening=yes activeQuery=no lastPeerClient=yes lastPeerSelf=no lastPeerTopics=1 dhtOnline=yes dhtFirewalled=no dhtNodes=3',
       treeholeStatusLabel: 'Treehole ready'
     }
   )

@@ -269,7 +269,6 @@ textarea {
   border-color: color-mix(in srgb, var(--rail-ink) 24%, transparent);
   color: color-mix(in srgb, var(--rail-ink) 72%, transparent);
   display: grid;
-  gap: 6px;
   height: 62px;
   justify-items: center;
   min-height: 0;
@@ -301,12 +300,6 @@ textarea {
   position: absolute;
   right: 8px;
   top: 6px;
-}
-
-.railLabel {
-  font-size: 10px;
-  font-weight: 900;
-  line-height: 1;
 }
 
 .kicker,

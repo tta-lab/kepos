@@ -149,7 +149,7 @@ test('desktop people UI uses trusted friends copy', async () => {
 
   assert.match(source, /id='peopleTab'[\s\S]*title='People'/)
   assert.match(source, /label='People'/)
-  assert.match(source, /<span className='railLabel'>\{label\}<\/span>/)
+  assert.doesNotMatch(source, /<span className='railLabel'>/)
   assert.match(source, /id='peoplePane'/)
   assert.match(
     source,
@@ -590,8 +590,9 @@ test('desktop panes label live and durable surfaces', async () => {
 
   assert.match(source, /id='dmTab'[\s\S]*title='Direct messages'/)
   assert.match(source, /label='Direct'/)
-  assert.match(source, /<span className='railLabel'>\{label\}<\/span>/)
+  assert.doesNotMatch(source, /<span className='railLabel'>/)
   assert.equal(source.includes("<span className='railLabel'>DM</span>"), false)
+  assert.match(source, /icon=\{<House size=\{20\} \/>\}/)
   assert.match(source, /Send message/)
   assert.equal(source.includes('Send DM'), false)
   assert.match(
@@ -670,6 +671,7 @@ test('desktop rail surfaces pending direct and people work without changing navi
     /function RailButton\(\{ badgeCount = 0, icon, id, isActive, label, onSelect, title \}\)/
   )
   assert.match(shell, /aria-label=\{getRailButtonLabel\(label, badgeCount\)\}/)
+  assert.doesNotMatch(shell, /className='railLabel'/)
   assert.match(shell, /function getRailButtonLabel\(label, badgeCount\) \{/)
   assert.match(shell, /return `\$\{label\}, \$\{badgeCount\} pending`/)
   assert.match(

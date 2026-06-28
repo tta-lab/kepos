@@ -1,5 +1,5 @@
 import React from 'react'
-import { LogOut, MessageCircle, Moon, Send, Sprout, Sun, Users } from 'lucide-react'
+import { House, LogOut, Moon, Send, Sprout, Sun, Users } from 'lucide-react'
 import { ActionButton } from './ui-components.jsx'
 
 export function AppRail({ activeTab, navBadges, shellActions }) {
@@ -9,7 +9,7 @@ export function AppRail({ activeTab, navBadges, shellActions }) {
       <nav className='railNav' aria-label='Main views' role='tablist'>
         <RailButton
           id='chatTab'
-          icon={<MessageCircle size={19} />}
+          icon={<House size={20} />}
           isActive={activeTab === 'chat'}
           label='Home'
           onSelect={() => shellActions.setTab('chat')}
@@ -134,6 +134,10 @@ export function HomeStatusPanel({ controls, onLeave, status }) {
         <p id='errorDetailLabel' className='mono muted'>
           {status.errorDetailLabel}
         </p>
+        <p className='label'>Transport</p>
+        <p id='transportDebugLabel' className='mono muted'>
+          {status.transportDebugLabel}
+        </p>
       </details>
       <ActionButton
         disabled={!controls.canLeaveHome}
@@ -159,7 +163,6 @@ function RailButton({ badgeCount = 0, icon, id, isActive, label, onSelect, title
       onClick={onSelect}
     >
       {icon}
-      <span className='railLabel'>{label}</span>
       {badgeCount > 0 ? (
         <span className='railBadge' aria-label={`${label} pending ${badgeCount}`}>
           {badgeCount > 99 ? '99+' : badgeCount}

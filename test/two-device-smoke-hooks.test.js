@@ -59,6 +59,7 @@ test('Android lucide icons used in JSX are imported', async () => {
   for (const icon of [
     'ArrowRight',
     'Heart',
+    'House',
     'LogOut',
     'MessageCircle',
     'Plus',
@@ -517,6 +518,8 @@ test('Android room bar keeps raw home key behind advanced details', async () => 
   assert.match(source, /\{roomSurface\}/)
   assert.equal(source.includes('Live session'), false)
   assert.match(source, /showRoomAdvanced \? \(/)
+  assert.match(source, /testID='room-transport-debug'/)
+  assert.match(source, /formatTransportDebug\(transportDebug\)/)
   assert.equal(
     source.indexOf("testID='room-home-address'") > source.indexOf('showRoomAdvanced ? ('),
     true
@@ -595,7 +598,7 @@ test('Android room tabs use icons for main navigation', async () => {
     source.indexOf('function ChatPane(')
   )
 
-  assert.match(tabs, /icon={MessageCircle}[\s\S]*label='Home'[\s\S]*testID='chat-tab'/)
+  assert.match(tabs, /icon={House}[\s\S]*label='Home'[\s\S]*testID='chat-tab'/)
   assert.match(tabs, /icon={Send}[\s\S]*label='Direct'[\s\S]*testID='dm-tab'/)
   assert.match(tabs, /icon={Sprout}[\s\S]*label='Treehole'[\s\S]*testID='treehole-tab'/)
   assert.match(tabs, /icon={Users}[\s\S]*label='People'[\s\S]*testID='people-tab'/)
@@ -604,6 +607,7 @@ test('Android room tabs use icons for main navigation', async () => {
     /function TabButton\(\{ active, badgeCount = 0, icon: Icon, label, onPress, testID \}\)/
   )
   assert.match(tabButton, /<Icon[\s\S]*color=\{active \? theme\.surface : theme\.iconMuted\}/)
+  assert.doesNotMatch(tabButton, /<Text style=\{\[styles\.tabText/)
   assert.match(tabButton, /badgeCount > 0/)
   assert.match(source, /tabIcon: \{/)
 })
@@ -1090,6 +1094,9 @@ test('debug two-device smoke covers live DM exchange and restart persistence', a
     "usePearRuntime = process\\.argv\\.includes\\('--pear'\\)",
     "KEPOS_SMOKE_DESKTOP: usePearRuntime \\? undefined : '1'",
     'prepareAndroidDevice',
+    'configureAndroidSmokeInputMethod',
+    'org\\.futo\\.inputmethod\\.latin/\\.LatinIME',
+    'restoreAndroidInputMethod',
     'grantAndroidCameraPermission',
     'ensureAdbReverse',
     'ensureMetroServer',
@@ -1100,6 +1107,11 @@ test('debug two-device smoke covers live DM exchange and restart persistence', a
     "runAdb\\(\\['shell', 'input', 'text', roomKey\\]\\)",
     'android-debug-join-open.yaml',
     'android-debug-join-submit.yaml',
+    'transportDebugLabel',
+    'room-transport-debug',
+    'tapAndroidResourceId',
+    'boundsByResourceId',
+    'room-transport-debug',
     "text: 'Connected\\.'",
     'openDesktopPeopleActions',
     'expo-development-client',

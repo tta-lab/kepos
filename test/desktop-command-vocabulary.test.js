@@ -39,6 +39,7 @@ test('desktop event vocabulary covers room, people, DM, and treehole updates', (
     'peerCountChanged',
     'shareQrOutputsChanged',
     'statusChanged',
+    'transportDebugChanged',
     'treeholeStateChanged'
   ])
 })

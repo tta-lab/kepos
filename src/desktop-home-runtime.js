@@ -6,6 +6,7 @@ export function createDesktopHomeRuntime({
   createHomeHello: createHello = createHomeHello,
   createRoom = createP2PRoom,
   onControl = () => {},
+  onDebugState = () => {},
   onError = () => {},
   onPeerCount = () => {},
   onSessionChanged = () => {},
@@ -24,8 +25,8 @@ export function createDesktopHomeRuntime({
     if (!homeJoinDetails || !session) return
 
     room = createRoom({
-      awaitDiscoveryFlush: false,
       onControl: (message, peer) => handleControl(message, peer),
+      onDebugState,
       onDiscoveryError: (error) => {
         onError(new Error(`Home discovery unavailable: ${error.message}`))
       },

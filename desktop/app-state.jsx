@@ -10,6 +10,7 @@ const DEFAULT_STATUS = {
   peerLabel: '0',
   profileIdLabel: 'not ready',
   roomKeyLabel: 'not joined',
+  transportDebugLabel: 'none',
   treeholeStatusLabel: 'Treehole offline'
 }
 const DEFAULT_CONTROLS = {

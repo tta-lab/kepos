@@ -146,6 +146,54 @@ test('desktop backend session keeps runtime DM changes in controller state', () 
   assert.deepEqual(changes, ['changed'])
 })
 
+test('desktop backend session keeps runtime transport debug in controller state', () => {
+  const controllerState = createControllerState()
+  const changes = []
+  const createdHosts = []
+
+  createDesktopBackendSession({
+    controllerState,
+    createId: () => 'id-1',
+    createLocalBackendHost: (options) => {
+      createdHosts.push(options)
+      return {
+        bridge: { label: 'bridge' },
+        dmRuntime: {
+          loadThreads: () => [],
+          replaceThreads: () => {},
+          start: () => ({ id: 'restored-dm-session' })
+        },
+        homeRuntime: { isJoined: () => false },
+        runtime: {
+          closeAll: () => Promise.resolve(),
+          configure: () => {}
+        },
+        treeholeRuntime: { canPost: () => false }
+      }
+    },
+    getCurrentDisplayName: () => 'Desktop',
+    getProfileContext: () => createProfileContext(),
+    onChanged: () => changes.push('changed'),
+    setContextFormDraft: () => {},
+    setDirectComposerRecipient: () => {},
+    setNotice: () => {},
+    shortenProfileId: (value) => value.slice(0, 8),
+    storageBasePath: '/user-data/kepos/v1',
+    updateState: (updater) => controllerState.updateState(updater)
+  })
+
+  createdHosts[0].runtimeOptions.onHomeDebugState({
+    connections: 0,
+    stage: 'flushed'
+  })
+
+  assert.deepEqual(controllerState.getState().transportDebug, {
+    connections: 0,
+    stage: 'flushed'
+  })
+  assert.deepEqual(changes, ['changed'])
+})
+
 test('desktop controller delegates backend session composition to a boundary', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const localBackendSource = await readFile(

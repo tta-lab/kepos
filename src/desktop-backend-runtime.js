@@ -8,6 +8,7 @@ export function createDesktopBackendRuntime({
   createTreeholeRuntime = createDesktopTreeholeRuntime,
   emit = () => {},
   onDmSessionChanged = () => {},
+  onHomeDebugState = () => {},
   onHomeControl = () => {},
   onHomeSessionChanged = () => {},
   onVerifiedHello = () => {},
@@ -21,6 +22,10 @@ export function createDesktopBackendRuntime({
   })
   const home = createHomeRuntime({
     onControl: onHomeControl,
+    onDebugState: (debug) => {
+      emit('transportDebugChanged', debug)
+      onHomeDebugState(debug)
+    },
     onError: (error) => emit('errorReceived', error),
     onPeerCount: (peers) => emit('peerCountChanged', { peers }),
     onSessionChanged: (session) => {

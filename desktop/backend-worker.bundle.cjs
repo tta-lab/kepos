@@ -74,6 +74,7 @@ var init_desktop_command_vocabulary = __esm({
       "peerCountChanged",
       "shareQrOutputsChanged",
       "statusChanged",
+      "transportDebugChanged",
       "treeholeStateChanged"
     ];
     COMMAND_SET = new Set(DESKTOP_COMMANDS);
@@ -2999,17 +3000,62 @@ function createP2PRoom(options = {}) {
   });
   const onControl = options.onControl || (() => {
   });
+  const onDebugState = options.onDebugState || (() => {
+  });
   const onPeer = options.onPeer || (() => {
   });
   const onPeerCount = options.onPeerCount || (() => {
   });
   const peers = /* @__PURE__ */ new Set();
   const seenMessages = /* @__PURE__ */ new Set();
+  let currentTopic = null;
+  let lastPeerInfo = null;
   let swarm = null;
   let nick = "anon";
-  function addPeer(socket) {
+  function emitDebugState(stage) {
+    onDebugState(getDebugState(stage));
+  }
+  function getDebugState(stage = "snapshot") {
+    const discovery = getDiscovery();
+    return {
+      activeQuery: Boolean(discovery?._activeQuery),
+      connections: getCollectionSize(swarm?.connections),
+      connecting: Number(swarm?.connecting || 0),
+      discovered: getCollectionSize(discovery?._discovered),
+      destroyed: Boolean(swarm?.destroyed),
+      dhtFirewalled: Boolean(swarm?.dht?.firewalled),
+      dhtNodes: getCollectionSize(swarm?.dht?.nodes),
+      dhtOnline: Boolean(swarm?.dht?.online),
+      isClient: Boolean(discovery?.isClient),
+      isServer: Boolean(discovery?.isServer),
+      knownPeers: getCollectionSize(swarm?.peers),
+      lastPeerClient: Boolean(lastPeerInfo?.client),
+      lastPeerSelf: Boolean(
+        lastPeerInfo?.publicKey && swarm?.keyPair?.publicKey && import_b4a7.default.equals(lastPeerInfo.publicKey, swarm.keyPair.publicKey)
+      ),
+      lastPeerTopics: getCollectionSize(lastPeerInfo?.topics),
+      listening: Boolean(swarm?.listening),
+      localPeers: peers.size,
+      refreshes: Number(discovery?._refreshes || 0),
+      stage,
+      topics: getCollectionSize(
+        typeof swarm?.topics === "function" ? swarm.topics() : swarm?.topics
+      )
+    };
+  }
+  function getDiscovery() {
+    if (!swarm || !currentTopic || typeof swarm.status !== "function") return null;
+    try {
+      return swarm.status(currentTopic);
+    } catch {
+      return null;
+    }
+  }
+  function addPeer(socket, peerInfo = null) {
+    lastPeerInfo = peerInfo;
     peers.add(socket);
     onPeerCount(peers.size);
+    emitDebugState("peer-open");
     onPeer(socket);
     let buffer = "";
     socket.on("data", (chunk) => {
@@ -3036,27 +3082,35 @@ function createP2PRoom(options = {}) {
       }
     });
     socket.on("close", () => {
+      lastPeerInfo = peerInfo;
       peers.delete(socket);
       onPeerCount(peers.size);
+      emitDebugState("peer-close");
     });
     socket.on("error", () => {
+      lastPeerInfo = peerInfo;
       peers.delete(socket);
       onPeerCount(peers.size);
+      emitDebugState("peer-error");
     });
   }
   async function join({ roomKey, nick: nextNick }) {
     nick = nextNick?.trim() || "anon";
     swarm = createSwarm();
     swarm.on("connection", addPeer);
-    const discovery = swarm.join(deriveTopic(roomKey), {
+    emitDebugState("created");
+    currentTopic = deriveTopic(roomKey);
+    const discovery = swarm.join(currentTopic, {
       client: true,
       server: true
     });
+    emitDebugState("joined-topic");
     if (awaitDiscoveryFlush) {
       await discovery.flushed();
+      emitDebugState("flushed");
       return;
     }
-    discovery.flushed().catch(onDiscoveryError);
+    discovery.flushed().then(() => emitDebugState("flushed")).catch(onDiscoveryError);
   }
   function send({ id, text, at }) {
     broadcastFrame({
@@ -3098,15 +3152,26 @@ function createP2PRoom(options = {}) {
       await swarm.destroy();
       swarm = null;
     }
+    currentTopic = null;
+    emitDebugState("left");
   }
   return {
     addPeer,
     broadcastControl,
+    getDebugState,
     join,
     leave,
     send,
     sendControl
   };
+}
+function getCollectionSize(value) {
+  if (!value) return 0;
+  if (typeof value.size === "number") return value.size;
+  if (typeof value.length === "number") return value.length;
+  if (typeof value[Symbol.iterator] === "function") return Array.from(value).length;
+  if (typeof value === "object") return Object.keys(value).length;
+  return 0;
 }
 var import_hyperswarm2, import_b4a7;
 var init_p2p_room = __esm({
@@ -3123,6 +3188,8 @@ function createDesktopHomeRuntime({
   createHomeHello: createHello = createHomeHello,
   createRoom = createP2PRoom,
   onControl = () => {
+  },
+  onDebugState = () => {
   },
   onError = () => {
   },
@@ -3143,8 +3210,8 @@ function createDesktopHomeRuntime({
     session = nextHomeJoinDetails?.session || null;
     if (!homeJoinDetails || !session) return;
     room = createRoom({
-      awaitDiscoveryFlush: false,
       onControl: (message, peer) => handleControl(message, peer),
+      onDebugState,
       onDiscoveryError: (error) => {
         onError(new Error(`Home discovery unavailable: ${error.message}`));
       },
@@ -4434,6 +4501,8 @@ function createDesktopBackendRuntime({
   },
   onDmSessionChanged = () => {
   },
+  onHomeDebugState = () => {
+  },
   onHomeControl = () => {
   },
   onHomeSessionChanged = () => {
@@ -4450,6 +4519,10 @@ function createDesktopBackendRuntime({
   });
   const home = createHomeRuntime({
     onControl: onHomeControl,
+    onDebugState: (debug) => {
+      emit("transportDebugChanged", debug);
+      onHomeDebugState(debug);
+    },
     onError: (error) => emit("errorReceived", error),
     onPeerCount: (peers) => emit("peerCountChanged", { peers }),
     onSessionChanged: (session) => {
@@ -5585,6 +5658,7 @@ function createDesktopState() {
     notice: "Create or join a home.",
     peers: 0,
     roomKey: "",
+    transportDebug: null,
     treeholeCanPost: true,
     treeholePosts: [],
     treeholeStatus: "idle",
@@ -5969,6 +6043,10 @@ function createDesktopBackendSession({
     runtimeOptions: {
       onDmSessionChanged: (session) => {
         controllerState.setDmSession(session);
+        onChanged();
+      },
+      onHomeDebugState: (transportDebug) => {
+        controllerState.updateState((state) => ({ ...state, transportDebug }));
         onChanged();
       },
       onHomeControl: (message, peer) => controlActions.handleControl(message, peer).catch(onError),

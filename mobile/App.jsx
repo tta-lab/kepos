@@ -19,6 +19,7 @@ import {
   ArrowRight,
   Check,
   Heart,
+  House,
   LogOut,
   MessageCircle,
   Plus,
@@ -115,6 +116,7 @@ import {
   RPC_LEAVE,
   RPC_MESSAGE,
   RPC_PEER_COUNT,
+  RPC_ROOM_DEBUG,
   RPC_SEND,
   RPC_STATUS,
   RPC_TREEHOLE_COMMENT,
@@ -168,6 +170,7 @@ export default function App() {
   const [notice, setNotice] = useState('Create your home or join a friend.')
   const [lastError, setLastError] = useState('')
   const [peerCount, setPeerCount] = useState(0)
+  const [transportDebug, setTransportDebug] = useState(null)
   const [rpc, setRpc] = useState(null)
   const [scanTarget, setScanTarget] = useState(null)
   const [scannerPermissionDenied, setScannerPermissionDenied] = useState(false)
@@ -688,6 +691,11 @@ export default function App() {
           return
         }
 
+        if (req.command === RPC_ROOM_DEBUG) {
+          setTransportDebug(payload)
+          return
+        }
+
         if (req.command === RPC_STATUS) {
           setNotice(getMobileBackendNotice(payload.status))
           return
@@ -918,6 +926,7 @@ export default function App() {
                   profileQrUri={profileQrUri}
                   lastError={lastError}
                   session={session}
+                  transportDebug={transportDebug}
                   treeholeCanInteract={treeholeCanInteract}
                   treeholeCanPost={treeholeCanPost}
                   treeholeDraft={treeholeDraft}
@@ -1148,6 +1157,30 @@ function Lobby({
   )
 }
 
+function formatTransportDebug(debug) {
+  if (!debug) return 'none'
+
+  return [
+    `stage=${debug.stage || 'unknown'}`,
+    `connections=${debug.connections ?? 0}`,
+    `connecting=${debug.connecting ?? 0}`,
+    `knownPeers=${debug.knownPeers ?? 0}`,
+    `discovered=${debug.discovered ?? 0}`,
+    `localPeers=${debug.localPeers ?? 0}`,
+    `topics=${debug.topics ?? 0}`,
+    `client=${debug.isClient ? 'yes' : 'no'}`,
+    `server=${debug.isServer ? 'yes' : 'no'}`,
+    `listening=${debug.listening ? 'yes' : 'no'}`,
+    `activeQuery=${debug.activeQuery ? 'yes' : 'no'}`,
+    `lastPeerClient=${debug.lastPeerClient ? 'yes' : 'no'}`,
+    `lastPeerSelf=${debug.lastPeerSelf ? 'yes' : 'no'}`,
+    `lastPeerTopics=${debug.lastPeerTopics ?? 0}`,
+    `dhtOnline=${debug.dhtOnline ? 'yes' : 'no'}`,
+    `dhtFirewalled=${debug.dhtFirewalled ? 'yes' : 'no'}`,
+    `dhtNodes=${debug.dhtNodes ?? 0}`
+  ].join(' ')
+}
+
 function ChatRoom({
   activeTab,
   draft,
@@ -1184,6 +1217,7 @@ function ChatRoom({
   profileQrUri,
   lastError,
   session,
+  transportDebug,
   treeholeCanInteract,
   treeholeCanPost,
   treeholeDraft,
@@ -1230,6 +1264,10 @@ function ChatRoom({
           <Text style={styles.roomLabel}>Error detail</Text>
           <Text style={styles.roomKey} testID='room-error-detail'>
             {lastError || 'none'}
+          </Text>
+          <Text style={styles.roomLabel}>Transport</Text>
+          <Text style={styles.roomKey} testID='room-transport-debug'>
+            {formatTransportDebug(transportDebug)}
           </Text>
         </View>
       ) : null}
@@ -1295,7 +1333,7 @@ function ChatRoom({
       <View style={styles.tabs}>
         <TabButton
           active={activeTab === 'chat'}
-          icon={MessageCircle}
+          icon={House}
           label='Home'
           onPress={() => onTabChange('chat')}
           testID='chat-tab'
@@ -2049,8 +2087,7 @@ function TabButton({ active, badgeCount = 0, icon: Icon, label, onPress, testID 
       style={[styles.tabButton, active && styles.activeTabButton]}
       testID={testID}
     >
-      <Icon color={active ? theme.surface : theme.iconMuted} size={17} style={styles.tabIcon} />
-      <Text style={[styles.tabText, active && styles.activeTabText]}>{label}</Text>
+      <Icon color={active ? theme.surface : theme.iconMuted} size={20} style={styles.tabIcon} />
       {badgeCount > 0 ? (
         <View style={styles.tabBadge} accessibilityLabel={`${label} pending ${badgeCount}`}>
           <Text style={styles.tabBadgeText}>{formatPendingBadgeCount(badgeCount)}</Text>
@@ -2760,7 +2797,6 @@ function createMobileStyles(theme) {
       borderRadius: 8,
       borderWidth: 1,
       flex: 1,
-      gap: 3,
       justifyContent: 'center',
       minHeight: 40,
       position: 'relative'
@@ -2769,16 +2805,8 @@ function createMobileStyles(theme) {
       backgroundColor: theme.accentStrong,
       borderColor: theme.accentStrong
     },
-    tabText: {
-      color: theme.inkSoft,
-      fontSize: 14,
-      fontWeight: '800'
-    },
     tabIcon: {
       marginBottom: 1
-    },
-    activeTabText: {
-      color: theme.surface
     },
     tabBadge: {
       alignItems: 'center',

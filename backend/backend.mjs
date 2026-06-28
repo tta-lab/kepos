@@ -42,6 +42,7 @@ import {
   RPC_LEAVE,
   RPC_MESSAGE,
   RPC_PEER_COUNT,
+  RPC_ROOM_DEBUG,
   RPC_SEND,
   RPC_STATUS,
   RPC_TREEHOLE_COMMENT,
@@ -177,7 +178,6 @@ async function joinRoom(payload) {
   })
 
   room = createP2PRoom({
-    awaitDiscoveryFlush: false,
     onDiscoveryError: (error) => {
       sendToUI(RPC_ERROR, { message: `Home discovery unavailable: ${error.message}` })
     },
@@ -186,6 +186,7 @@ async function joinRoom(payload) {
         sendToUI(RPC_ERROR, { message: error.message })
       })
     },
+    onDebugState: (debug) => sendToUI(RPC_ROOM_DEBUG, debug),
     onMessage: (message) => sendToUI(RPC_MESSAGE, message),
     onPeer: (peer) => {
       sendHomeHello(peer)

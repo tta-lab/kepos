@@ -10,6 +10,7 @@ export function createDesktopState() {
     notice: 'Create or join a home.',
     peers: 0,
     roomKey: '',
+    transportDebug: null,
     treeholeCanPost: true,
     treeholePosts: [],
     treeholeStatus: 'idle',

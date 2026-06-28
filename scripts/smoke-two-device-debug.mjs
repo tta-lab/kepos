@@ -27,11 +27,14 @@ const androidMessageRequestText = 'Android DM request'
 const desktopChatText = 'desktop hello'
 const desktopDmBodyText = 'desktop signed DM body'
 const desktopTreeholeText = 'desktop treehole smoke'
+const smokeInputMethod = 'org.futo.inputmethod.latin/.LatinIME'
 let app = null
 let page = null
+let restoreAndroidInputMethod = () => {}
 
 try {
   prepareAndroidDevice()
+  configureAndroidSmokeInputMethod()
   grantAndroidCameraPermission()
   ensureAdbReverse()
   await ensureMetroServer()
@@ -150,6 +153,11 @@ try {
     )
   )
 } finally {
+  try {
+    restoreAndroidInputMethod()
+  } catch (error) {
+    console.error(`Unable to restore Android input method: ${error.message}`)
+  }
   await app?.close().catch(() => {})
   await rm(userDataDir, { force: true, recursive: true }).catch(() => {})
   await rm(workDir, { force: true, recursive: true }).catch(() => {})
@@ -335,6 +343,30 @@ function prepareAndroidDevice() {
   runAdb(['shell', 'input', 'keyevent', 'KEYCODE_WAKEUP'])
   runAdb(['shell', 'wm', 'dismiss-keyguard'])
   runAdb(['shell', 'cmd', 'statusbar', 'collapse'])
+}
+
+function configureAndroidSmokeInputMethod() {
+  const previousInputMethod = runAdb(['shell', 'settings', 'get', 'secure', 'default_input_method'])
+    .trim()
+    .replace(/\r$/, '')
+  const enabledInputMethods = runAdb(['shell', 'ime', 'list', '-s'])
+  const wasSmokeInputMethodEnabled = enabledInputMethods.split(/\r?\n/).includes(smokeInputMethod)
+
+  if (!wasSmokeInputMethodEnabled) {
+    runAdb(['shell', 'ime', 'enable', smokeInputMethod])
+  }
+
+  runAdb(['shell', 'ime', 'set', smokeInputMethod])
+
+  restoreAndroidInputMethod = () => {
+    if (previousInputMethod && previousInputMethod !== 'null') {
+      runAdb(['shell', 'ime', 'set', previousInputMethod])
+    }
+
+    if (!wasSmokeInputMethodEnabled) {
+      runAdb(['shell', 'ime', 'disable', smokeInputMethod])
+    }
+  }
 }
 
 function grantAndroidCameraPermission() {
@@ -563,6 +595,19 @@ function textByResourceId(xml, resourceId) {
   return match ? decodeXml(match[1]) : null
 }
 
+function boundsByResourceId(xml, resourceId) {
+  const escaped = resourceId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const node = xml.match(new RegExp(`<node[^>]*resource-id="${escaped}"[^>]*/?>`))?.[0]
+  const match = node?.match(/bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/)
+  if (!match) return null
+
+  const [, left, top, right, bottom] = match.map(Number)
+  return {
+    x: Math.round((left + right) / 2),
+    y: Math.round((top + bottom) / 2)
+  }
+}
+
 function decodeKeposUri(uri) {
   const url = new URL(uri)
   const payload = url.searchParams.get('payload')
@@ -609,6 +654,10 @@ async function waitForDesktopPeer(page, label) {
       peerLabel: await page
         .locator('#peerLabel')
         .textContent()
+        .catch(() => null),
+      transportDebug: await page
+        .locator('#transportDebugLabel')
+        .textContent()
         .catch(() => null)
     }
     let androidXml = ''
@@ -617,14 +666,42 @@ async function waitForDesktopPeer(page, label) {
     } catch {
       androidXml = ''
     }
+    try {
+      await revealAndroidRoomAdvanced()
+      androidXml = dumpAndroidUi()
+    } catch {
+      // Keep the base dump if the optional advanced reveal fails.
+    }
     const androidSnapshot = {
       errorDetail: androidXml ? textByResourceId(androidXml, 'room-error-detail') : null,
-      notice: androidXml ? textByResourceId(androidXml, 'app-notice') : null
+      notice: androidXml ? textByResourceId(androidXml, 'app-notice') : null,
+      transportDebug: androidXml ? textByResourceId(androidXml, 'room-transport-debug') : null
     }
     throw new Error(
       `${error.message}\nDesktop: ${JSON.stringify(desktopSnapshot)}\nAndroid: ${JSON.stringify(androidSnapshot)}`
     )
   }
+}
+
+async function revealAndroidRoomAdvanced() {
+  tapAndroidResourceId('room-advanced-toggle')
+  await waitForAndroidResourceId('room-transport-debug')
+}
+
+function tapAndroidResourceId(resourceId) {
+  const xml = dumpAndroidUi()
+  const bounds = boundsByResourceId(xml, resourceId)
+  if (!bounds) throw new Error(`Android resource ${resourceId} is missing`)
+
+  runAdb(['shell', 'input', 'tap', String(bounds.x), String(bounds.y)])
+}
+
+function waitForAndroidResourceId(resourceId) {
+  return waitFor(
+    () => Boolean(boundsByResourceId(dumpAndroidUi(), resourceId)),
+    `Android resource ${resourceId}`,
+    { timeoutMs: 5000 }
+  )
 }
 
 async function waitFor(predicate, label, { timeoutMs = 60000 } = {}) {

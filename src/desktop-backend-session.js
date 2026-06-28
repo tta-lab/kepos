@@ -119,6 +119,10 @@ export function createDesktopBackendSession({
         controllerState.setDmSession(session)
         onChanged()
       },
+      onHomeDebugState: (transportDebug) => {
+        controllerState.updateState((state) => ({ ...state, transportDebug }))
+        onChanged()
+      },
       onHomeControl: (message, peer) => controlActions.handleControl(message, peer).catch(onError),
       onVerifiedHello: (message, peer) =>
         controlActions.sendTreeholeBootstrap(peer, message.profileId),

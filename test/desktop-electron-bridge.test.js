@@ -194,16 +194,16 @@ test('desktop electron backend ipc replays latest snapshot events to late subscr
   })
   const subscribe = handled.get('kepos:backend:subscribe')
 
-  bridge.emit('contactBookChanged', { ownerProfileId: 'owner-1' })
-  subscribe({}, 'listener-1', 'contactBookChanged')
+  bridge.emit('transportDebugChanged', { stage: 'flushed' })
+  subscribe({}, 'listener-1', 'transportDebugChanged')
 
   assert.deepEqual(sent, [
     [
       'kepos:backend:event',
       {
-        event: 'contactBookChanged',
+        event: 'transportDebugChanged',
         listenerId: 'listener-1',
-        payload: { ownerProfileId: 'owner-1' }
+        payload: { stage: 'flushed' }
       }
     ]
   ])

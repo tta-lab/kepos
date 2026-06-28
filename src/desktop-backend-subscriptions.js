@@ -46,6 +46,10 @@ export function createDesktopBackendSubscriptions({
       setState({ ...getState(), peers })
       onRender()
     }),
+    backendClient.subscribe('transportDebugChanged', (transportDebug) => {
+      setState({ ...getState(), transportDebug })
+      onRender()
+    }),
     backendClient.subscribe('shareQrOutputsChanged', (outputs) => {
       setShareQrOutputs(outputs)
       onRender()

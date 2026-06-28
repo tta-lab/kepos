@@ -27,6 +27,7 @@ export const DESKTOP_EVENTS = [
   'peerCountChanged',
   'shareQrOutputsChanged',
   'statusChanged',
+  'transportDebugChanged',
   'treeholeStateChanged'
 ] as const
 
