@@ -51,7 +51,7 @@ export function Topbar({ setTheme, status, theme }) {
       <div>
         <p className='kicker'>private garden</p>
         <h1>Kepos Home</h1>
-        <div className='statusStrip' aria-label='Current status'>
+        <div className='statusStrip' aria-label='Current status' aria-live='polite' role='status'>
           <p id='noticeLabel' className='statusPill noticePill'>
             {status.noticeLabel}
           </p>

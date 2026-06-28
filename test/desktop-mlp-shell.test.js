@@ -461,6 +461,9 @@ test('desktop status surfaces use compact visual status treatments', async () =>
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
 
   assert.match(source, /className='statusStrip'/)
+  assert.match(source, /aria-label='Current status'/)
+  assert.match(source, /aria-live='polite'/)
+  assert.match(source, /role='status'/)
   assert.match(source, /className='statusPill noticePill'/)
   assert.match(source, /className='statusPill treeholePill'/)
   assert.match(source, /className='metricGrid'/)

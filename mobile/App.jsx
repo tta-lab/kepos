@@ -978,7 +978,7 @@ function Header({ title, notice, statusLabel, treeholeStatusLabel }) {
           </Text>
         </View>
       </View>
-      <View style={styles.mobileStatusStrip}>
+      <View accessibilityLabel='Current status' style={styles.mobileStatusStrip}>
         <View style={styles.homeStatusPill}>
           <View style={styles.statusDot} />
           <Text style={styles.statusText}>{statusLabel}</Text>
@@ -987,7 +987,7 @@ function Header({ title, notice, statusLabel, treeholeStatusLabel }) {
           <Text style={styles.treeholeStatusText}>{treeholeStatusLabel}</Text>
         </View>
       </View>
-      <Text style={styles.notice} testID='app-notice'>
+      <Text accessibilityLiveRegion='polite' style={styles.notice} testID='app-notice'>
         {notice}
       </Text>
     </View>

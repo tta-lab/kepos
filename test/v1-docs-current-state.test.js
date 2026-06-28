@@ -169,6 +169,15 @@ test('V1 UX docs include mobile collapsible expanded states', async () => {
   assert.match(ux, /Advanced panels, People setup, QR reveals/)
 })
 
+test('V1 UX docs include polite live regions for product notices', async () => {
+  const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
+  const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
+
+  assert.match(audit, /desktop and mobile product notices use polite live-region semantics/)
+  assert.match(ux, /Desktop and mobile product notices now use polite live-region semantics/)
+  assert.match(ux, /join, trust, revoke, and error states are announced/)
+})
+
 test('V1 UX docs include Home trust source product copy', async () => {
   const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
   const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')

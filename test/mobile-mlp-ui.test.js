@@ -132,3 +132,15 @@ test('mobile collapsible controls expose expanded state', async () => {
     /accessibilityState=\{\{ expanded: showAdvancedDmRecipient \}\}[\s\S]*testID='advanced-dm-recipient-toggle'/
   )
 })
+
+test('mobile product notices are announced as polite status updates', async () => {
+  const source = await readMobileSource()
+  const header = source.slice(
+    source.indexOf('function Header('),
+    source.indexOf('function QrCard(')
+  )
+
+  assert.match(header, /accessibilityLabel='Current status'/)
+  assert.match(header, /accessibilityLiveRegion='polite'/)
+  assert.match(header, /testID='app-notice'/)
+})
