@@ -113,8 +113,11 @@ test('V1 docs do not overclaim current physical QR proof', async () => {
   assert.doesNotMatch(docs, /manual physical QR smoke (has also )?proven/)
   assert.doesNotMatch(docs, /manual physical QR smoke proves/)
   assert.doesNotMatch(docs, /Physical QR smoke now covers/)
+  assert.doesNotMatch(docs, /Completed implementation priorities:\s+10\. Run manual physical QR/)
+  assert.doesNotMatch(docs, /Physical QR evidence:\s+- Desktop Large Profile QR scanned/)
   assert.match(docs, /physical QR remains release proof/)
   assert.match(docs, /screen-to-camera QR proof remains open/)
+  assert.match(docs, /Physical QR evidence still needed/)
 })
 
 test('V1 docs describe current debug two-device proof without physical QR overclaim', async () => {
