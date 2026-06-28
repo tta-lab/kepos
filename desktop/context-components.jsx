@@ -1,6 +1,6 @@
 import React from 'react'
 import { Copy, Home, LogOut, QrCode, ShieldCheck, UserPlus } from 'lucide-react'
-import { SectionTitle } from './ui-components.jsx'
+import { PanelHeader, SectionTitle } from './ui-components.jsx'
 
 const ROOM_KEY_PATTERN = /^[0-9a-f]{64}$/
 
@@ -54,6 +54,7 @@ export function ContextPanel({ actions, controls, form, setForm, shareQrOutputs 
         </summary>
 
         <form id='lobbyForm' className='panel compactPanel' onSubmit={handleManualJoin}>
+          <PanelHeader eyebrow='Start' title='My home' description='Create a local home.' />
           <label>
             Name
             <input
@@ -94,6 +95,11 @@ export function ContextPanel({ actions, controls, form, setForm, shareQrOutputs 
         </form>
 
         <form id='homeQrForm' className='panel qrPanel' onSubmit={handleHomeQrJoin}>
+          <PanelHeader
+            eyebrow='Share'
+            title='Invite or join'
+            description='Share or paste Home QR.'
+          />
           <div className='actions'>
             <button
               id='showLargeHomeQrButton'
@@ -142,6 +148,11 @@ export function ContextPanel({ actions, controls, form, setForm, shareQrOutputs 
         </summary>
 
         <form id='trustForm' className='panel qrPanel' onSubmit={handleTrustProfile}>
+          <PanelHeader
+            eyebrow='Trust'
+            title='Trusted friend'
+            description='Add a Profile QR first.'
+          />
           <div className='actions'>
             <button
               id='showLargeProfileQrButton'

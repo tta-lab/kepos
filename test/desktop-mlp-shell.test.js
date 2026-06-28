@@ -94,6 +94,33 @@ test('desktop context panel uses product actions for home and people flows', asy
   assert.match(styles, /\.contextHint/)
 })
 
+test('desktop context forms use task panel headers', async () => {
+  const context = await readFile(
+    new URL('../desktop/context-components.jsx', import.meta.url),
+    'utf8'
+  )
+  const shared = await readFile(new URL('../desktop/ui-components.jsx', import.meta.url), 'utf8')
+  const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
+
+  assert.match(shared, /export function PanelHeader\(/)
+  assert.match(context, /import \{ PanelHeader, SectionTitle \} from '\.\/ui-components\.jsx'/)
+  assert.match(
+    context,
+    /id='lobbyForm'[\s\S]*<PanelHeader[\s\S]*eyebrow='Start'[\s\S]*title='My home'[\s\S]*description='Create a local home\.'[\s\S]*\/>/
+  )
+  assert.match(
+    context,
+    /id='homeQrForm'[\s\S]*<PanelHeader[\s\S]*eyebrow='Share'[\s\S]*title='Invite or join'[\s\S]*description='Share or paste Home QR\.'[\s\S]*\/>/
+  )
+  assert.match(
+    context,
+    /id='trustForm'[\s\S]*<PanelHeader[\s\S]*eyebrow='Trust'[\s\S]*title='Trusted friend'[\s\S]*description='Add a Profile QR first\.'[\s\S]*\/>/
+  )
+  assert.match(styles, /\.panelHeader/)
+  assert.match(styles, /\.panelTitle/)
+  assert.match(styles, /\.panelDescription/)
+})
+
 test('desktop trust form shows friend name copy once', async () => {
   const source = await readDesktopUiSource()
   const labelBlock = source.match(/<label>[\s\S]*?id='trustAliasInput'[\s\S]*?<\/label>/)?.[0]
@@ -200,7 +227,7 @@ test('desktop panes share product headers with short guidance', async () => {
   assert.match(shared, /export function SectionTitle\(/)
   assert.match(panes, /import \{ PaneHeader \} from '\.\/ui-components\.jsx'/)
   assert.match(people, /import \{ PaneHeader, SectionTitle \} from '\.\/ui-components\.jsx'/)
-  assert.match(context, /import \{ SectionTitle \} from '\.\/ui-components\.jsx'/)
+  assert.match(context, /import \{ PanelHeader, SectionTitle \} from '\.\/ui-components\.jsx'/)
   assert.match(
     panes,
     /<PaneHeader[\s\S]*eyebrow='live'[\s\S]*title='Live home chat'[\s\S]*description='Ephemeral messages for everyone currently inside this home\.'[\s\S]*\/>/

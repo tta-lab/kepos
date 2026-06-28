@@ -12,6 +12,18 @@ export function PaneHeader({ description, eyebrow, title }) {
   )
 }
 
+export function PanelHeader({ description, eyebrow, title }) {
+  return (
+    <div className='panelHeader'>
+      <p className='label'>{eyebrow}</p>
+      <div className='panelHeaderText'>
+        <h3 className='panelTitle'>{title}</h3>
+        <p className='panelDescription'>{description}</p>
+      </div>
+    </div>
+  )
+}
+
 export function SectionTitle({ icon, id, text }) {
   return (
     <p id={id} className='label sectionTitle'>
