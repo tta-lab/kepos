@@ -131,6 +131,31 @@ test('Android lobby starts with compact product choices', async () => {
   assert.equal(source.includes("label='Nick'"), false)
 })
 
+test('Android lobby uses shared task headers for setup panels', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const quickStart = source.slice(
+    source.indexOf('function QuickStartPanel('),
+    source.indexOf('function PeoplePane(')
+  )
+  const peopleActions = source.slice(
+    source.indexOf('function PeopleActions('),
+    source.indexOf('function DirectPane(')
+  )
+
+  assert.match(source, /function TaskHeader\(\{ eyebrow, title, description \}\)/)
+  assert.match(quickStart, /<TaskHeader[\s\S]*eyebrow='Start'[\s\S]*title='Start here'/)
+  assert.match(
+    quickStart,
+    /description=\{[\s\S]*profileReady[\s\S]*\? 'Start a private space for trusted friends\. Create, join, or trust someone nearby\.'[\s\S]*: 'Setting up your profile\.\.\.'[\s\S]*\}/
+  )
+  assert.match(peopleActions, /<TaskHeader[\s\S]*eyebrow='Invite'[\s\S]*title='My Home QR'/)
+  assert.match(peopleActions, /<TaskHeader[\s\S]*eyebrow='Trust'[\s\S]*title='My Profile QR'/)
+  assert.match(source, /taskHeader: \{/)
+  assert.match(source, /taskEyebrow: \{/)
+  assert.match(source, /taskTitle: \{/)
+  assert.match(source, /taskDescription: \{/)
+})
+
 test('Android lobby disables profile-dependent actions while profile loads', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 

@@ -1307,6 +1307,18 @@ function ChatRoom({
   )
 }
 
+function TaskHeader({ eyebrow, title, description }) {
+  const { styles } = useMobileTheme()
+
+  return (
+    <View style={styles.taskHeader}>
+      <Text style={styles.taskEyebrow}>{eyebrow}</Text>
+      <Text style={styles.taskTitle}>{title}</Text>
+      {description ? <Text style={styles.taskDescription}>{description}</Text> : null}
+    </View>
+  )
+}
+
 function QuickStartPanel({
   myHomeQrUri,
   nick,
@@ -1321,12 +1333,15 @@ function QuickStartPanel({
 
   return (
     <View style={styles.quickStartPanel}>
-      <Text style={styles.panelTitle}>Start here</Text>
-      <Text style={styles.panelCopy}>
-        {profileReady
-          ? 'Start a private space for trusted friends. Create, join, or trust someone nearby.'
-          : 'Setting up your profile...'}
-      </Text>
+      <TaskHeader
+        description={
+          profileReady
+            ? 'Start a private space for trusted friends. Create, join, or trust someone nearby.'
+            : 'Setting up your profile...'
+        }
+        eyebrow='Start'
+        title='Start here'
+      />
       <Field label='Name' onChangeText={onNickChange} value={nick} />
       <View style={styles.quickActions}>
         <Pressable
@@ -1517,7 +1532,11 @@ function PeopleActions({
   return (
     <>
       <View style={styles.panel}>
-        <Text style={styles.panelTitle}>My Home QR</Text>
+        <TaskHeader
+          description='Share your home with trusted friends nearby.'
+          eyebrow='Invite'
+          title='My Home QR'
+        />
         <Pressable
           disabled={!profileReady}
           onPress={() => setShowHomeQr((value) => !value)}
@@ -1546,7 +1565,11 @@ function PeopleActions({
       </View>
 
       <View style={styles.panel}>
-        <Text style={styles.panelTitle}>My Profile QR</Text>
+        <TaskHeader
+          description='Trust a friend before private messages and home access.'
+          eyebrow='Trust'
+          title='My Profile QR'
+        />
         <Pressable
           disabled={!profileReady}
           onPress={() => setShowProfileQr((value) => !value)}
@@ -2502,6 +2525,27 @@ function createMobileStyles(theme) {
       fontSize: 14,
       lineHeight: 20,
       marginTop: 6
+    },
+    taskHeader: {
+      gap: 4
+    },
+    taskEyebrow: {
+      color: theme.accentStrong,
+      fontSize: 11,
+      fontWeight: '900',
+      letterSpacing: 0,
+      textTransform: 'uppercase'
+    },
+    taskTitle: {
+      color: theme.ink,
+      fontSize: 21,
+      fontWeight: '900',
+      letterSpacing: 0
+    },
+    taskDescription: {
+      color: theme.inkSoft,
+      fontSize: 14,
+      lineHeight: 20
     },
     panelEmpty: {
       backgroundColor: theme.quickPanel,
