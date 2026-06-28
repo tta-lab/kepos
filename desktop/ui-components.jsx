@@ -1,4 +1,5 @@
 import React from 'react'
+import { Check, X } from 'lucide-react'
 
 export function PaneHeader({ description, eyebrow, title }) {
   return (
@@ -30,5 +31,18 @@ export function SectionTitle({ icon, id, text }) {
       {icon}
       <span>{text}</span>
     </p>
+  )
+}
+
+export function RequestActionButton({ ariaLabel, onClick, variant }) {
+  const isAccept = variant === 'accept'
+  const Icon = isAccept ? Check : X
+  const label = isAccept ? 'Accept' : 'Ignore'
+
+  return (
+    <button aria-label={ariaLabel} className='smallButton' type='button' onClick={onClick}>
+      <Icon size={15} />
+      {label}
+    </button>
   )
 }

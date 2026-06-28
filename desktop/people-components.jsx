@@ -1,6 +1,6 @@
 import React from 'react'
-import { Check, MessageCircle, UserX, Users, X } from 'lucide-react'
-import { PaneHeader, SectionTitle } from './ui-components.jsx'
+import { MessageCircle, UserX, Users } from 'lucide-react'
+import { PaneHeader, RequestActionButton, SectionTitle } from './ui-components.jsx'
 
 export function PeoplePane({ activeTab, actions, messageRequests, trustedContacts }) {
   return (
@@ -40,24 +40,16 @@ export function PeopleLists({ actions, messageRequests, trustedContacts }) {
                   <p className='muted smallText'>{request.preview}</p>
                 </div>
                 <div className='inlineActions'>
-                  <button
-                    aria-label={`Ignore message request from ${request.title}`}
-                    className='smallButton'
-                    type='button'
+                  <RequestActionButton
+                    ariaLabel={`Ignore message request from ${request.title}`}
                     onClick={() => actions.ignoreMessageRequest(request.profileId)}
-                  >
-                    <X size={15} />
-                    Ignore
-                  </button>
-                  <button
-                    aria-label={`Accept message request from ${request.title}`}
-                    className='smallButton'
-                    type='button'
+                    variant='ignore'
+                  />
+                  <RequestActionButton
+                    ariaLabel={`Accept message request from ${request.title}`}
                     onClick={() => actions.acceptMessageRequest(request.acceptMessage)}
-                  >
-                    <Check size={15} />
-                    Accept
-                  </button>
+                    variant='accept'
+                  />
                 </div>
               </div>
             ))

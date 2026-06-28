@@ -205,7 +205,10 @@ test('desktop People pane lives behind a dedicated component boundary', async ()
   assert.match(source, /<PeoplePane[\s\S]*trustedContacts=\{model\.people\.trustedContacts\}/)
   assert.match(people, /export function PeoplePane\(/)
   assert.match(people, /export function PeopleLists\(/)
-  assert.match(people, /import \{ PaneHeader, SectionTitle \} from '\.\/ui-components\.jsx'/)
+  assert.match(
+    people,
+    /import \{ PaneHeader, RequestActionButton, SectionTitle \} from '\.\/ui-components\.jsx'/
+  )
   assert.doesNotMatch(source, /<PaneLabel eyebrow='trusted' title='People' \/>/)
   assert.doesNotMatch(source, /function PeopleLists\(/)
   assert.doesNotMatch(people, /function SectionTitle\(/)
@@ -246,8 +249,11 @@ test('desktop panes share product headers with short guidance', async () => {
 
   assert.match(shared, /export function PaneHeader\(/)
   assert.match(shared, /export function SectionTitle\(/)
-  assert.match(panes, /import \{ PaneHeader \} from '\.\/ui-components\.jsx'/)
-  assert.match(people, /import \{ PaneHeader, SectionTitle \} from '\.\/ui-components\.jsx'/)
+  assert.match(panes, /import \{ PaneHeader, RequestActionButton \} from '\.\/ui-components\.jsx'/)
+  assert.match(
+    people,
+    /import \{ PaneHeader, RequestActionButton, SectionTitle \} from '\.\/ui-components\.jsx'/
+  )
   assert.match(context, /import \{ PanelHeader, SectionTitle \} from '\.\/ui-components\.jsx'/)
   assert.match(
     panes,
@@ -314,8 +320,8 @@ test('desktop people pane surfaces pending message requests', async () => {
   assert.match(source, /\{request\.preview\}/)
   assert.match(source, /actions\.acceptMessageRequest\(request\.acceptMessage\)/)
   assert.match(source, /actions\.ignoreMessageRequest\(request\.profileId\)/)
-  assert.match(source, /aria-label=\{`Accept message request from \$\{request\.title\}`\}/)
-  assert.match(source, /aria-label=\{`Ignore message request from \$\{request\.title\}`\}/)
+  assert.match(source, /ariaLabel=\{`Accept message request from \$\{request\.title\}`\}/)
+  assert.match(source, /ariaLabel=\{`Ignore message request from \$\{request\.title\}`\}/)
   assert.match(
     bindings,
     /acceptMessageRequest: \(message\) => dispatchCommand\('acceptMessageRequest'/
@@ -395,17 +401,38 @@ test('desktop QR sharing exposes copy actions without surfacing raw URI copy', a
 
 test('desktop request and QR dialog actions use clear icons', async () => {
   const source = await readDesktopUiSource()
+  const panes = await readFile(new URL('../desktop/pane-components.jsx', import.meta.url), 'utf8')
+  const people = await readFile(
+    new URL('../desktop/people-components.jsx', import.meta.url),
+    'utf8'
+  )
+  const shared = await readFile(new URL('../desktop/ui-components.jsx', import.meta.url), 'utf8')
 
   assert.match(source, /import \{ X \} from 'lucide-react'/)
   assert.match(source, /id='largeQrCloseButton'[\s\S]*aria-label='Close QR dialog'/)
   assert.match(source, /id='largeQrCloseButton'[\s\S]*<X size=\{16\} \/>/)
-  assert.match(source, /import \{ Check, MessageCircle, UserX, Users, X \} from 'lucide-react'/)
-  assert.match(source, /actions\.ignoreMessageRequest[\s\S]*<X size=\{15\} \/>[\s\S]*Ignore/)
-  assert.match(source, /actions\.acceptMessageRequest[\s\S]*<Check size=\{15\} \/>[\s\S]*Accept/)
+  assert.match(shared, /import \{ Check, X \} from 'lucide-react'/)
+  assert.match(shared, /export function RequestActionButton\(/)
+  assert.match(shared, /const Icon = isAccept \? Check : X/)
+  assert.match(shared, /const label = isAccept \? 'Accept' : 'Ignore'/)
+  assert.match(
+    people,
+    /<RequestActionButton[\s\S]*ariaLabel=\{`Ignore message request from \$\{request\.title\}`\}[\s\S]*actions\.ignoreMessageRequest\(request\.profileId\)[\s\S]*variant='ignore'/
+  )
+  assert.match(
+    people,
+    /<RequestActionButton[\s\S]*ariaLabel=\{`Accept message request from \$\{request\.title\}`\}[\s\S]*actions\.acceptMessageRequest\(request\.acceptMessage\)[\s\S]*variant='accept'/
+  )
   assert.match(source, /actions\.revokeContact[\s\S]*<UserX size=\{15\} \/>[\s\S]*Revoke/)
-  assert.match(source, /import \{ Check, MessageCircle, Send, Sprout, UserPlus, X \}/)
-  assert.match(source, /onIgnore\(message\.actions\.ignoreMessage\)[\s\S]*<X size=\{15\} \/>/)
-  assert.match(source, /onAccept\(message\.actions\.acceptMessage\)[\s\S]*<Check size=\{15\} \/>/)
+  assert.match(source, /import \{ MessageCircle, Send, Sprout, UserPlus \}/)
+  assert.match(
+    panes,
+    /<RequestActionButton[\s\S]*ariaLabel='Ignore direct message request'[\s\S]*onIgnore\(message\.actions\.ignoreMessage\)[\s\S]*variant='ignore'/
+  )
+  assert.match(
+    panes,
+    /<RequestActionButton[\s\S]*ariaLabel='Accept direct message request'[\s\S]*onAccept\(message\.actions\.acceptMessage\)[\s\S]*variant='accept'/
+  )
 })
 
 test('desktop normal UI copy avoids raw home address language', async () => {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import { Check, MessageCircle, Send, Sprout, UserPlus, X } from 'lucide-react'
-import { PaneHeader } from './ui-components.jsx'
+import { MessageCircle, Send, Sprout, UserPlus } from 'lucide-react'
+import { PaneHeader, RequestActionButton } from './ui-components.jsx'
 
 export function HomePane({ activeTab, controls, messages, onSend }) {
   return (
@@ -242,22 +242,16 @@ function DirectMessageList({ messages, onAccept, onIgnore }) {
             <p className='messageText'>{message.text}</p>
             {message.actions ? (
               <div className='inlineActions'>
-                <button
-                  className='smallButton'
-                  type='button'
+                <RequestActionButton
+                  ariaLabel='Ignore direct message request'
                   onClick={() => onIgnore(message.actions.ignoreMessage)}
-                >
-                  <X size={15} />
-                  Ignore
-                </button>
-                <button
-                  className='smallButton'
-                  type='button'
+                  variant='ignore'
+                />
+                <RequestActionButton
+                  ariaLabel='Accept direct message request'
                   onClick={() => onAccept(message.actions.acceptMessage)}
-                >
-                  <Check size={15} />
-                  Accept
-                </button>
+                  variant='accept'
+                />
               </div>
             ) : null}
           </li>
