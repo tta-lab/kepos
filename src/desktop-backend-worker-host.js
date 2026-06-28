@@ -1,41 +1,37 @@
 import { Duplex } from 'node:stream'
-import { createDesktopMainBackendSession } from './desktop-main-backend-session.js'
-import {
-  createDesktopBackendWorkerIpcClient,
-  createDesktopBackendWorkerIpcServer
-} from './desktop-backend-worker-ipc.js'
+import { createDesktopBackendWorkerIpcClient } from './desktop-backend-worker-ipc.js'
+import { startDesktopBackendWorker } from './desktop-backend-worker-entry.js'
 
 export function createDesktopBackendWorkerHost({
   createIpcClient = createDesktopBackendWorkerIpcClient,
-  createIpcServer = createDesktopBackendWorkerIpcServer,
   createIpcStreamPair = createLinkedDuplexPair,
-  createMainBackendSession = createDesktopMainBackendSession,
+  createMainBackendSession,
+  startBackendWorker = startDesktopBackendWorker,
   storageBasePath
 } = {}) {
   let client = null
-  let server = null
-  let session = null
+  let worker = null
 
   return {
     get bridge() {
       return client?.bridge || null
     },
     close: () => {
-      const currentSession = session
       const currentClient = client
-      const currentServer = server
+      const currentWorker = worker
       client = null
-      server = null
-      session = null
+      worker = null
       currentClient?.close()
-      currentServer?.close()
-      return currentSession?.backendRuntime?.closeAll?.()
+      return currentWorker?.close?.()
     },
     start() {
-      if (!session) {
-        session = createMainBackendSession({ storageBasePath })
+      if (!worker) {
         const { clientStream, workerStream } = createIpcStreamPair()
-        server = createIpcServer({ bridge: session.backendHost.bridge, stream: workerStream })
+        worker = startBackendWorker({
+          createMainBackendSession,
+          storageBasePath,
+          stream: workerStream
+        })
         client = createIpcClient({ stream: clientStream })
       }
       return Promise.resolve(client.bridge)

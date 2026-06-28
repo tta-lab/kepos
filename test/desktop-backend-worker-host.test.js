@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict'
+import { readFile } from 'node:fs/promises'
 import { Duplex } from 'node:stream'
 import test from 'node:test'
 import { createDesktopBackendWorkerHost } from '../src/desktop-backend-worker-host.js'
+import { createDesktopBackendWorkerIpcServer } from '../src/desktop-backend-worker-ipc.js'
 
 test('desktop backend worker host starts and exposes an ipc worker bridge', async () => {
   const backendHandlers = new Map()
@@ -16,11 +18,17 @@ test('desktop backend worker host starts and exposes an ipc worker bridge', asyn
 
   const workerHost = createDesktopBackendWorkerHost({
     createIpcStreamPair,
-    createMainBackendSession: (options) => {
-      calls.push(options)
+    startBackendWorker: ({ storageBasePath, stream }) => {
+      calls.push({ storageBasePath })
+      const server = createDesktopBackendWorkerIpcServer({
+        bridge: backendBridge,
+        stream
+      })
       return {
-        backendHost: { bridge: backendBridge },
-        backendRuntime: { closeAll: () => calls.push(['closeAll']) }
+        close: () => {
+          server.close()
+          calls.push(['closeAll'])
+        }
       }
     },
     storageBasePath: '/user-data/kepos/v1'
@@ -55,11 +63,10 @@ test('desktop backend worker host starts only once', async () => {
   const bridge = { dispatch: () => undefined }
   const calls = []
   const workerHost = createDesktopBackendWorkerHost({
-    createMainBackendSession: () => {
+    startBackendWorker: () => {
       calls.push('create')
       return {
-        backendHost: { bridge },
-        backendRuntime: { closeAll: () => calls.push('close') }
+        close: () => calls.push('close')
       }
     }
   })
@@ -70,6 +77,16 @@ test('desktop backend worker host starts only once', async () => {
   assert.notEqual(firstBridge, bridge)
   assert.equal(secondBridge, firstBridge)
   assert.deepEqual(calls, ['create'])
+})
+
+test('desktop backend worker host delegates session creation to worker entry', async () => {
+  const source = await readFile(
+    new URL('../src/desktop-backend-worker-host.js', import.meta.url),
+    'utf8'
+  )
+
+  assert.match(source, /desktop-backend-worker-entry\.js/)
+  assert.doesNotMatch(source, /desktop-main-backend-session\.js/)
 })
 
 function createIpcStreamPair() {
