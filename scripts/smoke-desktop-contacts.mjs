@@ -17,6 +17,7 @@ const electronExecutable = path.join(
 const userDataDir = await mkdtemp(path.join(os.tmpdir(), 'kepos-desktop-contacts-'))
 const usePearRuntime = process.argv.includes('--pear')
 const contactAlias = 'Persistent smoke'
+const directRequestText = 'smoke direct request'
 const contactIdentity = createIdentityKeyPairFromSeed(Buffer.alloc(32, 7))
 const contactProfileUri = encodeQrUri(
   createSignedTrustInvitePayload({
@@ -34,14 +35,20 @@ try {
 
   const restartedPage = await restartDesktopApp()
   await waitForContact(restartedPage, contactAlias)
+  await createHome(restartedPage)
+  await sendDirectRequest(restartedPage)
 
   console.log(
     JSON.stringify(
       {
         contactAlias,
         contactProfileId: contactIdentity.publicKey,
+        directRequest: directRequestText,
         userDataDir,
-        verified: ['contact persists after desktop restart']
+        verified: [
+          'contact persists after desktop restart',
+          'direct request appears after desktop restart'
+        ]
       },
       null,
       2
@@ -90,6 +97,19 @@ async function trustContact(page) {
   await page.click('#trustButton')
 }
 
+async function createHome(page) {
+  await page.click('#createButton')
+  await waitForText(page, '#noticeLabel', 'Home joined.')
+}
+
+async function sendDirectRequest(page) {
+  await page.click('#dmTab')
+  await page.locator('#dmContactList button', { hasText: contactAlias }).click()
+  await page.fill('#dmInput', directRequestText)
+  await page.click('#dmSendButton')
+  await waitForTextIncludes(page, '#dmList', directRequestText)
+}
+
 async function waitForContact(page, alias) {
   await waitFor(async () => {
     const text = await page.locator('#contactList').textContent()
@@ -101,6 +121,21 @@ async function waitForInputPrefix(page, selector, prefix) {
   const locator = page.locator(selector)
   await locator.waitFor({ state: 'attached' })
   await waitFor(async () => (await locator.inputValue()).startsWith(prefix), `${selector} prefix`)
+}
+
+async function waitForText(page, selector, expected) {
+  const locator = page.locator(selector)
+  await locator.waitFor({ state: 'visible' })
+  await waitFor(async () => (await locator.textContent()) === expected, `${selector} text`)
+}
+
+async function waitForTextIncludes(page, selector, expected) {
+  const locator = page.locator(selector)
+  await locator.waitFor({ state: 'visible' })
+  await waitFor(
+    async () => (await locator.textContent())?.includes(expected),
+    `${selector} text includes ${expected}`
+  )
 }
 
 async function waitFor(predicate, label) {
