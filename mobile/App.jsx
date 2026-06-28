@@ -1450,7 +1450,11 @@ function MessageRequestManager({ onAcceptRequest, onIgnoreRequest, pendingReques
 
   return (
     <View style={styles.panel}>
-      <Text style={styles.panelTitle}>Message requests</Text>
+      <TaskHeader
+        description='Accept only the people you want to talk with privately.'
+        eyebrow='Requests'
+        title='Message requests'
+      />
       {!pendingRequests?.length ? (
         <View style={styles.panelEmpty}>
           <Text style={styles.panelEmptyTitle}>No message requests</Text>
@@ -1836,7 +1840,11 @@ function ContactManager({ contacts, onRevokeContact }) {
 
   return (
     <View style={styles.panel}>
-      <Text style={styles.panelTitle}>Trusted friends</Text>
+      <TaskHeader
+        description='Manage who can enter your home and send direct messages.'
+        eyebrow='Trust'
+        title='Trusted friends'
+      />
       {!contacts?.length ? (
         <View style={styles.panelEmpty}>
           <Text style={styles.panelEmptyTitle}>No trusted friends yet</Text>

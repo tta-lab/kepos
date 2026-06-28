@@ -694,6 +694,40 @@ test('Android people pane keeps visible empty states', async () => {
   assert.equal(contactManager.includes('return null'), false)
 })
 
+test('Android people management panels use shared task headers', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const messageRequestManager = source.slice(
+    source.indexOf('function MessageRequestManager('),
+    source.indexOf('function PeopleActions(')
+  )
+  const contactManager = source.slice(
+    source.indexOf('function ContactManager('),
+    source.indexOf('function TabButton(')
+  )
+
+  assert.match(
+    messageRequestManager,
+    /<TaskHeader[\s\S]*eyebrow='Requests'[\s\S]*title='Message requests'/
+  )
+  assert.match(
+    messageRequestManager,
+    /description='Accept only the people you want to talk with privately\.'/
+  )
+  assert.match(contactManager, /<TaskHeader[\s\S]*eyebrow='Trust'[\s\S]*title='Trusted friends'/)
+  assert.match(
+    contactManager,
+    /description='Manage who can enter your home and send direct messages\.'/
+  )
+  assert.equal(
+    messageRequestManager.includes('<Text style={styles.panelTitle}>Message requests</Text>'),
+    false
+  )
+  assert.equal(
+    contactManager.includes('<Text style={styles.panelTitle}>Trusted friends</Text>'),
+    false
+  )
+})
+
 test('Android lobby and room reuse the same people action UI', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 
