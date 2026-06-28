@@ -1448,6 +1448,36 @@ function MobileRequestActionButton({ disabled = false, onPress, testID, variant 
   )
 }
 
+function MobileSmallActionButton({
+  accessibilityLabel,
+  disabled = false,
+  icon: Icon,
+  label,
+  onPress,
+  testID,
+  variant = 'normal'
+}) {
+  const { styles, theme } = useMobileTheme()
+  const isDanger = variant === 'danger'
+  const iconColor = isDanger ? theme.danger : theme.accentStrong
+
+  return (
+    <Pressable
+      accessibilityLabel={accessibilityLabel}
+      disabled={disabled}
+      onPress={onPress}
+      style={[
+        isDanger ? styles.revokeButton : styles.smallActionButton,
+        disabled && styles.disabledSmallActionButton
+      ]}
+      testID={testID}
+    >
+      <Icon color={iconColor} size={isDanger ? 18 : 15} />
+      <Text style={isDanger ? styles.revokeButtonText : styles.smallActionText}>{label}</Text>
+    </Pressable>
+  )
+}
+
 function QuickStartPanel({
   myHomeQrUri,
   nick,
@@ -1919,7 +1949,7 @@ function DirectPane({
 }
 
 function ContactManager({ contacts, onRevokeContact }) {
-  const { styles, theme } = useMobileTheme()
+  const { styles } = useMobileTheme()
 
   return (
     <View style={styles.panel}>
@@ -1950,14 +1980,13 @@ function ContactManager({ contacts, onRevokeContact }) {
               </Text>
             </View>
           </View>
-          <Pressable
+          <MobileSmallActionButton
             accessibilityLabel={`Revoke ${formatMobileTrustedContactName(contact)}`}
+            icon={UserMinus}
+            label='Revoke'
             onPress={() => onRevokeContact(contact.profileId)}
-            style={styles.revokeButton}
-          >
-            <UserMinus color={theme.danger} size={18} />
-            <Text style={styles.revokeButtonText}>Revoke</Text>
-          </Pressable>
+            variant='danger'
+          />
         </View>
       ))}
     </View>
@@ -2150,14 +2179,12 @@ function TreeholePost({ canInteract, onComment, onLike, post }) {
         </View>
       </View>
       <View style={styles.postActions}>
-        <Pressable
+        <MobileSmallActionButton
           disabled={!canInteract}
+          icon={Heart}
+          label='Like'
           onPress={() => onLike(post.id)}
-          style={[styles.smallActionButton, !canInteract && styles.disabledSmallActionButton]}
-        >
-          <Heart color={theme.accentStrong} size={15} />
-          <Text style={styles.smallActionText}>Like</Text>
-        </Pressable>
+        />
         {!canInteract ? (
           <Text style={styles.composerHint}>Only trusted friends can comment or like here.</Text>
         ) : null}

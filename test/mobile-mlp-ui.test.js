@@ -94,8 +94,13 @@ test('mobile direct contact chips and revoke actions expose trust state', async 
     source.indexOf('function ContactManager(')
   )
 
-  assert.match(contactManager, /accessibilityLabel=\{`Revoke \$\{formatMobileTrustedContactName/)
-  assert.match(contactManager, /<UserMinus color=\{theme\.danger\} size=\{18\} \/>/)
+  assert.match(
+    contactManager,
+    /<MobileSmallActionButton[\s\S]*accessibilityLabel=\{`Revoke \$\{formatMobileTrustedContactName/
+  )
+  assert.match(contactManager, /icon=\{UserMinus\}/)
+  assert.match(contactManager, /label='Revoke'/)
+  assert.match(contactManager, /variant='danger'/)
   assert.match(
     directPane,
     /accessibilityLabel=\{`Direct recipient \$\{formatMobileTrustedContactName/
@@ -105,6 +110,30 @@ test('mobile direct contact chips and revoke actions expose trust state', async 
     directPane,
     /accessibilityState=\{\{ selected: recipient === contact\.profileId \}\}/
   )
+})
+
+test('mobile small trust and treehole actions share one icon button component', async () => {
+  const source = await readMobileSource()
+  const contactManager = source.slice(
+    source.indexOf('function ContactManager('),
+    source.indexOf('function TabButton(')
+  )
+  const treeholePost = source.slice(
+    source.indexOf('function TreeholePost('),
+    source.indexOf('function EmptyMessages(')
+  )
+  const smallActionButton = source.slice(
+    source.indexOf('function MobileSmallActionButton('),
+    source.indexOf('function QuickStartPanel(')
+  )
+
+  assert.match(smallActionButton, /function MobileSmallActionButton\(/)
+  assert.match(smallActionButton, /const isDanger = variant === 'danger'/)
+  assert.match(smallActionButton, /isDanger \? styles\.revokeButton : styles\.smallActionButton/)
+  assert.match(smallActionButton, /disabled && styles\.disabledSmallActionButton/)
+  assert.match(contactManager, /<MobileSmallActionButton[\s\S]*variant='danger'/)
+  assert.match(treeholePost, /<MobileSmallActionButton[\s\S]*icon=\{Heart\}/)
+  assert.match(treeholePost, /<MobileSmallActionButton[\s\S]*label='Like'/)
 })
 
 test('mobile collapsible controls expose expanded state', async () => {

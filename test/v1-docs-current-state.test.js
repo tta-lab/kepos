@@ -201,6 +201,15 @@ test('V1 UX docs include desktop icon-led treehole interactions', async () => {
   assert.match(ux, /icon-led shared action\s+buttons/)
 })
 
+test('V1 UX docs include mobile shared small action buttons', async () => {
+  const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
+  const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
+
+  assert.match(audit, /mobile trusted-friend revoke and Treehole like actions/)
+  assert.match(ux, /Mobile trusted-friend revoke and Treehole like actions/)
+  assert.match(ux, /one small\s+icon-led action component/)
+})
+
 test('V1 UX docs include mobile shared advanced toggles', async () => {
   const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
   const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
