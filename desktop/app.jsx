@@ -3,6 +3,7 @@
 import React from 'react'
 import { createRoot } from 'react-dom/client'
 import { flushSync } from 'react-dom'
+import { X } from 'lucide-react'
 import { useDesktopAppModel } from './app-state.jsx'
 import { ContextPanel } from './context-components.jsx'
 import { DirectPane, HomePane, TreeholePane } from './pane-components.jsx'
@@ -109,9 +110,11 @@ function LargeQrDialog({ onClose, qr }) {
             id='largeQrCloseButton'
             className='smallButton'
             type='button'
+            aria-label='Close QR dialog'
             autoFocus={qr.isOpen}
             onClick={onClose}
           >
+            <X size={16} />
             Close
           </button>
         </div>

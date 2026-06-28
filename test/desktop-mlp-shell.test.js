@@ -390,6 +390,21 @@ test('desktop QR sharing exposes copy actions without surfacing raw URI copy', a
   assert.equal(source.includes('Copy URI'), false)
 })
 
+test('desktop request and QR dialog actions use clear icons', async () => {
+  const source = await readDesktopUiSource()
+
+  assert.match(source, /import \{ X \} from 'lucide-react'/)
+  assert.match(source, /id='largeQrCloseButton'[\s\S]*aria-label='Close QR dialog'/)
+  assert.match(source, /id='largeQrCloseButton'[\s\S]*<X size=\{16\} \/>/)
+  assert.match(source, /import \{ Check, MessageCircle, UserX, Users, X \} from 'lucide-react'/)
+  assert.match(source, /actions\.ignoreMessageRequest[\s\S]*<X size=\{15\} \/>[\s\S]*Ignore/)
+  assert.match(source, /actions\.acceptMessageRequest[\s\S]*<Check size=\{15\} \/>[\s\S]*Accept/)
+  assert.match(source, /actions\.revokeContact[\s\S]*<UserX size=\{15\} \/>[\s\S]*Revoke/)
+  assert.match(source, /import \{ Check, MessageCircle, Send, Sprout, UserPlus, X \}/)
+  assert.match(source, /onIgnore\(message\.actions\.ignoreMessage\)[\s\S]*<X size=\{15\} \/>/)
+  assert.match(source, /onAccept\(message\.actions\.acceptMessage\)[\s\S]*<Check size=\{15\} \/>/)
+})
+
 test('desktop normal UI copy avoids raw home address language', async () => {
   const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')

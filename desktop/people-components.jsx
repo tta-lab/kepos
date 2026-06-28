@@ -1,5 +1,5 @@
 import React from 'react'
-import { MessageCircle, Users } from 'lucide-react'
+import { Check, MessageCircle, UserX, Users, X } from 'lucide-react'
 import { PaneHeader, SectionTitle } from './ui-components.jsx'
 
 export function PeoplePane({ activeTab, actions, messageRequests, trustedContacts }) {
@@ -45,6 +45,7 @@ export function PeopleLists({ actions, messageRequests, trustedContacts }) {
                     type='button'
                     onClick={() => actions.ignoreMessageRequest(request.profileId)}
                   >
+                    <X size={15} />
                     Ignore
                   </button>
                   <button
@@ -52,6 +53,7 @@ export function PeopleLists({ actions, messageRequests, trustedContacts }) {
                     type='button'
                     onClick={() => actions.acceptMessageRequest(request.acceptMessage)}
                   >
+                    <Check size={15} />
                     Accept
                   </button>
                 </div>
@@ -86,6 +88,7 @@ export function PeopleLists({ actions, messageRequests, trustedContacts }) {
                   type='button'
                   onClick={() => actions.revokeContact(contact.profileId)}
                 >
+                  <UserX size={15} />
                   Revoke
                 </button>
               </div>

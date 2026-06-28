@@ -115,6 +115,15 @@ test('V1 docs do not overclaim current debug two-device proof', async () => {
   assert.match(docs, /smoke:two-device:debug` is not yet passing/)
 })
 
+test('V1 UX docs include desktop icon-led trust and QR actions', async () => {
+  const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
+  const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
+
+  assert.match(audit, /desktop Direct request, People request, revoke, and large QR close actions/)
+  assert.match(ux, /Desktop Direct request, People request, revoke, and large QR close actions/)
+  assert.match(ux, /lucide icons with text labels/)
+})
+
 test('V1 UX docs include Home trust source product copy', async () => {
   const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
   const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
