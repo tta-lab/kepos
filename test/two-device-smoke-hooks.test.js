@@ -775,6 +775,27 @@ test('Android people pane keeps visible empty states', async () => {
   assert.equal(contactManager.includes('return null'), false)
 })
 
+test('Android people empty panels share layout with contextual icons', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const panelEmptyState = source.slice(
+    source.indexOf('function PanelEmptyState('),
+    source.indexOf('function PeopleActions(')
+  )
+  const messageRequestManager = source.slice(
+    source.indexOf('function MessageRequestManager('),
+    source.indexOf('function PeopleActions(')
+  )
+  const contactManager = source.slice(
+    source.indexOf('function ContactManager('),
+    source.indexOf('function TabButton(')
+  )
+
+  assert.match(panelEmptyState, /function PanelEmptyState\(\{\s*copy,\s*icon: Icon,\s*title\s*\}\)/)
+  assert.match(panelEmptyState, /<Icon color=\{theme\.iconMuted\} size=\{24\} \/>/)
+  assert.match(messageRequestManager, /<PanelEmptyState[\s\S]*icon=\{MessageCircle\}/)
+  assert.match(contactManager, /<PanelEmptyState[\s\S]*icon=\{Users\}/)
+})
+
 test('Android people management panels use shared task headers', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
   const messageRequestManager = source.slice(

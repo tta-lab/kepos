@@ -1467,10 +1467,11 @@ function MessageRequestManager({ onAcceptRequest, onIgnoreRequest, pendingReques
         title='Message requests'
       />
       {!pendingRequests?.length ? (
-        <View style={styles.panelEmpty}>
-          <Text style={styles.panelEmptyTitle}>No message requests</Text>
-          <Text style={styles.panelEmptyCopy}>New requests from friends will appear here.</Text>
-        </View>
+        <PanelEmptyState
+          copy='New requests from friends will appear here.'
+          icon={MessageCircle}
+          title='No message requests'
+        />
       ) : null}
       {(pendingRequests || []).map((request) => {
         const canAccept = Boolean(
@@ -1516,6 +1517,20 @@ function MessageRequestManager({ onAcceptRequest, onIgnoreRequest, pendingReques
           </View>
         )
       })}
+    </View>
+  )
+}
+
+function PanelEmptyState({ copy, icon: Icon, title }) {
+  const { styles, theme } = useMobileTheme()
+
+  return (
+    <View style={styles.panelEmpty}>
+      <Icon color={theme.iconMuted} size={24} />
+      <View style={styles.panelEmptyText}>
+        <Text style={styles.panelEmptyTitle}>{title}</Text>
+        <Text style={styles.panelEmptyCopy}>{copy}</Text>
+      </View>
     </View>
   )
 }
@@ -1865,12 +1880,11 @@ function ContactManager({ contacts, onRevokeContact }) {
         title='Trusted friends'
       />
       {!contacts?.length ? (
-        <View style={styles.panelEmpty}>
-          <Text style={styles.panelEmptyTitle}>No trusted friends yet</Text>
-          <Text style={styles.panelEmptyCopy}>
-            Trust a friend to unlock home access and direct messages.
-          </Text>
-        </View>
+        <PanelEmptyState
+          copy='Trust a friend to unlock home access and direct messages.'
+          icon={Users}
+          title='No trusted friends yet'
+        />
       ) : null}
       {(contacts || []).map((contact) => (
         <View key={contact.profileId} style={styles.contactRow}>
@@ -2576,12 +2590,18 @@ function createMobileStyles(theme) {
       lineHeight: 20
     },
     panelEmpty: {
+      alignItems: 'flex-start',
       backgroundColor: theme.quickPanel,
       borderColor: theme.border,
       borderRadius: 8,
       borderWidth: 1,
+      flexDirection: 'row',
+      gap: 10,
       marginTop: 12,
       padding: 12
+    },
+    panelEmptyText: {
+      flex: 1
     },
     panelEmptyTitle: {
       color: theme.ink,
