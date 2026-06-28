@@ -80,6 +80,13 @@ test('mobile request actions use icon-led trust controls', async () => {
   )
   assert.match(requestActionButton, /const Icon = isAccept \? Check : X/)
   assert.match(requestActionButton, /const label = isAccept \? 'Accept' : 'Ignore'/)
+  assert.match(
+    requestActionButton,
+    /const accessibilityLabel = isAccept \? 'Accept message request' : 'Ignore message request'/
+  )
+  assert.match(requestActionButton, /accessibilityLabel=\{accessibilityLabel\}/)
+  assert.match(requestActionButton, /accessibilityRole='button'/)
+  assert.match(requestActionButton, /accessibilityState=\{\{ disabled \}\}/)
   assert.match(requestActionButton, /disabled && styles\.disabledButton/)
 })
 

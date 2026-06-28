@@ -1455,9 +1455,13 @@ function MobileRequestActionButton({ disabled = false, onPress, testID, variant 
   const isAccept = variant === 'accept'
   const Icon = isAccept ? Check : X
   const label = isAccept ? 'Accept' : 'Ignore'
+  const accessibilityLabel = isAccept ? 'Accept message request' : 'Ignore message request'
 
   return (
     <Pressable
+      accessibilityLabel={accessibilityLabel}
+      accessibilityRole='button'
+      accessibilityState={{ disabled }}
       disabled={disabled}
       onPress={onPress}
       style={[
