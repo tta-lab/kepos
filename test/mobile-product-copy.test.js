@@ -6,6 +6,7 @@ import {
   formatMobileDirectMessageMeta,
   formatMobileHomeMessageMeta,
   formatMobilePostTime,
+  formatMessageRequestSubtitle,
   formatMessageRequestTitle,
   formatMobileTrustSource,
   formatMobileTrustTime,
@@ -65,6 +66,11 @@ test('mobile product copy formats people and request labels', () => {
   assert.equal(formatRequestPreview('  '), 'No message yet')
   assert.equal(formatMessageRequestTitle({ alias: 'Ada' }), 'Ada wants to start a direct chat.')
   assert.equal(formatMessageRequestTitle({}), 'Someone wants to start a direct chat.')
+  assert.equal(formatMessageRequestSubtitle({ alias: ' Ada ' }), 'Ada')
+  assert.equal(
+    formatMessageRequestSubtitle({ profileId: '1234567890abcdef1234567890abcdef' }),
+    '12345678...90abcdef'
+  )
 })
 
 test('mobile product copy formats pending tab badges', () => {

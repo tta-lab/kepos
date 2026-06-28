@@ -75,6 +75,7 @@ import {
   formatMobileDirectMessageMeta,
   formatMobileHomeMessageMeta,
   formatMobilePostTime,
+  formatMessageRequestSubtitle,
   formatMessageRequestTitle,
   formatMobileTrustSource,
   formatMobileTrustTime,
@@ -1495,9 +1496,7 @@ function MessageRequestManager({ onAcceptRequest, onIgnoreRequest, pendingReques
           <View key={request.profileId} style={styles.requestCard}>
             <View style={styles.requestText}>
               <Text style={styles.requestTitle}>{formatMessageRequestTitle(request)}</Text>
-              <Text style={styles.contactProfile}>
-                {request.alias || shortenProfileId(request.profileId)}
-              </Text>
+              <Text style={styles.contactProfile}>{formatMessageRequestSubtitle(request)}</Text>
               <Text style={styles.requestPreview}>{formatRequestPreview(request.text)}</Text>
             </View>
             <View style={styles.requestActions}>

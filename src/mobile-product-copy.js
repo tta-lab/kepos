@@ -96,6 +96,10 @@ export function formatMessageRequestTitle(request) {
   return `${name} wants to start a direct chat.`
 }
 
+export function formatMessageRequestSubtitle(request) {
+  return request?.alias?.trim() || shortenProfileId(request?.profileId)
+}
+
 export function formatMobileDirectMessageMeta(message) {
   const outgoing = message?.direction === 'out'
   const isRequest = message?.type === 'kepos.message.request.v1'
