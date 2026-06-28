@@ -47,6 +47,10 @@ test('mobile tabs surface pending direct and people work without changing tab la
 test('mobile request actions use icon-led trust controls', async () => {
   const source = await readMobileSource()
   const importBlock = source.match(/import\s+\{([\s\S]*?)\}\s+from 'lucide-react-native'/)?.[1]
+  const requestActionButton = source.slice(
+    source.indexOf('function MobileRequestActionButton('),
+    source.indexOf('function QuickStartPanel(')
+  )
   const messageRequestManager = source.slice(
     source.indexOf('function MessageRequestManager('),
     source.indexOf('function PanelEmptyState(')
@@ -58,13 +62,25 @@ test('mobile request actions use icon-led trust controls', async () => {
 
   assert.match(importBlock, /\bCheck\b/)
   assert.match(importBlock, /\bX\b/)
-  assert.match(messageRequestManager, /testID='people-message-request-ignore-button'[\s\S]*<X\b/)
   assert.match(
     messageRequestManager,
-    /testID='people-message-request-accept-button'[\s\S]*<Check\b/
+    /<MobileRequestActionButton[\s\S]*testID='people-message-request-ignore-button'[\s\S]*variant='ignore'/
   )
-  assert.match(directBubble, /testID='message-request-ignore-button'[\s\S]*<X\b/)
-  assert.match(directBubble, /testID='message-request-accept-button'[\s\S]*<Check\b/)
+  assert.match(
+    messageRequestManager,
+    /<MobileRequestActionButton[\s\S]*testID='people-message-request-accept-button'[\s\S]*variant='accept'/
+  )
+  assert.match(
+    directBubble,
+    /<MobileRequestActionButton[\s\S]*testID='message-request-ignore-button'[\s\S]*variant='ignore'/
+  )
+  assert.match(
+    directBubble,
+    /<MobileRequestActionButton[\s\S]*testID='message-request-accept-button'[\s\S]*variant='accept'/
+  )
+  assert.match(requestActionButton, /const Icon = isAccept \? Check : X/)
+  assert.match(requestActionButton, /const label = isAccept \? 'Accept' : 'Ignore'/)
+  assert.match(requestActionButton, /disabled && styles\.disabledButton/)
 })
 
 test('mobile direct contact chips and revoke actions expose trust state', async () => {

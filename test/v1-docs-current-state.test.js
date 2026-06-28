@@ -149,6 +149,8 @@ test('V1 UX docs include mobile icon-led request actions', async () => {
   assert.match(audit, /mobile Direct request and People request actions use lucide icons/)
   assert.match(ux, /Mobile Direct request and People request actions now use lucide icons/)
   assert.match(ux, /Accept and Ignore/)
+  assert.match(audit, /one Accept\/Ignore\s+action component/)
+  assert.match(ux, /one Accept\/Ignore\s+action component/)
 })
 
 test('V1 UX docs include mobile shared setup action buttons', async () => {

@@ -1424,6 +1424,30 @@ function MobileAdvancedToggle({ expanded, onPress, testID, variant = 'room' }) {
   )
 }
 
+function MobileRequestActionButton({ disabled = false, onPress, testID, variant }) {
+  const { styles, theme } = useMobileTheme()
+  const isAccept = variant === 'accept'
+  const Icon = isAccept ? Check : X
+  const label = isAccept ? 'Accept' : 'Ignore'
+
+  return (
+    <Pressable
+      disabled={disabled}
+      onPress={onPress}
+      style={[
+        isAccept ? styles.requestButton : styles.requestIgnoreButton,
+        disabled && styles.disabledButton
+      ]}
+      testID={testID}
+    >
+      <Icon color={isAccept ? theme.surface : theme.inkSoft} size={14} />
+      <Text style={isAccept ? styles.requestButtonText : styles.requestIgnoreButtonText}>
+        {label}
+      </Text>
+    </Pressable>
+  )
+}
+
 function QuickStartPanel({
   myHomeQrUri,
   nick,
@@ -1539,7 +1563,7 @@ function PeoplePane({
 }
 
 function MessageRequestManager({ onAcceptRequest, onIgnoreRequest, pendingRequests, profileId }) {
-  const { styles, theme } = useMobileTheme()
+  const { styles } = useMobileTheme()
 
   return (
     <View style={styles.panel}>
@@ -1568,15 +1592,12 @@ function MessageRequestManager({ onAcceptRequest, onIgnoreRequest, pendingReques
               <Text style={styles.requestPreview}>{formatRequestPreview(request.text)}</Text>
             </View>
             <View style={styles.requestActions}>
-              <Pressable
+              <MobileRequestActionButton
                 onPress={() => onIgnoreRequest(request)}
-                style={styles.requestIgnoreButton}
                 testID='people-message-request-ignore-button'
-              >
-                <X color={theme.inkSoft} size={14} />
-                <Text style={styles.requestIgnoreButtonText}>Ignore</Text>
-              </Pressable>
-              <Pressable
+                variant='ignore'
+              />
+              <MobileRequestActionButton
                 disabled={!canAccept}
                 onPress={() =>
                   onAcceptRequest({
@@ -1589,12 +1610,9 @@ function MessageRequestManager({ onAcceptRequest, onIgnoreRequest, pendingReques
                     type: 'kepos.message.request.v1'
                   })
                 }
-                style={[styles.requestButton, !canAccept && styles.disabledButton]}
                 testID='people-message-request-accept-button'
-              >
-                <Check color={theme.surface} size={14} />
-                <Text style={styles.requestButtonText}>Accept</Text>
-              </Pressable>
+                variant='accept'
+              />
             </View>
           </View>
         )
@@ -2186,7 +2204,7 @@ function EmptyDirectMessages() {
 }
 
 function DirectBubble({ message, onAcceptRequest, onIgnoreRequest }) {
-  const { styles, theme } = useMobileTheme()
+  const { styles } = useMobileTheme()
   const outgoing = message.direction === 'out'
   const isRequest = message.type === 'kepos.message.request.v1'
 
@@ -2207,26 +2225,20 @@ function DirectBubble({ message, onAcceptRequest, onIgnoreRequest }) {
       </View>
       {isRequest && !outgoing ? (
         <View style={styles.requestActions}>
-          <Pressable
+          <MobileRequestActionButton
             onPress={() => {
               onIgnoreRequest(message).catch(() => {})
             }}
-            style={styles.requestIgnoreButton}
             testID='message-request-ignore-button'
-          >
-            <X color={theme.inkSoft} size={14} />
-            <Text style={styles.requestIgnoreButtonText}>Ignore</Text>
-          </Pressable>
-          <Pressable
-            style={styles.requestButton}
+            variant='ignore'
+          />
+          <MobileRequestActionButton
             onPress={() => {
               onAcceptRequest(message).catch(() => {})
             }}
             testID='message-request-accept-button'
-          >
-            <Check color={theme.surface} size={14} />
-            <Text style={styles.requestButtonText}>Accept</Text>
-          </Pressable>
+            variant='accept'
+          />
         </View>
       ) : null}
     </View>
