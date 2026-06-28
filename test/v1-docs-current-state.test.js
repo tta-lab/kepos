@@ -75,3 +75,12 @@ test('V1 UX docs include mobile Direct zero-contact empty state polish', async (
   assert.match(ux, /Mobile Direct's zero-contact state now uses/)
   assert.match(ux, /before linking users to People/)
 })
+
+test('V1 UX docs include Home trust source product copy', async () => {
+  const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
+  const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
+
+  assert.match(audit, /trusted-friend metadata now use Home instead of Home room/)
+  assert.match(ux, /trusted-friend metadata now show Home instead of Home room/)
+  assert.match(ux, /internal room terminology out of normal trust surfaces/)
+})

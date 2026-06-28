@@ -30,6 +30,23 @@ test('desktop people view model formats trusted contacts for rendering', () => {
   ])
 })
 
+test('desktop people view model uses product copy for home-sourced trust', () => {
+  const profileId = 'b'.repeat(64)
+  const book = trustContact(createContactBook({ ownerProfileId: 'owner-a' }), {
+    alias: 'Ada',
+    profileId,
+    source: 'home_room',
+    trustedAt: 2000
+  })
+
+  const viewModel = createDesktopPeopleViewModel({
+    contactBook: book,
+    formatDate: () => 'Jan 1, 1970'
+  })
+
+  assert.equal(viewModel.trustedContacts[0].sourceLabel, 'From Home')
+})
+
 test('desktop people view model formats pending message requests for rendering', () => {
   const profileId = 'b'.repeat(64)
   const book = recordMessageRequest(createContactBook({ ownerProfileId: 'owner-a' }), {

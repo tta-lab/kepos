@@ -727,8 +727,10 @@ test('Android people UI uses trusted friends copy', async () => {
   assert.match(source, /\{formatMobileTrustSource\(contact\.source\)\}/)
   assert.match(source, /\{formatMobileTrustTime\(contact\.trustedAt\)\}/)
   assert.match(source, /function formatMobileTrustSource\(source\)/)
+  assert.match(source, /if \(source === 'home_room'\) return 'Home'/)
   assert.match(source, /function formatMobileTrustTime\(trustedAt\)/)
   assert.equal(source.includes('<Text style={styles.panelTitle}>Contacts</Text>'), false)
+  assert.equal(source.includes("return 'Home room'"), false)
 })
 
 test('Android people pane surfaces pending message requests', async () => {

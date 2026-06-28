@@ -2299,7 +2299,7 @@ function getMobileRoomSurface(activeTab) {
 
 function formatMobileTrustSource(source) {
   if (source === 'profile_qr' || source === 'person_qr') return 'Profile QR'
-  if (source === 'home_room') return 'Home room'
+  if (source === 'home_room') return 'Home'
   if (source === 'message_request') return 'Message request'
   return 'local trust'
 }
