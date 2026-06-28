@@ -66,6 +66,7 @@ import {
   getOrCreateMobileIdentity,
   getRequiredMobileDocumentDirectory
 } from '../src/mobile-profile.js'
+import { getMobileTabBadges } from '../src/mobile-room-view-model.js'
 import { getMobileThemeForScheme, mobileThemes } from '../src/mobile-theme-tokens.js'
 import { applyMobileHomeQrScan, applyMobileProfileQrScan } from '../src/mobile-qr-actions.js'
 import { getScannedQrData } from '../src/mobile-qr-event.js'
@@ -1201,12 +1202,7 @@ function ChatRoom({
     [session.roomKey]
   )
   const roomSurface = getMobileRoomSurface(activeTab)
-  const tabBadges = {
-    direct: dmMessages.filter(
-      (message) => message.type === 'kepos.message.request.v1' && message.direction === 'in'
-    ).length,
-    people: pendingRequests.length
-  }
+  const tabBadges = getMobileTabBadges({ dmMessages, pendingRequests })
 
   return (
     <View style={styles.chat}>
