@@ -219,6 +219,15 @@ test('V1 UX docs include desktop shared Leave home action', async () => {
   assert.match(ux, /pending-command disabled state/)
 })
 
+test('V1 UX docs include desktop shared theme buttons', async () => {
+  const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
+  const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
+
+  assert.match(audit, /desktop theme switching/)
+  assert.match(ux, /Desktop theme switching/)
+  assert.match(ux, /aria-pressed/)
+})
+
 test('V1 UX docs include mobile shared small action buttons', async () => {
   const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
   const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')

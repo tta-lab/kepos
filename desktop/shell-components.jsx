@@ -62,30 +62,40 @@ export function Topbar({ setTheme, status, theme }) {
         </div>
       </div>
       <div className='themeSwitch' role='group' aria-label='Theme'>
-        <button
+        <ThemeButton
+          active={theme === 'light'}
+          icon={<Sun size={15} />}
           id='lightThemeButton'
-          className={theme === 'light' ? 'themeButton active' : 'themeButton'}
-          type='button'
-          aria-pressed={theme === 'light'}
-          title='Neo Cozy light'
+          label='Light'
           onClick={() => setTheme('light')}
-        >
-          <Sun size={15} />
-          Light
-        </button>
-        <button
+          title='Neo Cozy light'
+        />
+        <ThemeButton
+          active={theme === 'dark'}
+          icon={<Moon size={15} />}
           id='darkThemeButton'
-          className={theme === 'dark' ? 'themeButton active' : 'themeButton'}
-          type='button'
-          aria-pressed={theme === 'dark'}
-          title='Indie Console dark'
+          label='Dark'
           onClick={() => setTheme('dark')}
-        >
-          <Moon size={15} />
-          Dark
-        </button>
+          title='Indie Console dark'
+        />
       </div>
     </header>
+  )
+}
+
+function ThemeButton({ active, icon, id, label, onClick, title }) {
+  return (
+    <button
+      id={id}
+      className={active ? 'themeButton active' : 'themeButton'}
+      type='button'
+      aria-pressed={active}
+      title={title}
+      onClick={onClick}
+    >
+      {icon}
+      {label}
+    </button>
   )
 }
 

@@ -886,10 +886,22 @@ test('desktop context actions expose a pending lock during blocking commands', a
 
 test('desktop shell exposes Neo Cozy light and Indie Console dark themes', async () => {
   const source = await readDesktopUiSource()
+  const shell = await readFile(new URL('../desktop/shell-components.jsx', import.meta.url), 'utf8')
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
 
   assert.match(source, /id='lightThemeButton'/)
   assert.match(source, /id='darkThemeButton'/)
+  assert.match(shell, /function ThemeButton\(\{ active, icon, id, label, onClick, title \}\)/)
+  assert.match(shell, /className=\{active \? 'themeButton active' : 'themeButton'\}/)
+  assert.match(shell, /aria-pressed=\{active\}/)
+  assert.match(
+    shell,
+    /<ThemeButton[\s\S]*active=\{theme === 'light'\}[\s\S]*icon=\{<Sun size=\{15\} \/>\}[\s\S]*id='lightThemeButton'[\s\S]*label='Light'[\s\S]*setTheme\('light'\)[\s\S]*title='Neo Cozy light'/
+  )
+  assert.match(
+    shell,
+    /<ThemeButton[\s\S]*active=\{theme === 'dark'\}[\s\S]*icon=\{<Moon size=\{15\} \/>\}[\s\S]*id='darkThemeButton'[\s\S]*label='Dark'[\s\S]*setTheme\('dark'\)[\s\S]*title='Indie Console dark'/
+  )
   assert.match(source, /data-theme/)
   assert.match(source, /kepos\.desktop\.theme/)
   assert.match(styles, /:root/)
