@@ -34,7 +34,8 @@ test('desktop main connects Electron IPC to the backend worker host', async () =
   assert.doesNotMatch(source, /createDesktopMainBackendSession/)
   assert.doesNotMatch(source, /desktop-main-backend-session\.js/)
   assert.match(source, /connectMainBackend/)
-  assert.match(source, /backendIpc\.connectBackend\(mainBackendWorker\.backendHost\.bridge\)/)
+  assert.match(source, /backendIpc\.connectBackend\(mainBackendWorker\.bridge\)/)
+  assert.doesNotMatch(source, /mainBackendWorker\.backendHost/)
 })
 
 test('desktop preload exposes a narrow backend bridge api', async () => {

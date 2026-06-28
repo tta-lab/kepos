@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { createDesktopBackendWorkerHost } from '../src/desktop-backend-worker-host.js'
 
-test('desktop backend worker host exposes the main backend bridge', () => {
+test('desktop backend worker host exposes a worker bridge', () => {
   const bridge = { dispatch: () => undefined }
   const calls = []
 
@@ -17,7 +17,8 @@ test('desktop backend worker host exposes the main backend bridge', () => {
     storageBasePath: '/user-data/kepos/v1'
   })
 
-  assert.equal(workerHost.backendHost.bridge, bridge)
+  assert.equal(workerHost.bridge, bridge)
+  assert.equal(workerHost.backendHost, undefined)
   assert.deepEqual(calls, [{ storageBasePath: '/user-data/kepos/v1' }])
 
   workerHost.close()

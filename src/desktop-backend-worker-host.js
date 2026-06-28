@@ -7,7 +7,7 @@ export function createDesktopBackendWorkerHost({
   const session = createMainBackendSession({ storageBasePath })
 
   return {
-    backendHost: session.backendHost,
+    bridge: session.backendHost.bridge,
     close: () => session.backendRuntime?.closeAll?.()
   }
 }
