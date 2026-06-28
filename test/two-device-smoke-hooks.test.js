@@ -292,6 +292,17 @@ test('direct message meta avoids DM fallback and raw recipient framing', async (
   assert.equal(desktop.includes("message.nick || 'DM'"), false)
 })
 
+test('Android message bubbles separate metadata from readable bodies', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+
+  assert.match(source, /style=\{styles\.bubbleMetaRow\}/)
+  assert.match(source, /style=\{\[\s*styles\.bubbleTextBlock/)
+  assert.match(source, /bubbleMetaRow: \{/)
+  assert.match(source, /bubbleTextBlock: \{/)
+  assert.match(source, /inBubbleTextBlock: \{/)
+  assert.match(source, /outBubbleTextBlock: \{/)
+})
+
 test('normal error notices avoid raw exception text', async () => {
   const mobile = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
   const desktop = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')

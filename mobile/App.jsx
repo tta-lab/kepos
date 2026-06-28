@@ -2205,16 +2205,25 @@ function DirectBubble({ message, onAcceptRequest, onIgnoreRequest }) {
 
   return (
     <View style={[styles.bubble, outgoing ? styles.outBubble : styles.inBubble]}>
-      <Text style={[styles.bubbleMeta, !outgoing && styles.inBubbleMeta]}>
-        {isRequest
-          ? outgoing
-            ? 'You asked someone to start a DM'
-            : formatMessageRequestTitle(message)
-          : outgoing
-            ? `You to ${displayDirectPeer(message.toProfileId)}`
-            : `${displayDirectPeer(message.fromProfileId, message.nick)} to you`}
-      </Text>
-      <Text style={[styles.bubbleText, !outgoing && styles.inBubbleText]}>{message.text}</Text>
+      <View style={styles.bubbleMetaRow}>
+        <Text style={[styles.bubbleMeta, !outgoing && styles.inBubbleMeta]}>
+          {isRequest
+            ? outgoing
+              ? 'You asked someone to start a DM'
+              : formatMessageRequestTitle(message)
+            : outgoing
+              ? `You to ${displayDirectPeer(message.toProfileId)}`
+              : `${displayDirectPeer(message.fromProfileId, message.nick)} to you`}
+        </Text>
+      </View>
+      <View
+        style={[
+          styles.bubbleTextBlock,
+          outgoing ? styles.outBubbleTextBlock : styles.inBubbleTextBlock
+        ]}
+      >
+        <Text style={[styles.bubbleText, !outgoing && styles.inBubbleText]}>{message.text}</Text>
+      </View>
       {isRequest && !outgoing ? (
         <View style={styles.requestActions}>
           <Pressable
@@ -2247,8 +2256,17 @@ function MessageBubble({ message }) {
 
   return (
     <View style={[styles.bubble, outgoing ? styles.outBubble : styles.inBubble]}>
-      <Text style={[styles.bubbleMeta, !outgoing && styles.inBubbleMeta]}>{message.nick}</Text>
-      <Text style={[styles.bubbleText, !outgoing && styles.inBubbleText]}>{message.text}</Text>
+      <View style={styles.bubbleMetaRow}>
+        <Text style={[styles.bubbleMeta, !outgoing && styles.inBubbleMeta]}>{message.nick}</Text>
+      </View>
+      <View
+        style={[
+          styles.bubbleTextBlock,
+          outgoing ? styles.outBubbleTextBlock : styles.inBubbleTextBlock
+        ]}
+      >
+        <Text style={[styles.bubbleText, !outgoing && styles.inBubbleText]}>{message.text}</Text>
+      </View>
     </View>
   )
 }
@@ -2815,11 +2833,27 @@ function createMobileStyles(theme) {
       color: theme.accent,
       fontSize: 11,
       fontWeight: '900',
-      marginBottom: 4,
       textTransform: 'uppercase'
+    },
+    bubbleMetaRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      minHeight: 16
     },
     inBubbleMeta: {
       color: theme.inkSoft
+    },
+    bubbleTextBlock: {
+      borderRadius: 7,
+      marginTop: 6,
+      paddingHorizontal: 1,
+      paddingVertical: 1
+    },
+    inBubbleTextBlock: {
+      backgroundColor: theme.quickPanel
+    },
+    outBubbleTextBlock: {
+      backgroundColor: theme.accentStrong
     },
     bubbleText: {
       color: theme.surface,
