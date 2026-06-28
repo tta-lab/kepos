@@ -18,7 +18,7 @@ function createWindow() {
     show: false,
     webPreferences: {
       contextIsolation: false,
-      nodeIntegration: true,
+      nodeIntegration: false,
       preload: path.join(__dirname, 'preload.cjs'),
       sandbox: false
     },

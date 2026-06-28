@@ -13,6 +13,19 @@ test('desktop main loads a preload script for the backend bridge', async () => {
   assert.match(source, /registerDesktopBackendIpc/)
 })
 
+test('desktop renderer runs without page-level node integration', async () => {
+  const source = await readFile(new URL('../desktop/electron/main.cjs', import.meta.url), 'utf8')
+  const preload = await readFile(
+    new URL('../desktop/electron/preload.cjs', import.meta.url),
+    'utf8'
+  )
+
+  assert.match(source, /nodeIntegration: false/)
+  assert.match(source, /contextIsolation: false/)
+  assert.match(preload, /require\('\.\.\/controller\.bundle\.cjs'\)/)
+  assert.doesNotMatch(preload, /globalThis\.eval\("require\('\.\/controller\.bundle\.cjs'\)"\)/)
+})
+
 test('desktop main connects Electron IPC to the main backend session', async () => {
   const source = await readFile(new URL('../desktop/electron/main.cjs', import.meta.url), 'utf8')
 
@@ -42,7 +55,7 @@ test('desktop preload owns controller bundle startup', async () => {
 
   assert.match(source, /exposeDesktopApi\('keposDesktopController'/)
   assert.match(source, /start\(\)/)
-  assert.match(source, /globalThis\.eval\("require\('\.\/controller\.bundle\.cjs'\)"\)/)
+  assert.match(source, /require\('\.\.\/controller\.bundle\.cjs'\)/)
   assert.doesNotMatch(html, /require\('\.\/controller\.bundle\.cjs'\)/)
   assert.match(html, /window\.keposDesktopController\.start\(\)/)
 })

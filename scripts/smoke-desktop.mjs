@@ -33,6 +33,12 @@ try {
   page.on('console', (message) => {
     if (message.type() === 'error') console.error(`[desktop] ${message.text()}`)
   })
+  const pageRequireType = await page.evaluate(() => typeof globalThis.require)
+  if (pageRequireType !== 'undefined') {
+    throw new Error(
+      `Expected Electron renderer nodeIntegration to be disabled, got ${pageRequireType}`
+    )
+  }
 
   await page.waitForSelector('#profileQrOutput', { state: 'attached' })
   await waitForInputPrefix(page, '#profileQrOutput', 'kepos://profile')

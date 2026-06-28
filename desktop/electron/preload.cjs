@@ -67,6 +67,6 @@ exposeDesktopApi('keposDesktopController', {
     if (controllerStarted) return
 
     controllerStarted = true
-    globalThis.eval("require('./controller.bundle.cjs')")
+    require('../controller.bundle.cjs')
   }
 })
