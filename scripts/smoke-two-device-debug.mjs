@@ -31,6 +31,11 @@ let app = null
 let page = null
 
 try {
+  prepareAndroidDevice()
+  grantAndroidCameraPermission()
+  ensureAdbReverse()
+  await ensureMetroServer()
+
   page = await launchDesktopApp()
 
   await waitForInputPrefix(page, '#profileQrOutput', 'kepos://profile')
@@ -315,6 +320,37 @@ function launchAndroidDevClient() {
     androidDevClientUrl,
     'io.guion.kepos'
   ])
+}
+
+function prepareAndroidDevice() {
+  runAdb(['shell', 'input', 'keyevent', 'KEYCODE_WAKEUP'])
+  runAdb(['shell', 'wm', 'dismiss-keyguard'])
+  runAdb(['shell', 'cmd', 'statusbar', 'collapse'])
+}
+
+function grantAndroidCameraPermission() {
+  runAdb(['shell', 'pm', 'grant', 'io.guion.kepos', 'android.permission.CAMERA'])
+}
+
+function ensureAdbReverse() {
+  runAdb(['reverse', 'tcp:8081', 'tcp:8081'])
+}
+
+async function ensureMetroServer() {
+  try {
+    const response = await fetch('http://127.0.0.1:8081/status', {
+      signal: AbortSignal.timeout(2500)
+    })
+    const body = await response.text()
+
+    if (response.ok && body.includes('packager-status:running')) return
+  } catch {
+    // Fall through to the actionable error below.
+  }
+
+  throw new Error(
+    'Two-device smoke requires Metro on http://127.0.0.1:8081. Start it with npm run mobile:start.'
+  )
 }
 
 async function waitForAndroidAppSurface() {
