@@ -64,6 +64,13 @@ createDesktopBackendSubscriptions({
   setContactBook: (nextContactBook) => {
     backendContactBook = nextContactBook
   },
+  setContextFormDraft: (draft) => {
+    globalThis.keposDesktopUi?.setContextFormDraft(draft)
+  },
+  setDirectComposerRecipient: (profileId) => {
+    controllerState.setDirectComposerRecipient(profileId)
+    globalThis.keposDesktopUi?.setDirectComposerRecipient(profileId)
+  },
   setDmSession: (nextSession) => {
     controllerState.setDmSession(nextSession)
   },

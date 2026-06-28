@@ -28,6 +28,8 @@ test('desktop backend subscriptions update renderer snapshots from backend event
   const renders = []
   const errors = []
   let contactBook = null
+  let contextFormDraft = null
+  let directComposerRecipient = 'friend-old'
   let dmSession = null
   let homeSession = null
   let state = createDesktopState()
@@ -39,6 +41,12 @@ test('desktop backend subscriptions update renderer snapshots from backend event
     onRender: () => renders.push('render'),
     setContactBook: (nextContactBook) => {
       contactBook = nextContactBook
+    },
+    setContextFormDraft: (draft) => {
+      contextFormDraft = draft
+    },
+    setDirectComposerRecipient: (profileId) => {
+      directComposerRecipient = profileId
     },
     setDmSession: (nextSession) => {
       dmSession = nextSession
@@ -53,7 +61,9 @@ test('desktop backend subscriptions update renderer snapshots from backend event
 
   emit('homeMessageReceived', { messages: ['home'] })
   emit('contactBookChanged', { ownerProfileId: 'owner-1' })
+  emit('contextFormDraftChanged', { trustAlias: '', trustQrUri: '' })
   emit('desktopStateChanged', { ...state, mode: 'host', notice: 'Home joined.', view: 'room' })
+  emit('directComposerRecipientChanged', '')
   emit('dmMessageReceived', { messages: ['dm'] })
   emit('treeholeStateChanged', { canPost: false, posts: [], status: 'ready' })
   emit('peerCountChanged', { peers: 3 })
@@ -61,6 +71,8 @@ test('desktop backend subscriptions update renderer snapshots from backend event
   unsubscribe()
 
   assert.deepEqual(contactBook, { ownerProfileId: 'owner-1' })
+  assert.deepEqual(contextFormDraft, { trustAlias: '', trustQrUri: '' })
+  assert.equal(directComposerRecipient, '')
   assert.deepEqual(homeSession, { messages: ['home'] })
   assert.deepEqual(dmSession, { messages: ['dm'] })
   assert.equal(state.mode, 'host')
@@ -70,18 +82,31 @@ test('desktop backend subscriptions update renderer snapshots from backend event
   assert.equal(state.treeholeCanPost, false)
   assert.equal(state.peers, 3)
   assert.equal(errors[0].message, 'failed')
-  assert.deepEqual(renders, ['render', 'render', 'render', 'render', 'render', 'render'])
+  assert.deepEqual(renders, [
+    'render',
+    'render',
+    'render',
+    'render',
+    'render',
+    'render',
+    'render',
+    'render'
+  ])
   assert.deepEqual(subscriptions, [
     ['subscribe', 'homeMessageReceived'],
     ['subscribe', 'contactBookChanged'],
+    ['subscribe', 'contextFormDraftChanged'],
     ['subscribe', 'desktopStateChanged'],
+    ['subscribe', 'directComposerRecipientChanged'],
     ['subscribe', 'dmMessageReceived'],
     ['subscribe', 'treeholeStateChanged'],
     ['subscribe', 'peerCountChanged'],
     ['subscribe', 'errorReceived'],
     ['unsubscribe', 'homeMessageReceived'],
     ['unsubscribe', 'contactBookChanged'],
+    ['unsubscribe', 'contextFormDraftChanged'],
     ['unsubscribe', 'desktopStateChanged'],
+    ['unsubscribe', 'directComposerRecipientChanged'],
     ['unsubscribe', 'dmMessageReceived'],
     ['unsubscribe', 'treeholeStateChanged'],
     ['unsubscribe', 'peerCountChanged'],

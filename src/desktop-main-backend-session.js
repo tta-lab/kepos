@@ -29,9 +29,12 @@ export function createDesktopMainBackendSession({
         }).contactBook
       )
     },
-    setContextFormDraft: () => {},
+    setContextFormDraft: (draft) => {
+      backendSession?.backendHost.bridge.emit('contextFormDraftChanged', draft)
+    },
     setDirectComposerRecipient: (profileId) => {
       controllerState.setDirectComposerRecipient(profileId)
+      backendSession?.backendHost.bridge.emit('directComposerRecipientChanged', profileId)
     },
     setNotice: (notice) => {
       controllerState.updateState((state) => ({ ...state, notice }))

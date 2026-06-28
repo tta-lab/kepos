@@ -28,7 +28,9 @@ test('desktop command vocabulary covers the V1 MLP product actions', () => {
 test('desktop event vocabulary covers room, people, DM, and treehole updates', () => {
   assert.deepEqual(DESKTOP_EVENTS, [
     'contactBookChanged',
+    'contextFormDraftChanged',
     'desktopStateChanged',
+    'directComposerRecipientChanged',
     'dmMessageReceived',
     'dmThreadChanged',
     'errorReceived',

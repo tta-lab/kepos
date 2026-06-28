@@ -6,6 +6,8 @@ export function createDesktopBackendSubscriptions({
   onError,
   onRender,
   setContactBook,
+  setContextFormDraft = () => {},
+  setDirectComposerRecipient = () => {},
   setDmSession,
   setHomeSession,
   setState
@@ -19,8 +21,16 @@ export function createDesktopBackendSubscriptions({
       setContactBook(nextContactBook)
       onRender()
     }),
+    backendClient.subscribe('contextFormDraftChanged', (draft) => {
+      setContextFormDraft(draft)
+      onRender()
+    }),
     backendClient.subscribe('desktopStateChanged', (nextState) => {
       setState(nextState)
+      onRender()
+    }),
+    backendClient.subscribe('directComposerRecipientChanged', (profileId) => {
+      setDirectComposerRecipient(profileId)
       onRender()
     }),
     backendClient.subscribe('dmMessageReceived', (nextSession) => {
