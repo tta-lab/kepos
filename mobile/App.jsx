@@ -1242,6 +1242,12 @@ function ChatRoom({
     [session.roomKey]
   )
   const roomSurface = getMobileRoomSurface(activeTab)
+  const tabBadges = {
+    direct: dmMessages.filter(
+      (message) => message.type === 'kepos.message.request.v1' && message.direction === 'in'
+    ).length,
+    people: pendingRequests.length
+  }
 
   return (
     <View style={styles.chat}>
@@ -1346,6 +1352,7 @@ function ChatRoom({
         />
         <TabButton
           active={activeTab === 'dm'}
+          badgeCount={tabBadges.direct}
           icon={Send}
           label='Direct'
           onPress={() => onTabChange('dm')}
@@ -1360,6 +1367,7 @@ function ChatRoom({
         />
         <TabButton
           active={activeTab === 'people'}
+          badgeCount={tabBadges.people}
           icon={Users}
           label='People'
           onPress={() => onTabChange('people')}
@@ -1967,7 +1975,7 @@ function ContactManager({ contacts, onRevokeContact }) {
   )
 }
 
-function TabButton({ active, icon: Icon, label, onPress, testID }) {
+function TabButton({ active, badgeCount = 0, icon: Icon, label, onPress, testID }) {
   const { styles, theme } = useMobileTheme()
 
   return (
@@ -1980,6 +1988,11 @@ function TabButton({ active, icon: Icon, label, onPress, testID }) {
     >
       <Icon color={active ? theme.surface : theme.iconMuted} size={17} style={styles.tabIcon} />
       <Text style={[styles.tabText, active && styles.activeTabText]}>{label}</Text>
+      {badgeCount > 0 ? (
+        <View style={styles.tabBadge} accessibilityLabel={`${label} pending ${badgeCount}`}>
+          <Text style={styles.tabBadgeText}>{badgeCount > 99 ? '99+' : badgeCount}</Text>
+        </View>
+      ) : null}
     </Pressable>
   )
 }
@@ -2830,7 +2843,8 @@ function createMobileStyles(theme) {
       flex: 1,
       gap: 3,
       justifyContent: 'center',
-      minHeight: 40
+      minHeight: 40,
+      position: 'relative'
     },
     activeTabButton: {
       backgroundColor: theme.accentStrong,
@@ -2846,6 +2860,26 @@ function createMobileStyles(theme) {
     },
     activeTabText: {
       color: theme.surface
+    },
+    tabBadge: {
+      alignItems: 'center',
+      backgroundColor: theme.accent,
+      borderColor: theme.surface,
+      borderRadius: 999,
+      borderWidth: 1,
+      height: 20,
+      justifyContent: 'center',
+      minWidth: 20,
+      paddingHorizontal: 5,
+      position: 'absolute',
+      right: 8,
+      top: 5
+    },
+    tabBadgeText: {
+      color: theme.surface,
+      fontSize: 10,
+      fontWeight: '900',
+      lineHeight: 12
     },
     roomBar: {
       alignItems: 'center',
