@@ -1097,6 +1097,10 @@ test('debug two-device smoke covers live DM exchange and restart persistence', a
     'KEYCODE_WAKEUP',
     '127\\.0\\.0\\.1:8081/status',
     'Two-device smoke requires Metro',
+    "runAdb\\(\\['shell', 'input', 'text', roomKey\\]\\)",
+    'android-debug-join-open.yaml',
+    'android-debug-join-submit.yaml',
+    "text: 'Connected\\.'",
     'openDesktopPeopleActions',
     'expo-development-client',
     'waitForAndroidAppSurface',
@@ -1118,6 +1122,12 @@ test('debug two-device smoke covers live DM exchange and restart persistence', a
   ]) {
     assert.match(source, new RegExp(marker), `${marker} is missing`)
   }
+
+  const joinFlow = source.slice(
+    source.indexOf("const openFlow = path.join(workDir, 'android-debug-join-open.yaml')"),
+    source.indexOf("const submitFlow = path.join(workDir, 'android-debug-join-submit.yaml')")
+  )
+  assert.doesNotMatch(joinFlow, /inputText: '\$\{roomKey\}'/)
 
   assert.equal(
     source.indexOf("id: 'people-tab'") < source.indexOf("id: 'advanced-share-toggle'"),

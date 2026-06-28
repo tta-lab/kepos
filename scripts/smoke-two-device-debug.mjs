@@ -68,7 +68,7 @@ try {
   })
 
   await runAndroidJoinFlow(desktopHome.roomKey)
-  await waitForTextNot(page, '#peerLabel', '0')
+  await waitForDesktopPeer(page, 'desktop and Android connect as peers')
 
   await page.fill('#chatInput', desktopChatText)
   await page.keyboard.press('Enter')
@@ -269,9 +269,9 @@ async function runAndroidJoinFlow(roomKey) {
   await waitForAndroidAppSurface()
   runAdb(['shell', 'input', 'tap', '1000', '2210'])
   await delay(500)
-  const flow = path.join(workDir, 'android-debug-join.yaml')
+  const openFlow = path.join(workDir, 'android-debug-join-open.yaml')
   await writeFile(
-    flow,
+    openFlow,
     `appId: io.guion.kepos
 ---
 - scrollUntilVisible:
@@ -288,7 +288,16 @@ async function runAndroidJoinFlow(roomKey) {
     direction: DOWN
 - tapOn:
     id: 'manual-home-key-input'
-- inputText: '${roomKey}'
+`
+  )
+  runMaestro(['test', openFlow])
+  runAdb(['shell', 'input', 'text', roomKey])
+
+  const submitFlow = path.join(workDir, 'android-debug-join-submit.yaml')
+  await writeFile(
+    submitFlow,
+    `appId: io.guion.kepos
+---
 - hideKeyboard
 - scrollUntilVisible:
     element:
@@ -298,13 +307,13 @@ async function runAndroidJoinFlow(roomKey) {
     id: 'manual-home-join-button'
 - extendedWaitUntil:
     visible:
-      id: 'room-home-address'
+      text: 'Connected.'
     timeout: 30000
 - assertVisible:
     id: 'chat-tab'
 `
   )
-  runMaestro(['test', flow])
+  runMaestro(['test', submitFlow])
 }
 
 function launchAndroidDevClient() {
@@ -456,7 +465,7 @@ async function restartBothAppsAndRejoin({ androidRemoteProfileId, roomKey }) {
   await waitForText(nextPage, '#noticeLabel', 'Home joined.')
 
   await runAndroidJoinFlow(roomKey)
-  await waitForTextNot(nextPage, '#peerLabel', '0')
+  await waitForDesktopPeer(nextPage, 'desktop and Android reconnect as peers')
   await waitForAndroidDmThread(androidRemoteProfileId)
   await tapAndroidByTestId('dm-tab')
 
@@ -573,17 +582,53 @@ async function waitForText(page, selector, expected) {
   await waitFor(async () => (await locator.textContent()) === expected, `${selector} text`)
 }
 
-async function waitForTextNot(page, selector, unexpected) {
-  const locator = page.locator(selector)
-  await locator.waitFor({ state: 'visible' })
-  await waitFor(
-    async () => (await locator.textContent()) !== unexpected,
-    `${selector} not ${unexpected}`
-  )
+async function waitForDesktopPeer(page, label) {
+  try {
+    await waitFor(
+      async () => {
+        const peerLabel = await page.locator('#peerLabel').textContent()
+        return peerLabel !== '0'
+      },
+      label,
+      { timeoutMs: 120000 }
+    )
+  } catch (error) {
+    const desktopSnapshot = {
+      errorDetail: await page
+        .locator('#errorDetailLabel')
+        .textContent()
+        .catch(() => null),
+      homeStatus: await page
+        .locator('#homeStatusLabel')
+        .textContent()
+        .catch(() => null),
+      notice: await page
+        .locator('#noticeLabel')
+        .textContent()
+        .catch(() => null),
+      peerLabel: await page
+        .locator('#peerLabel')
+        .textContent()
+        .catch(() => null)
+    }
+    let androidXml = ''
+    try {
+      androidXml = dumpAndroidUi()
+    } catch {
+      androidXml = ''
+    }
+    const androidSnapshot = {
+      errorDetail: androidXml ? textByResourceId(androidXml, 'room-error-detail') : null,
+      notice: androidXml ? textByResourceId(androidXml, 'app-notice') : null
+    }
+    throw new Error(
+      `${error.message}\nDesktop: ${JSON.stringify(desktopSnapshot)}\nAndroid: ${JSON.stringify(androidSnapshot)}`
+    )
+  }
 }
 
-async function waitFor(predicate, label) {
-  const deadline = Date.now() + 60000
+async function waitFor(predicate, label, { timeoutMs = 60000 } = {}) {
+  const deadline = Date.now() + timeoutMs
 
   while (Date.now() < deadline) {
     if (await predicate()) return
