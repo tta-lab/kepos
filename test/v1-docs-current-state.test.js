@@ -57,3 +57,12 @@ test('V1 UX docs include desktop People product empty states', async () => {
   assert.match(ux, /Desktop People empty panels now use icon-led product empty states/)
   assert.match(ux, /trust management does not collapse into plain\s+placeholder text/)
 })
+
+test('V1 UX docs include accessible desktop primary empty states', async () => {
+  const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
+  const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
+
+  assert.match(audit, /desktop Home, Direct, and Treehole empty states now render/)
+  assert.match(ux, /Desktop Home, Direct, and Treehole empty states now render/)
+  assert.match(ux, /assistive technology/)
+})

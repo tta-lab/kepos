@@ -585,30 +585,43 @@ textarea {
   padding: 18px 20px;
 }
 
-.list:empty::before {
+.listEmpty {
+  align-items: start;
   align-self: start;
   background: var(--empty-bg);
   border: 1px dashed var(--border-strong);
   border-radius: 8px;
-  color: var(--ink-muted);
-  content: attr(data-empty);
-  display: block;
-  font-size: 13px;
-  font-weight: 800;
-  max-width: 320px;
-  padding: 14px;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: auto 1fr;
+  max-width: 380px;
+  padding: 12px;
 }
 
-.list:empty::after {
-  align-self: start;
+.listEmptyIcon {
+  align-items: center;
+  background: var(--success-soft);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--accent-strong);
+  display: inline-flex;
+  height: 34px;
+  justify-content: center;
+  width: 34px;
+}
+
+.listEmptyTitle {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 900;
+  margin: 0;
+}
+
+.listEmptyCopy {
   color: var(--ink-muted);
-  content: attr(data-empty-detail);
-  display: block;
   font-size: 12px;
   line-height: 1.5;
-  margin-top: -4px;
-  max-width: 320px;
-  padding: 0 14px;
+  margin: 4px 0 0;
 }
 
 .item {

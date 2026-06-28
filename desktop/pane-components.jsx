@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Send, Sprout } from 'lucide-react'
+import { MessageCircle, Send, Sprout } from 'lucide-react'
 import { PaneHeader } from './ui-components.jsx'
 
 export function HomePane({ activeTab, controls, messages, onSend }) {
@@ -203,60 +203,64 @@ function TreeholeComposer({ controls, onPost }) {
 
 function HomeChatList({ messages }) {
   return (
-    <ol
-      id='messageList'
-      className='list'
-      aria-label='Home chat messages'
-      data-empty='No messages yet'
-      data-empty-detail='Send the first line from this desktop.'
-    >
-      {messages.map((message, index) => (
-        <li key={`${message.meta}-${index}-${message.text}`} className={message.className}>
-          <div className='messageMetaRow'>
-            <p className='meta'>{message.meta}</p>
-          </div>
-          <p className='messageText'>{message.text}</p>
-        </li>
-      ))}
+    <ol id='messageList' className='list' aria-label='Home chat messages'>
+      {messages.length === 0 ? (
+        <ListEmptyState
+          icon={<MessageCircle size={18} />}
+          title='No messages yet'
+          copy='Send the first line from this desktop.'
+        />
+      ) : (
+        messages.map((message, index) => (
+          <li key={`${message.meta}-${index}-${message.text}`} className={message.className}>
+            <div className='messageMetaRow'>
+              <p className='meta'>{message.meta}</p>
+            </div>
+            <p className='messageText'>{message.text}</p>
+          </li>
+        ))
+      )}
     </ol>
   )
 }
 
 function DirectMessageList({ messages, onAccept, onIgnore }) {
   return (
-    <ol
-      id='dmList'
-      className='list'
-      aria-label='Direct messages'
-      data-empty='No direct messages yet'
-      data-empty-detail='Choose a trusted friend and send the first message.'
-    >
-      {messages.map((message, index) => (
-        <li key={`${message.meta}-${index}-${message.text}`} className={message.className}>
-          <div className='messageMetaRow'>
-            <p className='meta'>{message.meta}</p>
-          </div>
-          <p className='messageText'>{message.text}</p>
-          {message.actions ? (
-            <div className='inlineActions'>
-              <button
-                className='smallButton'
-                type='button'
-                onClick={() => onIgnore(message.actions.ignoreMessage)}
-              >
-                Ignore
-              </button>
-              <button
-                className='smallButton'
-                type='button'
-                onClick={() => onAccept(message.actions.acceptMessage)}
-              >
-                Accept
-              </button>
+    <ol id='dmList' className='list' aria-label='Direct messages'>
+      {messages.length === 0 ? (
+        <ListEmptyState
+          icon={<Send size={18} />}
+          title='No direct messages yet'
+          copy='Choose a trusted friend and send the first message.'
+        />
+      ) : (
+        messages.map((message, index) => (
+          <li key={`${message.meta}-${index}-${message.text}`} className={message.className}>
+            <div className='messageMetaRow'>
+              <p className='meta'>{message.meta}</p>
             </div>
-          ) : null}
-        </li>
-      ))}
+            <p className='messageText'>{message.text}</p>
+            {message.actions ? (
+              <div className='inlineActions'>
+                <button
+                  className='smallButton'
+                  type='button'
+                  onClick={() => onIgnore(message.actions.ignoreMessage)}
+                >
+                  Ignore
+                </button>
+                <button
+                  className='smallButton'
+                  type='button'
+                  onClick={() => onAccept(message.actions.acceptMessage)}
+                >
+                  Accept
+                </button>
+              </div>
+            ) : null}
+          </li>
+        ))
+      )}
     </ol>
   )
 }
@@ -294,36 +298,52 @@ function DirectContactPicker({ actions, contacts, empty, selectedProfileId }) {
 
 function TreeholeList({ actions, posts }) {
   return (
-    <ol
-      id='treeholeList'
-      className='list posts'
-      aria-label='Treehole posts'
-      data-empty='No posts yet'
-      data-empty-detail='Posts from this home will appear here.'
-    >
-      {posts.map((post, index) => (
-        <li key={`${post.timeLabel}-${index}-${post.text}`} className={post.className}>
-          <div className='postHead'>
-            <p className='meta'>{post.authorLabel}</p>
-            <p className='time'>{post.timeLabel}</p>
-          </div>
-          <p className='postText'>{post.text}</p>
-          <p className='stats'>{post.statsLabel}</p>
-          <div className='comments'>
-            {(post.comments || []).map((comment, commentIndex) => (
-              <div
-                key={`${comment.authorLabel}-${commentIndex}-${comment.text}`}
-                className={comment.className}
-              >
-                <p className='meta'>{comment.authorLabel}</p>
-                <p>{comment.text}</p>
-              </div>
-            ))}
-          </div>
-          <TreeholePostActions actions={actions} post={post} />
-        </li>
-      ))}
+    <ol id='treeholeList' className='list posts' aria-label='Treehole posts'>
+      {posts.length === 0 ? (
+        <ListEmptyState
+          icon={<Sprout size={18} />}
+          title='No posts yet'
+          copy='Posts from this home will appear here.'
+        />
+      ) : (
+        posts.map((post, index) => (
+          <li key={`${post.timeLabel}-${index}-${post.text}`} className={post.className}>
+            <div className='postHead'>
+              <p className='meta'>{post.authorLabel}</p>
+              <p className='time'>{post.timeLabel}</p>
+            </div>
+            <p className='postText'>{post.text}</p>
+            <p className='stats'>{post.statsLabel}</p>
+            <div className='comments'>
+              {(post.comments || []).map((comment, commentIndex) => (
+                <div
+                  key={`${comment.authorLabel}-${commentIndex}-${comment.text}`}
+                  className={comment.className}
+                >
+                  <p className='meta'>{comment.authorLabel}</p>
+                  <p>{comment.text}</p>
+                </div>
+              ))}
+            </div>
+            <TreeholePostActions actions={actions} post={post} />
+          </li>
+        ))
+      )}
     </ol>
+  )
+}
+
+function ListEmptyState({ copy, icon, title }) {
+  return (
+    <li className='listEmpty'>
+      <span className='listEmptyIcon' aria-hidden='true'>
+        {icon}
+      </span>
+      <div>
+        <p className='listEmptyTitle'>{title}</p>
+        <p className='listEmptyCopy'>{copy}</p>
+      </div>
+    </li>
   )
 }
 

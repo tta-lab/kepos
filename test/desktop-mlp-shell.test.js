@@ -487,26 +487,21 @@ test('desktop primary panes expose short empty states before content arrives', a
   )
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
 
-  assert.match(source, /id='messageList'[^>]+data-empty='No messages yet'/)
-  assert.match(
-    source,
-    /id='messageList'[^>]+data-empty-detail='Send the first line from this desktop\.'/
-  )
-  assert.match(source, /id='dmList'[^>]+data-empty='No direct messages yet'/)
-  assert.match(
-    source,
-    /id='dmList'[^>]+data-empty-detail='Choose a trusted friend and send the first message\.'/
-  )
-  assert.match(source, /id='treeholeList'[^>]+data-empty='No posts yet'/)
-  assert.match(
-    source,
-    /id='treeholeList'[^>]+data-empty-detail='Posts from this home will appear here\.'/
-  )
+  assert.match(source, /function ListEmptyState\(\{ copy, icon, title \}\)/)
+  assert.match(source, /messages\.length === 0 \?/)
+  assert.match(source, /<ListEmptyState[\s\S]*title='No messages yet'/)
+  assert.match(source, /copy='Send the first line from this desktop\.'/)
+  assert.match(source, /<ListEmptyState[\s\S]*title='No direct messages yet'/)
+  assert.match(source, /copy='Choose a trusted friend and send the first message\.'/)
+  assert.match(source, /<ListEmptyState[\s\S]*title='No posts yet'/)
+  assert.match(source, /copy='Posts from this home will appear here\.'/)
   assert.equal(source.includes('No DMs yet'), false)
-  assert.match(styles, /\.list:empty::before/)
-  assert.match(styles, /content:\s*attr\(data-empty\)/)
-  assert.match(styles, /\.list:empty::after/)
-  assert.match(styles, /content:\s*attr\(data-empty-detail\)/)
+  assert.match(styles, /\.listEmpty/)
+  assert.match(styles, /\.listEmptyIcon/)
+  assert.doesNotMatch(styles, /\.list:empty::before/)
+  assert.doesNotMatch(styles, /content:\s*attr\(data-empty\)/)
+  assert.doesNotMatch(styles, /\.list:empty::after/)
+  assert.doesNotMatch(styles, /content:\s*attr\(data-empty-detail\)/)
   assert.match(presenter, /createDesktopHomeChatViewModel/)
   assert.match(presenter, /createDesktopTreeholeViewModel/)
 })
