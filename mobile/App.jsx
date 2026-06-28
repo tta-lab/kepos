@@ -18,8 +18,8 @@ import {
 import {
   ArrowRight,
   Check,
+  DoorOpen,
   Heart,
-  House,
   LogOut,
   MessageCircle,
   Plus,
@@ -1378,7 +1378,7 @@ function ChatRoom({
       <View style={styles.tabs}>
         <TabButton
           active={activeTab === 'chat'}
-          icon={House}
+          icon={DoorOpen}
           label='Home'
           onPress={() => onTabChange('chat')}
           testID='chat-tab'

@@ -42,6 +42,9 @@ test('mobile tabs surface pending direct and people work without changing tab la
   assert.match(copy, /return badgeCount > 99 \? '99\+' : String\(badgeCount\)/)
   assert.match(source, /tabBadge: \{/)
   assert.match(source, /tabBadgeText: \{/)
+  assert.match(source, /\bDoorOpen,\n\s+Heart,/)
+  assert.match(source, /icon=\{DoorOpen\}[\s\S]*label='Home'/)
+  assert.doesNotMatch(source, /\bHouse,\n\s+LogOut,/)
 })
 
 test('mobile request actions use icon-led trust controls', async () => {
