@@ -28,6 +28,8 @@ try {
   app = await launchDesktopApp()
   const page = await app.firstWindow({ timeout: 60000 })
   await page.waitForLoadState('domcontentloaded')
+  await page.setViewportSize({ height: 900, width: 1280 })
+  await page.bringToFront()
   page.on('console', (message) => {
     if (message.type() === 'error') console.error(`[desktop] ${message.text()}`)
   })
@@ -41,18 +43,22 @@ try {
   await waitForAndroidAppSurface()
   await leaveAndroidHomeIfNeeded()
 
-  await page.click('#showLargeProfileQrButton')
+  await clickDesktopContextButton(page, '#showLargeProfileQrButton')
   await page.locator('#largeQrDialog:not(.hidden)').waitFor({ state: 'visible' })
+  await page.bringToFront()
   await openAndroidScanner('quick-scan-profile-qr-button')
   console.log('Point the Android camera at the desktop Profile QR.')
-  await waitForAndroidText('Trusted friend added.', { timeoutMs: 180000 })
+  await waitForAndroidTextWithDiagnostics(page, 'Trusted friend added.', 'profile', {
+    timeoutMs: 180000
+  })
   await page.click('#largeQrCloseButton')
 
-  await page.click('#showLargeHomeQrButton')
+  await clickDesktopContextButton(page, '#showLargeHomeQrButton')
   await page.locator('#largeQrDialog:not(.hidden)').waitFor({ state: 'visible' })
+  await page.bringToFront()
   await openAndroidScanner('quick-scan-home-qr-button')
   console.log('Point the Android camera at the desktop Home QR.')
-  await waitForAndroidText('Connected.', { timeoutMs: 180000 })
+  await waitForAndroidTextWithDiagnostics(page, 'Connected.', 'home', { timeoutMs: 180000 })
   await page.click('#largeQrCloseButton')
 
   await waitForAndroidResourceId('home-title')
@@ -119,6 +125,16 @@ async function openAndroidScanner(testId) {
   await waitForAndroidResourceId('qr-scanner-camera')
 }
 
+async function clickDesktopContextButton(page, selector) {
+  const button = page.locator(selector)
+  await button.evaluate((node) => {
+    const group = node.closest('details')
+    if (group) group.open = true
+    node.scrollIntoView({ block: 'center', inline: 'center' })
+  })
+  await button.click()
+}
+
 async function leaveAndroidHomeIfNeeded() {
   const xml = dumpAndroidUi()
   if (!boundsByResourceId(xml, 'leave-home-button')) return
@@ -182,6 +198,22 @@ async function waitForAndroidText(text, { timeoutMs = 60000 } = {}) {
     `Android text ${text}`,
     { timeoutMs }
   )
+}
+
+async function waitForAndroidTextWithDiagnostics(page, text, label, { timeoutMs }) {
+  try {
+    await waitForAndroidText(text, { timeoutMs })
+  } catch (error) {
+    const screenshotPath = path.join(os.tmpdir(), `kepos-physical-qr-${label}-desktop.png`)
+    await page.screenshot({ fullPage: true, path: screenshotPath }).catch(() => {})
+    const focus = runAdbAllowFailure(['shell', 'dumpsys', 'window'])
+      .split('\n')
+      .filter((line) => line.includes('mCurrentFocus') || line.includes('mFocusedApp'))
+      .join('\n')
+    throw new Error(
+      `${error.message}\nDesktop screenshot: ${screenshotPath}\nAndroid focus:\n${focus}`
+    )
+  }
 }
 
 function tapAndroidResourceId(resourceId) {
@@ -250,6 +282,15 @@ function runAdb(args) {
   }
 
   return result.stdout
+}
+
+function runAdbAllowFailure(args) {
+  const result = spawnSync('adb', ['-s', serial, ...args], {
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe']
+  })
+
+  return result.stdout || result.stderr || ''
 }
 
 function delay(ms) {
