@@ -53,6 +53,7 @@ test('desktop controller delegates backend session composition to a boundary', a
 
   assert.match(source, /createDesktopBackendSession/)
   assert.match(source, /function getLocalBackendSession\(\)/)
+  assert.match(source, /mode: globalThis\.keposBackend \? 'preload' : 'auto'/)
   assert.match(
     source,
     /createLocalBackend: \(\) => getLocalBackendSession\(\)\.backendHost\.bridge/

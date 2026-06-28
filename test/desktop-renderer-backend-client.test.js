@@ -90,10 +90,10 @@ test('desktop renderer backend client reports whether auto mode has a managed pr
 
   assert.equal(unmanagedClient.hasPreloadBackend(), false)
   assert.equal(managedClient.hasPreloadBackend(), true)
-  assert.equal(explicitPreloadClient.hasPreloadBackend(), false)
+  assert.equal(explicitPreloadClient.hasPreloadBackend(), true)
 })
 
-test('desktop renderer backend client reports disconnected preload outside auto mode', () => {
+test('desktop renderer backend client reports connected preload in explicit preload mode', () => {
   const preload = createBackend('preload', [])
   preload.isConnected = () => true
   const client = createDesktopRendererBackendClient({
@@ -102,7 +102,7 @@ test('desktop renderer backend client reports disconnected preload outside auto 
     preloadBackend: preload
   })
 
-  assert.equal(client.isPreloadConnected(), false)
+  assert.equal(client.isPreloadConnected(), true)
 })
 
 test('desktop renderer backend client does not create local fallback when preload is connected', async () => {

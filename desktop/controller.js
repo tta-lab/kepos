@@ -36,7 +36,8 @@ const qrActions = createDesktopQrActions({
   setShareQrOutputs: (outputs) => globalThis.keposDesktopUi?.setShareQrOutputs(outputs)
 })
 const backendClient = createDesktopRendererBackendClient({
-  createLocalBackend: () => getLocalBackendSession().backendHost.bridge
+  createLocalBackend: () => getLocalBackendSession().backendHost.bridge,
+  mode: globalThis.keposBackend ? 'preload' : 'auto'
 })
 const commandDispatcher = createDesktopCommandDispatcher({
   backendClient,

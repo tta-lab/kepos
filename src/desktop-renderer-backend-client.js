@@ -16,9 +16,11 @@ export function createDesktopRendererBackendClient({
       return await backend.dispatch(command, payload)
     },
     hasPreloadBackend() {
+      if (mode === 'preload') return hasUsablePreloadBackend(preloadBackend)
       return mode === 'auto' && hasManagedPreloadBackend(preloadBackend)
     },
     isPreloadConnected() {
+      if (mode === 'preload') return isConnectedPreloadBackend(preloadBackend)
       return mode === 'auto' && isConnectedPreloadBackend(preloadBackend)
     },
     subscribe(event, handler) {
@@ -79,33 +81,29 @@ function requireLocalBackend(localBackend) {
 }
 
 function requirePreloadBackend(preloadBackend) {
-  if (
-    !preloadBackend ||
-    typeof preloadBackend.dispatch !== 'function' ||
-    typeof preloadBackend.subscribe !== 'function'
-  ) {
+  if (!hasUsablePreloadBackend(preloadBackend)) {
     throw new Error('Desktop preload backend is unavailable')
   }
 
   return preloadBackend
 }
 
-function hasManagedPreloadBackend(preloadBackend) {
+function hasUsablePreloadBackend(preloadBackend) {
   return (
     typeof preloadBackend?.dispatch === 'function' &&
-    typeof preloadBackend?.subscribe === 'function' &&
-    typeof preloadBackend?.onConnected === 'function'
+    typeof preloadBackend?.subscribe === 'function'
+  )
+}
+
+function hasManagedPreloadBackend(preloadBackend) {
+  return (
+    hasUsablePreloadBackend(preloadBackend) && typeof preloadBackend?.onConnected === 'function'
   )
 }
 
 function isConnectedPreloadBackend(preloadBackend) {
   if (!preloadBackend) return false
-  if (
-    typeof preloadBackend.dispatch !== 'function' ||
-    typeof preloadBackend.subscribe !== 'function'
-  ) {
-    return false
-  }
+  if (!hasUsablePreloadBackend(preloadBackend)) return false
 
   if (typeof preloadBackend.isConnected === 'function') return preloadBackend.isConnected()
   return preloadBackend.isConnected === true
