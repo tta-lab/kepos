@@ -6,7 +6,7 @@ export function AppRail({ activeTab, navBadges, shellActions }) {
   return (
     <aside className='appRail' aria-label='Kepos views'>
       <div className='mark'>K</div>
-      <nav className='railNav' aria-label='Main views'>
+      <nav className='railNav' aria-label='Main views' role='tablist'>
         <RailButton
           id='chatTab'
           icon={<MessageCircle size={19} />}
@@ -153,8 +153,9 @@ function RailButton({ badgeCount = 0, icon, id, isActive, label, onSelect, title
       className={isActive ? 'railButton active' : 'railButton'}
       type='button'
       title={title}
+      role='tab'
       aria-label={getRailButtonLabel(label, badgeCount)}
-      aria-current={isActive ? 'page' : undefined}
+      aria-selected={isActive}
       onClick={onSelect}
     >
       {icon}
