@@ -204,7 +204,9 @@ async function readAndroidProfileUri() {
     await delay(1000)
   }
 
-  throw new Error('Unable to read Android profile URI from UI')
+  throw new Error(
+    `Unable to read Android profile URI from UI\n${await createAndroidDiagnostics('profile-uri')}`
+  )
 }
 
 async function revealAndroidAdvancedShare() {
@@ -239,7 +241,7 @@ async function revealAndroidAdvancedShare() {
     id: 'advanced-share-toggle'
 `
   )
-  runMaestro(['test', flow])
+  await runMaestroWithAndroidDiagnostics(['test', flow], 'advanced-share')
 }
 
 async function writeAndroidContactBook({ alias, ownerProfileId, trustedProfileId }) {
@@ -298,7 +300,7 @@ async function runAndroidJoinFlow(roomKey, directEndpoint) {
     id: 'manual-home-key-input'
 `
   )
-  runMaestro(['test', openFlow])
+  await runMaestroWithAndroidDiagnostics(['test', openFlow], 'debug-join-open')
   runAdb(['shell', 'input', 'text', roomKey])
   if (directEndpoint) {
     runAdb(['shell', 'input', 'keyevent', 'KEYCODE_BACK'])
@@ -326,7 +328,7 @@ async function runAndroidJoinFlow(roomKey, directEndpoint) {
     id: 'chat-tab'
 `
   )
-  runMaestro(['test', submitFlow])
+  await runMaestroWithAndroidDiagnostics(['test', submitFlow], 'debug-join-submit')
 }
 
 function launchAndroidDevClient() {
@@ -433,7 +435,7 @@ async function sendAndroidChat() {
     id: 'chat-send-button'
 `
   )
-  runMaestro(['test', flow])
+  await runMaestroWithAndroidDiagnostics(['test', flow], 'debug-chat')
 }
 
 async function sendAndroidMessageRequest() {
@@ -481,7 +483,7 @@ async function sendAndroidDirectMessage({ fileName, text }) {
     id: 'dm-send-button'
 `
   )
-  runMaestro(['test', flow])
+  await runMaestroWithAndroidDiagnostics(['test', flow], fileName.replace(/\.yaml$/, ''))
 }
 
 async function sendDesktopDmBody(page, toProfileId, text) {
@@ -589,7 +591,7 @@ async function tapAndroidByTestId(testId) {
     id: '${testId}'
 `
   )
-  runMaestro(['test', flow])
+  await runMaestroWithAndroidDiagnostics(['test', flow], testId)
 }
 
 async function waitForAndroidText(text) {
@@ -609,6 +611,39 @@ async function waitForAndroidTextWithSnapshot(page, text) {
 
 function dumpAndroidUi() {
   return runAdb(['exec-out', 'uiautomator', 'dump', '/dev/tty'])
+}
+
+async function runMaestroWithAndroidDiagnostics(args, label) {
+  try {
+    runMaestro(args)
+  } catch (error) {
+    throw new Error(`${error.message}\n${await createAndroidDiagnostics(label)}`)
+  }
+}
+
+async function createAndroidDiagnostics(label) {
+  const prefix = path.join(os.tmpdir(), `kepos-two-device-${label}`)
+  const screenshotPath = `${prefix}-android.png`
+  const xmlPath = `${prefix}-android.xml`
+
+  await captureAndroidScreenshot(screenshotPath).catch(() => {})
+  await writeFile(xmlPath, dumpAndroidUi()).catch(() => {})
+
+  return `Android screenshot: ${screenshotPath}\nAndroid UI XML: ${xmlPath}`
+}
+
+async function captureAndroidScreenshot(filePath) {
+  const result = spawnSync('adb', ['-s', serial, 'exec-out', 'screencap', '-p'], {
+    encoding: 'buffer',
+    maxBuffer: 10 * 1024 * 1024,
+    stdio: ['ignore', 'pipe', 'pipe']
+  })
+
+  if (result.status !== 0) {
+    throw new Error(`adb screencap failed: ${result.stderr?.toString() || result.stdout}`)
+  }
+
+  await writeFile(filePath, result.stdout)
 }
 
 function textByResourceId(xml, resourceId) {
