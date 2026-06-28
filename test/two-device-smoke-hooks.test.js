@@ -572,6 +572,32 @@ test('Android direct message empty state avoids DM shorthand', async () => {
   assert.equal(source.includes('send the first DM.'), false)
 })
 
+test('Android message empty states share layout with contextual icons', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const emptyState = source.slice(
+    source.indexOf('function EmptyState('),
+    source.indexOf('function EmptyTreehole(')
+  )
+  const emptyMessages = source.slice(
+    source.indexOf('function EmptyMessages('),
+    source.indexOf('function EmptyDirectMessages(')
+  )
+  const emptyDirectMessages = source.slice(
+    source.indexOf('function EmptyDirectMessages('),
+    source.indexOf('function DirectBubble(')
+  )
+  const emptyTreehole = source.slice(
+    source.indexOf('function EmptyTreehole('),
+    source.indexOf('function PaneLabel(')
+  )
+
+  assert.match(emptyState, /function EmptyState\(\{\s*copy,\s*icon: Icon,\s*title\s*\}\)/)
+  assert.match(emptyState, /<Icon color=\{theme\.iconMuted\} size=\{34\} \/>/)
+  assert.match(emptyMessages, /<EmptyState[\s\S]*icon=\{MessageCircle\}/)
+  assert.match(emptyDirectMessages, /<EmptyState[\s\S]*icon=\{Send\}/)
+  assert.match(emptyTreehole, /<EmptyState[\s\S]*icon=\{Sprout\}/)
+})
+
 test('Android direct message composer keeps revoke in People', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
   const directPane = source.slice(

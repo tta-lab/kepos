@@ -2019,16 +2019,20 @@ function TreeholePane({
   )
 }
 
-function EmptyTreehole({ status }) {
+function EmptyState({ copy, icon: Icon, title }) {
   const { styles, theme } = useMobileTheme()
 
   return (
     <View style={styles.empty}>
-      <MessageCircle color={theme.iconMuted} size={34} />
-      <Text style={styles.emptyTitle}>No posts yet</Text>
-      <Text style={styles.emptyCopy}>{treeholeStatusText(status)}</Text>
+      <Icon color={theme.iconMuted} size={34} />
+      <Text style={styles.emptyTitle}>{title}</Text>
+      <Text style={styles.emptyCopy}>{copy}</Text>
     </View>
   )
+}
+
+function EmptyTreehole({ status }) {
+  return <EmptyState copy={treeholeStatusText(status)} icon={Sprout} title='No posts yet' />
 }
 
 function PaneLabel({ eyebrow, title }) {
@@ -2225,26 +2229,22 @@ function formatMessageRequestTitle(request) {
 }
 
 function EmptyMessages() {
-  const { styles, theme } = useMobileTheme()
-
   return (
-    <View style={styles.empty}>
-      <MessageCircle color={theme.iconMuted} size={34} />
-      <Text style={styles.emptyTitle}>No messages yet</Text>
-      <Text style={styles.emptyCopy}>Send the first line from this phone.</Text>
-    </View>
+    <EmptyState
+      copy='Send the first line from this phone.'
+      icon={MessageCircle}
+      title='No messages yet'
+    />
   )
 }
 
 function EmptyDirectMessages() {
-  const { styles, theme } = useMobileTheme()
-
   return (
-    <View style={styles.empty}>
-      <MessageCircle color={theme.iconMuted} size={34} />
-      <Text style={styles.emptyTitle}>No direct messages yet</Text>
-      <Text style={styles.emptyCopy}>Choose a trusted friend and send the first message.</Text>
-    </View>
+    <EmptyState
+      copy='Choose a trusted friend and send the first message.'
+      icon={Send}
+      title='No direct messages yet'
+    />
   )
 }
 
