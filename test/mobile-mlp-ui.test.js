@@ -138,6 +138,8 @@ test('mobile small trust and treehole actions share one icon button component', 
 
   assert.match(smallActionButton, /function MobileSmallActionButton\(/)
   assert.match(smallActionButton, /const isDanger = variant === 'danger'/)
+  assert.match(smallActionButton, /accessibilityRole='button'/)
+  assert.match(smallActionButton, /accessibilityState=\{\{ disabled \}\}/)
   assert.match(smallActionButton, /isDanger \? styles\.revokeButton : styles\.smallActionButton/)
   assert.match(smallActionButton, /disabled && styles\.disabledSmallActionButton/)
   assert.match(contactManager, /<MobileSmallActionButton[\s\S]*variant='danger'/)
@@ -203,6 +205,7 @@ test('mobile room and direct advanced toggles share one component', async () => 
   )
 
   assert.match(advancedToggle, /function MobileAdvancedToggle\(/)
+  assert.match(advancedToggle, /accessibilityRole='button'/)
   assert.match(advancedToggle, /accessibilityState=\{\{ expanded \}\}/)
   assert.match(advancedToggle, /variant === 'compact'/)
   assert.match(advancedToggle, /styles\.directAdvancedToggle : styles\.roomAdvancedButton/)
@@ -226,6 +229,7 @@ test('mobile top-bar icon controls share one icon button component', async () =>
     /function MobileIconButton\(\{ accessibilityLabel, icon: Icon, onPress, testID \}\)/
   )
   assert.match(iconButton, /accessibilityLabel=\{accessibilityLabel\}/)
+  assert.match(iconButton, /accessibilityRole='button'/)
   assert.match(iconButton, /style=\{styles\.iconButton\}/)
   assert.match(iconButton, /<Icon color=\{theme\.accentStrong\} size=\{18\} \/>/)
   assert.match(chatRoom, /<MobileIconButton[\s\S]*accessibilityLabel='Leave home'/)
@@ -247,6 +251,7 @@ test('mobile QR scanner cancel uses a focused scanner action component', async (
   assert.match(qrScanner, /<MobileScannerCancelButton onPress=\{onCancel\} \/>/)
   assert.match(scannerCancelButton, /function MobileScannerCancelButton\(\{ onPress \}\)/)
   assert.match(scannerCancelButton, /accessibilityLabel='Cancel QR scan'/)
+  assert.match(scannerCancelButton, /accessibilityRole='button'/)
   assert.match(scannerCancelButton, /style=\{styles\.scannerCancel\}/)
   assert.match(scannerCancelButton, /testID='qr-scanner-cancel'/)
   assert.match(scannerCancelButton, /<Text style=\{styles\.scannerCancelText\}>Cancel<\/Text>/)
@@ -273,6 +278,12 @@ test('mobile setup actions share one icon button component', async () => {
 
   assert.match(actionButton, /function MobileActionButton\(/)
   assert.match(actionButton, /const isPrimary = variant === 'primary'/)
+  assert.match(
+    actionButton,
+    /const buttonAccessibilityState = \{ \.\.\.accessibilityState, disabled \}/
+  )
+  assert.match(actionButton, /accessibilityRole='button'/)
+  assert.match(actionButton, /accessibilityState=\{buttonAccessibilityState\}/)
   assert.match(actionButton, /disabled && styles\.disabledButton/)
   assert.match(actionButton, /icon: Icon/)
   assert.match(lobby, /<MobileActionButton[\s\S]*testID='advanced-join-toggle'/)
@@ -308,6 +319,8 @@ test('mobile composers share one send button component', async () => {
   )
 
   assert.match(sendButton, /function MobileSendButton\(/)
+  assert.match(sendButton, /accessibilityRole='button'/)
+  assert.match(sendButton, /accessibilityState=\{\{ disabled \}\}/)
   assert.match(sendButton, /isSmall \? styles\.smallSendButton : styles\.sendButton/)
   assert.match(sendButton, /disabled && styles\.disabledSendButton/)
   assert.match(directPane, /<MobileSendButton[\s\S]*testID='dm-send-button'/)

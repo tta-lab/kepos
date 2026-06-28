@@ -1352,10 +1352,12 @@ function MobileActionButton({
   const { styles, theme } = useMobileTheme()
   const isPrimary = variant === 'primary'
   const iconColor = isPrimary ? theme.surface : disabled ? theme.placeholder : theme.accentStrong
+  const buttonAccessibilityState = { ...accessibilityState, disabled }
 
   return (
     <Pressable
-      accessibilityState={accessibilityState}
+      accessibilityRole='button'
+      accessibilityState={buttonAccessibilityState}
       disabled={disabled}
       onPress={onPress}
       style={[
@@ -1383,6 +1385,7 @@ function MobileIconButton({ accessibilityLabel, icon: Icon, onPress, testID }) {
   return (
     <Pressable
       accessibilityLabel={accessibilityLabel}
+      accessibilityRole='button'
       onPress={onPress}
       style={styles.iconButton}
       testID={testID}
@@ -1398,6 +1401,7 @@ function MobileScannerCancelButton({ onPress }) {
   return (
     <Pressable
       accessibilityLabel='Cancel QR scan'
+      accessibilityRole='button'
       onPress={onPress}
       style={styles.scannerCancel}
       testID='qr-scanner-cancel'
@@ -1420,6 +1424,8 @@ function MobileSendButton({
   return (
     <Pressable
       accessibilityLabel={accessibilityLabel}
+      accessibilityRole='button'
+      accessibilityState={{ disabled }}
       disabled={disabled}
       onPress={onPress}
       style={[
@@ -1439,6 +1445,7 @@ function MobileAdvancedToggle({ expanded, onPress, testID, variant = 'room' }) {
 
   return (
     <Pressable
+      accessibilityRole='button'
       accessibilityState={{ expanded }}
       onPress={onPress}
       style={isCompact ? styles.directAdvancedToggle : styles.roomAdvancedButton}
@@ -1494,6 +1501,8 @@ function MobileSmallActionButton({
   return (
     <Pressable
       accessibilityLabel={accessibilityLabel}
+      accessibilityRole='button'
+      accessibilityState={{ disabled }}
       disabled={disabled}
       onPress={onPress}
       style={[
