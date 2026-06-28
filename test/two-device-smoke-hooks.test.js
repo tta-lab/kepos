@@ -1063,7 +1063,7 @@ test('desktop large QR dialog renders scan-sized QR codes', async () => {
     'largeQrCode',
     'setLargeQr',
     'dangerouslySetInnerHTML',
-    'width: 520',
+    'width: 760',
     'largeQrDialog.hidden'
   ]) {
     assert.match(

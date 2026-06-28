@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process'
-import { mkdtemp, rm } from 'node:fs/promises'
+import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -204,16 +204,32 @@ async function waitForAndroidTextWithDiagnostics(page, text, label, { timeoutMs 
   try {
     await waitForAndroidText(text, { timeoutMs })
   } catch (error) {
-    const screenshotPath = path.join(os.tmpdir(), `kepos-physical-qr-${label}-desktop.png`)
-    await page.screenshot({ fullPage: true, path: screenshotPath }).catch(() => {})
+    const desktopScreenshotPath = path.join(os.tmpdir(), `kepos-physical-qr-${label}-desktop.png`)
+    const androidScreenshotPath = path.join(os.tmpdir(), `kepos-physical-qr-${label}-android.png`)
+    await page.screenshot({ fullPage: true, path: desktopScreenshotPath }).catch(() => {})
+    await captureAndroidScreenshot(androidScreenshotPath).catch(() => {})
     const focus = runAdbAllowFailure(['shell', 'dumpsys', 'window'])
       .split('\n')
       .filter((line) => line.includes('mCurrentFocus') || line.includes('mFocusedApp'))
       .join('\n')
     throw new Error(
-      `${error.message}\nDesktop screenshot: ${screenshotPath}\nAndroid focus:\n${focus}`
+      `${error.message}\nDesktop screenshot: ${desktopScreenshotPath}\nAndroid screenshot: ${androidScreenshotPath}\nAndroid focus:\n${focus}`
     )
   }
+}
+
+async function captureAndroidScreenshot(filePath) {
+  const result = spawnSync('adb', ['-s', serial, 'exec-out', 'screencap', '-p'], {
+    encoding: 'buffer',
+    maxBuffer: 10 * 1024 * 1024,
+    stdio: ['ignore', 'pipe', 'pipe']
+  })
+
+  if (result.status !== 0) {
+    throw new Error(`adb screencap failed: ${result.stderr?.toString() || result.stdout}`)
+  }
+
+  await writeFile(filePath, result.stdout)
 }
 
 function tapAndroidResourceId(resourceId) {

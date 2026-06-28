@@ -172,10 +172,10 @@ test('desktop QR service uses the browser-safe qrcode renderer for Bare worker',
 
 test('desktop QR service renders large QR SVG for dialogs', async () => {
   const svg = await renderDesktopQrSvg('kepos://profile?v=1&payload=test', {
-    margin: 2,
-    width: 520
+    margin: 4,
+    width: 760
   })
 
   assert.match(svg, /^<svg/)
-  assert.match(svg, /width="520"/)
+  assert.match(svg, /width="760"/)
 })

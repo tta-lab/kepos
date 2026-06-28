@@ -198,7 +198,7 @@ textarea {
   border-radius: 8px;
   display: grid;
   gap: 16px;
-  max-width: min(640px, 100%);
+  max-width: min(880px, 100%);
   padding: 18px;
 }
 
@@ -220,8 +220,8 @@ textarea {
 
 .largeQrCode svg {
   display: block;
-  height: min(520px, calc(100vw - 112px), calc(100vh - 170px));
-  width: min(520px, calc(100vw - 112px), calc(100vh - 170px));
+  height: min(760px, calc(100vw - 112px), calc(100vh - 170px));
+  width: min(760px, calc(100vw - 112px), calc(100vh - 170px));
 }
 
 .shell {

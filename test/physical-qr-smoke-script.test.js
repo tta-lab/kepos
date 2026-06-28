@@ -33,6 +33,8 @@ test('physical QR smoke stages desktop QR dialogs and Android scanners', async (
     'Connected.',
     'page.bringToFront()',
     'Desktop screenshot:',
+    'Android screenshot:',
+    "exec-out', 'screencap', '-p",
     'KEPOS_SMOKE_DESKTOP: usePearRuntime ? undefined'
   ]) {
     assert.match(source, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')))

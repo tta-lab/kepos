@@ -258,8 +258,8 @@ function createControllerQrActions() {
       const svg =
         getShareQrSvgForUri(uri) ||
         (await getLocalProfileApi().renderQrSvg(uri, {
-          margin: 2,
-          width: 520
+          margin: 4,
+          width: 760
         }))
       globalThis.keposDesktopUi?.setLargeQr({
         isOpen: true,
