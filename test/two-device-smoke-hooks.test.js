@@ -359,8 +359,12 @@ test('direct message meta avoids DM fallback and raw recipient framing', async (
 
 test('Android message bubbles separate metadata from readable bodies', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const copy = await readFile(new URL('../src/mobile-product-copy.js', import.meta.url), 'utf8')
 
   assert.match(source, /style=\{styles\.bubbleMetaRow\}/)
+  assert.match(source, /formatMobileHomeMessageMeta\(message\)/)
+  assert.match(copy, /function formatMobileHomeMessageMeta\(message\)/)
+  assert.equal(source.includes('{message.nick}</Text>'), false)
   assert.match(source, /style=\{\[\s*styles\.bubbleTextBlock/)
   assert.match(source, /bubbleMetaRow: \{/)
   assert.match(source, /bubbleTextBlock: \{/)

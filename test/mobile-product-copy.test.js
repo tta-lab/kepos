@@ -4,6 +4,7 @@ import {
   displayDirectPeer,
   displayPostAuthor,
   formatMobileDirectMessageMeta,
+  formatMobileHomeMessageMeta,
   formatMobilePostTime,
   formatMessageRequestTitle,
   formatMobileTrustSource,
@@ -122,6 +123,12 @@ test('mobile product copy formats direct message meta labels', () => {
     }),
     'Grace wants to start a direct chat.'
   )
+})
+
+test('mobile product copy formats home message sender labels', () => {
+  assert.equal(formatMobileHomeMessageMeta({ nick: ' Ada ' }), 'Ada')
+  assert.equal(formatMobileHomeMessageMeta({ nick: '' }), 'Someone')
+  assert.equal(formatMobileHomeMessageMeta({}), 'Someone')
 })
 
 test('mobile product copy formats treehole empty copy and post time', () => {

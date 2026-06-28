@@ -73,6 +73,7 @@ import { getScannedQrData } from '../src/mobile-qr-event.js'
 import {
   displayPostAuthor,
   formatMobileDirectMessageMeta,
+  formatMobileHomeMessageMeta,
   formatMobilePostTime,
   formatMessageRequestTitle,
   formatMobileTrustSource,
@@ -2228,7 +2229,9 @@ function MessageBubble({ message }) {
   return (
     <View style={[styles.bubble, outgoing ? styles.outBubble : styles.inBubble]}>
       <View style={styles.bubbleMetaRow}>
-        <Text style={[styles.bubbleMeta, !outgoing && styles.inBubbleMeta]}>{message.nick}</Text>
+        <Text style={[styles.bubbleMeta, !outgoing && styles.inBubbleMeta]}>
+          {formatMobileHomeMessageMeta(message)}
+        </Text>
       </View>
       <View
         style={[

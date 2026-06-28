@@ -111,6 +111,10 @@ export function formatMobileDirectMessageMeta(message) {
     : `${displayDirectPeer(message?.fromProfileId, message?.nick)} to you`
 }
 
+export function formatMobileHomeMessageMeta(message) {
+  return message?.nick?.trim() || 'Someone'
+}
+
 export function getMobileTabButtonLabel(label, badgeCount) {
   if (badgeCount > 0) {
     return `${label}, ${badgeCount} pending`
