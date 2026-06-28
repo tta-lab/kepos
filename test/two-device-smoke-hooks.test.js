@@ -306,10 +306,11 @@ test('DM request copy reads as a social action', async () => {
     'utf8'
   )
 
-  assert.match(mobile, /: formatMessageRequestTitle\(message\)/)
+  assert.match(mobile, /formatMobileDirectMessageMeta\(message\)/)
+  assert.match(mobileCopy, /formatMessageRequestTitle\(message\)/)
   assert.match(desktopDirectViewModel, /formatDesktopMessageRequestTitle/)
   assert.match(mobileCopy, /wants to start a direct chat/)
-  assert.match(mobile, /You asked someone to start a direct chat/)
+  assert.match(mobileCopy, /You asked someone to start a direct chat/)
   assert.match(desktopDirectViewModel, /You asked someone to start a direct chat/)
   assert.match(desktopPeopleViewModel, /wants to start a direct chat/)
   assert.match(mobile, /testID='message-request-ignore-button'/)
@@ -334,15 +335,23 @@ test('DM request copy reads as a social action', async () => {
 
 test('direct message meta avoids DM fallback and raw recipient framing', async () => {
   const mobile = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const mobileCopy = await readFile(
+    new URL('../src/mobile-product-copy.js', import.meta.url),
+    'utf8'
+  )
   const desktop = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const desktopDirectViewModel = await readFile(
     new URL('../src/desktop-direct-view-model.js', import.meta.url),
     'utf8'
   )
 
-  assert.match(mobile, /You to \${displayDirectPeer\(message\.toProfileId\)}/)
+  assert.match(mobile, /formatMobileDirectMessageMeta\(message\)/)
+  assert.match(mobileCopy, /You to \${displayDirectPeer\(message\?\.toProfileId\)}/)
   assert.match(desktopDirectViewModel, /You to \$\{displayDirectPeer\(message\.toProfileId/)
-  assert.match(mobile, /\${displayDirectPeer\(message\.fromProfileId, message\.nick\)} to you/)
+  assert.match(
+    mobileCopy,
+    /\${displayDirectPeer\(message\?\.fromProfileId, message\?\.nick\)} to you/
+  )
   assert.match(desktopDirectViewModel, /displayDirectPeer\(message\.fromProfileId/)
   assert.equal(mobile.includes("message.nick || 'DM'"), false)
   assert.equal(desktop.includes("message.nick || 'DM'"), false)

@@ -3,6 +3,7 @@ import test from 'node:test'
 import {
   displayDirectPeer,
   displayPostAuthor,
+  formatMobileDirectMessageMeta,
   formatMobilePostTime,
   formatMessageRequestTitle,
   formatMobileTrustSource,
@@ -84,6 +85,43 @@ test('mobile product copy formats profile and author labels', () => {
   assert.equal(displayPostAuthor({ author: 'anon-name' }), 'anon-name')
   assert.equal(displayPostAuthor({ authorProfileId: profileId }), '12345678...90abcdef')
   assert.equal(displayPostAuthor({}), 'anon')
+})
+
+test('mobile product copy formats direct message meta labels', () => {
+  const profileId = '1234567890abcdef1234567890abcdef'
+
+  assert.equal(
+    formatMobileDirectMessageMeta({
+      direction: 'out',
+      toProfileId: profileId,
+      type: 'kepos.dm.message.v1'
+    }),
+    'You to Profile 12345678...90abcdef'
+  )
+  assert.equal(
+    formatMobileDirectMessageMeta({
+      direction: 'in',
+      fromProfileId: profileId,
+      nick: ' Ada ',
+      type: 'kepos.dm.message.v1'
+    }),
+    'Ada to you'
+  )
+  assert.equal(
+    formatMobileDirectMessageMeta({
+      direction: 'out',
+      type: 'kepos.message.request.v1'
+    }),
+    'You asked someone to start a direct chat'
+  )
+  assert.equal(
+    formatMobileDirectMessageMeta({
+      alias: 'Grace',
+      direction: 'in',
+      type: 'kepos.message.request.v1'
+    }),
+    'Grace wants to start a direct chat.'
+  )
 })
 
 test('mobile product copy formats treehole empty copy and post time', () => {

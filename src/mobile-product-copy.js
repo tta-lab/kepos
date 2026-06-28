@@ -96,6 +96,21 @@ export function formatMessageRequestTitle(request) {
   return `${name} wants to start a direct chat.`
 }
 
+export function formatMobileDirectMessageMeta(message) {
+  const outgoing = message?.direction === 'out'
+  const isRequest = message?.type === 'kepos.message.request.v1'
+
+  if (isRequest) {
+    return outgoing
+      ? 'You asked someone to start a direct chat'
+      : formatMessageRequestTitle(message)
+  }
+
+  return outgoing
+    ? `You to ${displayDirectPeer(message?.toProfileId)}`
+    : `${displayDirectPeer(message?.fromProfileId, message?.nick)} to you`
+}
+
 export function getMobileTabButtonLabel(label, badgeCount) {
   if (badgeCount > 0) {
     return `${label}, ${badgeCount} pending`

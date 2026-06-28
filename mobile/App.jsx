@@ -71,8 +71,8 @@ import { getMobileThemeForScheme, mobileThemes } from '../src/mobile-theme-token
 import { applyMobileHomeQrScan, applyMobileProfileQrScan } from '../src/mobile-qr-actions.js'
 import { getScannedQrData } from '../src/mobile-qr-event.js'
 import {
-  displayDirectPeer,
   displayPostAuthor,
+  formatMobileDirectMessageMeta,
   formatMobilePostTime,
   formatMessageRequestTitle,
   formatMobileTrustSource,
@@ -2184,13 +2184,7 @@ function DirectBubble({ message, onAcceptRequest, onIgnoreRequest }) {
     <View style={[styles.bubble, outgoing ? styles.outBubble : styles.inBubble]}>
       <View style={styles.bubbleMetaRow}>
         <Text style={[styles.bubbleMeta, !outgoing && styles.inBubbleMeta]}>
-          {isRequest
-            ? outgoing
-              ? 'You asked someone to start a direct chat'
-              : formatMessageRequestTitle(message)
-            : outgoing
-              ? `You to ${displayDirectPeer(message.toProfileId)}`
-              : `${displayDirectPeer(message.fromProfileId, message.nick)} to you`}
+          {formatMobileDirectMessageMeta(message)}
         </Text>
       </View>
       <View
