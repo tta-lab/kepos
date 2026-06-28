@@ -66,7 +66,7 @@ import {
   getOrCreateMobileIdentity,
   getRequiredMobileDocumentDirectory
 } from '../src/mobile-profile.js'
-import { getMobileTabBadges } from '../src/mobile-room-view-model.js'
+import { getMobileRoomKeyPreview, getMobileTabBadges } from '../src/mobile-room-view-model.js'
 import { getMobileThemeForScheme, mobileThemes } from '../src/mobile-theme-tokens.js'
 import { applyMobileHomeQrScan, applyMobileProfileQrScan } from '../src/mobile-qr-actions.js'
 import { getScannedQrData } from '../src/mobile-qr-event.js'
@@ -1197,10 +1197,7 @@ function ChatRoom({
 }) {
   const { styles, theme } = useMobileTheme()
   const [showRoomAdvanced, setShowRoomAdvanced] = useState(false)
-  const roomShort = useMemo(
-    () => `${session.roomKey.slice(0, 8)}...${session.roomKey.slice(-8)}`,
-    [session.roomKey]
-  )
+  const roomShort = getMobileRoomKeyPreview(session)
   const roomSurface = getMobileRoomSurface(activeTab)
   const tabBadges = getMobileTabBadges({ dmMessages, pendingRequests })
 

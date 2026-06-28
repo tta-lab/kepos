@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { getMobileTabBadges } from '../src/mobile-room-view-model.js'
+import { getMobileRoomKeyPreview, getMobileTabBadges } from '../src/mobile-room-view-model.js'
 
 test('mobile room view model counts pending tab work', () => {
   assert.deepEqual(
@@ -25,4 +25,15 @@ test('mobile room view model treats missing lists as empty badge counts', () => 
     direct: 0,
     people: 0
   })
+})
+
+test('mobile room view model formats advanced home key preview', () => {
+  assert.equal(
+    getMobileRoomKeyPreview({
+      roomKey: '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef'
+    }),
+    '12345678...90abcdef'
+  )
+  assert.equal(getMobileRoomKeyPreview(null), '')
+  assert.equal(getMobileRoomKeyPreview({}), '')
 })
