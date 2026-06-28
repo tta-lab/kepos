@@ -15,6 +15,8 @@ const electronExecutable = path.join(
 
 const userDataDir = await mkdtemp(path.join(os.tmpdir(), 'kepos-desktop-smoke-'))
 const usePearRuntime = process.argv.includes('--pear')
+const homeMessageText = 'smoke home message'
+const treeholePostText = 'smoke treehole post'
 let app = null
 
 try {
@@ -65,12 +67,23 @@ try {
   await waitForText(page, '#noticeLabel', 'Home joined.')
   await page.locator('#leaveButton').waitFor({ state: 'visible' })
 
+  await page.fill('#chatInput', homeMessageText)
+  await page.click('#chatSendButton')
+  await waitForTextIncludes(page, '#messageList', homeMessageText)
+
+  await page.click('#treeholeTab')
+  await page.fill('#treeholeInput', treeholePostText)
+  await page.click('#treeholeSendButton')
+  await waitForTextIncludes(page, '#treeholeList', treeholePostText)
+
   const result = {
+    homeMessage: homeMessageText,
     homeUri: await page.locator('#homeQrOutput').inputValue(),
     notice: await page.locator('#noticeLabel').textContent(),
     peerCount: await page.locator('#peerLabel').textContent(),
     profileUri: await page.locator('#profileQrOutput').inputValue(),
     roomLabel: await page.locator('#roomKeyLabel').textContent(),
+    treeholePost: treeholePostText,
     treeholeStatus: await page.locator('#treeholeStatusLabel').textContent()
   }
 
@@ -90,6 +103,15 @@ async function waitForText(page, selector, expected) {
   const locator = page.locator(selector)
   await locator.waitFor({ state: 'visible' })
   await waitFor(async () => (await locator.textContent()) === expected, `${selector} text`)
+}
+
+async function waitForTextIncludes(page, selector, expected) {
+  const locator = page.locator(selector)
+  await locator.waitFor({ state: 'visible' })
+  await waitFor(
+    async () => (await locator.textContent())?.includes(expected),
+    `${selector} text includes ${expected}`
+  )
 }
 
 async function waitFor(predicate, label) {

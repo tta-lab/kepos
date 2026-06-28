@@ -18,6 +18,10 @@ test('desktop smoke is wired to Playwright Electron with isolated state', async 
   assert.match(source, /_electron/)
   assert.match(source, /--user-data-dir=/)
   assert.match(source, /KEPOS_SMOKE_DESKTOP/)
+  assert.match(source, /smoke home message/)
+  assert.match(source, /smoke treehole post/)
+  assert.match(source, /waitForTextIncludes\(page, '#messageList'/)
+  assert.match(source, /waitForTextIncludes\(page, '#treeholeList'/)
 })
 
 test('desktop pear smoke runs the Electron app through pear-runtime', async () => {
