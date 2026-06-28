@@ -38,3 +38,13 @@ test('V1 smoke docs include the desktop Pear Bare smoke path', async () => {
   assert.match(recipe, /Direct message request rows remain after app restart/)
   assert.match(recipe, /revoked trusted contact stays hidden\s+after restart/)
 })
+
+test('V1 UX docs include pending work badges in desktop and mobile navigation', async () => {
+  const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
+  const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
+
+  assert.match(audit, /desktop and mobile navigation surfaces pending Direct and People work/)
+  assert.match(ux, /Desktop rail badges now show pending Direct and People work/)
+  assert.match(ux, /Mobile tab\s+badges now show pending Direct and People work/)
+  assert.match(ux, /navigation accessibility labels include pending counts/)
+})
