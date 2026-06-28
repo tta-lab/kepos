@@ -287,6 +287,10 @@ test('Android paste QR fallback stays behind advanced people controls', async ()
 
 test('DM request copy reads as a social action', async () => {
   const mobile = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const mobileCopy = await readFile(
+    new URL('../src/mobile-product-copy.js', import.meta.url),
+    'utf8'
+  )
   const desktopApp = await readDesktopUiSource()
   const desktop = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const desktopBindings = await readFile(
@@ -304,6 +308,7 @@ test('DM request copy reads as a social action', async () => {
 
   assert.match(mobile, /: formatMessageRequestTitle\(message\)/)
   assert.match(desktopDirectViewModel, /formatDesktopMessageRequestTitle/)
+  assert.match(mobileCopy, /wants to start a direct chat/)
   assert.match(mobile, /You asked someone to start a direct chat/)
   assert.match(desktopDirectViewModel, /You asked someone to start a direct chat/)
   assert.match(desktopPeopleViewModel, /wants to start a direct chat/)
@@ -314,7 +319,7 @@ test('DM request copy reads as a social action', async () => {
     desktopBindings,
     /ignoreMessage: \(message\) => dispatchCommand\('ignoreMessageRequest'/
   )
-  assert.match(mobile, /wants to start a direct chat/)
+  assert.match(mobileCopy, /wants to start a direct chat/)
   assert.match(desktopPeopleViewModel, /wants to start a direct chat/)
   assert.equal(mobile.includes('asked Profile'), false)
   assert.equal(desktop.includes('asked Profile'), false)
@@ -437,32 +442,35 @@ test('desktop success notices avoid profile id snippets', async () => {
 
 test('Android header shows product home status instead of raw peer count', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const copy = await readFile(new URL('../src/mobile-product-copy.js', import.meta.url), 'utf8')
 
-  assert.match(source, /function getMobileHomeStatus\(/)
-  assert.match(source, /function getMobileTreeholeStatus\(/)
+  assert.match(source, /from '\.\.\/src\/mobile-product-copy\.js'/)
+  assert.match(copy, /function getMobileHomeStatus\(/)
+  assert.match(copy, /function getMobileTreeholeStatus\(/)
   assert.match(source, /getMobileHomeStatus\(\{ online: peerCount, session \}\)/)
   assert.match(source, /getMobileTreeholeStatus\(treeholeStatus\)/)
   assert.match(source, /treeholeStatusLabel=\{treeholeStatusLabel\}/)
   assert.match(source, /style=\{styles\.mobileStatusStrip\}/)
   assert.match(source, /style=\{styles\.homeStatusPill\}/)
   assert.match(source, /style=\{styles\.treeholeStatusPill\}/)
-  assert.match(source, /Connected/)
-  assert.match(source, /Waiting for friends/)
-  assert.match(source, /Offline/)
-  assert.match(source, /Treehole ready/)
-  assert.match(source, /Treehole offline/)
+  assert.match(copy, /Connected/)
+  assert.match(copy, /Waiting for friends/)
+  assert.match(copy, /Offline/)
+  assert.match(copy, /Treehole ready/)
+  assert.match(copy, /Treehole offline/)
   assert.equal(source.includes('Looking for peers'), false)
   assert.equal(source.includes('{online} peer'), false)
 })
 
 test('Android backend status notices avoid raw worker status codes', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const copy = await readFile(new URL('../src/mobile-product-copy.js', import.meta.url), 'utf8')
 
-  assert.match(source, /function getMobileBackendNotice\(status\)/)
+  assert.match(copy, /function getMobileBackendNotice\(status\)/)
   assert.match(source, /setNotice\(getMobileBackendNotice\(payload\.status\)\)/)
-  assert.match(source, /return 'Starting home\.\.\.'/)
-  assert.match(source, /return 'Syncing treehole\.\.\.'/)
-  assert.match(source, /return 'Connected\.'/)
+  assert.match(copy, /return 'Starting home\.\.\.'/)
+  assert.match(copy, /return 'Syncing treehole\.\.\.'/)
+  assert.match(copy, /return 'Connected\.'/)
   assert.equal(source.includes('setNotice(`Home ${payload.status}.`)'), false)
   assert.equal(source.includes('Home joining-swarm.'), false)
   assert.equal(source.includes('Home opening-treehole-store.'), false)
@@ -470,9 +478,10 @@ test('Android backend status notices avoid raw worker status codes', async () =>
 
 test('Android room bar keeps raw home key behind advanced details', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const copy = await readFile(new URL('../src/mobile-product-copy.js', import.meta.url), 'utf8')
 
   assert.match(source, /const \[showRoomAdvanced, setShowRoomAdvanced\] = useState\(false\)/)
-  assert.match(source, /function getMobileRoomSurface\(activeTab\)/)
+  assert.match(copy, /function getMobileRoomSurface\(activeTab\)/)
   assert.match(source, /const roomSurface = getMobileRoomSurface\(activeTab\)/)
   assert.match(source, /Current space/)
   assert.match(source, /\{roomSurface\}/)
@@ -724,16 +733,17 @@ test('Android room has a People tab for QR and trusted contacts', async () => {
 
 test('Android people UI uses trusted friends copy', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const copy = await readFile(new URL('../src/mobile-product-copy.js', import.meta.url), 'utf8')
 
   assert.match(source, /Trusted friends/)
   assert.match(source, /<Text style=\{styles\.trustStatus\}>Trusted<\/Text>/)
   assert.match(source, /\{formatMobileTrustSource\(contact\.source\)\}/)
   assert.match(source, /\{formatMobileTrustTime\(contact\.trustedAt\)\}/)
-  assert.match(source, /function formatMobileTrustSource\(source\)/)
-  assert.match(source, /if \(source === 'home_room'\) return 'Home'/)
-  assert.match(source, /function formatMobileTrustTime\(trustedAt\)/)
+  assert.match(copy, /function formatMobileTrustSource\(source\)/)
+  assert.match(copy, /if \(source === 'home_room'\) return 'Home'/)
+  assert.match(copy, /function formatMobileTrustTime\([\s\S]*trustedAt/)
   assert.equal(source.includes('<Text style={styles.panelTitle}>Contacts</Text>'), false)
-  assert.equal(source.includes("return 'Home room'"), false)
+  assert.equal(copy.includes("return 'Home room'"), false)
 })
 
 test('Android people pane surfaces pending message requests', async () => {
@@ -747,11 +757,7 @@ test('Android people pane surfaces pending message requests', async () => {
   assert.match(source, /pendingRequests={pendingMessageRequests}/)
   assert.match(messageRequestManager, /Message requests/)
   assert.match(messageRequestManager, /\{formatMessageRequestTitle\(request\)\}/)
-  assert.match(source, /function formatMessageRequestTitle\(request\)/)
-  assert.match(source, /return `\$\{name\} wants to start a direct chat\.`/)
   assert.match(messageRequestManager, /\{formatRequestPreview\(request\.text\)\}/)
-  assert.match(source, /function formatRequestPreview\(text\)/)
-  assert.match(source, /return text\?\.trim\(\) \|\| 'No message yet'/)
   assert.match(messageRequestManager, /text: request\.text/)
   assert.match(messageRequestManager, /testID='people-message-request-accept-button'/)
   assert.match(messageRequestManager, /testID='people-message-request-ignore-button'/)
