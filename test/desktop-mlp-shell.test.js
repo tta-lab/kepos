@@ -451,6 +451,20 @@ test('desktop panes label live and durable surfaces', async () => {
   assert.match(styles, /\.activeContactButton/)
 })
 
+test('desktop message rows separate metadata from readable message bodies', async () => {
+  const source = await readDesktopUiSource()
+  const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
+
+  assert.match(source, /className='messageMetaRow'/)
+  assert.match(source, /className='messageText'/)
+  assert.match(source, /className='postText'/)
+  assert.match(styles, /\.messageMetaRow/)
+  assert.match(styles, /\.messageText/)
+  assert.match(styles, /\.postText/)
+  assert.match(styles, /\.outgoing \.messageText/)
+  assert.match(styles, /\.incoming \.messageText/)
+})
+
 test('desktop rail keeps current view accessible', async () => {
   const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')

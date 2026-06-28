@@ -208,8 +208,10 @@ function HomeChatList({ messages }) {
     >
       {messages.map((message, index) => (
         <li key={`${message.meta}-${index}-${message.text}`} className={message.className}>
-          <p className='meta'>{message.meta}</p>
-          <p>{message.text}</p>
+          <div className='messageMetaRow'>
+            <p className='meta'>{message.meta}</p>
+          </div>
+          <p className='messageText'>{message.text}</p>
         </li>
       ))}
     </ol>
@@ -227,8 +229,10 @@ function DirectMessageList({ messages, onAccept, onIgnore }) {
     >
       {messages.map((message, index) => (
         <li key={`${message.meta}-${index}-${message.text}`} className={message.className}>
-          <p className='meta'>{message.meta}</p>
-          <p>{message.text}</p>
+          <div className='messageMetaRow'>
+            <p className='meta'>{message.meta}</p>
+          </div>
+          <p className='messageText'>{message.text}</p>
           {message.actions ? (
             <div className='inlineActions'>
               <button
@@ -299,7 +303,7 @@ function TreeholeList({ actions, posts }) {
             <p className='meta'>{post.authorLabel}</p>
             <p className='time'>{post.timeLabel}</p>
           </div>
-          <p>{post.text}</p>
+          <p className='postText'>{post.text}</p>
           <p className='stats'>{post.statsLabel}</p>
           <div className='comments'>
             {(post.comments || []).map((comment, commentIndex) => (

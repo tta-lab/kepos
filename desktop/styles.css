@@ -566,6 +566,32 @@ textarea {
   white-space: pre-wrap;
 }
 
+.messageMetaRow {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  min-height: 18px;
+}
+
+.messageMetaRow .meta {
+  margin: 0;
+}
+
+.messageText {
+  font-size: 14px;
+  line-height: 1.55;
+  margin: 8px 0 0;
+}
+
+.incoming .messageText {
+  color: var(--ink);
+}
+
+.outgoing .messageText {
+  color: var(--accent-ink);
+}
+
 .outgoing {
   background: var(--accent-strong);
   color: var(--accent-ink);
@@ -726,7 +752,14 @@ textarea {
 .postHead {
   align-items: center;
   display: flex;
+  gap: 12px;
   justify-content: space-between;
+}
+
+.postText {
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 10px 0 0;
 }
 
 .comments {
