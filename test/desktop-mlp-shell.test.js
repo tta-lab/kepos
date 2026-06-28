@@ -423,8 +423,12 @@ test('desktop request and QR dialog actions use clear icons', async () => {
   const shared = await readFile(new URL('../desktop/ui-components.jsx', import.meta.url), 'utf8')
 
   assert.match(source, /import \{ X \} from 'lucide-react'/)
-  assert.match(source, /id='largeQrCloseButton'[\s\S]*aria-label='Close QR dialog'/)
-  assert.match(source, /id='largeQrCloseButton'[\s\S]*<X size=\{16\} \/>/)
+  assert.match(source, /import \{ ActionButton \} from '\.\/ui-components\.jsx'/)
+  assert.match(
+    source,
+    /<ActionButton[\s\S]*ariaLabel='Close QR dialog'[\s\S]*autoFocus=\{qr\.isOpen\}[\s\S]*className='smallButton'[\s\S]*icon=\{<X size=\{16\} \/>\}[\s\S]*id='largeQrCloseButton'[\s\S]*label='Close'/
+  )
+  assert.match(shared, /autoFocus=\{autoFocus\}/)
   assert.match(shared, /import \{ Check, X \} from 'lucide-react'/)
   assert.match(shared, /export function RequestActionButton\(/)
   assert.match(shared, /const Icon = isAccept \? Check : X/)
@@ -794,6 +798,7 @@ test('desktop composers disable unavailable sends', async () => {
   )
   assert.match(shared, /export function ActionButton\(/)
   assert.match(shared, /aria-label=\{ariaLabel\}/)
+  assert.match(shared, /autoFocus=\{autoFocus\}/)
   assert.match(
     shared,
     /<ActionButton[\s\S]*className=\{className\}[\s\S]*disabled=\{disabled\}[\s\S]*icon=\{icon\}[\s\S]*id=\{id\}[\s\S]*label=\{label\}[\s\S]*type='submit'/

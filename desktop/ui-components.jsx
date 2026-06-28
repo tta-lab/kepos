@@ -36,6 +36,7 @@ export function SectionTitle({ icon, id, text }) {
 
 export function ActionButton({
   ariaLabel,
+  autoFocus,
   className,
   disabled = false,
   icon,
@@ -47,6 +48,7 @@ export function ActionButton({
   return (
     <button
       aria-label={ariaLabel}
+      autoFocus={autoFocus}
       className={className}
       id={id}
       type={type}

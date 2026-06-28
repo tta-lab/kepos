@@ -9,6 +9,7 @@ import { ContextPanel } from './context-components.jsx'
 import { DirectPane, HomePane, TreeholePane } from './pane-components.jsx'
 import { PeoplePane } from './people-components.jsx'
 import { AppRail, HomeStatusPanel, Topbar } from './shell-components.jsx'
+import { ActionButton } from './ui-components.jsx'
 
 function DesktopApp() {
   const model = useDesktopAppModel()
@@ -106,17 +107,15 @@ function LargeQrDialog({ onClose, qr }) {
           <p id='largeQrTitle' className='label'>
             {qr.title || 'QR'}
           </p>
-          <button
-            id='largeQrCloseButton'
-            className='smallButton'
-            type='button'
-            aria-label='Close QR dialog'
+          <ActionButton
+            ariaLabel='Close QR dialog'
             autoFocus={qr.isOpen}
+            className='smallButton'
+            icon={<X size={16} />}
+            id='largeQrCloseButton'
+            label='Close'
             onClick={onClose}
-          >
-            <X size={16} />
-            Close
-          </button>
+          />
         </div>
         <div
           id='largeQrCode'

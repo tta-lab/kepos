@@ -671,12 +671,17 @@ test('Android direct message composer keeps revoke in People', async () => {
     source.indexOf('function DirectPane('),
     source.indexOf('function ContactManager(')
   )
+  const contactChip = source.slice(
+    source.indexOf('function MobileContactChip('),
+    source.indexOf('function QuickStartPanel(')
+  )
   const contactManager = source.slice(source.indexOf('function ContactManager('))
 
   assert.match(directPane, /contactOptions\.map/)
+  assert.match(directPane, /<MobileContactChip[\s\S]*contact=\{contact\}/)
   assert.equal(directPane.includes('revokeChip'), false)
   assert.equal(directPane.includes('onRevokeContact'), false)
-  assert.match(directPane, /\{formatMobileTrustedContactName\(contact\)\}/)
+  assert.match(contactChip, /formatMobileTrustedContactName\(contact\)/)
   assert.equal(directPane.includes('{contact.alias}'), false)
   assert.match(contactManager, /onRevokeContact\(contact\.profileId\)/)
   assert.match(contactManager, /UserMinus/)
@@ -1060,7 +1065,7 @@ test('desktop large QR dialog is keyboard reachable', async () => {
     /showLargeProfileQr: \(\{ returnFocus \}\) =>[\s\S]*qrActions[\s\S]*\.showLargeQr\(\{[\s\S]*title: 'Profile QR'/
   )
   assert.match(actions, /largeQrReturnFocus = returnFocus/)
-  assert.match(app, /id='largeQrCloseButton'[\s\S]*autoFocus=\{qr\.isOpen\}/)
+  assert.match(app, /<ActionButton[\s\S]*autoFocus=\{qr\.isOpen\}[\s\S]*id='largeQrCloseButton'/)
   assert.match(actions, /largeQrReturnFocus\?\.focus\(\)/)
   assert.match(app, /event\.key === 'Escape'/)
   assert.match(app, /event\.target === event\.currentTarget/)

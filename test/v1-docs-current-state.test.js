@@ -140,6 +140,8 @@ test('V1 UX docs include desktop icon-led trust and QR actions', async () => {
   assert.match(audit, /desktop Direct request, People request, revoke, and large QR close actions/)
   assert.match(ux, /Desktop Direct request, People request, revoke, and large QR close actions/)
   assert.match(ux, /lucide icons with text labels/)
+  assert.match(audit, /desktop large QR close reuses the shared icon-led action button/)
+  assert.match(ux, /Desktop large QR close now reuses the shared icon-led action button/)
 })
 
 test('V1 UX docs include mobile icon-led request actions', async () => {
