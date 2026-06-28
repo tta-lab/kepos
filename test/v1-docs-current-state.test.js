@@ -13,6 +13,11 @@ test('V1 architecture docs describe the Pear Bare bridge as app-smoke proven', a
   assert.doesNotMatch(architecture, /Current status: pending\./)
   assert.doesNotMatch(architecture, /pending Bare bridge/)
   assert.doesNotMatch(audit, /next implementation phase should be the desktop backend bridge/i)
+  assert.doesNotMatch(audit, /Extend Pear\/Bare desktop smoke beyond Home create/)
+  assert.doesNotMatch(
+    audit,
+    /move the desktop runtime behind the preload\/main\/Bare worker bridge/
+  )
   assert.match(architecture, /smoke:desktop:pear/)
   assert.match(audit, /smoke:desktop:pear/)
 })
