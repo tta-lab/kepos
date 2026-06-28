@@ -76,6 +76,15 @@ test('V1 UX docs include mobile Direct zero-contact empty state polish', async (
   assert.match(ux, /before linking users to People/)
 })
 
+test('V1 UX docs include desktop Direct zero-contact empty state polish', async () => {
+  const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
+  const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
+
+  assert.match(audit, /desktop Direct's zero-contact contact picker now uses/)
+  assert.match(ux, /Desktop Direct's zero-contact contact picker now uses/)
+  assert.match(ux, /links directly to People/)
+})
+
 test('V1 UX docs include Home trust source product copy', async () => {
   const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
   const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')

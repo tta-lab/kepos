@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { MessageCircle, Send, Sprout } from 'lucide-react'
+import { MessageCircle, Send, Sprout, UserPlus } from 'lucide-react'
 import { PaneHeader } from './ui-components.jsx'
 
 export function HomePane({ activeTab, controls, messages, onSend }) {
@@ -270,9 +270,18 @@ function DirectContactPicker({ actions, contacts, empty, selectedProfileId }) {
     <div id='dmContactList' className='contactList'>
       {contacts.length === 0 ? (
         <div className='contactEmpty'>
-          <p className='contactEmptyTitle'>{empty.title}</p>
-          <p className='contactEmptyCopy'>{empty.copy}</p>
-          <button type='button' onClick={actions.openPeople}>
+          <span className='contactEmptyIcon' aria-hidden='true'>
+            <UserPlus size={18} />
+          </span>
+          <div>
+            <p className='contactEmptyTitle'>{empty.title}</p>
+            <p className='contactEmptyCopy'>{empty.copy}</p>
+          </div>
+          <button
+            className='smallButton contactEmptyAction'
+            type='button'
+            onClick={actions.openPeople}
+          >
             {empty.actionLabel}
           </button>
         </div>

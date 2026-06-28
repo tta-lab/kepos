@@ -724,13 +724,27 @@ textarea {
 }
 
 .contactEmpty {
+  align-items: start;
   background: var(--empty-bg);
   border: 1px dashed var(--border-strong);
   border-radius: 8px;
   display: grid;
-  gap: 8px;
+  gap: 10px;
+  grid-template-columns: auto minmax(0, 1fr);
   max-width: 360px;
   padding: 12px;
+}
+
+.contactEmptyIcon {
+  align-items: center;
+  background: var(--success-soft);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--accent-strong);
+  display: inline-flex;
+  height: 34px;
+  justify-content: center;
+  width: 34px;
 }
 
 .contactEmptyTitle {
@@ -745,6 +759,11 @@ textarea {
   font-size: 12px;
   line-height: 1.5;
   margin: 0;
+}
+
+.contactEmptyAction {
+  grid-column: 2;
+  justify-self: start;
 }
 
 .contactButton {

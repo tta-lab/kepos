@@ -634,13 +634,18 @@ test('desktop direct messages links zero-contact state to People', async () => {
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
 
   assert.match(source, /className='contactEmpty'/)
+  assert.match(source, /<UserPlus size=\{18\} \/>/)
+  assert.match(source, /className='contactEmptyIcon'/)
   assert.match(source, /\{empty\.title\}/)
   assert.match(source, /\{empty\.copy\}/)
   assert.match(source, /\{empty\.actionLabel\}/)
+  assert.match(source, /className='smallButton contactEmptyAction'/)
   assert.match(source, /onClick=\{actions\.openPeople\}/)
   assert.match(bindings, /openPeople: \(\) => setTab\('people'\)/)
   assert.match(presenter, /createDesktopDirectContactPickerViewModel/)
   assert.match(styles, /\.contactEmpty/)
+  assert.match(styles, /\.contactEmptyIcon/)
+  assert.match(styles, /\.contactEmptyAction/)
 })
 
 test('desktop treehole composer has an explicit owner-only disabled state', async () => {
