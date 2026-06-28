@@ -153,6 +153,8 @@ test('desktop people UI uses trusted friends copy', async () => {
   )
   assert.match(source, /Trusted friends/)
   assert.match(source, /No trusted friends yet/)
+  assert.match(source, /No requests waiting/)
+  assert.match(source, /Trusted people will appear here after you add a Profile QR\./)
   assert.match(presenter, /createDesktopPeopleViewModel/)
   assert.match(source, /\{contact\.statusLabel\}/)
   assert.match(source, /\{contact\.sourceLabel\}/)
@@ -169,6 +171,26 @@ test('desktop people UI uses trusted friends copy', async () => {
   assert.equal(controller.includes('No trusted contacts'), false)
   assert.equal(controller.includes('notice: `Revoked ${shorten(profileId)}.`'), false)
   assert.match(actions, /setNotice\('Trust revoked\.'\)/)
+})
+
+test('desktop People empty panels use icon-led product empty states', async () => {
+  const people = await readFile(
+    new URL('../desktop/people-components.jsx', import.meta.url),
+    'utf8'
+  )
+  const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
+
+  assert.match(people, /function PeopleEmptyState\(\{ copy, icon, title \}\)/)
+  assert.match(people, /<PeopleEmptyState[\s\S]*icon=\{<MessageCircle size=\{18\} \/>/)
+  assert.match(people, /title='No requests waiting'/)
+  assert.match(people, /copy='Message requests from trusted Home traffic will appear here\.'/)
+  assert.match(people, /<PeopleEmptyState[\s\S]*icon=\{<Users size=\{18\} \/>/)
+  assert.match(people, /title='No trusted friends yet'/)
+  assert.match(people, /copy='Trusted people will appear here after you add a Profile QR\.'/)
+  assert.match(styles, /\.peopleEmpty/)
+  assert.match(styles, /\.peopleEmptyIcon/)
+  assert.match(styles, /\.peopleEmptyTitle/)
+  assert.match(styles, /\.peopleEmptyCopy/)
 })
 
 test('desktop People pane lives behind a dedicated component boundary', async () => {
@@ -286,7 +308,7 @@ test('desktop people pane surfaces pending message requests', async () => {
   assert.match(source, /Message requests/)
   assert.match(presenter, /createDesktopPeopleViewModel/)
   assert.match(source, /messageRequests=\{model\.people\.messageRequests\}/)
-  assert.match(source, /No message requests/)
+  assert.match(source, /No requests waiting/)
   assert.match(source, /\{request\.title\}/)
   assert.match(source, /\{request\.preview\}/)
   assert.match(source, /actions\.acceptMessageRequest\(request\.acceptMessage\)/)

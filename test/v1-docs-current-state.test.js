@@ -48,3 +48,12 @@ test('V1 UX docs include pending work badges in desktop and mobile navigation', 
   assert.match(ux, /Mobile tab\s+badges now show pending Direct and People work/)
   assert.match(ux, /navigation accessibility labels include pending counts/)
 })
+
+test('V1 UX docs include desktop People product empty states', async () => {
+  const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
+  const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
+
+  assert.match(audit, /desktop People empty panels now use icon-led product empty states/)
+  assert.match(ux, /Desktop People empty panels now use icon-led product empty states/)
+  assert.match(ux, /trust management does not collapse into plain\s+placeholder text/)
+})

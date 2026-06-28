@@ -26,7 +26,11 @@ export function PeopleLists({ actions, messageRequests, trustedContacts }) {
         <SectionTitle icon={<MessageCircle size={15} />} text='Message requests' />
         <div id='requestList' className='managedContacts'>
           {messageRequests.length === 0 ? (
-            <p className='muted smallText'>No message requests</p>
+            <PeopleEmptyState
+              icon={<MessageCircle size={18} />}
+              title='No requests waiting'
+              copy='Message requests from trusted Home traffic will appear here.'
+            />
           ) : (
             messageRequests.map((request) => (
               <div key={request.profileId} className='managedContact'>
@@ -60,7 +64,11 @@ export function PeopleLists({ actions, messageRequests, trustedContacts }) {
         <SectionTitle icon={<Users size={15} />} text='Trusted friends' />
         <div id='contactList' className='managedContacts'>
           {trustedContacts.length === 0 ? (
-            <p className='muted smallText'>No trusted friends yet</p>
+            <PeopleEmptyState
+              icon={<Users size={18} />}
+              title='No trusted friends yet'
+              copy='Trusted people will appear here after you add a Profile QR.'
+            />
           ) : (
             trustedContacts.map((contact) => (
               <div key={contact.profileId} className='managedContact'>
@@ -86,5 +94,19 @@ export function PeopleLists({ actions, messageRequests, trustedContacts }) {
         </div>
       </section>
     </>
+  )
+}
+
+function PeopleEmptyState({ copy, icon, title }) {
+  return (
+    <div className='peopleEmpty'>
+      <span className='peopleEmptyIcon' aria-hidden='true'>
+        {icon}
+      </span>
+      <div>
+        <p className='peopleEmptyTitle'>{title}</p>
+        <p className='peopleEmptyCopy'>{copy}</p>
+      </div>
+    </div>
   )
 }

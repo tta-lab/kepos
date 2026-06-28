@@ -753,6 +753,43 @@ textarea {
   gap: 10px;
 }
 
+.peopleEmpty {
+  align-items: start;
+  background: var(--empty-bg);
+  border: 1px dashed var(--border-strong);
+  border-radius: 8px;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: auto 1fr;
+  padding: 12px;
+}
+
+.peopleEmptyIcon {
+  align-items: center;
+  background: var(--success-soft);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--accent-strong);
+  display: inline-flex;
+  height: 34px;
+  justify-content: center;
+  width: 34px;
+}
+
+.peopleEmptyTitle {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 900;
+  margin: 0;
+}
+
+.peopleEmptyCopy {
+  color: var(--ink-muted);
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 4px 0 0;
+}
+
 .managedContact {
   align-items: center;
   background: color-mix(in srgb, var(--surface-raised) 78%, transparent);
