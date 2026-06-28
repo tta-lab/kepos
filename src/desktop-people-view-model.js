@@ -5,6 +5,13 @@ export function createDesktopPeopleViewModel({
   formatDate = (value) => new Date(value).toLocaleDateString(),
   shortenProfileId = (profileId) => profileId
 }) {
+  if (!contactBook) {
+    return {
+      messageRequests: [],
+      trustedContacts: []
+    }
+  }
+
   return {
     messageRequests: Array.from(contactBook.pendingRequestsByProfileId.values()).map((request) =>
       createMessageRequestViewModel({ request, shortenProfileId })

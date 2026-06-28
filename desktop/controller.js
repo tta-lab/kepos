@@ -131,6 +131,7 @@ function render() {
 
 function getRenderContactBook() {
   if (backendContactBook) return backendContactBook
+  if (backendClient.hasPreloadBackend()) return null
   return getProfileContext().contactBook
 }
 

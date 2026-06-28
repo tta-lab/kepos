@@ -92,3 +92,14 @@ test('desktop people view model uses stable fallbacks', () => {
     }
   ])
 })
+
+test('desktop people view model can render before a contact book snapshot arrives', () => {
+  const viewModel = createDesktopPeopleViewModel({
+    contactBook: null
+  })
+
+  assert.deepEqual(viewModel, {
+    messageRequests: [],
+    trustedContacts: []
+  })
+})

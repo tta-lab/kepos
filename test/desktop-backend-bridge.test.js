@@ -135,6 +135,7 @@ test('desktop controller renders backend contact book snapshots from the bridge'
   assert.match(source, /setContactBook: \(nextContactBook\) =>/)
   assert.match(source, /function getRenderContactBook\(\)/)
   assert.match(source, /if \(backendContactBook\) return backendContactBook/)
+  assert.match(source, /if \(backendClient\.hasPreloadBackend\(\)\) return null/)
   assert.match(source, /contactBook: getRenderContactBook\(\)/)
   assert.doesNotMatch(source, /const \{ contactBook \} = getProfileContext\(\)/)
 })
