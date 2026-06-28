@@ -42,6 +42,7 @@ test('desktop main backend session uses file profile context and local backend b
   assert.deepEqual(emitted, [
     ['desktopStateChanged', { notice: 'Ready.' }],
     ['contactBookChanged', { ownerProfileId: 'owner-1' }],
+    ['dmMessageReceived', { messages: ['persisted request'] }],
     [
       'shareQrOutputsChanged',
       { homeUri: 'kepos://home/profile-1', profileUri: 'kepos://profile/profile-1' }
@@ -67,6 +68,7 @@ test('desktop main backend session uses file profile context and local backend b
   assert.deepEqual(emitted, [
     ['desktopStateChanged', { notice: 'Ready.' }],
     ['contactBookChanged', { ownerProfileId: 'owner-1' }],
+    ['dmMessageReceived', { messages: ['persisted request'] }],
     [
       'shareQrOutputsChanged',
       { homeUri: 'kepos://home/profile-1', profileUri: 'kepos://profile/profile-1' }
@@ -75,6 +77,7 @@ test('desktop main backend session uses file profile context and local backend b
     ['directComposerRecipientChanged', 'friend-1'],
     ['desktopStateChanged', { notice: 'Ready.' }],
     ['contactBookChanged', { ownerProfileId: 'owner-1' }],
+    ['dmMessageReceived', { messages: ['persisted request'] }],
     [
       'shareQrOutputsChanged',
       { homeUri: 'kepos://home/profile-1', profileUri: 'kepos://profile/profile-1' }
@@ -85,6 +88,7 @@ test('desktop main backend session uses file profile context and local backend b
 function createControllerState(calls) {
   return {
     getCurrentDisplayName: () => 'Desktop',
+    getDmSession: () => ({ messages: ['persisted request'] }),
     getState: () => ({ notice: 'Ready.' }),
     setDirectComposerRecipient: (profileId) =>
       calls.push(['setDirectComposerRecipient', profileId]),

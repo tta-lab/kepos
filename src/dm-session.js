@@ -7,6 +7,16 @@ export function createDirectMessageSession({ localProfileId, nick }) {
   }
 }
 
+export function restoreDirectMessageSession({ localProfileId, messages = [], nick }) {
+  let session = createDirectMessageSession({ localProfileId, nick })
+
+  for (const message of messages) {
+    session = appendDirectMessage(session, normalizeStoredDirectMessage(message))
+  }
+
+  return session
+}
+
 export function appendLocalDirectMessage(session, { id, toProfileId, text, at = Date.now() }) {
   return appendDirectMessage(session, {
     type: 'dm',
@@ -120,6 +130,29 @@ function normalizeSignedDirectMessage(message, direction, { toProfileId }) {
     toProfileId,
     type: 'kepos.dm.message.v1'
   }
+}
+
+function normalizeStoredDirectMessage(message) {
+  const id = cleanRequiredString(
+    message?.id || message?.requestId || message?.messageId,
+    'Direct message id is required'
+  )
+  const at = Number.isFinite(message?.at) ? message.at : message?.createdAt || Date.now()
+
+  return {
+    ...message,
+    id,
+    at,
+    direction: cleanDirection(message?.direction),
+    text: cleanText(message?.text),
+    type: cleanRequiredString(message?.type, 'Direct message type is required')
+  }
+}
+
+function cleanDirection(direction) {
+  if (direction === 'in' || direction === 'out') return direction
+
+  throw new Error('Direct message direction is required')
 }
 
 function cleanRequiredString(value, message) {

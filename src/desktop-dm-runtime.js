@@ -3,11 +3,15 @@ import {
   appendLocalSignedDirectMessage,
   appendRemoteMessageRequest,
   appendRemoteSignedDirectMessage,
-  createDirectMessageSession,
-  dismissDirectMessage
+  dismissDirectMessage,
+  restoreDirectMessageSession
 } from './dm-session.js'
 import { acceptDmInviteAsRecipient } from './dm-invite-acceptance.js'
 import { loadDmMessagesFromStorage, saveDmMessagesToStorage } from './dm-message-storage.ts'
+import {
+  loadDmSessionMessagesFromStorage,
+  saveDmSessionMessagesToStorage
+} from './dm-session-storage.js'
 import { createDmThreadRuntime } from './dm-thread-runtime.js'
 import { loadDmThreadsFromStorage, saveDmThreadsToStorage } from './dm-thread-storage.js'
 import { createMessageRequest } from './message-request.ts'
@@ -17,27 +21,41 @@ export function createDesktopDmRuntime({
   acceptInvite = acceptDmInviteAsRecipient,
   acceptRequestWithInvite = acceptMessageRequestWithInvite,
   createRequest = createMessageRequest,
-  createSession = createDirectMessageSession,
   createThreadRuntime = createDmThreadRuntime,
   loadMessages = loadDmMessagesFromStorage,
+  loadSessionMessages = loadDmSessionMessagesFromStorage,
   loadThreads = loadDmThreadsFromStorage,
   onSessionChanged = () => {},
   saveMessages = saveDmMessagesToStorage,
+  saveSessionMessages = saveDmSessionMessagesToStorage,
   saveThreads = saveDmThreadsToStorage
 } = {}) {
   let dmSession = null
   let dmRuntime = null
   let localProfile = null
   let nick = 'Desktop'
+  let startVersion = 0
   let storage = null
 
   async function start({ nick: nextNick, profile, storage: nextStorage }) {
-    await closeAll()
+    const version = startVersion + 1
+    startVersion = version
+    const previousRuntime = dmRuntime
+
+    await previousRuntime?.closeAll()
+    if (version !== startVersion) return dmSession
 
     localProfile = profile
     nick = nextNick?.trim() || 'Desktop'
     storage = nextStorage
-    dmSession = createSession({ localProfileId: profile.id, nick })
+    dmSession = restoreDirectMessageSession({
+      localProfileId: profile.id,
+      messages: loadSessionMessages({
+        ownerProfileId: profile.id,
+        storage
+      }),
+      nick
+    })
     dmRuntime = createThreadRuntime({
       identity: profile.identity,
       loadMessages: (thread) =>
@@ -54,6 +72,7 @@ export function createDesktopDmRuntime({
                 remoteProfileId: thread.remoteProfileId
               })
             : appendRemoteSignedDirectMessage(dmSession, message)
+        saveCurrentSessionMessages()
         onSessionChanged(dmSession)
       },
       saveMessages: (thread, messages) =>
@@ -66,15 +85,20 @@ export function createDesktopDmRuntime({
     })
 
     await openLocalThreads()
+    if (version !== startVersion) return dmSession
+
     return dmSession
   }
 
   async function closeAll() {
-    await dmRuntime?.closeAll()
+    startVersion += 1
+    const currentRuntime = dmRuntime
     dmRuntime = null
     dmSession = null
     localProfile = null
     storage = null
+
+    await currentRuntime?.closeAll()
   }
 
   function getSession() {
@@ -113,6 +137,7 @@ export function createDesktopDmRuntime({
     })
 
     dmSession = appendLocalMessageRequest(dmSession, request)
+    saveCurrentSessionMessages()
     onSessionChanged(dmSession)
     broadcastControl(request)
     return { kind: 'request', request }
@@ -122,6 +147,7 @@ export function createDesktopDmRuntime({
     if (!dmSession || message.toProfileId !== dmSession.localProfileId) return false
 
     dmSession = appendRemoteMessageRequest(dmSession, message)
+    saveCurrentSessionMessages()
     onSessionChanged(dmSession)
     return true
   }
@@ -167,6 +193,7 @@ export function createDesktopDmRuntime({
     if (!dmSession || !id) return dmSession
 
     dmSession = dismissDirectMessage(dmSession, { id })
+    saveCurrentSessionMessages()
     onSessionChanged(dmSession)
     return dmSession
   }
@@ -218,6 +245,16 @@ export function createDesktopDmRuntime({
     if (!localProfile) return []
 
     return loadThreads({
+      ownerProfileId: localProfile.id,
+      storage
+    })
+  }
+
+  function saveCurrentSessionMessages() {
+    if (!localProfile || !dmSession) return
+
+    saveSessionMessages({
+      messages: dmSession.messages,
       ownerProfileId: localProfile.id,
       storage
     })

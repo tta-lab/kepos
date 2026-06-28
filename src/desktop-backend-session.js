@@ -115,6 +115,10 @@ export function createDesktopBackendSession({
   const backendHost = createLocalBackendHost({
     actions: backendActions,
     runtimeOptions: {
+      onDmSessionChanged: (session) => {
+        controllerState.setDmSession(session)
+        onChanged()
+      },
       onHomeControl: (message, peer) => controlActions.handleControl(message, peer).catch(onError),
       onVerifiedHello: (message, peer) =>
         controlActions.sendTreeholeBootstrap(peer, message.profileId),
@@ -127,11 +131,21 @@ export function createDesktopBackendSession({
   homeRuntime = backendHost.homeRuntime
   treeholeRuntime = backendHost.treeholeRuntime
 
+  void startDirectMessages().catch(onError)
+
   function configureTreeholeRuntime() {
     backendRuntime.configure({
       homeJoinDetails: controllerState.getHomeJoinDetails(),
       session: controllerState.getSession()
     })
+  }
+
+  async function startDirectMessages() {
+    const nick = getCurrentDisplayName()
+    const { profile, storage } = getProfileContext(nick)
+
+    controllerState.setDmSession(await dmRuntime.start({ nick, profile, storage }))
+    onChanged()
   }
 
   async function openTreehole(bootstrapKey = null) {

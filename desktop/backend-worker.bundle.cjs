@@ -1637,6 +1637,13 @@ function createDirectMessageSession({ localProfileId, nick }) {
     seenMessageIds: /* @__PURE__ */ new Set()
   };
 }
+function restoreDirectMessageSession({ localProfileId, messages = [], nick }) {
+  let session = createDirectMessageSession({ localProfileId, nick });
+  for (const message of messages) {
+    session = appendDirectMessage(session, normalizeStoredDirectMessage(message));
+  }
+  return session;
+}
 function appendLocalSignedDirectMessage(session, message, { remoteProfileId }) {
   if (message?.fromProfileId !== session.localProfileId) {
     return session;
@@ -1711,6 +1718,22 @@ function normalizeSignedDirectMessage(message, direction, { toProfileId }) {
     toProfileId,
     type: "kepos.dm.message.v1"
   };
+}
+function normalizeStoredDirectMessage(message) {
+  const id = cleanRequiredString4(message?.id || message?.requestId || message?.messageId, "Direct message id is required");
+  const at = Number.isFinite(message?.at) ? message.at : message?.createdAt || Date.now();
+  return {
+    ...message,
+    id,
+    at,
+    direction: cleanDirection(message?.direction),
+    text: cleanText(message?.text),
+    type: cleanRequiredString4(message?.type, "Direct message type is required")
+  };
+}
+function cleanDirection(direction) {
+  if (direction === "in" || direction === "out") return direction;
+  throw new Error("Direct message direction is required");
 }
 function cleanRequiredString4(value, message) {
   const cleaned = value?.trim();
@@ -2122,6 +2145,81 @@ var init_dm_message_storage = __esm({
   }
 });
 
+// src/dm-session-storage.js
+function loadDmSessionMessagesFromStorage({ ownerProfileId, storage }) {
+  const stored = storage?.getItem?.(dmSessionMessagesKey(ownerProfileId));
+  if (!stored) return [];
+  return deserializeDmSessionMessages(stored);
+}
+function saveDmSessionMessagesToStorage({ messages, ownerProfileId, storage }) {
+  storage?.setItem?.(
+    dmSessionMessagesKey(ownerProfileId),
+    JSON.stringify(serializeDmSessionMessages(messages))
+  );
+}
+function serializeDmSessionMessages(messages = []) {
+  return {
+    messages: messages.filter(isPersistableSessionMessage).map(serializeSessionMessage),
+    version: DM_SESSION_MESSAGES_VERSION
+  };
+}
+function deserializeDmSessionMessages(stored) {
+  const value = typeof stored === "string" ? JSON.parse(stored) : stored;
+  if (value?.version !== DM_SESSION_MESSAGES_VERSION) {
+    throw new Error("Unsupported DM session messages version");
+  }
+  if (!Array.isArray(value.messages)) {
+    throw new Error("DM session messages collection is required");
+  }
+  return value.messages.map(serializeSessionMessage);
+}
+function serializeSessionMessage(message) {
+  return {
+    at: cleanNumber(message?.at || message?.createdAt, "Direct message time is required"),
+    createdAt: cleanNumber(message?.createdAt || message?.at, "Message request time is required"),
+    direction: cleanDirection2(message?.direction),
+    fromProfileId: cleanRequiredString7(message?.fromProfileId, "Request sender is required"),
+    id: cleanRequiredString7(message?.id || message?.requestId, "Request id is required"),
+    proof: message?.proof,
+    requestId: cleanRequiredString7(message?.requestId || message?.id, "Request id is required"),
+    senderEncryptionPublicKey: message?.senderEncryptionPublicKey,
+    text: message?.text?.trim() || "",
+    toProfileId: cleanRequiredString7(message?.toProfileId, "Request recipient is required"),
+    type: MESSAGE_REQUEST_TYPE2
+  };
+}
+function isPersistableSessionMessage(message) {
+  return message?.type === MESSAGE_REQUEST_TYPE2;
+}
+function dmSessionMessagesKey(ownerProfileId) {
+  return `${DM_SESSION_MESSAGES_KEY_PREFIX}.${cleanRequiredString7(
+    ownerProfileId,
+    "Owner profile id is required"
+  )}`;
+}
+function cleanDirection2(direction) {
+  if (direction === "in" || direction === "out") return direction;
+  throw new Error("Direct message direction is required");
+}
+function cleanNumber(value, message) {
+  if (Number.isFinite(value)) return value;
+  throw new Error(message);
+}
+function cleanRequiredString7(value, message) {
+  const cleaned = value?.trim();
+  if (!cleaned) throw new Error(message);
+  return cleaned;
+}
+var DM_SESSION_MESSAGES_KEY_PREFIX, DM_SESSION_MESSAGES_VERSION, MESSAGE_REQUEST_TYPE2;
+var init_dm_session_storage = __esm({
+  "src/dm-session-storage.js"() {
+    "use strict";
+    DM_SESSION_MESSAGES_KEY_PREFIX = "kepos.dmSessionMessages.v1";
+    DM_SESSION_MESSAGES_VERSION = 1;
+    MESSAGE_REQUEST_TYPE2 = "kepos.message.request.v1";
+  }
+});
+
 // src/dm-replication.js
 function deriveDmTopic(channelDiscoveryKey) {
   return import_hypercore_crypto3.default.hash(
@@ -2474,26 +2572,39 @@ function createDesktopDmRuntime({
   acceptInvite = acceptDmInviteAsRecipient,
   acceptRequestWithInvite = acceptMessageRequestWithInvite,
   createRequest = createMessageRequest,
-  createSession = createDirectMessageSession,
   createThreadRuntime = createDmThreadRuntime,
   loadMessages = loadDmMessagesFromStorage,
+  loadSessionMessages = loadDmSessionMessagesFromStorage,
   loadThreads = loadDmThreadsFromStorage,
   onSessionChanged = () => {
   },
   saveMessages = saveDmMessagesToStorage,
+  saveSessionMessages = saveDmSessionMessagesToStorage,
   saveThreads = saveDmThreadsToStorage
 } = {}) {
   let dmSession = null;
   let dmRuntime = null;
   let localProfile = null;
   let nick = "Desktop";
+  let startVersion = 0;
   let storage = null;
   async function start({ nick: nextNick, profile, storage: nextStorage }) {
-    await closeAll();
+    const version = startVersion + 1;
+    startVersion = version;
+    const previousRuntime = dmRuntime;
+    await previousRuntime?.closeAll();
+    if (version !== startVersion) return dmSession;
     localProfile = profile;
     nick = nextNick?.trim() || "Desktop";
     storage = nextStorage;
-    dmSession = createSession({ localProfileId: profile.id, nick });
+    dmSession = restoreDirectMessageSession({
+      localProfileId: profile.id,
+      messages: loadSessionMessages({
+        ownerProfileId: profile.id,
+        storage
+      }),
+      nick
+    });
     dmRuntime = createThreadRuntime({
       identity: profile.identity,
       loadMessages: (thread) => loadMessages({
@@ -2506,6 +2617,7 @@ function createDesktopDmRuntime({
         dmSession = direction === "out" ? appendLocalSignedDirectMessage(dmSession, message, {
           remoteProfileId: thread.remoteProfileId
         }) : appendRemoteSignedDirectMessage(dmSession, message);
+        saveCurrentSessionMessages();
         onSessionChanged(dmSession);
       },
       saveMessages: (thread, messages) => saveMessages({
@@ -2516,14 +2628,17 @@ function createDesktopDmRuntime({
       })
     });
     await openLocalThreads();
+    if (version !== startVersion) return dmSession;
     return dmSession;
   }
   async function closeAll() {
-    await dmRuntime?.closeAll();
+    startVersion += 1;
+    const currentRuntime = dmRuntime;
     dmRuntime = null;
     dmSession = null;
     localProfile = null;
     storage = null;
+    await currentRuntime?.closeAll();
   }
   function getSession() {
     return dmSession;
@@ -2557,6 +2672,7 @@ function createDesktopDmRuntime({
       toProfileId
     });
     dmSession = appendLocalMessageRequest(dmSession, request);
+    saveCurrentSessionMessages();
     onSessionChanged(dmSession);
     broadcastControl(request);
     return { kind: "request", request };
@@ -2564,6 +2680,7 @@ function createDesktopDmRuntime({
   function appendIncomingRequest(message) {
     if (!dmSession || message.toProfileId !== dmSession.localProfileId) return false;
     dmSession = appendRemoteMessageRequest(dmSession, message);
+    saveCurrentSessionMessages();
     onSessionChanged(dmSession);
     return true;
   }
@@ -2601,6 +2718,7 @@ function createDesktopDmRuntime({
   function dismissMessage({ id }) {
     if (!dmSession || !id) return dmSession;
     dmSession = dismissDirectMessage(dmSession, { id });
+    saveCurrentSessionMessages();
     onSessionChanged(dmSession);
     return dmSession;
   }
@@ -2642,6 +2760,14 @@ function createDesktopDmRuntime({
       storage
     });
   }
+  function saveCurrentSessionMessages() {
+    if (!localProfile || !dmSession) return;
+    saveSessionMessages({
+      messages: dmSession.messages,
+      ownerProfileId: localProfile.id,
+      storage
+    });
+  }
   return {
     acceptInviteAsRecipient,
     acceptMessageRequest: acceptMessageRequest2,
@@ -2665,6 +2791,7 @@ var init_desktop_dm_runtime = __esm({
     init_dm_session();
     init_dm_invite_acceptance();
     init_dm_message_storage();
+    init_dm_session_storage();
     init_dm_thread_runtime();
     init_dm_thread_storage();
     init_message_request();
@@ -3237,8 +3364,8 @@ function createSignedTreeholePost({
     payload: {
       authorDisplayName: cleanOptionalString4(authorDisplayName),
       authorProfileId: cleanKey3(identity.publicKey, "Author profile id is required"),
-      postId: cleanRequiredString7(postId, "Post id is required"),
-      text: cleanRequiredString7(text, "Post text is required"),
+      postId: cleanRequiredString8(postId, "Post id is required"),
+      text: cleanRequiredString8(text, "Post text is required"),
       treeholeOwnerProfileId: cleanKey3(
         treeholeOwnerProfileId,
         "Treehole owner profile id is required"
@@ -3259,7 +3386,7 @@ function createSignedTreeholePostTombstone({
     identity,
     payload: {
       actorProfileId: cleanKey3(identity.publicKey, "Actor profile id is required"),
-      postId: cleanRequiredString7(postId, "Post id is required"),
+      postId: cleanRequiredString8(postId, "Post id is required"),
       treeholeOwnerProfileId: cleanKey3(
         treeholeOwnerProfileId,
         "Treehole owner profile id is required"
@@ -3284,9 +3411,9 @@ function createSignedTreeholeComment({
     payload: {
       authorDisplayName: cleanOptionalString4(authorDisplayName),
       authorProfileId: cleanKey3(identity.publicKey, "Author profile id is required"),
-      commentId: cleanRequiredString7(commentId, "Comment id is required"),
-      postId: cleanRequiredString7(postId, "Post id is required"),
-      text: cleanRequiredString7(text, "Comment text is required"),
+      commentId: cleanRequiredString8(commentId, "Comment id is required"),
+      postId: cleanRequiredString8(postId, "Post id is required"),
+      text: cleanRequiredString8(text, "Comment text is required"),
       treeholeOwnerProfileId: cleanKey3(
         treeholeOwnerProfileId,
         "Treehole owner profile id is required"
@@ -3308,8 +3435,8 @@ function createSignedTreeholeCommentTombstone({
     identity,
     payload: {
       actorProfileId: cleanKey3(identity.publicKey, "Actor profile id is required"),
-      commentId: cleanRequiredString7(commentId, "Comment id is required"),
-      postId: cleanRequiredString7(postId, "Post id is required"),
+      commentId: cleanRequiredString8(commentId, "Comment id is required"),
+      postId: cleanRequiredString8(postId, "Post id is required"),
       treeholeOwnerProfileId: cleanKey3(
         treeholeOwnerProfileId,
         "Treehole owner profile id is required"
@@ -3331,7 +3458,7 @@ function createSignedTreeholeLike({
     identity,
     payload: {
       actorProfileId: cleanKey3(identity.publicKey, "Actor profile id is required"),
-      postId: cleanRequiredString7(postId, "Post id is required"),
+      postId: cleanRequiredString8(postId, "Post id is required"),
       treeholeOwnerProfileId: cleanKey3(
         treeholeOwnerProfileId,
         "Treehole owner profile id is required"
@@ -3524,8 +3651,8 @@ function cleanPayloadForType(event) {
     return {
       authorDisplayName: cleanOptionalString4(event.authorDisplayName),
       authorProfileId: cleanKey3(event.authorProfileId, "Author profile id is required"),
-      postId: cleanRequiredString7(event.postId, "Post id is required"),
-      text: cleanRequiredString7(event.text, "Post text is required"),
+      postId: cleanRequiredString8(event.postId, "Post id is required"),
+      text: cleanRequiredString8(event.text, "Post text is required"),
       treeholeOwnerProfileId: cleanKey3(
         event.treeholeOwnerProfileId,
         "Treehole owner profile id is required"
@@ -3535,7 +3662,7 @@ function cleanPayloadForType(event) {
   if (event.type === POST_TOMBSTONE) {
     return {
       actorProfileId: cleanKey3(event.actorProfileId, "Actor profile id is required"),
-      postId: cleanRequiredString7(event.postId, "Post id is required"),
+      postId: cleanRequiredString8(event.postId, "Post id is required"),
       treeholeOwnerProfileId: cleanKey3(
         event.treeholeOwnerProfileId,
         "Treehole owner profile id is required"
@@ -3546,9 +3673,9 @@ function cleanPayloadForType(event) {
     return {
       authorDisplayName: cleanOptionalString4(event.authorDisplayName),
       authorProfileId: cleanKey3(event.authorProfileId, "Author profile id is required"),
-      commentId: cleanRequiredString7(event.commentId, "Comment id is required"),
-      postId: cleanRequiredString7(event.postId, "Post id is required"),
-      text: cleanRequiredString7(event.text, "Comment text is required"),
+      commentId: cleanRequiredString8(event.commentId, "Comment id is required"),
+      postId: cleanRequiredString8(event.postId, "Post id is required"),
+      text: cleanRequiredString8(event.text, "Comment text is required"),
       treeholeOwnerProfileId: cleanKey3(
         event.treeholeOwnerProfileId,
         "Treehole owner profile id is required"
@@ -3558,8 +3685,8 @@ function cleanPayloadForType(event) {
   if (event.type === COMMENT_TOMBSTONE) {
     return {
       actorProfileId: cleanKey3(event.actorProfileId, "Actor profile id is required"),
-      commentId: cleanRequiredString7(event.commentId, "Comment id is required"),
-      postId: cleanRequiredString7(event.postId, "Post id is required"),
+      commentId: cleanRequiredString8(event.commentId, "Comment id is required"),
+      postId: cleanRequiredString8(event.postId, "Post id is required"),
       treeholeOwnerProfileId: cleanKey3(
         event.treeholeOwnerProfileId,
         "Treehole owner profile id is required"
@@ -3569,7 +3696,7 @@ function cleanPayloadForType(event) {
   if (event.type === LIKE_ADD2 || event.type === LIKE_REMOVE) {
     return {
       actorProfileId: cleanKey3(event.actorProfileId, "Actor profile id is required"),
-      postId: cleanRequiredString7(event.postId, "Post id is required"),
+      postId: cleanRequiredString8(event.postId, "Post id is required"),
       treeholeOwnerProfileId: cleanKey3(
         event.treeholeOwnerProfileId,
         "Treehole owner profile id is required"
@@ -3637,13 +3764,13 @@ function dropEmpty3(value) {
   );
 }
 function cleanKey3(value, message) {
-  const cleaned = cleanRequiredString7(value, message);
+  const cleaned = cleanRequiredString8(value, message);
   if (!KEY_PATTERN4.test(cleaned)) {
     throw new Error("Invalid profile id");
   }
   return cleaned;
 }
-function cleanRequiredString7(value, message) {
+function cleanRequiredString8(value, message) {
   const cleaned = value?.trim();
   if (!cleaned) {
     throw new Error(message);
@@ -5837,6 +5964,10 @@ function createDesktopBackendSession({
   const backendHost = createLocalBackendHost({
     actions: backendActions,
     runtimeOptions: {
+      onDmSessionChanged: (session) => {
+        controllerState.setDmSession(session);
+        onChanged();
+      },
       onHomeControl: (message, peer) => controlActions.handleControl(message, peer).catch(onError),
       onVerifiedHello: (message, peer) => controlActions.sendTreeholeBootstrap(peer, message.profileId),
       storageBasePath
@@ -5846,11 +5977,18 @@ function createDesktopBackendSession({
   dmRuntime = backendHost.dmRuntime;
   homeRuntime = backendHost.homeRuntime;
   treeholeRuntime = backendHost.treeholeRuntime;
+  void startDirectMessages().catch(onError);
   function configureTreeholeRuntime() {
     backendRuntime.configure({
       homeJoinDetails: controllerState.getHomeJoinDetails(),
       session: controllerState.getSession()
     });
+  }
+  async function startDirectMessages() {
+    const nick = getCurrentDisplayName();
+    const { profile, storage } = getProfileContext(nick);
+    controllerState.setDmSession(await dmRuntime.start({ nick, profile, storage }));
+    onChanged();
   }
   async function openTreehole(bootstrapKey = null) {
     configureTreeholeRuntime();
@@ -6010,6 +6148,7 @@ function createDesktopMainBackendSessionCore({
         storageBasePath
       }).contactBook
     );
+    backendSession?.backendHost.bridge.emit("dmMessageReceived", controllerState.getDmSession());
   }
   async function publishShareQrOutputs() {
     try {

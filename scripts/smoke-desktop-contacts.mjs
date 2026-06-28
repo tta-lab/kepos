@@ -37,8 +37,11 @@ try {
   await waitForContact(restartedPage, contactAlias)
   await createHome(restartedPage)
   await sendDirectRequest(restartedPage)
-  await revokeTrustedContact(restartedPage)
-  await waitForContactMissing(restartedPage, contactAlias)
+
+  const directRestartedPage = await restartDesktopApp()
+  await waitForTextIncludes(directRestartedPage, '#dmList', directRequestText)
+  await revokeTrustedContact(directRestartedPage)
+  await waitForContactMissing(directRestartedPage, contactAlias)
 
   const revokedRestartedPage = await restartDesktopApp()
   await waitForContactMissing(revokedRestartedPage, contactAlias)
@@ -52,7 +55,7 @@ try {
         userDataDir,
         verified: [
           'contact persists after desktop restart',
-          'direct request appears after desktop restart',
+          'direct request persists after desktop restart',
           'contact stays revoked after desktop restart'
         ]
       },

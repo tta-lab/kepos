@@ -14,7 +14,12 @@ test('desktop backend session composes actions and runtime host behind one bound
       createdHosts.push(options)
       return {
         bridge: { label: 'bridge' },
-        dmRuntime: { label: 'dm', loadThreads: () => [], replaceThreads: () => {} },
+        dmRuntime: {
+          label: 'dm',
+          loadThreads: () => [],
+          replaceThreads: () => {},
+          start: () => ({ id: 'dm-session' })
+        },
         homeRuntime: { isJoined: () => false },
         runtime: {
           closeAll: () => Promise.resolve(),
@@ -46,6 +51,99 @@ test('desktop backend session composes actions and runtime host behind one bound
   assert.equal(typeof session.configureTreeholeRuntime, 'function')
   assert.equal(typeof session.openTreehole, 'function')
   assert.equal(typeof session.roomActions.leaveHome, 'function')
+})
+
+test('desktop backend session starts direct messages before joining a home', async () => {
+  const controllerState = createControllerState()
+  const changes = []
+  const starts = []
+
+  createDesktopBackendSession({
+    controllerState,
+    createId: () => 'id-1',
+    createLocalBackendHost: () => ({
+      bridge: { label: 'bridge' },
+      dmRuntime: {
+        loadThreads: () => [],
+        replaceThreads: () => {},
+        start: (payload) => {
+          starts.push(payload)
+          return { id: 'restored-dm-session', messages: [{ text: 'saved request' }] }
+        }
+      },
+      homeRuntime: { isJoined: () => false },
+      runtime: {
+        closeAll: () => Promise.resolve(),
+        configure: () => {}
+      },
+      treeholeRuntime: { canPost: () => false }
+    }),
+    getCurrentDisplayName: () => 'Desktop',
+    getProfileContext: () => createProfileContext(),
+    onChanged: () => changes.push('changed'),
+    setContextFormDraft: () => {},
+    setDirectComposerRecipient: () => {},
+    setNotice: () => {},
+    shortenProfileId: (value) => value.slice(0, 8),
+    storageBasePath: '/user-data/kepos/v1',
+    updateState: (updater) => controllerState.updateState(updater)
+  })
+  await Promise.resolve()
+
+  assert.equal(controllerState.getDmSession().id, 'restored-dm-session')
+  assert.deepEqual(starts, [
+    {
+      nick: 'Desktop',
+      profile: createProfileContext().profile,
+      storage: createProfileContext().storage
+    }
+  ])
+  assert.deepEqual(changes, ['changed'])
+})
+
+test('desktop backend session keeps runtime DM changes in controller state', () => {
+  const controllerState = createControllerState()
+  const changes = []
+  const createdHosts = []
+
+  createDesktopBackendSession({
+    controllerState,
+    createId: () => 'id-1',
+    createLocalBackendHost: (options) => {
+      createdHosts.push(options)
+      return {
+        bridge: { label: 'bridge' },
+        dmRuntime: {
+          loadThreads: () => [],
+          replaceThreads: () => {},
+          start: () => ({ id: 'restored-dm-session' })
+        },
+        homeRuntime: { isJoined: () => false },
+        runtime: {
+          closeAll: () => Promise.resolve(),
+          configure: () => {}
+        },
+        treeholeRuntime: { canPost: () => false }
+      }
+    },
+    getCurrentDisplayName: () => 'Desktop',
+    getProfileContext: () => createProfileContext(),
+    onChanged: () => changes.push('changed'),
+    setContextFormDraft: () => {},
+    setDirectComposerRecipient: () => {},
+    setNotice: () => {},
+    shortenProfileId: (value) => value.slice(0, 8),
+    storageBasePath: '/user-data/kepos/v1',
+    updateState: (updater) => controllerState.updateState(updater)
+  })
+
+  createdHosts[0].runtimeOptions.onDmSessionChanged({
+    id: 'runtime-dm-session',
+    messages: [{ text: 'runtime request' }]
+  })
+
+  assert.equal(controllerState.getDmSession().id, 'runtime-dm-session')
+  assert.deepEqual(changes, ['changed'])
 })
 
 test('desktop controller delegates backend session composition to a boundary', async () => {

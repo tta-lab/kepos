@@ -62,6 +62,7 @@ export function createDesktopMainBackendSessionCore({
         storageBasePath
       }).contactBook
     )
+    backendSession?.backendHost.bridge.emit('dmMessageReceived', controllerState.getDmSession())
   }
 
   async function publishShareQrOutputs() {
