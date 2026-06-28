@@ -15,6 +15,9 @@ export function createDesktopRendererBackendClient({
       const backend = selectBackend({ getLocalBackend, mode, preloadBackend })
       return await backend.dispatch(command, payload)
     },
+    hasPreloadBackend() {
+      return mode === 'auto' && hasManagedPreloadBackend(preloadBackend)
+    },
     isPreloadConnected() {
       return mode === 'auto' && isConnectedPreloadBackend(preloadBackend)
     },
@@ -31,6 +34,21 @@ export function createDesktopRendererBackendClient({
 
 function subscribeAuto({ event, getLocalBackend, handler, preloadBackend }) {
   if (isConnectedPreloadBackend(preloadBackend)) return preloadBackend.subscribe(event, handler)
+
+  if (hasManagedPreloadBackend(preloadBackend)) {
+    let unsubscribeActive = () => {}
+    const unsubscribeConnected = preloadBackend.onConnected((connected) => {
+      if (connected !== true) return
+
+      unsubscribeActive()
+      unsubscribeActive = preloadBackend.subscribe(event, handler)
+    })
+
+    return () => {
+      unsubscribeActive()
+      unsubscribeConnected()
+    }
+  }
 
   let activeBackend = 'local'
   const localBackend = requireLocalBackend(getLocalBackend())
@@ -59,7 +77,10 @@ function subscribeAuto({ event, getLocalBackend, handler, preloadBackend }) {
 
 function selectBackend({ getLocalBackend, mode, preloadBackend }) {
   if (mode === 'preload') return requirePreloadBackend(preloadBackend)
-  if (mode === 'auto' && isConnectedPreloadBackend(preloadBackend)) {
+  if (
+    mode === 'auto' &&
+    (isConnectedPreloadBackend(preloadBackend) || hasManagedPreloadBackend(preloadBackend))
+  ) {
     return preloadBackend
   }
 
@@ -88,6 +109,14 @@ function requirePreloadBackend(preloadBackend) {
   }
 
   return preloadBackend
+}
+
+function hasManagedPreloadBackend(preloadBackend) {
+  return (
+    typeof preloadBackend?.dispatch === 'function' &&
+    typeof preloadBackend?.subscribe === 'function' &&
+    typeof preloadBackend?.onConnected === 'function'
+  )
 }
 
 function isConnectedPreloadBackend(preloadBackend) {

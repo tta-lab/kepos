@@ -70,6 +70,29 @@ test('desktop renderer backend client reports whether auto mode has connected pr
   assert.equal(client.isPreloadConnected(), true)
 })
 
+test('desktop renderer backend client reports whether auto mode has a managed preload bridge', () => {
+  const unmanagedPreload = createBackend('preload', [])
+  const managedPreload = createBackend('preload', [])
+  managedPreload.onConnected = () => () => {}
+  const unmanagedClient = createDesktopRendererBackendClient({
+    localBackend: createBackend('local', []),
+    preloadBackend: unmanagedPreload
+  })
+  const managedClient = createDesktopRendererBackendClient({
+    localBackend: createBackend('local', []),
+    preloadBackend: managedPreload
+  })
+  const explicitPreloadClient = createDesktopRendererBackendClient({
+    localBackend: createBackend('local', []),
+    mode: 'preload',
+    preloadBackend: managedPreload
+  })
+
+  assert.equal(unmanagedClient.hasPreloadBackend(), false)
+  assert.equal(managedClient.hasPreloadBackend(), true)
+  assert.equal(explicitPreloadClient.hasPreloadBackend(), false)
+})
+
 test('desktop renderer backend client reports disconnected preload outside auto mode', () => {
   const preload = createBackend('preload', [])
   preload.isConnected = () => true
@@ -127,7 +150,7 @@ test('desktop renderer backend client creates local fallback only when needed', 
   ])
 })
 
-test('desktop renderer backend client moves auto subscriptions to preload when it connects', () => {
+test('desktop renderer backend client waits for managed preload subscriptions before using fallback', () => {
   const calls = []
   let connected = false
   let connectedHandler = null
@@ -146,22 +169,37 @@ test('desktop renderer backend client moves auto subscriptions to preload when i
   const received = []
   const unsubscribe = client.subscribe('statusChanged', (payload) => received.push(payload))
 
+  assert.deepEqual(calls, [['preload', 'onConnected']])
+
   connected = true
   connectedHandler(true)
   unsubscribe()
 
   assert.deepEqual(calls, [
-    ['local', 'subscribe', 'statusChanged'],
     ['preload', 'onConnected'],
-    ['local', 'unsubscribe', 'statusChanged'],
     ['preload', 'subscribe', 'statusChanged'],
     ['preload', 'unsubscribe', 'statusChanged'],
     ['preload', 'offConnected']
   ])
-  assert.deepEqual(received, [
-    { label: 'local', event: 'statusChanged' },
-    { label: 'preload', event: 'statusChanged' }
-  ])
+  assert.deepEqual(received, [{ label: 'preload', event: 'statusChanged' }])
+})
+
+test('desktop renderer backend client dispatches through managed preload before it connects', async () => {
+  const calls = []
+  const preload = createBackend('preload', calls)
+  preload.isConnected = () => false
+  preload.onConnected = () => () => {}
+  const client = createDesktopRendererBackendClient({
+    createLocalBackend: () => {
+      calls.push(['local', 'create'])
+      return createBackend('local', calls)
+    },
+    preloadBackend: preload
+  })
+
+  assert.equal(await client.dispatch('joinHome', { mode: 'host' }), 'preload:joinHome')
+
+  assert.deepEqual(calls, [['preload', 'dispatch', 'joinHome', { mode: 'host' }]])
 })
 
 test('desktop renderer backend client can explicitly use preload bridge', async () => {

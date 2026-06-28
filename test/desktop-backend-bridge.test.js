@@ -144,7 +144,7 @@ test('desktop controller only generates local share QR outputs as a fallback', a
 
   assert.match(source, /refreshLocalShareQrOutputs\(\)\.catch\(showError\)/)
   assert.match(source, /function refreshLocalShareQrOutputs\(\)/)
-  assert.match(source, /if \(backendClient\.isPreloadConnected\(\)\) return/)
+  assert.match(source, /if \(backendClient\.hasPreloadBackend\(\)\) return/)
   assert.doesNotMatch(source, /^qrActions\.updateQrOutputs\(\)\.catch\(showError\)$/m)
 })
 

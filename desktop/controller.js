@@ -98,7 +98,7 @@ function updateDisplayName(displayName = 'Desktop') {
 }
 
 async function refreshLocalShareQrOutputs() {
-  if (backendClient.isPreloadConnected()) return
+  if (backendClient.hasPreloadBackend()) return
   await qrActions.updateQrOutputs()
 }
 
