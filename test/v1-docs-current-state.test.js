@@ -99,6 +99,22 @@ test('V1 docs do not overclaim current physical QR proof', async () => {
   assert.match(docs, /screen-to-camera QR proof remains open/)
 })
 
+test('V1 docs do not overclaim current debug two-device proof', async () => {
+  const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
+  const gaps = await readText('../docs/v1.07-architecture-gaps.md')
+  const smoke = await readText('../docs/v1.20-smoke-guide.md')
+  const crossDevice = await readText('../docs/v1.21-cross-device-smoke.md')
+  const dmBootstrap = await readText('../docs/v1.08-dm-bootstrap-security.md')
+  const dependencyOrder = await readText('../docs/v1.01-dependency-order.md')
+  const docs = `${audit}\n${gaps}\n${smoke}\n${crossDevice}\n${dmBootstrap}\n${dependencyOrder}`
+
+  assert.doesNotMatch(docs, /debug two-device [^.\n]*(proves|now proves|covers)/)
+  assert.doesNotMatch(docs, /Status: implementation done and covered by debug two-device smoke/)
+  assert.doesNotMatch(docs, /because it proves live transport/)
+  assert.match(docs, /debug two-device remains release proof/)
+  assert.match(docs, /smoke:two-device:debug` is not yet passing/)
+})
+
 test('V1 UX docs include Home trust source product copy', async () => {
   const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
   const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
