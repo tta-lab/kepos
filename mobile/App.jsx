@@ -2315,7 +2315,7 @@ function formatRequestPreview(text) {
 
 function formatMessageRequestTitle(request) {
   const name = request?.alias?.trim() || 'Someone'
-  return `${name} wants to start a DM.`
+  return `${name} wants to start a direct chat.`
 }
 
 function EmptyMessages() {
@@ -2349,7 +2349,7 @@ function DirectBubble({ message, onAcceptRequest, onIgnoreRequest }) {
         <Text style={[styles.bubbleMeta, !outgoing && styles.inBubbleMeta]}>
           {isRequest
             ? outgoing
-              ? 'You asked someone to start a DM'
+              ? 'You asked someone to start a direct chat'
               : formatMessageRequestTitle(message)
             : outgoing
               ? `You to ${displayDirectPeer(message.toProfileId)}`

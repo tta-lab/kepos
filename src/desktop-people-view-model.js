@@ -25,7 +25,7 @@ export function createDesktopPeopleViewModel({
 
 export function formatDesktopMessageRequestTitle(request) {
   const name = request?.alias?.trim() || 'Someone'
-  return `${name} wants to start a DM.`
+  return `${name} wants to start a direct chat.`
 }
 
 export function formatDesktopRequestPreview(text) {

@@ -26,7 +26,7 @@ function getDirectMessageActions(message) {
 function formatDirectMessageMeta(message, { shortenProfileId }) {
   if (message.type === 'kepos.message.request.v1') {
     return message.direction === 'out'
-      ? 'You asked someone to start a DM'
+      ? 'You asked someone to start a direct chat'
       : formatDesktopMessageRequestTitle({
           ...message,
           alias: message.alias || message.nick || ''

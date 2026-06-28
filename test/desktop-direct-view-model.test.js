@@ -59,7 +59,7 @@ test('desktop direct view model formats message request actions', () => {
         ignoreMessage: message
       },
       className: 'item incoming',
-      meta: 'Ada wants to start a DM.',
+      meta: 'Ada wants to start a direct chat.',
       text: 'can we chat?'
     }
   ])
@@ -78,6 +78,6 @@ test('desktop direct view model formats outgoing message requests', () => {
     shortenProfileId: (profileId) => profileId.slice(0, 4)
   })
 
-  assert.equal(viewModel[0].meta, 'You asked someone to start a DM')
+  assert.equal(viewModel[0].meta, 'You asked someone to start a direct chat')
   assert.equal(viewModel[0].actions, null)
 })

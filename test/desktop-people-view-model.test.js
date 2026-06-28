@@ -73,7 +73,7 @@ test('desktop people view model formats pending message requests for rendering',
       profileId,
       profileLabel: 'Ada',
       preview: 'hello',
-      title: 'Ada wants to start a DM.'
+      title: 'Ada wants to start a direct chat.'
     }
   ])
 })
@@ -105,7 +105,7 @@ test('desktop people view model uses stable fallbacks', () => {
       profileId,
       profileLabel: `short:${profileId}`,
       preview: 'No message yet',
-      title: 'Someone wants to start a DM.'
+      title: 'Someone wants to start a direct chat.'
     }
   ])
 })

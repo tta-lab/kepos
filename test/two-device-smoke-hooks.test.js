@@ -304,9 +304,9 @@ test('DM request copy reads as a social action', async () => {
 
   assert.match(mobile, /: formatMessageRequestTitle\(message\)/)
   assert.match(desktopDirectViewModel, /formatDesktopMessageRequestTitle/)
-  assert.match(mobile, /You asked someone to start a DM/)
-  assert.match(desktopDirectViewModel, /You asked someone to start a DM/)
-  assert.match(desktopPeopleViewModel, /wants to start a DM/)
+  assert.match(mobile, /You asked someone to start a direct chat/)
+  assert.match(desktopDirectViewModel, /You asked someone to start a direct chat/)
+  assert.match(desktopPeopleViewModel, /wants to start a direct chat/)
   assert.match(mobile, /testID='message-request-ignore-button'/)
   assert.match(mobile, /onIgnoreRequest\(message\)/)
   assert.match(desktopApp, /onClick=\{\(\) => onIgnore\(message\.actions\.ignoreMessage\)\}/)
@@ -314,12 +314,15 @@ test('DM request copy reads as a social action', async () => {
     desktopBindings,
     /ignoreMessage: \(message\) => dispatchCommand\('ignoreMessageRequest'/
   )
-  assert.match(mobile, /wants to start a DM/)
-  assert.match(desktopPeopleViewModel, /wants to start a DM/)
+  assert.match(mobile, /wants to start a direct chat/)
+  assert.match(desktopPeopleViewModel, /wants to start a direct chat/)
   assert.equal(mobile.includes('asked Profile'), false)
   assert.equal(desktop.includes('asked Profile'), false)
-  assert.equal(mobile.includes('Profile ${shortenProfileId(peer)} wants to start a DM'), false)
-  assert.equal(desktop.includes('Profile ${shorten(peer)} wants to start a DM'), false)
+  assert.equal(
+    mobile.includes('Profile ${shortenProfileId(peer)} wants to start a direct chat'),
+    false
+  )
+  assert.equal(desktop.includes('Profile ${shorten(peer)} wants to start a direct chat'), false)
   assert.equal(mobile.includes('request ${outgoing ?'), false)
   assert.equal(desktop.includes('message request ${message.direction'), false)
 })
@@ -745,7 +748,7 @@ test('Android people pane surfaces pending message requests', async () => {
   assert.match(messageRequestManager, /Message requests/)
   assert.match(messageRequestManager, /\{formatMessageRequestTitle\(request\)\}/)
   assert.match(source, /function formatMessageRequestTitle\(request\)/)
-  assert.match(source, /return `\$\{name\} wants to start a DM\.`/)
+  assert.match(source, /return `\$\{name\} wants to start a direct chat\.`/)
   assert.match(messageRequestManager, /\{formatRequestPreview\(request\.text\)\}/)
   assert.match(source, /function formatRequestPreview\(text\)/)
   assert.match(source, /return text\?\.trim\(\) \|\| 'No message yet'/)
