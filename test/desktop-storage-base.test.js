@@ -35,7 +35,7 @@ test('desktop electron main and preload expose app-private storage base path', a
 
   assert.match(main, /KEPOS_DESKTOP_STORAGE_BASE_PATH/)
   assert.match(main, /path\.join\(app\.getPath\('userData'\), 'kepos', 'v1'\)/)
-  assert.match(preload, /contextBridge\.exposeInMainWorld\('keposDesktopConfig'/)
+  assert.match(preload, /exposeDesktopApi\('keposDesktopConfig'/)
   assert.match(preload, /storageBasePath: process\.env\.KEPOS_DESKTOP_STORAGE_BASE_PATH/)
   assert.match(controller, /getDesktopStorageBasePath/)
   assert.match(controller, /storageBasePath: getDesktopStorageBasePath\(\)/)

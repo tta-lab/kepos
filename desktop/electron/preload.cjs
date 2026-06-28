@@ -2,8 +2,18 @@ const { contextBridge, ipcRenderer } = require('electron')
 
 let nextListenerId = 1
 let backendConnected = false
+let controllerStarted = false
 const connectedListeners = new Set()
 const listeners = new Map()
+
+function exposeDesktopApi(name, api) {
+  if (process.contextIsolated) {
+    contextBridge.exposeInMainWorld(name, api)
+    return
+  }
+
+  globalThis[name] = api
+}
 
 ipcRenderer.on('kepos:backend:connected', (_event, connected) => {
   backendConnected = connected === true
@@ -17,7 +27,7 @@ ipcRenderer.on('kepos:backend:event', (_event, message) => {
   listener.handler(message.payload)
 })
 
-contextBridge.exposeInMainWorld('keposBackend', {
+exposeDesktopApi('keposBackend', {
   dispatch(command, payload) {
     return ipcRenderer.invoke('kepos:backend:dispatch', command, payload)
   },
@@ -48,6 +58,15 @@ contextBridge.exposeInMainWorld('keposBackend', {
   }
 })
 
-contextBridge.exposeInMainWorld('keposDesktopConfig', {
+exposeDesktopApi('keposDesktopConfig', {
   storageBasePath: process.env.KEPOS_DESKTOP_STORAGE_BASE_PATH
+})
+
+exposeDesktopApi('keposDesktopController', {
+  start() {
+    if (controllerStarted) return
+
+    controllerStarted = true
+    globalThis.eval("require('./controller.bundle.cjs')")
+  }
 })

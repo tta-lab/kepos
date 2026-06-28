@@ -24,7 +24,7 @@ test('desktop main connects Electron IPC to the main backend session', async () 
 test('desktop preload exposes a narrow backend bridge api', async () => {
   const source = await readFile(new URL('../desktop/electron/preload.cjs', import.meta.url), 'utf8')
 
-  assert.match(source, /contextBridge\.exposeInMainWorld\('keposBackend'/)
+  assert.match(source, /exposeDesktopApi\('keposBackend'/)
   assert.match(source, /let backendConnected = false/)
   assert.match(source, /ipcRenderer\.on\('kepos:backend:connected'/)
   assert.match(source, /isConnected\(\)/)
@@ -34,6 +34,29 @@ test('desktop preload exposes a narrow backend bridge api', async () => {
   assert.match(source, /ipcRenderer\.send\('kepos:backend:unsubscribe'/)
   assert.doesNotMatch(source, /require\('\.\.\/src\//)
   assert.doesNotMatch(source, /Hyperswarm/)
+})
+
+test('desktop preload owns controller bundle startup', async () => {
+  const source = await readFile(new URL('../desktop/electron/preload.cjs', import.meta.url), 'utf8')
+  const html = await readFile(new URL('../desktop/index.html', import.meta.url), 'utf8')
+
+  assert.match(source, /exposeDesktopApi\('keposDesktopController'/)
+  assert.match(source, /start\(\)/)
+  assert.match(source, /globalThis\.eval\("require\('\.\/controller\.bundle\.cjs'\)"\)/)
+  assert.doesNotMatch(html, /require\('\.\/controller\.bundle\.cjs'\)/)
+  assert.match(html, /window\.keposDesktopController\.start\(\)/)
+})
+
+test('desktop preload exposes bridge apis when context isolation is disabled', async () => {
+  const source = await readFile(new URL('../desktop/electron/preload.cjs', import.meta.url), 'utf8')
+
+  assert.match(source, /function exposeDesktopApi\(name, api\)/)
+  assert.match(source, /if \(process\.contextIsolated\)/)
+  assert.match(source, /contextBridge\.exposeInMainWorld\(name, api\)/)
+  assert.match(source, /globalThis\[name\] = api/)
+  assert.match(source, /exposeDesktopApi\('keposBackend'/)
+  assert.match(source, /exposeDesktopApi\('keposDesktopConfig'/)
+  assert.match(source, /exposeDesktopApi\('keposDesktopController'/)
 })
 
 test('desktop electron backend ipc validates commands and forwards events', () => {

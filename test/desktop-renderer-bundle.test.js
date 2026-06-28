@@ -22,13 +22,14 @@ test('desktop renderer loads separate UI and controller bundles', async () => {
   const html = await readFile(new URL('../desktop/index.html', import.meta.url), 'utf8')
 
   assert.match(html, /<script src="\.\/app\.bundle\.js"><\/script>/)
-  assert.match(html, /require\('\.\/controller\.bundle\.cjs'\)/)
+  assert.match(html, /window\.keposDesktopController\.start\(\)/)
   assert.match(
     html,
-    /<script src="\.\/app\.bundle\.js"><\/script>[\s\S]*require\('\.\/controller\.bundle\.cjs'\)/
+    /<script src="\.\/app\.bundle\.js"><\/script>[\s\S]*window\.keposDesktopController\.start\(\)/
   )
   assert.doesNotMatch(html, /src="\.\/app\.js" type="module"/)
   assert.doesNotMatch(html, /require\('\.\/app\.bundle\.cjs'\)/)
+  assert.doesNotMatch(html, /require\('\.\/controller\.bundle\.cjs'\)/)
 })
 
 test('desktop scripts build the renderer bundle before launch', async () => {
@@ -57,7 +58,7 @@ test('desktop React entry renders before starting the controller', async () => {
   assert.doesNotMatch(source, /import\('\.\/controller\.js'\)/)
   assert.match(
     html,
-    /<script src="\.\/app\.bundle\.js"><\/script>[\s\S]*require\('\.\/controller\.bundle\.cjs'\)/
+    /<script src="\.\/app\.bundle\.js"><\/script>[\s\S]*window\.keposDesktopController\.start\(\)/
   )
 })
 
