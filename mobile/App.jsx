@@ -75,6 +75,7 @@ import {
   formatMobileDirectMessageMeta,
   formatMobileHomeMessageMeta,
   formatMobilePostTime,
+  formatMobileTrustedContactName,
   formatMessageRequestSubtitle,
   formatMessageRequestTitle,
   formatMobileTrustSource,
@@ -1811,7 +1812,7 @@ function DirectPane({
                     recipient === contact.profileId && styles.activeContactChipText
                   ]}
                 >
-                  {contact.alias}
+                  {formatMobileTrustedContactName(contact)}
                 </Text>
               </Pressable>
             ))}
@@ -1902,7 +1903,7 @@ function ContactManager({ contacts, onRevokeContact }) {
       {(contacts || []).map((contact) => (
         <View key={contact.profileId} style={styles.contactRow}>
           <View style={styles.contactRowText}>
-            <Text style={styles.contactName}>{contact.alias}</Text>
+            <Text style={styles.contactName}>{formatMobileTrustedContactName(contact)}</Text>
             <Text style={styles.contactProfile}>{shortenProfileId(contact.profileId)}</Text>
             <View style={styles.trustMeta}>
               <Text style={styles.trustStatus}>Trusted</Text>
@@ -1915,7 +1916,7 @@ function ContactManager({ contacts, onRevokeContact }) {
             </View>
           </View>
           <Pressable
-            accessibilityLabel={`Revoke ${contact.alias}`}
+            accessibilityLabel={`Revoke ${formatMobileTrustedContactName(contact)}`}
             onPress={() => onRevokeContact(contact.profileId)}
             style={styles.revokeButton}
           >

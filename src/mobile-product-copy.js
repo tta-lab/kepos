@@ -87,6 +87,10 @@ export function formatMobileTrustTime(
   return formatDate(trustedAt)
 }
 
+export function formatMobileTrustedContactName(contact) {
+  return contact?.alias?.trim() || displayDirectPeer(contact?.profileId)
+}
+
 export function formatRequestPreview(text) {
   return text?.trim() || 'No message yet'
 }

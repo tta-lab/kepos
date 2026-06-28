@@ -6,6 +6,7 @@ import {
   formatMobileDirectMessageMeta,
   formatMobileHomeMessageMeta,
   formatMobilePostTime,
+  formatMobileTrustedContactName,
   formatMessageRequestSubtitle,
   formatMessageRequestTitle,
   formatMobileTrustSource,
@@ -70,6 +71,11 @@ test('mobile product copy formats people and request labels', () => {
   assert.equal(
     formatMessageRequestSubtitle({ profileId: '1234567890abcdef1234567890abcdef' }),
     '12345678...90abcdef'
+  )
+  assert.equal(formatMobileTrustedContactName({ alias: ' Grace ' }), 'Grace')
+  assert.equal(
+    formatMobileTrustedContactName({ profileId: '1234567890abcdef1234567890abcdef' }),
+    'Profile 12345678...90abcdef'
   )
 })
 
