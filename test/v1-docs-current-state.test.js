@@ -84,3 +84,11 @@ test('V1 UX docs include Home trust source product copy', async () => {
   assert.match(ux, /trusted-friend metadata now show Home instead of Home room/)
   assert.match(ux, /internal room terminology out of normal trust surfaces/)
 })
+
+test('V1 DM bootstrap docs no longer claim contact polish remains pending', async () => {
+  const dmBootstrap = await readText('../docs/v1.08-dm-bootstrap-security.md')
+
+  assert.doesNotMatch(dmBootstrap, /Remaining work is contacts polish revealed by later smoke/)
+  assert.match(dmBootstrap, /Later contact polish has also landed/)
+  assert.match(dmBootstrap, /guide zero-contact Direct users toward People/)
+})
