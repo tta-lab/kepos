@@ -114,15 +114,19 @@ function setTab(tab) {
 }
 
 function render() {
-  const { contactBook } = getProfileContext()
   renderPresenter.render({
-    contactBook: backendContactBook || contactBook,
+    contactBook: getRenderContactBook(),
     directComposerRecipientProfileId: controllerState.getDirectComposerRecipientProfileId(),
     dmSession: controllerState.getDmSession(),
     pendingCommand: commandDispatcher.getPendingCommand(),
     session: controllerState.getSession(),
     state: controllerState.getState()
   })
+}
+
+function getRenderContactBook() {
+  if (backendContactBook) return backendContactBook
+  return getProfileContext().contactBook
 }
 
 function updateDirectComposerRecipient(toProfileId = '') {

@@ -133,7 +133,10 @@ test('desktop controller renders backend contact book snapshots from the bridge'
   assert.match(subscriptions, /backendClient\.subscribe\('contactBookChanged'/)
   assert.match(source, /let backendContactBook = null/)
   assert.match(source, /setContactBook: \(nextContactBook\) =>/)
-  assert.match(source, /contactBook: backendContactBook \|\| contactBook/)
+  assert.match(source, /function getRenderContactBook\(\)/)
+  assert.match(source, /if \(backendContactBook\) return backendContactBook/)
+  assert.match(source, /contactBook: getRenderContactBook\(\)/)
+  assert.doesNotMatch(source, /const \{ contactBook \} = getProfileContext\(\)/)
 })
 
 test('desktop controller delegates home transport to a runtime boundary', async () => {
