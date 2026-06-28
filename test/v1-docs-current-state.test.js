@@ -24,6 +24,8 @@ test('V1 smoke docs include the desktop Pear Bare smoke path', async () => {
   assert.match(guide, /npm run smoke:desktop:pear/)
   assert.match(guide, /npm run smoke:desktop:contacts:pear/)
   assert.match(guide, /Pear\/Bare/)
+  assert.match(guide, /revoked trusted contact stays hidden after restart/)
   assert.match(recipe, /npm run smoke:desktop:pear/)
   assert.match(recipe, /npm run smoke:desktop:contacts:pear/)
+  assert.match(recipe, /revoked trusted contact stays hidden after restart/)
 })

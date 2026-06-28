@@ -37,6 +37,11 @@ try {
   await waitForContact(restartedPage, contactAlias)
   await createHome(restartedPage)
   await sendDirectRequest(restartedPage)
+  await revokeTrustedContact(restartedPage)
+  await waitForContactMissing(restartedPage, contactAlias)
+
+  const revokedRestartedPage = await restartDesktopApp()
+  await waitForContactMissing(revokedRestartedPage, contactAlias)
 
   console.log(
     JSON.stringify(
@@ -47,7 +52,8 @@ try {
         userDataDir,
         verified: [
           'contact persists after desktop restart',
-          'direct request appears after desktop restart'
+          'direct request appears after desktop restart',
+          'contact stays revoked after desktop restart'
         ]
       },
       null,
@@ -110,11 +116,25 @@ async function sendDirectRequest(page) {
   await waitForTextIncludes(page, '#dmList', directRequestText)
 }
 
+async function revokeTrustedContact(page) {
+  await page.click('#peopleTab')
+  const contactCard = page.locator('#contactList .managedContact', { hasText: contactAlias })
+  await contactCard.locator('button', { hasText: 'Revoke' }).click()
+  await waitForText(page, '#noticeLabel', 'Trust revoked.')
+}
+
 async function waitForContact(page, alias) {
   await waitFor(async () => {
     const text = await page.locator('#contactList').textContent()
     return text?.includes(alias)
   }, `${alias} contact`)
+}
+
+async function waitForContactMissing(page, alias) {
+  await waitFor(async () => {
+    const contactText = await page.locator('#contactList').textContent()
+    return !contactText?.includes(alias)
+  }, `${alias} contact removed`)
 }
 
 async function waitForInputPrefix(page, selector, prefix) {
@@ -131,7 +151,7 @@ async function waitForText(page, selector, expected) {
 
 async function waitForTextIncludes(page, selector, expected) {
   const locator = page.locator(selector)
-  await locator.waitFor({ state: 'visible' })
+  await locator.waitFor({ state: 'attached' })
   await waitFor(
     async () => (await locator.textContent())?.includes(expected),
     `${selector} text includes ${expected}`

@@ -51,6 +51,27 @@ test('desktop file storage loads existing values and removes keys', () => {
   )
 })
 
+test('desktop file storage merges latest file values when separate instances persist', () => {
+  const writes = new Map()
+  const fs = createMemoryFs(writes)
+  const first = createDesktopFileStorage({
+    basePath: '/user-data/kepos/v1',
+    fs
+  })
+  const second = createDesktopFileStorage({
+    basePath: '/user-data/kepos/v1',
+    fs
+  })
+
+  first.setItem('kepos.contactBook.v1', '{"revoked":true}')
+  second.setItem('kepos.dmThreads.v1', '{"threads":[]}')
+
+  assert.deepEqual(JSON.parse(writes.get('/user-data/kepos/v1/desktop-storage.json')), {
+    'kepos.contactBook.v1': '{"revoked":true}',
+    'kepos.dmThreads.v1': '{"threads":[]}'
+  })
+})
+
 test('desktop file storage fails closed without a base path', () => {
   assert.throws(() => createDesktopFileStorage({ basePath: '' }), /Desktop storage base path/)
 })

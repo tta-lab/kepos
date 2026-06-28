@@ -8,6 +8,13 @@ export function createKeyValueFileStorage({ basePath, fileSystem, joinPath } = {
   const storagePath = joinPath(basePath, STORAGE_FILE)
   const values = readValues({ fileSystem, storagePath })
 
+  function refresh() {
+    values.clear()
+    for (const [key, value] of readValues({ fileSystem, storagePath })) {
+      values.set(key, value)
+    }
+  }
+
   function persist() {
     fileSystem.mkdirSync(basePath, { recursive: true })
     fileSystem.writeFileSync(storagePath, JSON.stringify(Object.fromEntries(values)))
@@ -19,13 +26,16 @@ export function createKeyValueFileStorage({ basePath, fileSystem, joinPath } = {
       persist()
     },
     getItem(key) {
+      refresh()
       return values.has(key) ? values.get(key) : null
     },
     removeItem(key) {
+      refresh()
       values.delete(key)
       persist()
     },
     setItem(key, value) {
+      refresh()
       values.set(String(key), String(value))
       persist()
     }
