@@ -288,20 +288,22 @@ function DirectContactPicker({ actions, contacts, empty, selectedProfileId }) {
           </button>
         </div>
       ) : (
-        contacts.map((contact) => (
-          <button
-            key={contact.profileId}
-            className={
-              contact.profileId === selectedProfileId || contact.isSelected
-                ? 'contactButton activeContactButton'
-                : 'contactButton'
-            }
-            type='button'
-            onClick={() => actions.selectContact(contact.profileId)}
-          >
-            {contact.alias}
-          </button>
-        ))
+        contacts.map((contact) => {
+          const selected = contact.profileId === selectedProfileId || contact.isSelected
+
+          return (
+            <button
+              key={contact.profileId}
+              aria-label={`Direct recipient ${contact.alias}`}
+              aria-pressed={selected}
+              className={selected ? 'contactButton activeContactButton' : 'contactButton'}
+              type='button'
+              onClick={() => actions.selectContact(contact.profileId)}
+            >
+              {contact.alias}
+            </button>
+          )
+        })
       )}
     </div>
   )

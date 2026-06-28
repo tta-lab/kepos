@@ -85,6 +85,15 @@ test('V1 UX docs include desktop Direct zero-contact empty state polish', async 
   assert.match(ux, /links directly to People/)
 })
 
+test('V1 UX docs include desktop direct recipient selected state', async () => {
+  const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
+  const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
+
+  assert.match(audit, /desktop Direct trusted-contact buttons expose selected state/)
+  assert.match(ux, /Desktop Direct trusted-contact buttons now expose selected state/)
+  assert.match(ux, /matching the mobile recipient\s+selection semantics/)
+})
+
 test('V1 docs do not overclaim current physical QR proof', async () => {
   const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
   const gaps = await readText('../docs/v1.07-architecture-gaps.md')

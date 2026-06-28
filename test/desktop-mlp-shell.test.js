@@ -542,7 +542,13 @@ test('desktop panes label live and durable surfaces', async () => {
   assert.equal(source.includes('Send DM'), false)
   assert.match(
     source,
-    /contact\.profileId === selectedProfileId \|\| contact\.isSelected[\s\S]*\? 'contactButton activeContactButton'[\s\S]*: 'contactButton'/
+    /const selected = contact\.profileId === selectedProfileId \|\| contact\.isSelected/
+  )
+  assert.match(source, /aria-label=\{`Direct recipient \$\{contact\.alias\}`\}/)
+  assert.match(source, /aria-pressed=\{selected\}/)
+  assert.match(
+    source,
+    /className=\{selected \? 'contactButton activeContactButton' : 'contactButton'\}/
   )
   assert.match(source, /selectedProfileId=\{composer\.toProfileId\.trim\(\)\}/)
   assert.doesNotMatch(controller, /els\.dmRecipientInput\.addEventListener/)
