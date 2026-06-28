@@ -45,6 +45,10 @@ test('desktop contact persistence smoke restarts with the same user data', async
     packageJson.scripts['smoke:desktop:contacts'],
     'npm run desktop:bundle && node scripts/smoke-desktop-contacts.mjs'
   )
+  assert.equal(
+    packageJson.scripts['smoke:desktop:contacts:pear'],
+    'npm run desktop:bundle && node scripts/smoke-desktop-contacts.mjs --pear'
+  )
 
   const source = await readFile(
     new URL('../scripts/smoke-desktop-contacts.mjs', import.meta.url),
@@ -58,7 +62,9 @@ test('desktop contact persistence smoke restarts with the same user data', async
     'Persistent smoke',
     'contact persists after desktop restart',
     'peopleActions',
-    '--user-data-dir='
+    '--user-data-dir=',
+    "usePearRuntime = process.argv.includes\\('--pear'\\)",
+    "KEPOS_SMOKE_DESKTOP: usePearRuntime \\? undefined : '1'"
   ]) {
     assert.match(source, new RegExp(marker), `${marker} is missing`)
   }

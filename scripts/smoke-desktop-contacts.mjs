@@ -15,6 +15,7 @@ const electronExecutable = path.join(
   process.platform === 'win32' ? 'electron.cmd' : 'electron'
 )
 const userDataDir = await mkdtemp(path.join(os.tmpdir(), 'kepos-desktop-contacts-'))
+const usePearRuntime = process.argv.includes('--pear')
 const contactAlias = 'Persistent smoke'
 const contactIdentity = createIdentityKeyPairFromSeed(Buffer.alloc(32, 7))
 const contactProfileUri = encodeQrUri(
@@ -57,7 +58,7 @@ async function launchDesktopApp() {
     cwd: desktopDir,
     env: {
       ...process.env,
-      KEPOS_SMOKE_DESKTOP: '1'
+      KEPOS_SMOKE_DESKTOP: usePearRuntime ? undefined : '1'
     },
     executablePath: electronExecutable,
     timeout: 60000
