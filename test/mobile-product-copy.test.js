@@ -4,7 +4,9 @@ import {
   formatMessageRequestTitle,
   formatMobileTrustSource,
   formatMobileTrustTime,
+  formatPendingBadgeCount,
   formatRequestPreview,
+  getMobileTabButtonLabel,
   getMobileBackendNotice,
   getMobileHomeStatus,
   getMobileRoomSurface,
@@ -56,4 +58,12 @@ test('mobile product copy formats people and request labels', () => {
   assert.equal(formatRequestPreview('  '), 'No message yet')
   assert.equal(formatMessageRequestTitle({ alias: 'Ada' }), 'Ada wants to start a direct chat.')
   assert.equal(formatMessageRequestTitle({}), 'Someone wants to start a direct chat.')
+})
+
+test('mobile product copy formats pending tab badges', () => {
+  assert.equal(getMobileTabButtonLabel('Direct', 0), 'Direct')
+  assert.equal(getMobileTabButtonLabel('Direct', 2), 'Direct, 2 pending')
+  assert.equal(formatPendingBadgeCount(0), '0')
+  assert.equal(formatPendingBadgeCount(12), '12')
+  assert.equal(formatPendingBadgeCount(100), '99+')
 })

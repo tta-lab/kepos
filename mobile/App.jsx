@@ -72,10 +72,12 @@ import {
   formatMessageRequestTitle,
   formatMobileTrustSource,
   formatMobileTrustTime,
+  formatPendingBadgeCount,
   formatRequestPreview,
   getMobileBackendNotice,
   getMobileHomeStatus,
   getMobileRoomSurface,
+  getMobileTabButtonLabel,
   getMobileTreeholeStatus
 } from '../src/mobile-product-copy.js'
 import { applyLocalContactRevoke } from '../src/revoke-state.js'
@@ -1991,7 +1993,7 @@ function TabButton({ active, badgeCount = 0, icon: Icon, label, onPress, testID 
 
   return (
     <Pressable
-      accessibilityLabel={getTabButtonLabel(label, badgeCount)}
+      accessibilityLabel={getMobileTabButtonLabel(label, badgeCount)}
       accessibilityRole='tab'
       accessibilityState={{ selected: active }}
       onPress={onPress}
@@ -2002,19 +2004,11 @@ function TabButton({ active, badgeCount = 0, icon: Icon, label, onPress, testID 
       <Text style={[styles.tabText, active && styles.activeTabText]}>{label}</Text>
       {badgeCount > 0 ? (
         <View style={styles.tabBadge} accessibilityLabel={`${label} pending ${badgeCount}`}>
-          <Text style={styles.tabBadgeText}>{badgeCount > 99 ? '99+' : badgeCount}</Text>
+          <Text style={styles.tabBadgeText}>{formatPendingBadgeCount(badgeCount)}</Text>
         </View>
       ) : null}
     </Pressable>
   )
-}
-
-function getTabButtonLabel(label, badgeCount) {
-  if (badgeCount > 0) {
-    return `${label}, ${badgeCount} pending`
-  }
-
-  return label
 }
 
 function ChatPane({ draft, messages, onDraftChange, onSend }) {

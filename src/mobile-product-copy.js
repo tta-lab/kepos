@@ -95,3 +95,15 @@ export function formatMessageRequestTitle(request) {
   const name = request?.alias?.trim() || 'Someone'
   return `${name} wants to start a direct chat.`
 }
+
+export function getMobileTabButtonLabel(label, badgeCount) {
+  if (badgeCount > 0) {
+    return `${label}, ${badgeCount} pending`
+  }
+
+  return label
+}
+
+export function formatPendingBadgeCount(badgeCount) {
+  return badgeCount > 99 ? '99+' : String(badgeCount)
+}
