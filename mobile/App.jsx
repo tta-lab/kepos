@@ -23,6 +23,7 @@ import {
   Plus,
   QrCode,
   Send,
+  Settings,
   Sprout,
   UserMinus,
   Users
@@ -1100,6 +1101,7 @@ function Lobby({
         style={styles.secondaryButton}
         testID='advanced-join-toggle'
       >
+        <Settings color={theme.accentStrong} size={18} />
         <Text style={styles.secondaryButtonText}>Advanced</Text>
       </Pressable>
       {showAdvancedJoin ? (
@@ -1563,6 +1565,7 @@ function PeopleActions({
           style={[styles.secondaryButton, !canUseHomeJoin && styles.disabledButton]}
           testID='scan-home-qr-button'
         >
+          <ArrowRight color={canUseHomeJoin ? theme.accentStrong : theme.placeholder} size={18} />
           <Text style={[styles.secondaryButtonText, !canUseHomeJoin && styles.disabledButtonText]}>
             Scan Home QR
           </Text>
@@ -1596,6 +1599,7 @@ function PeopleActions({
           style={[styles.secondaryButton, !profileReady && styles.disabledButton]}
           testID='scan-profile-qr-button'
         >
+          <Plus color={profileReady ? theme.accentStrong : theme.placeholder} size={18} />
           <Text style={[styles.secondaryButtonText, !profileReady && styles.disabledButtonText]}>
             Scan Profile QR
           </Text>
@@ -1607,6 +1611,7 @@ function PeopleActions({
         style={styles.secondaryButton}
         testID='advanced-share-toggle'
       >
+        <Settings color={theme.accentStrong} size={18} />
         <Text style={styles.secondaryButtonText}>Advanced</Text>
       </Pressable>
       {showAdvancedShare ? (
@@ -1800,6 +1805,7 @@ function DirectPane({
           style={styles.directAdvancedToggle}
           testID='advanced-dm-recipient-toggle'
         >
+          <Settings color={theme.inkSoft} size={15} />
           <Text style={styles.advancedSummary}>Advanced</Text>
         </Pressable>
         {showAdvancedDmRecipient ? (
@@ -2978,11 +2984,14 @@ function createMobileStyles(theme) {
       padding: 12
     },
     directAdvancedToggle: {
+      alignItems: 'center',
       alignSelf: 'flex-start',
+      flexDirection: 'row',
+      gap: 6,
+      justifyContent: 'center',
       marginHorizontal: 14,
       marginTop: 12,
-      minHeight: 30,
-      justifyContent: 'center'
+      minHeight: 30
     },
     advancedSummary: {
       color: theme.inkSoft,

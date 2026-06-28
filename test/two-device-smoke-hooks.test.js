@@ -64,6 +64,7 @@ test('Android lucide icons used in JSX are imported', async () => {
     'Plus',
     'QrCode',
     'Send',
+    'Settings',
     'Sprout',
     'UserMinus',
     'Users'
@@ -129,6 +130,28 @@ test('Android lobby starts with compact product choices', async () => {
   )
   assert.equal(source.indexOf('<PeopleActions') > source.indexOf('showPeopleSetup ? ('), true)
   assert.equal(source.includes("label='Nick'"), false)
+})
+
+test('Android setup action buttons use icons consistently', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const lobby = source.slice(
+    source.indexOf('function Lobby('),
+    source.indexOf('function ChatRoom(')
+  )
+  const peopleActions = source.slice(
+    source.indexOf('function PeopleActions('),
+    source.indexOf('function DirectPane(')
+  )
+  const directPane = source.slice(
+    source.indexOf('function DirectPane('),
+    source.indexOf('function ContactManager(')
+  )
+
+  assert.match(peopleActions, /testID='scan-home-qr-button'[\s\S]*<ArrowRight\b/)
+  assert.match(peopleActions, /testID='scan-profile-qr-button'[\s\S]*<Plus\b/)
+  assert.match(lobby, /testID='advanced-join-toggle'[\s\S]*<Settings\b/)
+  assert.match(peopleActions, /testID='advanced-share-toggle'[\s\S]*<Settings\b/)
+  assert.match(directPane, /testID='advanced-dm-recipient-toggle'[\s\S]*<Settings\b/)
 })
 
 test('Android lobby uses shared task headers for setup panels', async () => {
