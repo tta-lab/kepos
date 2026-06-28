@@ -159,6 +159,7 @@ test('desktop people UI uses trusted friends copy', async () => {
   assert.match(source, /\{contact\.statusLabel\}/)
   assert.match(source, /\{contact\.sourceLabel\}/)
   assert.match(source, /\{contact\.trustedAtLabel\}/)
+  assert.match(source, /aria-label=\{`Revoke trust for \$\{contact\.alias\}`\}/)
   assert.match(presenter, /ui\?\.setPeople\(/)
   assert.match(bindings, /revokeContact: \(profileId\) => dispatchCommand\('revokeContact'/)
   assert.equal(source.indexOf("id='contactList'") > source.indexOf("id='peoplePane'"), true)
@@ -313,6 +314,8 @@ test('desktop people pane surfaces pending message requests', async () => {
   assert.match(source, /\{request\.preview\}/)
   assert.match(source, /actions\.acceptMessageRequest\(request\.acceptMessage\)/)
   assert.match(source, /actions\.ignoreMessageRequest\(request\.profileId\)/)
+  assert.match(source, /aria-label=\{`Accept message request from \$\{request\.title\}`\}/)
+  assert.match(source, /aria-label=\{`Ignore message request from \$\{request\.title\}`\}/)
   assert.match(
     bindings,
     /acceptMessageRequest: \(message\) => dispatchCommand\('acceptMessageRequest'/

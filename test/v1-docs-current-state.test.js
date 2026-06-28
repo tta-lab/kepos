@@ -58,6 +58,15 @@ test('V1 UX docs include desktop People product empty states', async () => {
   assert.match(ux, /trust management does not collapse into plain\s+placeholder text/)
 })
 
+test('V1 UX docs include desktop People target-specific trust actions', async () => {
+  const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
+  const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
+
+  assert.match(audit, /desktop People request and revoke action labels include the target person/)
+  assert.match(ux, /Desktop People request and revoke action labels now include the target person/)
+  assert.match(ux, /trust decisions remain clear to assistive technology/)
+})
+
 test('V1 UX docs include accessible desktop primary empty states', async () => {
   const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
   const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')

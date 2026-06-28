@@ -41,6 +41,7 @@ export function PeopleLists({ actions, messageRequests, trustedContacts }) {
                 </div>
                 <div className='inlineActions'>
                   <button
+                    aria-label={`Ignore message request from ${request.title}`}
                     className='smallButton'
                     type='button'
                     onClick={() => actions.ignoreMessageRequest(request.profileId)}
@@ -49,6 +50,7 @@ export function PeopleLists({ actions, messageRequests, trustedContacts }) {
                     Ignore
                   </button>
                   <button
+                    aria-label={`Accept message request from ${request.title}`}
                     className='smallButton'
                     type='button'
                     onClick={() => actions.acceptMessageRequest(request.acceptMessage)}
@@ -84,6 +86,7 @@ export function PeopleLists({ actions, messageRequests, trustedContacts }) {
                   </div>
                 </div>
                 <button
+                  aria-label={`Revoke trust for ${contact.alias}`}
                   className='smallButton dangerButton'
                   type='button'
                   onClick={() => actions.revokeContact(contact.profileId)}
