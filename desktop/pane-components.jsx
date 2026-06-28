@@ -1,10 +1,15 @@
 import React, { useState } from 'react'
 import { Send, Sprout } from 'lucide-react'
+import { PaneHeader } from './ui-components.jsx'
 
 export function HomePane({ activeTab, controls, messages, onSend }) {
   return (
     <section id='chatPane' className={activeTab === 'chat' ? 'pane' : 'pane hidden'}>
-      <PaneLabel eyebrow='live' title='Live home chat' />
+      <PaneHeader
+        eyebrow='live'
+        title='Live home chat'
+        description='Ephemeral messages for everyone currently inside this home.'
+      />
       <HomeChatList messages={messages} />
       <HomeChatComposer controls={controls} onSend={onSend} />
     </section>
@@ -24,7 +29,11 @@ export function DirectPane({
 }) {
   return (
     <section id='dmPane' className={activeTab === 'dm' ? 'pane' : 'pane hidden'}>
-      <PaneLabel eyebrow='durable' title='Direct messages' />
+      <PaneHeader
+        eyebrow='durable'
+        title='Direct messages'
+        description='Private pairwise threads that survive restarts.'
+      />
       <DirectMessageList
         messages={messages}
         onAccept={messageActions.acceptMessage}
@@ -45,7 +54,11 @@ export function DirectPane({
 export function TreeholePane({ activeTab, actions, controls, onPost, posts }) {
   return (
     <section id='treeholePane' className={activeTab === 'treehole' ? 'pane' : 'pane hidden'}>
-      <PaneLabel eyebrow='durable' title='Durable treehole' />
+      <PaneHeader
+        eyebrow='durable'
+        title='Durable treehole'
+        description='The home owner writes the wall; trusted friends can react and comment.'
+      />
       <TreeholeList actions={actions} posts={posts} />
       <TreeholeComposer controls={controls} onPost={onPost} />
     </section>
@@ -185,15 +198,6 @@ function TreeholeComposer({ controls, onPost }) {
         Post
       </button>
     </form>
-  )
-}
-
-function PaneLabel({ eyebrow, title }) {
-  return (
-    <div className='paneLabel'>
-      <p className='paneEyebrow'>{eyebrow}</p>
-      <h2 className='paneTitle'>{title}</h2>
-    </div>
   )
 }
 

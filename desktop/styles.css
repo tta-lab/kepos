@@ -395,12 +395,13 @@ textarea {
 }
 
 .metric {
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 900;
   line-height: 0.95;
   margin: 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
   place-self: end start;
+  word-break: keep-all;
 }
 
 .workspace {
@@ -489,9 +490,11 @@ textarea {
 }
 
 .paneLabel {
+  align-items: center;
   border-bottom: 1px solid var(--border);
-  display: grid;
-  gap: 3px;
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
   padding: 12px 20px;
 }
 
@@ -509,6 +512,16 @@ textarea {
   font-size: 18px;
   line-height: 1.2;
   margin: 0;
+}
+
+.paneDescription {
+  color: var(--ink-muted);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.45;
+  margin: 0;
+  max-width: 360px;
+  text-align: right;
 }
 
 .hidden {

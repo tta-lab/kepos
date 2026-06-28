@@ -1,5 +1,6 @@
 import React from 'react'
 import { Copy, Home, LogOut, QrCode, ShieldCheck, UserPlus } from 'lucide-react'
+import { SectionTitle } from './ui-components.jsx'
 
 const ROOM_KEY_PATTERN = /^[0-9a-f]{64}$/
 
@@ -210,15 +211,6 @@ function QrShareOutput({ detailsId, label, outputId, qrId, qrLabel, svg, uri }) 
         <textarea id={outputId} className='compactArea' readOnly spellCheck='false' value={uri} />
       </label>
     </details>
-  )
-}
-
-function SectionTitle({ icon, id, text }) {
-  return (
-    <p id={id} className='label sectionTitle'>
-      {icon}
-      <span>{text}</span>
-    </p>
   )
 }
 

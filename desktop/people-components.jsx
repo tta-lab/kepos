@@ -1,10 +1,15 @@
 import React from 'react'
 import { MessageCircle, Users } from 'lucide-react'
+import { PaneHeader, SectionTitle } from './ui-components.jsx'
 
 export function PeoplePane({ activeTab, actions, messageRequests, trustedContacts }) {
   return (
     <section id='peoplePane' className={activeTab === 'people' ? 'pane' : 'pane hidden'}>
-      <PaneLabel eyebrow='trusted' title='People' />
+      <PaneHeader
+        eyebrow='trusted'
+        title='People'
+        description='Manage who can enter your home and start direct threads.'
+      />
       <PeopleLists
         actions={actions}
         messageRequests={messageRequests}
@@ -81,23 +86,5 @@ export function PeopleLists({ actions, messageRequests, trustedContacts }) {
         </div>
       </section>
     </>
-  )
-}
-
-function PaneLabel({ eyebrow, title }) {
-  return (
-    <div className='paneLabel'>
-      <p className='paneEyebrow'>{eyebrow}</p>
-      <h2 className='paneTitle'>{title}</h2>
-    </div>
-  )
-}
-
-function SectionTitle({ icon, id, text }) {
-  return (
-    <p id={id} className='label sectionTitle'>
-      {icon}
-      <span>{text}</span>
-    </p>
   )
 }

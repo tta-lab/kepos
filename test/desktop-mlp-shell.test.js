@@ -19,7 +19,8 @@ async function readDesktopUiSource() {
     new URL('../desktop/people-components.jsx', import.meta.url),
     'utf8'
   )
-  return `${app}\n${appState}\n${panes}\n${shell}\n${context}\n${people}`
+  const shared = await readFile(new URL('../desktop/ui-components.jsx', import.meta.url), 'utf8')
+  return `${app}\n${appState}\n${panes}\n${shell}\n${context}\n${people}\n${shared}`
 }
 
 test('desktop React shell separates navigation, workspace, and context panels', async () => {
@@ -121,7 +122,10 @@ test('desktop people UI uses trusted friends copy', async () => {
   assert.match(source, /label='People'/)
   assert.match(source, /<span className='railLabel'>\{label\}<\/span>/)
   assert.match(source, /id='peoplePane'/)
-  assert.match(source, /<PaneLabel eyebrow='trusted' title='People' \/>/)
+  assert.match(
+    source,
+    /<PaneHeader[\s\S]*eyebrow='trusted'[\s\S]*title='People'[\s\S]*description='Manage who can enter your home and start direct threads\.'/
+  )
   assert.match(source, /Trusted friends/)
   assert.match(source, /No trusted friends yet/)
   assert.match(presenter, /createDesktopPeopleViewModel/)
@@ -153,10 +157,10 @@ test('desktop People pane lives behind a dedicated component boundary', async ()
   assert.match(source, /<PeoplePane[\s\S]*trustedContacts=\{model\.people\.trustedContacts\}/)
   assert.match(people, /export function PeoplePane\(/)
   assert.match(people, /export function PeopleLists\(/)
-  assert.match(people, /function SectionTitle\(/)
+  assert.match(people, /import \{ PaneHeader, SectionTitle \} from '\.\/ui-components\.jsx'/)
   assert.doesNotMatch(source, /<PaneLabel eyebrow='trusted' title='People' \/>/)
   assert.doesNotMatch(source, /function PeopleLists\(/)
-  assert.doesNotMatch(source, /function SectionTitle\(/)
+  assert.doesNotMatch(people, /function SectionTitle\(/)
 })
 
 test('desktop primary panes live behind a dedicated component boundary', async () => {
@@ -177,6 +181,47 @@ test('desktop primary panes live behind a dedicated component boundary', async (
   assert.doesNotMatch(source, /function DirectComposer\(/)
   assert.doesNotMatch(source, /function TreeholeComposer\(/)
   assert.doesNotMatch(source, /function PaneLabel\(/)
+})
+
+test('desktop panes share product headers with short guidance', async () => {
+  const panes = await readFile(new URL('../desktop/pane-components.jsx', import.meta.url), 'utf8')
+  const people = await readFile(
+    new URL('../desktop/people-components.jsx', import.meta.url),
+    'utf8'
+  )
+  const context = await readFile(
+    new URL('../desktop/context-components.jsx', import.meta.url),
+    'utf8'
+  )
+  const shared = await readFile(new URL('../desktop/ui-components.jsx', import.meta.url), 'utf8')
+  const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
+
+  assert.match(shared, /export function PaneHeader\(/)
+  assert.match(shared, /export function SectionTitle\(/)
+  assert.match(panes, /import \{ PaneHeader \} from '\.\/ui-components\.jsx'/)
+  assert.match(people, /import \{ PaneHeader, SectionTitle \} from '\.\/ui-components\.jsx'/)
+  assert.match(context, /import \{ SectionTitle \} from '\.\/ui-components\.jsx'/)
+  assert.match(
+    panes,
+    /<PaneHeader[\s\S]*eyebrow='live'[\s\S]*title='Live home chat'[\s\S]*description='Ephemeral messages for everyone currently inside this home\.'[\s\S]*\/>/
+  )
+  assert.match(
+    panes,
+    /<PaneHeader[\s\S]*eyebrow='durable'[\s\S]*title='Direct messages'[\s\S]*description='Private pairwise threads that survive restarts\.'[\s\S]*\/>/
+  )
+  assert.match(
+    panes,
+    /<PaneHeader[\s\S]*eyebrow='durable'[\s\S]*title='Durable treehole'[\s\S]*description='The home owner writes the wall; trusted friends can react and comment\.'[\s\S]*\/>/
+  )
+  assert.match(
+    people,
+    /<PaneHeader[\s\S]*eyebrow='trusted'[\s\S]*title='People'[\s\S]*description='Manage who can enter your home and start direct threads\.'[\s\S]*\/>/
+  )
+  assert.doesNotMatch(panes, /function PaneLabel\(/)
+  assert.doesNotMatch(people, /function PaneLabel\(/)
+  assert.doesNotMatch(people, /function SectionTitle\(/)
+  assert.doesNotMatch(context, /function SectionTitle\(/)
+  assert.match(styles, /\.paneDescription/)
 })
 
 test('desktop app state and bridge live behind a dedicated hook boundary', async () => {
@@ -362,6 +407,8 @@ test('desktop status surfaces use compact visual status treatments', async () =>
   assert.match(styles, /\.treeholePill/)
   assert.match(styles, /\.metricGrid/)
   assert.match(styles, /\.metricCard/)
+  assert.match(styles, /\.metric\s*\{[\s\S]*font-size: 28px/)
+  assert.match(styles, /\.metric\s*\{[\s\S]*word-break: keep-all/)
   assert.match(styles, /minmax\(0, 1fr\)/)
 })
 
