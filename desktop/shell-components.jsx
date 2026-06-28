@@ -1,7 +1,7 @@
 import React from 'react'
 import { LogOut, MessageCircle, Moon, Send, Sprout, Sun, Users } from 'lucide-react'
 
-export function AppRail({ activeTab, shellActions }) {
+export function AppRail({ activeTab, navBadges, shellActions }) {
   return (
     <aside className='appRail' aria-label='Kepos views'>
       <div className='mark'>K</div>
@@ -19,6 +19,7 @@ export function AppRail({ activeTab, shellActions }) {
           icon={<Send size={19} />}
           isActive={activeTab === 'dm'}
           label='Direct'
+          badgeCount={navBadges.direct}
           onSelect={() => shellActions.setTab('dm')}
           title='Direct messages'
         />
@@ -35,6 +36,7 @@ export function AppRail({ activeTab, shellActions }) {
           icon={<Users size={19} />}
           isActive={activeTab === 'people'}
           label='People'
+          badgeCount={navBadges.people}
           onSelect={() => shellActions.setTab('people')}
           title='People'
         />
@@ -130,7 +132,7 @@ export function HomeStatusPanel({ controls, onLeave, status }) {
   )
 }
 
-function RailButton({ icon, id, isActive, label, onSelect, title }) {
+function RailButton({ badgeCount = 0, icon, id, isActive, label, onSelect, title }) {
   return (
     <button
       id={id}
@@ -142,6 +144,11 @@ function RailButton({ icon, id, isActive, label, onSelect, title }) {
     >
       {icon}
       <span className='railLabel'>{label}</span>
+      {badgeCount > 0 ? (
+        <span className='railBadge' aria-label={`${label} pending ${badgeCount}`}>
+          {badgeCount > 99 ? '99+' : badgeCount}
+        </span>
+      ) : null}
     </button>
   )
 }

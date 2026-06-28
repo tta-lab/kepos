@@ -28,10 +28,8 @@ test('desktop React shell separates navigation, workspace, and context panels', 
   const shell = await readFile(new URL('../desktop/shell-components.jsx', import.meta.url), 'utf8')
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
 
-  assert.match(
-    source,
-    /<AppRail activeTab=\{model\.activeTab\} shellActions=\{model\.shellActions\} \/>/
-  )
+  assert.match(source, /<AppRail[\s\S]*activeTab=\{model\.activeTab\}/)
+  assert.match(source, /<AppRail[\s\S]*shellActions=\{model\.shellActions\}/)
   assert.match(source, /className='workspace'/)
   assert.match(source, /className='contextPanel'/)
   assert.match(shell, /className='appRail'/)
@@ -546,13 +544,44 @@ test('desktop rail keeps current view accessible', async () => {
     'utf8'
   )
 
-  assert.match(source, /function RailButton\(\{ icon, id, isActive, label, onSelect, title \}\)/)
+  assert.match(
+    source,
+    /function RailButton\(\{ badgeCount = 0, icon, id, isActive, label, onSelect, title \}\)/
+  )
   assert.match(source, /onClick=\{onSelect\}/)
   assert.doesNotMatch(controller, /els\.chatTab\.addEventListener/)
   assert.match(source, /aria-current=\{isActive \? 'page' : undefined\}/)
   assert.match(source, /className=\{isActive \? 'railButton active' : 'railButton'\}/)
   assert.match(presenter, /ui\?\.setActiveTab\(state\.activeTab\)/)
   assert.doesNotMatch(controller, /function updateTabCurrentState\(\)/)
+})
+
+test('desktop rail surfaces pending direct and people work without changing navigation shape', async () => {
+  const app = await readDesktopAppSource()
+  const shell = await readFile(new URL('../desktop/shell-components.jsx', import.meta.url), 'utf8')
+  const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
+
+  assert.match(
+    app,
+    /const navBadges = \{[\s\S]*direct: model\.directMessages\.filter\(\(message\) => message\.actions\)\.length,[\s\S]*people: model\.people\.messageRequests\.length[\s\S]*\}/
+  )
+  assert.match(app, /<AppRail[\s\S]*navBadges=\{navBadges\}/)
+  assert.match(
+    shell,
+    /id='dmTab'[\s\S]*badgeCount=\{navBadges\.direct\}[\s\S]*id='peopleTab'[\s\S]*badgeCount=\{navBadges\.people\}/
+  )
+  assert.match(
+    shell,
+    /function RailButton\(\{ badgeCount = 0, icon, id, isActive, label, onSelect, title \}\)/
+  )
+  assert.match(
+    shell,
+    /<span className='railBadge' aria-label=\{`\$\{label\} pending \$\{badgeCount\}`\}>/
+  )
+  assert.match(shell, /\{badgeCount > 99 \? '99\+' : badgeCount\}/)
+  assert.match(styles, /\.railButton\s*\{[\s\S]*position: relative/)
+  assert.match(styles, /\.railBadge\s*\{[\s\S]*min-width: 20px/)
+  assert.match(styles, /\.railBadge\s*\{[\s\S]*position: absolute/)
 })
 
 test('desktop MLP shell has responsive polish for narrow screens', async () => {

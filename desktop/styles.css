@@ -274,6 +274,7 @@ textarea {
   justify-items: center;
   min-height: 0;
   padding: 8px 0;
+  position: relative;
   width: 100%;
 }
 
@@ -281,6 +282,25 @@ textarea {
   background: var(--rail-ink);
   border-color: var(--rail-ink);
   color: var(--rail);
+}
+
+.railBadge {
+  align-items: center;
+  background: var(--accent);
+  border: 1px solid var(--rail-ink);
+  border-radius: 999px;
+  color: var(--surface);
+  display: inline-flex;
+  font-size: 10px;
+  font-weight: 900;
+  height: 20px;
+  justify-content: center;
+  line-height: 1;
+  min-width: 20px;
+  padding: 0 5px;
+  position: absolute;
+  right: 8px;
+  top: 6px;
 }
 
 .railLabel {

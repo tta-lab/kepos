@@ -11,11 +11,19 @@ import { AppRail, HomeStatusPanel, Topbar } from './shell-components.jsx'
 
 function DesktopApp() {
   const model = useDesktopAppModel()
+  const navBadges = {
+    direct: model.directMessages.filter((message) => message.actions).length,
+    people: model.people.messageRequests.length
+  }
 
   return (
     <>
       <main className='shell'>
-        <AppRail activeTab={model.activeTab} shellActions={model.shellActions} />
+        <AppRail
+          activeTab={model.activeTab}
+          navBadges={navBadges}
+          shellActions={model.shellActions}
+        />
 
         <section className='workspace'>
           <Topbar setTheme={model.setTheme} status={model.status} theme={model.theme} />
