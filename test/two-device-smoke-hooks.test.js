@@ -989,12 +989,22 @@ test('desktop large QR dialog is keyboard reachable', async () => {
 })
 
 test('debug two-device smoke covers live DM exchange and restart persistence', async () => {
+  const packageJson = JSON.parse(
+    await readFile(new URL('../package.json', import.meta.url), 'utf8')
+  )
   const source = await readFile(
     new URL('../scripts/smoke-two-device-debug.mjs', import.meta.url),
     'utf8'
   )
 
+  assert.equal(
+    packageJson.scripts['smoke:two-device:debug:pear'],
+    'npm run desktop:bundle && node scripts/smoke-two-device-debug.mjs --pear'
+  )
+
   for (const marker of [
+    "usePearRuntime = process\\.argv\\.includes\\('--pear'\\)",
+    "KEPOS_SMOKE_DESKTOP: usePearRuntime \\? undefined : '1'",
     'sendAndroidMessageRequest',
     'acceptDesktopMessageRequest',
     'advanced-share-toggle',

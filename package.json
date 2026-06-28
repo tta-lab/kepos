@@ -27,6 +27,7 @@
     "smoke:desktop:contacts": "npm run desktop:bundle && node scripts/smoke-desktop-contacts.mjs",
     "smoke:desktop:contacts:pear": "npm run desktop:bundle && node scripts/smoke-desktop-contacts.mjs --pear",
     "smoke:two-device:debug": "npm run desktop:bundle && node scripts/smoke-two-device-debug.mjs",
+    "smoke:two-device:debug:pear": "npm run desktop:bundle && node scripts/smoke-two-device-debug.mjs --pear",
     "start": "node src/cli.js",
     "test": "node --test",
     "typecheck": "tsc --noEmit",

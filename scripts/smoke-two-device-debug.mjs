@@ -17,6 +17,7 @@ const electronExecutable = path.join(
 const maestro = resolveMaestroCommand()
 const userDataDir = await mkdtemp(path.join(os.tmpdir(), 'kepos-two-device-desktop-'))
 const workDir = await mkdtemp(path.join(os.tmpdir(), 'kepos-two-device-'))
+const usePearRuntime = process.argv.includes('--pear')
 const androidChatText = 'Android hello'
 const androidDmAfterRestartText = 'Android DM after restart'
 const androidDmAfterRevokeText = 'Android DM after revoke'
@@ -153,7 +154,7 @@ async function launchDesktopApp() {
     cwd: desktopDir,
     env: {
       ...process.env,
-      KEPOS_SMOKE_DESKTOP: '1'
+      KEPOS_SMOKE_DESKTOP: usePearRuntime ? undefined : '1'
     },
     executablePath: electronExecutable,
     timeout: 60000
