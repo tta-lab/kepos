@@ -1205,6 +1205,7 @@ function ChatRoom({
             onPress={() => setShowRoomAdvanced((value) => !value)}
             style={styles.roomAdvancedButton}
           >
+            <Settings color={theme.inkSoft} size={15} />
             <Text style={styles.advancedSummary}>Advanced</Text>
           </Pressable>
           <Pressable accessibilityLabel='Leave home' style={styles.iconButton} onPress={onLeave}>
@@ -2813,6 +2814,8 @@ function createMobileStyles(theme) {
       borderColor: theme.borderStrong,
       borderRadius: 8,
       borderWidth: 1,
+      flexDirection: 'row',
+      gap: 6,
       height: 42,
       justifyContent: 'center',
       paddingHorizontal: 12

@@ -481,6 +481,18 @@ test('Android room bar keeps raw home key behind advanced details', async () => 
   )
 })
 
+test('Android room advanced action uses an icon like other advanced controls', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const chatRoom = source.slice(
+    source.indexOf('function ChatRoom('),
+    source.indexOf('function TaskHeader(')
+  )
+
+  assert.match(chatRoom, /style=\{styles\.roomAdvancedButton\}/)
+  assert.match(chatRoom, /<Settings color=\{theme\.inkSoft\} size=\{15\} \/>/)
+  assert.match(chatRoom, /<Text style=\{styles\.advancedSummary\}>Advanced<\/Text>/)
+})
+
 test('Android room panes label live and durable surfaces', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 
