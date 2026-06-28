@@ -28,6 +28,11 @@ export function createDesktopQrActions({
     return shareQrOutputs
   }
 
+  function setShareQrOutputsSnapshot(outputs) {
+    shareQrOutputs = outputs
+    setShareQrOutputs(shareQrOutputs)
+  }
+
   async function showLargeQr({ returnFocus, title, uri }) {
     if (!uri) return
 
@@ -61,6 +66,7 @@ export function createDesktopQrActions({
     copyQrValue,
     getShareQrOutputs,
     hideLargeQr,
+    setShareQrOutputs: setShareQrOutputsSnapshot,
     showLargeQr,
     updateQrOutputs
   }

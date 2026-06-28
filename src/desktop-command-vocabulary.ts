@@ -24,6 +24,7 @@ export const DESKTOP_EVENTS = [
   'errorReceived',
   'homeMessageReceived',
   'peerCountChanged',
+  'shareQrOutputsChanged',
   'statusChanged',
   'treeholeStateChanged'
 ] as const

@@ -24,6 +24,7 @@ const DESKTOP_EVENTS = [
   'errorReceived',
   'homeMessageReceived',
   'peerCountChanged',
+  'shareQrOutputsChanged',
   'statusChanged',
   'treeholeStateChanged'
 ]
@@ -44,6 +45,7 @@ const REPLAY_EVENT_SET = new Set([
   'dmMessageReceived',
   'homeMessageReceived',
   'peerCountChanged',
+  'shareQrOutputsChanged',
   'treeholeStateChanged'
 ])
 

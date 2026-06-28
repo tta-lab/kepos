@@ -32,6 +32,7 @@ test('desktop backend subscriptions update renderer snapshots from backend event
   let directComposerRecipient = 'friend-old'
   let dmSession = null
   let homeSession = null
+  let shareQrOutputs = null
   let state = createDesktopState()
 
   const unsubscribe = createDesktopBackendSubscriptions({
@@ -54,6 +55,9 @@ test('desktop backend subscriptions update renderer snapshots from backend event
     setHomeSession: (nextSession) => {
       homeSession = nextSession
     },
+    setShareQrOutputs: (nextOutputs) => {
+      shareQrOutputs = nextOutputs
+    },
     setState: (nextState) => {
       state = nextState
     }
@@ -65,6 +69,7 @@ test('desktop backend subscriptions update renderer snapshots from backend event
   emit('desktopStateChanged', { ...state, mode: 'host', notice: 'Home joined.', view: 'room' })
   emit('directComposerRecipientChanged', '')
   emit('dmMessageReceived', { messages: ['dm'] })
+  emit('shareQrOutputsChanged', { homeUri: 'kepos://home', profileUri: 'kepos://profile' })
   emit('treeholeStateChanged', { canPost: false, posts: [], status: 'ready' })
   emit('peerCountChanged', { peers: 3 })
   emit('errorReceived', new Error('failed'))
@@ -75,6 +80,7 @@ test('desktop backend subscriptions update renderer snapshots from backend event
   assert.equal(directComposerRecipient, '')
   assert.deepEqual(homeSession, { messages: ['home'] })
   assert.deepEqual(dmSession, { messages: ['dm'] })
+  assert.deepEqual(shareQrOutputs, { homeUri: 'kepos://home', profileUri: 'kepos://profile' })
   assert.equal(state.mode, 'host')
   assert.equal(state.notice, 'Home joined.')
   assert.equal(state.view, 'room')
@@ -83,6 +89,7 @@ test('desktop backend subscriptions update renderer snapshots from backend event
   assert.equal(state.peers, 3)
   assert.equal(errors[0].message, 'failed')
   assert.deepEqual(renders, [
+    'render',
     'render',
     'render',
     'render',
@@ -101,6 +108,7 @@ test('desktop backend subscriptions update renderer snapshots from backend event
     ['subscribe', 'dmMessageReceived'],
     ['subscribe', 'treeholeStateChanged'],
     ['subscribe', 'peerCountChanged'],
+    ['subscribe', 'shareQrOutputsChanged'],
     ['subscribe', 'errorReceived'],
     ['unsubscribe', 'homeMessageReceived'],
     ['unsubscribe', 'contactBookChanged'],
@@ -110,6 +118,7 @@ test('desktop backend subscriptions update renderer snapshots from backend event
     ['unsubscribe', 'dmMessageReceived'],
     ['unsubscribe', 'treeholeStateChanged'],
     ['unsubscribe', 'peerCountChanged'],
+    ['unsubscribe', 'shareQrOutputsChanged'],
     ['unsubscribe', 'errorReceived']
   ])
 })

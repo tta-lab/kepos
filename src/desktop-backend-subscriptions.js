@@ -10,6 +10,7 @@ export function createDesktopBackendSubscriptions({
   setDirectComposerRecipient = () => {},
   setDmSession,
   setHomeSession,
+  setShareQrOutputs = () => {},
   setState
 }) {
   const unsubscribers = [
@@ -43,6 +44,10 @@ export function createDesktopBackendSubscriptions({
     }),
     backendClient.subscribe('peerCountChanged', ({ peers }) => {
       setState({ ...getState(), peers })
+      onRender()
+    }),
+    backendClient.subscribe('shareQrOutputsChanged', (outputs) => {
+      setShareQrOutputs(outputs)
       onRender()
     }),
     backendClient.subscribe('errorReceived', onError)

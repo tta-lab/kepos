@@ -1,12 +1,14 @@
 import { createDesktopBackendSession } from './desktop-backend-session.js'
 import { createDesktopControllerState } from './desktop-controller-state.js'
 import { createDesktopFileProfileContext } from './desktop-profile-context.js'
+import { createDesktopShareQrOutputs } from './desktop-qr-service.js'
 
 export function createDesktopMainBackendSession({
   createBackendSession = createDesktopBackendSession,
   createControllerState = createDesktopControllerState,
   createId = defaultCreateId,
   createProfileContext = createDesktopFileProfileContext,
+  createShareQrOutputs = createDesktopShareQrOutputs,
   defaultDisplayName = 'Desktop',
   storageBasePath
 } = {}) {
@@ -19,7 +21,10 @@ export function createDesktopMainBackendSession({
     getCurrentDisplayName: () => controllerState.getCurrentDisplayName(),
     getProfileContext: (displayName = controllerState.getCurrentDisplayName()) =>
       createProfileContext({ displayName, storageBasePath }),
-    onChanged: () => publishSnapshots(),
+    onChanged: () => {
+      publishSnapshots()
+      publishShareQrOutputs()
+    },
     setContextFormDraft: (draft) => {
       backendSession?.backendHost.bridge.emit('contextFormDraftChanged', draft)
     },
@@ -38,6 +43,7 @@ export function createDesktopMainBackendSession({
   })
 
   publishSnapshots()
+  publishShareQrOutputs()
 
   return backendSession
 
@@ -50,6 +56,21 @@ export function createDesktopMainBackendSession({
         storageBasePath
       }).contactBook
     )
+  }
+
+  async function publishShareQrOutputs() {
+    try {
+      const { profile } = createProfileContext({
+        displayName: controllerState.getCurrentDisplayName(),
+        storageBasePath
+      })
+      backendSession?.backendHost.bridge.emit(
+        'shareQrOutputsChanged',
+        await createShareQrOutputs({ profile })
+      )
+    } catch (error) {
+      backendSession?.backendHost.bridge.emit('errorReceived', error)
+    }
   }
 }
 

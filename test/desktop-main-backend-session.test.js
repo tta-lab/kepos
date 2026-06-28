@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { createDesktopMainBackendSession } from '../src/desktop-main-backend-session.js'
 
-test('desktop main backend session uses file profile context and local backend bridge', () => {
+test('desktop main backend session uses file profile context and local backend bridge', async () => {
   const calls = []
   const emitted = []
   const session = createDesktopMainBackendSession({
@@ -22,16 +22,30 @@ test('desktop main backend session uses file profile context and local backend b
     createId: () => 'id-1',
     createProfileContext: (options) => {
       calls.push(['profileContext', options])
-      return { contactBook: { ownerProfileId: 'owner-1' }, profile: {}, saveContactBook: () => {} }
+      return {
+        contactBook: { ownerProfileId: 'owner-1' },
+        profile: { id: 'profile-1' },
+        saveContactBook: () => {}
+      }
     },
+    createShareQrOutputs: ({ profile }) => ({
+      homeUri: `kepos://home/${profile.id}`,
+      profileUri: `kepos://profile/${profile.id}`
+    }),
     storageBasePath: '/user-data/kepos/v1'
   })
+
+  await Promise.resolve()
 
   assert.equal(typeof session.backendHost.bridge.dispatch, 'function')
   assert.equal(calls[0].storageBasePath, '/user-data/kepos/v1')
   assert.deepEqual(emitted, [
     ['desktopStateChanged', { notice: 'Ready.' }],
-    ['contactBookChanged', { ownerProfileId: 'owner-1' }]
+    ['contactBookChanged', { ownerProfileId: 'owner-1' }],
+    [
+      'shareQrOutputsChanged',
+      { homeUri: 'kepos://home/profile-1', profileUri: 'kepos://profile/profile-1' }
+    ]
   ])
 
   calls[0].getProfileContext('Ada')
@@ -39,21 +53,32 @@ test('desktop main backend session uses file profile context and local backend b
   calls[0].setDirectComposerRecipient('friend-1')
   calls[0].setNotice('Ready.')
   calls[0].onChanged()
+  await Promise.resolve()
 
   assert.deepEqual(calls.slice(1), [
+    ['profileContext', { displayName: 'Desktop', storageBasePath: '/user-data/kepos/v1' }],
     ['profileContext', { displayName: 'Desktop', storageBasePath: '/user-data/kepos/v1' }],
     ['profileContext', { displayName: 'Ada', storageBasePath: '/user-data/kepos/v1' }],
     ['setDirectComposerRecipient', 'friend-1'],
     ['updateState'],
+    ['profileContext', { displayName: 'Desktop', storageBasePath: '/user-data/kepos/v1' }],
     ['profileContext', { displayName: 'Desktop', storageBasePath: '/user-data/kepos/v1' }]
   ])
   assert.deepEqual(emitted, [
     ['desktopStateChanged', { notice: 'Ready.' }],
     ['contactBookChanged', { ownerProfileId: 'owner-1' }],
+    [
+      'shareQrOutputsChanged',
+      { homeUri: 'kepos://home/profile-1', profileUri: 'kepos://profile/profile-1' }
+    ],
     ['contextFormDraftChanged', { trustAlias: '', trustQrUri: '' }],
     ['directComposerRecipientChanged', 'friend-1'],
     ['desktopStateChanged', { notice: 'Ready.' }],
-    ['contactBookChanged', { ownerProfileId: 'owner-1' }]
+    ['contactBookChanged', { ownerProfileId: 'owner-1' }],
+    [
+      'shareQrOutputsChanged',
+      { homeUri: 'kepos://home/profile-1', profileUri: 'kepos://profile/profile-1' }
+    ]
   ])
 })
 

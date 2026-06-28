@@ -77,6 +77,9 @@ createDesktopBackendSubscriptions({
   setHomeSession: (nextSession) => {
     controllerState.setSession(nextSession)
   },
+  setShareQrOutputs: (outputs) => {
+    qrActions.setShareQrOutputs(outputs)
+  },
   setState: (nextState) => {
     controllerState.setState(nextState)
   }

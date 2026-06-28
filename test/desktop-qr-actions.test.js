@@ -68,6 +68,21 @@ test('desktop QR actions refresh share outputs from the current profile', async 
   ])
 })
 
+test('desktop QR actions accept backend share output snapshots', () => {
+  const { actions, calls } = createHarness()
+  const outputs = {
+    homeSvg: '<svg>backend-home</svg>',
+    homeUri: 'kepos://home/backend',
+    profileSvg: '<svg>backend-profile</svg>',
+    profileUri: 'kepos://profile/backend'
+  }
+
+  actions.setShareQrOutputs(outputs)
+
+  assert.equal(actions.getShareQrOutputs(), outputs)
+  assert.deepEqual(calls, [['shareQrOutputs', outputs]])
+})
+
 test('desktop QR actions open and hide large QR with focus restoration', async () => {
   const harness = createHarness()
 
