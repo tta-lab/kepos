@@ -85,6 +85,20 @@ test('V1 UX docs include desktop Direct zero-contact empty state polish', async 
   assert.match(ux, /links directly to People/)
 })
 
+test('V1 docs do not overclaim current physical QR proof', async () => {
+  const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
+  const gaps = await readText('../docs/v1.07-architecture-gaps.md')
+  const smoke = await readText('../docs/v1.20-smoke-guide.md')
+  const dependencyOrder = await readText('../docs/v1.01-dependency-order.md')
+  const docs = `${audit}\n${gaps}\n${smoke}\n${dependencyOrder}`
+
+  assert.doesNotMatch(docs, /manual physical QR smoke (has also )?proven/)
+  assert.doesNotMatch(docs, /manual physical QR smoke proves/)
+  assert.doesNotMatch(docs, /Physical QR smoke now covers/)
+  assert.match(docs, /physical QR remains release proof/)
+  assert.match(docs, /screen-to-camera QR proof remains open/)
+})
+
 test('V1 UX docs include Home trust source product copy', async () => {
   const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
   const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
