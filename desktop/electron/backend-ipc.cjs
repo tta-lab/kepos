@@ -36,9 +36,20 @@ const UNSUBSCRIBE_CHANNEL = 'kepos:backend:unsubscribe'
 
 const COMMAND_SET = new Set(DESKTOP_COMMANDS)
 const EVENT_SET = new Set(DESKTOP_EVENTS)
+const REPLAY_EVENT_SET = new Set([
+  'contactBookChanged',
+  'contextFormDraftChanged',
+  'desktopStateChanged',
+  'directComposerRecipientChanged',
+  'dmMessageReceived',
+  'homeMessageReceived',
+  'peerCountChanged',
+  'treeholeStateChanged'
+])
 
 function createDesktopElectronBackendBridge({ dispatch, ipcMain, webContents }) {
   const subscriptions = new Map()
+  const latestEventPayloads = new Map()
   let backendEventUnsubscribers = []
   let currentWebContents = webContents
   let currentDispatch = dispatch
@@ -53,6 +64,9 @@ function createDesktopElectronBackendBridge({ dispatch, ipcMain, webContents }) 
     assertListenerId(listenerId)
     assertEvent(event)
     subscriptions.set(listenerId, event)
+    if (latestEventPayloads.has(event)) {
+      sendEvent(listenerId, event, latestEventPayloads.get(event))
+    }
   })
 
   ipcMain.on(UNSUBSCRIBE_CHANNEL, (_event, listenerId) => {
@@ -62,16 +76,21 @@ function createDesktopElectronBackendBridge({ dispatch, ipcMain, webContents }) 
 
   function emit(event, payload) {
     assertEvent(event)
+    if (REPLAY_EVENT_SET.has(event)) latestEventPayloads.set(event, payload)
 
     for (const [listenerId, subscribedEvent] of subscriptions) {
       if (subscribedEvent !== event) continue
 
-      currentWebContents.send(EVENT_CHANNEL, {
-        event,
-        listenerId,
-        payload
-      })
+      sendEvent(listenerId, event, payload)
     }
+  }
+
+  function sendEvent(listenerId, event, payload) {
+    currentWebContents.send(EVENT_CHANNEL, {
+      event,
+      listenerId,
+      payload
+    })
   }
 
   return {

@@ -19,16 +19,7 @@ export function createDesktopMainBackendSession({
     getCurrentDisplayName: () => controllerState.getCurrentDisplayName(),
     getProfileContext: (displayName = controllerState.getCurrentDisplayName()) =>
       createProfileContext({ displayName, storageBasePath }),
-    onChanged: () => {
-      backendSession?.backendHost.bridge.emit('desktopStateChanged', controllerState.getState())
-      backendSession?.backendHost.bridge.emit(
-        'contactBookChanged',
-        createProfileContext({
-          displayName: controllerState.getCurrentDisplayName(),
-          storageBasePath
-        }).contactBook
-      )
-    },
+    onChanged: () => publishSnapshots(),
     setContextFormDraft: (draft) => {
       backendSession?.backendHost.bridge.emit('contextFormDraftChanged', draft)
     },
@@ -46,7 +37,20 @@ export function createDesktopMainBackendSession({
     }
   })
 
+  publishSnapshots()
+
   return backendSession
+
+  function publishSnapshots() {
+    backendSession?.backendHost.bridge.emit('desktopStateChanged', controllerState.getState())
+    backendSession?.backendHost.bridge.emit(
+      'contactBookChanged',
+      createProfileContext({
+        displayName: controllerState.getCurrentDisplayName(),
+        storageBasePath
+      }).contactBook
+    )
+  }
 }
 
 function defaultCreateId() {

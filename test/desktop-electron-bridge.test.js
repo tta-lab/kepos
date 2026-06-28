@@ -131,6 +131,40 @@ test('desktop electron backend ipc can retarget events to a recreated window', (
   ])
 })
 
+test('desktop electron backend ipc replays latest snapshot events to late subscribers', () => {
+  const { createDesktopElectronBackendBridge } = require('../desktop/electron/backend-ipc.cjs')
+  const handled = new Map()
+  const sent = []
+  const ipcMain = {
+    handle(channel, handler) {
+      handled.set(channel, handler)
+    },
+    on(channel, handler) {
+      handled.set(channel, handler)
+    }
+  }
+  const bridge = createDesktopElectronBackendBridge({
+    dispatch: () => undefined,
+    ipcMain,
+    webContents: { send: (channel, payload) => sent.push([channel, payload]) }
+  })
+  const subscribe = handled.get('kepos:backend:subscribe')
+
+  bridge.emit('contactBookChanged', { ownerProfileId: 'owner-1' })
+  subscribe({}, 'listener-1', 'contactBookChanged')
+
+  assert.deepEqual(sent, [
+    [
+      'kepos:backend:event',
+      {
+        event: 'contactBookChanged',
+        listenerId: 'listener-1',
+        payload: { ownerProfileId: 'owner-1' }
+      }
+    ]
+  ])
+})
+
 test('desktop registered backend ipc can connect a real backend dispatch', async () => {
   const { registerDesktopBackendIpc } = require('../desktop/electron/backend-ipc.cjs')
   const handled = new Map()

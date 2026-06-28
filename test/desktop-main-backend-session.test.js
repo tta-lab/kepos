@@ -29,6 +29,10 @@ test('desktop main backend session uses file profile context and local backend b
 
   assert.equal(typeof session.backendHost.bridge.dispatch, 'function')
   assert.equal(calls[0].storageBasePath, '/user-data/kepos/v1')
+  assert.deepEqual(emitted, [
+    ['desktopStateChanged', { notice: 'Ready.' }],
+    ['contactBookChanged', { ownerProfileId: 'owner-1' }]
+  ])
 
   calls[0].getProfileContext('Ada')
   calls[0].setContextFormDraft({ trustAlias: '', trustQrUri: '' })
@@ -37,12 +41,15 @@ test('desktop main backend session uses file profile context and local backend b
   calls[0].onChanged()
 
   assert.deepEqual(calls.slice(1), [
+    ['profileContext', { displayName: 'Desktop', storageBasePath: '/user-data/kepos/v1' }],
     ['profileContext', { displayName: 'Ada', storageBasePath: '/user-data/kepos/v1' }],
     ['setDirectComposerRecipient', 'friend-1'],
     ['updateState'],
     ['profileContext', { displayName: 'Desktop', storageBasePath: '/user-data/kepos/v1' }]
   ])
   assert.deepEqual(emitted, [
+    ['desktopStateChanged', { notice: 'Ready.' }],
+    ['contactBookChanged', { ownerProfileId: 'owner-1' }],
     ['contextFormDraftChanged', { trustAlias: '', trustQrUri: '' }],
     ['directComposerRecipientChanged', 'friend-1'],
     ['desktopStateChanged', { notice: 'Ready.' }],
