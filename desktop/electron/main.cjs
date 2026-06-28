@@ -6,7 +6,7 @@ const { registerDesktopBackendIpc } = require('./backend-ipc.cjs')
 const pkg = require('../package.json')
 
 let mainWindow = null
-let mainBackendSession = null
+let mainBackendWorker = null
 let backendIpc = null
 let pear = null
 
@@ -43,15 +43,15 @@ function createWindow() {
 }
 
 async function connectMainBackend() {
-  if (!backendIpc || mainBackendSession) return
+  if (!backendIpc || mainBackendWorker) return
 
-  const { createDesktopMainBackendSession } = await import(
-    pathToFileURL(path.join(__dirname, '..', '..', 'src', 'desktop-main-backend-session.js')).href
+  const { createDesktopBackendWorkerHost } = await import(
+    pathToFileURL(path.join(__dirname, '..', '..', 'src', 'desktop-backend-worker-host.js')).href
   )
-  mainBackendSession = createDesktopMainBackendSession({
+  mainBackendWorker = createDesktopBackendWorkerHost({
     storageBasePath: getDesktopStorageBasePath()
   })
-  backendIpc.connectBackend(mainBackendSession.backendHost.bridge)
+  backendIpc.connectBackend(mainBackendWorker.backendHost.bridge)
 }
 
 async function startPearRuntime() {
@@ -102,10 +102,12 @@ app.on('window-all-closed', () => {
 })
 
 app.on('before-quit', (event) => {
-  if (!pear) return
+  if (!pear && !mainBackendWorker) return
 
   event.preventDefault()
   const runtime = pear
+  const backendWorker = mainBackendWorker
   pear = null
-  runtime.close().finally(() => app.quit())
+  mainBackendWorker = null
+  Promise.allSettled([runtime?.close(), backendWorker?.close()]).finally(() => app.quit())
 })

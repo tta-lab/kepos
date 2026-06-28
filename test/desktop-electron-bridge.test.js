@@ -26,12 +26,15 @@ test('desktop renderer runs with isolated page privileges', async () => {
   assert.doesNotMatch(preload, /globalThis\.eval\("require\('\.\/controller\.bundle\.cjs'\)"\)/)
 })
 
-test('desktop main connects Electron IPC to the main backend session', async () => {
+test('desktop main connects Electron IPC to the backend worker host', async () => {
   const source = await readFile(new URL('../desktop/electron/main.cjs', import.meta.url), 'utf8')
 
-  assert.match(source, /createDesktopMainBackendSession/)
+  assert.match(source, /createDesktopBackendWorkerHost/)
+  assert.match(source, /desktop-backend-worker-host\.js/)
+  assert.doesNotMatch(source, /createDesktopMainBackendSession/)
+  assert.doesNotMatch(source, /desktop-main-backend-session\.js/)
   assert.match(source, /connectMainBackend/)
-  assert.match(source, /backendIpc\.connectBackend\(mainBackendSession\.backendHost\.bridge\)/)
+  assert.match(source, /backendIpc\.connectBackend\(mainBackendWorker\.backendHost\.bridge\)/)
 })
 
 test('desktop preload exposes a narrow backend bridge api', async () => {
