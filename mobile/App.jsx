@@ -1030,9 +1030,7 @@ function QrScanner({ onCancel, onScanned, permissionDenied }) {
         />
       )}
       <View style={styles.scannerControls}>
-        <Pressable onPress={onCancel} style={styles.scannerCancel} testID='qr-scanner-cancel'>
-          <Text style={styles.scannerCancelText}>Cancel</Text>
-        </Pressable>
+        <MobileScannerCancelButton onPress={onCancel} />
       </View>
     </View>
   )
@@ -1390,6 +1388,21 @@ function MobileIconButton({ accessibilityLabel, icon: Icon, onPress, testID }) {
       testID={testID}
     >
       <Icon color={theme.accentStrong} size={18} />
+    </Pressable>
+  )
+}
+
+function MobileScannerCancelButton({ onPress }) {
+  const { styles } = useMobileTheme()
+
+  return (
+    <Pressable
+      accessibilityLabel='Cancel QR scan'
+      onPress={onPress}
+      style={styles.scannerCancel}
+      testID='qr-scanner-cancel'
+    >
+      <Text style={styles.scannerCancelText}>Cancel</Text>
     </Pressable>
   )
 }

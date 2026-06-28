@@ -226,6 +226,25 @@ test('mobile top-bar icon controls share one icon button component', async () =>
   assert.match(chatRoom, /<MobileIconButton[\s\S]*testID='leave-home-button'/)
 })
 
+test('mobile QR scanner cancel uses a focused scanner action component', async () => {
+  const source = await readMobileSource()
+  const qrScanner = source.slice(
+    source.indexOf('function QrScanner('),
+    source.indexOf('function Lobby(')
+  )
+  const scannerCancelButton = source.slice(
+    source.indexOf('function MobileScannerCancelButton('),
+    source.indexOf('function MobileSendButton(')
+  )
+
+  assert.match(qrScanner, /<MobileScannerCancelButton onPress=\{onCancel\} \/>/)
+  assert.match(scannerCancelButton, /function MobileScannerCancelButton\(\{ onPress \}\)/)
+  assert.match(scannerCancelButton, /accessibilityLabel='Cancel QR scan'/)
+  assert.match(scannerCancelButton, /style=\{styles\.scannerCancel\}/)
+  assert.match(scannerCancelButton, /testID='qr-scanner-cancel'/)
+  assert.match(scannerCancelButton, /<Text style=\{styles\.scannerCancelText\}>Cancel<\/Text>/)
+})
+
 test('mobile setup actions share one icon button component', async () => {
   const source = await readMobileSource()
   const lobby = source.slice(
