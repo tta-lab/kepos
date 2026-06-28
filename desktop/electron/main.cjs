@@ -51,7 +51,8 @@ async function connectMainBackend() {
   mainBackendWorker = createDesktopBackendWorkerHost({
     storageBasePath: getDesktopStorageBasePath()
   })
-  backendIpc.connectBackend(mainBackendWorker.bridge)
+  const backendBridge = await mainBackendWorker.start()
+  backendIpc.connectBackend(backendBridge)
 }
 
 async function startPearRuntime() {
