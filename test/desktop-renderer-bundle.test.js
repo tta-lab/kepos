@@ -18,10 +18,15 @@ async function readDesktopUiSource() {
   return `${app}\n${appState}\n${panes}\n${shell}\n${context}\n${people}`
 }
 
-test('desktop renderer loads the bundled CommonJS entrypoint', async () => {
+test('desktop renderer loads separate UI and controller bundles', async () => {
   const html = await readFile(new URL('../desktop/index.html', import.meta.url), 'utf8')
 
   assert.match(html, /require\('\.\/app\.bundle\.cjs'\)/)
+  assert.match(html, /require\('\.\/controller\.bundle\.cjs'\)/)
+  assert.match(
+    html,
+    /require\('\.\/app\.bundle\.cjs'\)[\s\S]*require\('\.\/controller\.bundle\.cjs'\)/
+  )
   assert.doesNotMatch(html, /src="\.\/app\.js" type="module"/)
 })
 
@@ -35,7 +40,7 @@ test('desktop scripts build the renderer bundle before launch', async () => {
 
   assert.equal(
     packageJson.scripts['desktop:bundle'],
-    'esbuild desktop/app.jsx --bundle --platform=node --format=cjs --packages=external --outfile=desktop/app.bundle.cjs'
+    'esbuild desktop/app.jsx --bundle --platform=node --format=cjs --packages=external --outfile=desktop/app.bundle.cjs && esbuild desktop/controller.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/controller.bundle.cjs'
   )
   assert.equal(packageJson.scripts.desktop, 'npm run start --prefix desktop')
   assert.equal(desktopPackageJson.scripts.prestart, 'npm run desktop:bundle --prefix ..')
@@ -44,10 +49,15 @@ test('desktop scripts build the renderer bundle before launch', async () => {
 
 test('desktop React entry renders before starting the controller', async () => {
   const source = await readDesktopUiSource()
+  const html = await readFile(new URL('../desktop/index.html', import.meta.url), 'utf8')
 
   assert.match(source, /createRoot\(document\.querySelector\('#root'\)\)/)
   assert.match(source, /flushSync/)
-  assert.match(source, /import\('\.\/controller\.js'\)/)
+  assert.doesNotMatch(source, /import\('\.\/controller\.js'\)/)
+  assert.match(
+    html,
+    /require\('\.\/app\.bundle\.cjs'\)[\s\S]*require\('\.\/controller\.bundle\.cjs'\)/
+  )
 })
 
 test('desktop React owns the home chat list surface', async () => {

@@ -123,7 +123,3 @@ const root = createRoot(document.querySelector('#root'))
 flushSync(() => {
   root.render(<DesktopApp />)
 })
-
-import('./controller.js').catch((error) => {
-  console.error('[kepos-desktop] failed to start controller', error)
-})
