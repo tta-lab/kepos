@@ -151,6 +151,15 @@ test('V1 UX docs include mobile icon-led request actions', async () => {
   assert.match(ux, /Accept and Ignore/)
 })
 
+test('V1 UX docs include mobile shared setup action buttons', async () => {
+  const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
+  const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
+
+  assert.match(audit, /mobile setup, QR, trust, and zero-contact Direct entry actions/)
+  assert.match(ux, /Mobile setup, QR, trust, and zero-contact Direct entry actions/)
+  assert.match(ux, /one\s+icon button component/)
+})
+
 test('V1 UX docs include mobile direct contact and revoke state polish', async () => {
   const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
   const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')

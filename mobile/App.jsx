@@ -1355,6 +1355,43 @@ function TaskHeader({ eyebrow, title, description }) {
   )
 }
 
+function MobileActionButton({
+  accessibilityState,
+  disabled = false,
+  icon: Icon,
+  label,
+  onPress,
+  testID,
+  variant = 'secondary'
+}) {
+  const { styles, theme } = useMobileTheme()
+  const isPrimary = variant === 'primary'
+  const iconColor = isPrimary ? theme.surface : disabled ? theme.placeholder : theme.accentStrong
+
+  return (
+    <Pressable
+      accessibilityState={accessibilityState}
+      disabled={disabled}
+      onPress={onPress}
+      style={[
+        isPrimary ? styles.primaryButton : styles.secondaryButton,
+        disabled && styles.disabledButton
+      ]}
+      testID={testID}
+    >
+      <Icon color={iconColor} size={18} />
+      <Text
+        style={[
+          isPrimary ? styles.primaryButtonText : styles.secondaryButtonText,
+          disabled && styles.disabledButtonText
+        ]}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  )
+}
+
 function QuickStartPanel({
   myHomeQrUri,
   nick,
@@ -1364,7 +1401,7 @@ function QuickStartPanel({
   onScanProfileQr,
   profileReady
 }) {
-  const { styles, theme } = useMobileTheme()
+  const { styles } = useMobileTheme()
   const [showQuickHomeQr, setShowQuickHomeQr] = useState(false)
 
   return (
@@ -1380,50 +1417,37 @@ function QuickStartPanel({
       />
       <Field label='Name' onChangeText={onNickChange} value={nick} />
       <View style={styles.quickActions}>
-        <Pressable
+        <MobileActionButton
           disabled={!profileReady}
-          style={[styles.primaryButton, !profileReady && styles.disabledButton]}
+          icon={Plus}
+          label='Create my home'
           onPress={onCreateRoom}
           testID='create-home-button'
-        >
-          <Plus color={theme.surface} size={18} />
-          <Text style={styles.primaryButtonText}>Create my home</Text>
-        </Pressable>
-        <Pressable
+          variant='primary'
+        />
+        <MobileActionButton
           accessibilityState={{ expanded: showQuickHomeQr }}
           disabled={!profileReady}
+          icon={QrCode}
+          label='Invite a friend'
           onPress={() => setShowQuickHomeQr((value) => !value)}
-          style={[styles.secondaryButton, !profileReady && styles.disabledButton]}
           testID='quick-show-home-qr-button'
-        >
-          <QrCode color={profileReady ? theme.accentStrong : theme.placeholder} size={18} />
-          <Text style={[styles.secondaryButtonText, !profileReady && styles.disabledButtonText]}>
-            Invite a friend
-          </Text>
-        </Pressable>
+        />
         {showQuickHomeQr ? <QrCard value={myHomeQrUri} /> : null}
-        <Pressable
+        <MobileActionButton
           disabled={!profileReady}
+          icon={ArrowRight}
+          label='Join a home'
           onPress={onScanHomeQr}
-          style={[styles.secondaryButton, !profileReady && styles.disabledButton]}
           testID='quick-scan-home-qr-button'
-        >
-          <ArrowRight color={profileReady ? theme.accentStrong : theme.placeholder} size={18} />
-          <Text style={[styles.secondaryButtonText, !profileReady && styles.disabledButtonText]}>
-            Join a home
-          </Text>
-        </Pressable>
-        <Pressable
+        />
+        <MobileActionButton
           disabled={!profileReady}
+          icon={Plus}
+          label='Trust a friend'
           onPress={onScanProfileQr}
-          style={[styles.secondaryButton, !profileReady && styles.disabledButton]}
           testID='quick-scan-profile-qr-button'
-        >
-          <Plus color={profileReady ? theme.accentStrong : theme.placeholder} size={18} />
-          <Text style={[styles.secondaryButtonText, !profileReady && styles.disabledButtonText]}>
-            Trust a friend
-          </Text>
-        </Pressable>
+        />
       </View>
     </View>
   )
@@ -1593,30 +1617,22 @@ function PeopleActions({
           eyebrow='Invite'
           title='My Home QR'
         />
-        <Pressable
+        <MobileActionButton
           accessibilityState={{ expanded: showHomeQr }}
           disabled={!profileReady}
+          icon={QrCode}
+          label='Show My Home QR'
           onPress={() => setShowHomeQr((value) => !value)}
-          style={[styles.secondaryButton, !profileReady && styles.disabledButton]}
           testID='show-home-qr-button'
-        >
-          <QrCode color={profileReady ? theme.accentStrong : theme.placeholder} size={18} />
-          <Text style={[styles.secondaryButtonText, !profileReady && styles.disabledButtonText]}>
-            Show My Home QR
-          </Text>
-        </Pressable>
+        />
         {showHomeQr ? <QrCard value={myHomeQrUri} /> : null}
-        <Pressable
+        <MobileActionButton
           disabled={!canUseHomeJoin}
+          icon={ArrowRight}
+          label='Scan Home QR'
           onPress={onScanHomeQr}
-          style={[styles.secondaryButton, !canUseHomeJoin && styles.disabledButton]}
           testID='scan-home-qr-button'
-        >
-          <ArrowRight color={canUseHomeJoin ? theme.accentStrong : theme.placeholder} size={18} />
-          <Text style={[styles.secondaryButtonText, !canUseHomeJoin && styles.disabledButtonText]}>
-            Scan Home QR
-          </Text>
-        </Pressable>
+        />
         {!canJoinHome ? (
           <Text style={styles.panelCopy}>Leave this home before joining another one.</Text>
         ) : null}
@@ -1628,41 +1644,31 @@ function PeopleActions({
           eyebrow='Trust'
           title='My Profile QR'
         />
-        <Pressable
+        <MobileActionButton
           accessibilityState={{ expanded: showProfileQr }}
           disabled={!profileReady}
+          icon={QrCode}
+          label='Show My Profile QR'
           onPress={() => setShowProfileQr((value) => !value)}
-          style={[styles.secondaryButton, !profileReady && styles.disabledButton]}
           testID='show-profile-qr-button'
-        >
-          <QrCode color={profileReady ? theme.accentStrong : theme.placeholder} size={18} />
-          <Text style={[styles.secondaryButtonText, !profileReady && styles.disabledButtonText]}>
-            Show My Profile QR
-          </Text>
-        </Pressable>
+        />
         {showProfileQr ? <QrCard value={profileQrUri} /> : null}
-        <Pressable
+        <MobileActionButton
           disabled={!profileReady}
+          icon={Plus}
+          label='Scan Profile QR'
           onPress={onScanProfileQr}
-          style={[styles.secondaryButton, !profileReady && styles.disabledButton]}
           testID='scan-profile-qr-button'
-        >
-          <Plus color={profileReady ? theme.accentStrong : theme.placeholder} size={18} />
-          <Text style={[styles.secondaryButtonText, !profileReady && styles.disabledButtonText]}>
-            Scan Profile QR
-          </Text>
-        </Pressable>
+        />
       </View>
 
-      <Pressable
+      <MobileActionButton
         accessibilityState={{ expanded: showAdvancedShare }}
+        icon={Settings}
+        label='Advanced'
         onPress={() => setShowAdvancedShare((value) => !value)}
-        style={styles.secondaryButton}
         testID='advanced-share-toggle'
-      >
-        <Settings color={theme.accentStrong} size={18} />
-        <Text style={styles.secondaryButtonText}>Advanced</Text>
-      </Pressable>
+      />
       {showAdvancedShare ? (
         <View style={styles.panel}>
           <TaskHeader
@@ -1682,28 +1688,13 @@ function PeopleActions({
             testID='join-home-uri-input'
             value={homeQrUri}
           />
-          <Pressable
+          <MobileActionButton
             disabled={!canUseHomeJoin || !homeQrUri.trim()}
+            icon={ArrowRight}
+            label='Join a home'
             onPress={onJoinHomeQr}
-            style={[
-              styles.secondaryButton,
-              (!canUseHomeJoin || !homeQrUri.trim()) && styles.disabledButton
-            ]}
             testID='join-home-uri-button'
-          >
-            <ArrowRight
-              color={canUseHomeJoin && homeQrUri.trim() ? theme.accentStrong : theme.placeholder}
-              size={18}
-            />
-            <Text
-              style={[
-                styles.secondaryButtonText,
-                (!canUseHomeJoin || !homeQrUri.trim()) && styles.disabledButtonText
-              ]}
-            >
-              Join a home
-            </Text>
-          </Pressable>
+          />
           <Text style={styles.panelCopy}>Friend profile</Text>
           <TextInput
             autoCapitalize='none'
@@ -1722,28 +1713,13 @@ function PeopleActions({
             testID='trust-profile-alias-input'
             value={trustAlias}
           />
-          <Pressable
+          <MobileActionButton
             disabled={!profileReady || !trustQrUri.trim()}
+            icon={Plus}
+            label='Add trusted friend'
             onPress={onTrustProfile}
-            style={[
-              styles.secondaryButton,
-              (!profileReady || !trustQrUri.trim()) && styles.disabledButton
-            ]}
             testID='trust-profile-button'
-          >
-            <Plus
-              color={profileReady && trustQrUri.trim() ? theme.accentStrong : theme.placeholder}
-              size={18}
-            />
-            <Text
-              style={[
-                styles.secondaryButtonText,
-                (!profileReady || !trustQrUri.trim()) && styles.disabledButtonText
-              ]}
-            >
-              Add trusted friend
-            </Text>
-          </Pressable>
+          />
           <TextInput
             autoCapitalize='none'
             autoCorrect={false}
@@ -1843,14 +1819,12 @@ function DirectPane({
               icon={Users}
               title='No trusted friends yet'
             />
-            <Pressable
+            <MobileActionButton
+              icon={Plus}
+              label='Trust a friend'
               onPress={onOpenPeople}
-              style={styles.secondaryButton}
               testID='dm-open-people-button'
-            >
-              <Plus color={theme.accentStrong} size={18} />
-              <Text style={styles.secondaryButtonText}>Trust a friend</Text>
-            </Pressable>
+            />
           </View>
         )}
         <Pressable

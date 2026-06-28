@@ -70,7 +70,7 @@ test('Android lucide icons used in JSX are imported', async () => {
     'Users'
   ]) {
     assert.equal(importedIcons.has(icon), true, `${icon} is not imported`)
-    assert.match(source, new RegExp(`<${icon}\\b`), `${icon} is not rendered`)
+    assert.match(source, new RegExp(`(<${icon}\\b|icon=\\{${icon}\\})`), `${icon} is not rendered`)
   }
 })
 
@@ -114,10 +114,10 @@ test('Android lobby starts with compact product choices', async () => {
   assert.match(source, /Start here/)
   assert.match(source, /<Field label='Name' onChangeText={onNickChange} value={nick} \/>/)
   assert.match(source, /Create my home/)
-  assert.match(source, /testID='quick-show-home-qr-button'[\s\S]*Invite a friend/)
+  assert.match(source, /label='Invite a friend'[\s\S]*testID='quick-show-home-qr-button'/)
   assert.match(source, /showQuickHomeQr \? <QrCard value={myHomeQrUri} \/> : null/)
-  assert.match(source, /testID='quick-scan-home-qr-button'[\s\S]*Join a home/)
-  assert.match(source, /testID='quick-scan-profile-qr-button'[\s\S]*Trust a friend/)
+  assert.match(source, /label='Join a home'[\s\S]*testID='quick-scan-home-qr-button'/)
+  assert.match(source, /label='Trust a friend'[\s\S]*testID='quick-scan-profile-qr-button'/)
   assert.equal(source.indexOf('Scan Home QR') > source.indexOf('function PeopleActions'), true)
   assert.equal(source.indexOf('Scan Profile QR') > source.indexOf('function PeopleActions'), true)
   assert.match(source, /const \[showPeopleSetup, setShowPeopleSetup\] = useState\(false\)/)
@@ -164,10 +164,10 @@ test('Android setup action buttons use icons consistently', async () => {
     source.indexOf('function ContactManager(')
   )
 
-  assert.match(peopleActions, /testID='scan-home-qr-button'[\s\S]*<ArrowRight\b/)
-  assert.match(peopleActions, /testID='scan-profile-qr-button'[\s\S]*<Plus\b/)
+  assert.match(peopleActions, /icon=\{ArrowRight\}[\s\S]*testID='scan-home-qr-button'/)
+  assert.match(peopleActions, /icon=\{Plus\}[\s\S]*testID='scan-profile-qr-button'/)
   assert.match(lobby, /testID='advanced-join-toggle'[\s\S]*<Settings\b/)
-  assert.match(peopleActions, /testID='advanced-share-toggle'[\s\S]*<Settings\b/)
+  assert.match(peopleActions, /icon=\{Settings\}[\s\S]*testID='advanced-share-toggle'/)
   assert.match(directPane, /testID='advanced-dm-recipient-toggle'[\s\S]*<Settings\b/)
 })
 
@@ -207,7 +207,7 @@ test('Android lobby disables profile-dependent actions while profile loads', asy
   assert.match(source, /function QuickStartPanel\([\s\S]*profileReady[\s\S]*\) \{/)
   assert.match(source, /Setting up your profile\.\.\./)
   assert.match(source, /disabled={!profileReady}/)
-  assert.match(source, /!profileReady && styles\.disabledButton/)
+  assert.match(source, /disabled && styles\.disabledButton/)
   assert.match(source, /canJoin={profileReady && canJoin}/)
   assert.match(source, /function PeopleActions\([\s\S]*profileReady[\s\S]*\) \{/)
   assert.match(source, /const canUseHomeJoin = profileReady && canJoinHome/)
