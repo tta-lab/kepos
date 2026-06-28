@@ -3,11 +3,13 @@ import test from 'node:test'
 import {
   displayDirectPeer,
   displayPostAuthor,
+  formatMobilePostTime,
   formatMessageRequestTitle,
   formatMobileTrustSource,
   formatMobileTrustTime,
   formatPendingBadgeCount,
   formatRequestPreview,
+  getMobileTreeholeEmptyCopy,
   getMobileTabButtonLabel,
   getMobileBackendNotice,
   getMobileHomeStatus,
@@ -82,4 +84,25 @@ test('mobile product copy formats profile and author labels', () => {
   assert.equal(displayPostAuthor({ author: 'anon-name' }), 'anon-name')
   assert.equal(displayPostAuthor({ authorProfileId: profileId }), '12345678...90abcdef')
   assert.equal(displayPostAuthor({}), 'anon')
+})
+
+test('mobile product copy formats treehole empty copy and post time', () => {
+  assert.equal(
+    getMobileTreeholeEmptyCopy('waiting'),
+    'Waiting for the home owner to share the treehole.'
+  )
+  assert.equal(
+    getMobileTreeholeEmptyCopy('waiting-for-bootstrap'),
+    'Waiting for the home owner to share the treehole.'
+  )
+  assert.equal(getMobileTreeholeEmptyCopy('starting'), 'Starting the treehole.')
+  assert.equal(getMobileTreeholeEmptyCopy('ready'), 'Write the first post from this phone.')
+  assert.equal(
+    formatMobilePostTime(0, (value, options) => {
+      assert.equal(value, 0)
+      assert.deepEqual(options, { hour: '2-digit', minute: '2-digit' })
+      return 'time:0'
+    }),
+    'time:0'
+  )
 })

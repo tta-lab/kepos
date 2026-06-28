@@ -119,3 +119,25 @@ export function displayDirectPeer(profileId, displayName = '') {
 export function displayPostAuthor(post) {
   return post.authorDisplayName || post.author || shortenProfileId(post.authorProfileId) || 'anon'
 }
+
+export function formatMobilePostTime(
+  value,
+  formatTime = (nextValue, options) => new Date(nextValue).toLocaleTimeString([], options)
+) {
+  return formatTime(value, {
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+export function getMobileTreeholeEmptyCopy(status) {
+  if (status === 'waiting' || status === 'waiting-for-bootstrap') {
+    return 'Waiting for the home owner to share the treehole.'
+  }
+
+  if (status === 'starting') {
+    return 'Starting the treehole.'
+  }
+
+  return 'Write the first post from this phone.'
+}

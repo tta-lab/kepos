@@ -72,6 +72,7 @@ import { getScannedQrData } from '../src/mobile-qr-event.js'
 import {
   displayDirectPeer,
   displayPostAuthor,
+  formatMobilePostTime,
   formatMessageRequestTitle,
   formatMobileTrustSource,
   formatMobileTrustTime,
@@ -81,6 +82,7 @@ import {
   getMobileHomeStatus,
   getMobileRoomSurface,
   getMobileTabButtonLabel,
+  getMobileTreeholeEmptyCopy,
   getMobileTreeholeStatus,
   shortenProfileId
 } from '../src/mobile-product-copy.js'
@@ -2071,7 +2073,7 @@ function EmptyState({ copy, icon: Icon, title }) {
 }
 
 function EmptyTreehole({ status }) {
-  return <EmptyState copy={treeholeStatusText(status)} icon={Sprout} title='No posts yet' />
+  return <EmptyState copy={getMobileTreeholeEmptyCopy(status)} icon={Sprout} title='No posts yet' />
 }
 
 function PaneLabel({ eyebrow, title }) {
@@ -2103,7 +2105,7 @@ function TreeholePost({ canInteract, onComment, onLike, post }) {
     <View style={styles.post}>
       <View style={styles.postHeader}>
         <Text style={styles.postAuthor}>{displayPostAuthor(post)}</Text>
-        <Text style={styles.postTime}>{formatPostTime(post.createdAt)}</Text>
+        <Text style={styles.postTime}>{formatMobilePostTime(post.createdAt)}</Text>
       </View>
       <Text style={styles.postText}>{post.text}</Text>
       <View style={styles.commentList}>
@@ -2329,25 +2331,6 @@ async function loadMobileProfile() {
 function createHomeRoomKey() {
   const bytes = Crypto.getRandomBytes(32)
   return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('')
-}
-
-function formatPostTime(value) {
-  return new Date(value).toLocaleTimeString([], {
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
-
-function treeholeStatusText(status) {
-  if (status === 'waiting' || status === 'waiting-for-bootstrap') {
-    return 'Waiting for the home owner to share the treehole.'
-  }
-
-  if (status === 'starting') {
-    return 'Starting the treehole.'
-  }
-
-  return 'Write the first post from this phone.'
 }
 
 function readRpcPayload(req) {

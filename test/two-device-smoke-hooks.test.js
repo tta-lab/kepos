@@ -664,10 +664,12 @@ test('Android direct message zero-contact state links to People', async () => {
 
 test('Android treehole empty state talks about posts', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const copy = await readFile(new URL('../src/mobile-product-copy.js', import.meta.url), 'utf8')
 
   assert.match(source, /No posts yet/)
-  assert.match(source, /Waiting for the home owner to share the treehole\./)
-  assert.match(source, /Starting the treehole\./)
+  assert.match(source, /getMobileTreeholeEmptyCopy\(status\)/)
+  assert.match(copy, /Waiting for the home owner to share the treehole\./)
+  assert.match(copy, /Starting the treehole\./)
   assert.equal(source.includes('No treeholes yet'), false)
   assert.equal(source.includes('Starting the treehole log.'), false)
   assert.equal(source.includes('Waiting for a home peer to share the treehole log.'), false)
