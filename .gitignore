@@ -3,6 +3,7 @@ node_modules/
 .expo/
 android/
 desktop/app.bundle.cjs
+desktop/app.bundle.js
 desktop/controller.bundle.cjs
 mobile/app.bundle.mjs
 tmp/

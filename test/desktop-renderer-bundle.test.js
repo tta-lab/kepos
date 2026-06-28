@@ -21,13 +21,14 @@ async function readDesktopUiSource() {
 test('desktop renderer loads separate UI and controller bundles', async () => {
   const html = await readFile(new URL('../desktop/index.html', import.meta.url), 'utf8')
 
-  assert.match(html, /require\('\.\/app\.bundle\.cjs'\)/)
+  assert.match(html, /<script src="\.\/app\.bundle\.js"><\/script>/)
   assert.match(html, /require\('\.\/controller\.bundle\.cjs'\)/)
   assert.match(
     html,
-    /require\('\.\/app\.bundle\.cjs'\)[\s\S]*require\('\.\/controller\.bundle\.cjs'\)/
+    /<script src="\.\/app\.bundle\.js"><\/script>[\s\S]*require\('\.\/controller\.bundle\.cjs'\)/
   )
   assert.doesNotMatch(html, /src="\.\/app\.js" type="module"/)
+  assert.doesNotMatch(html, /require\('\.\/app\.bundle\.cjs'\)/)
 })
 
 test('desktop scripts build the renderer bundle before launch', async () => {
@@ -40,7 +41,7 @@ test('desktop scripts build the renderer bundle before launch', async () => {
 
   assert.equal(
     packageJson.scripts['desktop:bundle'],
-    'esbuild desktop/app.jsx --bundle --platform=node --format=cjs --packages=external --outfile=desktop/app.bundle.cjs && esbuild desktop/controller.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/controller.bundle.cjs'
+    'esbuild desktop/app.jsx --bundle --platform=browser --format=iife --define:process.env.NODE_ENV=\\\"production\\\" --minify --outfile=desktop/app.bundle.js && esbuild desktop/controller.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/controller.bundle.cjs'
   )
   assert.equal(packageJson.scripts.desktop, 'npm run start --prefix desktop')
   assert.equal(desktopPackageJson.scripts.prestart, 'npm run desktop:bundle --prefix ..')
@@ -56,7 +57,7 @@ test('desktop React entry renders before starting the controller', async () => {
   assert.doesNotMatch(source, /import\('\.\/controller\.js'\)/)
   assert.match(
     html,
-    /require\('\.\/app\.bundle\.cjs'\)[\s\S]*require\('\.\/controller\.bundle\.cjs'\)/
+    /<script src="\.\/app\.bundle\.js"><\/script>[\s\S]*require\('\.\/controller\.bundle\.cjs'\)/
   )
 })
 
