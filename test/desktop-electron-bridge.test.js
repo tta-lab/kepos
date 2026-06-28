@@ -13,7 +13,7 @@ test('desktop main loads a preload script for the backend bridge', async () => {
   assert.match(source, /registerDesktopBackendIpc/)
 })
 
-test('desktop renderer runs without page-level node integration', async () => {
+test('desktop renderer runs with isolated page privileges', async () => {
   const source = await readFile(new URL('../desktop/electron/main.cjs', import.meta.url), 'utf8')
   const preload = await readFile(
     new URL('../desktop/electron/preload.cjs', import.meta.url),
@@ -21,7 +21,7 @@ test('desktop renderer runs without page-level node integration', async () => {
   )
 
   assert.match(source, /nodeIntegration: false/)
-  assert.match(source, /contextIsolation: false/)
+  assert.match(source, /contextIsolation: true/)
   assert.doesNotMatch(preload, /require\('\.\.\/controller\.bundle\.cjs'\)/)
   assert.doesNotMatch(preload, /globalThis\.eval\("require\('\.\/controller\.bundle\.cjs'\)"\)/)
 })
@@ -59,13 +59,13 @@ test('desktop page owns browser controller bundle startup', async () => {
   assert.match(html, /<script src="\.\/controller\.browser\.bundle\.js"><\/script>/)
 })
 
-test('desktop preload exposes bridge apis when context isolation is disabled', async () => {
+test('desktop preload exposes bridge apis through context isolation', async () => {
   const source = await readFile(new URL('../desktop/electron/preload.cjs', import.meta.url), 'utf8')
 
   assert.match(source, /function exposeDesktopApi\(name, api\)/)
   assert.match(source, /if \(process\.contextIsolated\)/)
   assert.match(source, /contextBridge\.exposeInMainWorld\(name, api\)/)
-  assert.match(source, /globalThis\[name\] = api/)
+  assert.match(source, /return[\s\S]*globalThis\[name\] = api/)
   assert.match(source, /exposeDesktopApi\('keposBackend'/)
   assert.match(source, /exposeDesktopApi\('keposDesktopConfig'/)
   assert.doesNotMatch(source, /exposeDesktopApi\('keposDesktopController'/)

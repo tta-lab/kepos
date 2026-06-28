@@ -43,6 +43,18 @@ try {
   if (controllerApiType !== 'undefined') {
     throw new Error(`Expected browser controller script startup, got ${controllerApiType}`)
   }
+  const bridgeShape = await page.evaluate(() => ({
+    backendDispatch: typeof globalThis.keposBackend?.dispatch,
+    backendSubscribe: typeof globalThis.keposBackend?.subscribe,
+    storageBasePath: typeof globalThis.keposDesktopConfig?.storageBasePath
+  }))
+  if (
+    bridgeShape.backendDispatch !== 'function' ||
+    bridgeShape.backendSubscribe !== 'function' ||
+    bridgeShape.storageBasePath !== 'string'
+  ) {
+    throw new Error(`Expected isolated preload bridge APIs, got ${JSON.stringify(bridgeShape)}`)
+  }
 
   await page.waitForSelector('#profileQrOutput', { state: 'attached' })
   await waitForInputPrefix(page, '#profileQrOutput', 'kepos://profile')
