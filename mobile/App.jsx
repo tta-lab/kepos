@@ -1478,6 +1478,25 @@ function MobileSmallActionButton({
   )
 }
 
+function MobileContactChip({ contact, onPress, selected }) {
+  const { styles } = useMobileTheme()
+  const label = formatMobileTrustedContactName(contact)
+
+  return (
+    <Pressable
+      accessibilityLabel={`Direct recipient ${label}`}
+      accessibilityRole='button'
+      accessibilityState={{ selected }}
+      onPress={onPress}
+      style={[styles.contactChip, selected && styles.activeContactChip]}
+    >
+      <Text style={[styles.contactChipText, selected && styles.activeContactChipText]}>
+        {label}
+      </Text>
+    </Pressable>
+  )
+}
+
 function QuickStartPanel({
   myHomeQrUri,
   nick,
@@ -1870,26 +1889,12 @@ function DirectPane({
             showsHorizontalScrollIndicator={false}
           >
             {contactOptions.map((contact) => (
-              <Pressable
-                accessibilityLabel={`Direct recipient ${formatMobileTrustedContactName(contact)}`}
-                accessibilityRole='button'
-                accessibilityState={{ selected: recipient === contact.profileId }}
+              <MobileContactChip
+                contact={contact}
                 key={contact.profileId}
                 onPress={() => onRecipientChange(contact.profileId)}
-                style={[
-                  styles.contactChip,
-                  recipient === contact.profileId && styles.activeContactChip
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.contactChipText,
-                    recipient === contact.profileId && styles.activeContactChipText
-                  ]}
-                >
-                  {formatMobileTrustedContactName(contact)}
-                </Text>
-              </Pressable>
+                selected={recipient === contact.profileId}
+              />
             ))}
           </ScrollView>
         ) : (

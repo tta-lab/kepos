@@ -93,6 +93,10 @@ test('mobile direct contact chips and revoke actions expose trust state', async 
     source.indexOf('function DirectPane('),
     source.indexOf('function ContactManager(')
   )
+  const contactChip = source.slice(
+    source.indexOf('function MobileContactChip('),
+    source.indexOf('function QuickStartPanel(')
+  )
 
   assert.match(
     contactManager,
@@ -101,15 +105,13 @@ test('mobile direct contact chips and revoke actions expose trust state', async 
   assert.match(contactManager, /icon=\{UserMinus\}/)
   assert.match(contactManager, /label='Revoke'/)
   assert.match(contactManager, /variant='danger'/)
-  assert.match(
-    directPane,
-    /accessibilityLabel=\{`Direct recipient \$\{formatMobileTrustedContactName/
-  )
-  assert.match(directPane, /accessibilityRole='button'/)
-  assert.match(
-    directPane,
-    /accessibilityState=\{\{ selected: recipient === contact\.profileId \}\}/
-  )
+  assert.match(contactChip, /function MobileContactChip\(\{ contact, onPress, selected \}\)/)
+  assert.match(contactChip, /const label = formatMobileTrustedContactName\(contact\)/)
+  assert.match(contactChip, /accessibilityLabel=\{`Direct recipient \$\{label\}`\}/)
+  assert.match(contactChip, /accessibilityRole='button'/)
+  assert.match(contactChip, /accessibilityState=\{\{ selected \}\}/)
+  assert.match(directPane, /<MobileContactChip[\s\S]*contact=\{contact\}/)
+  assert.match(directPane, /selected=\{recipient === contact\.profileId\}/)
 })
 
 test('mobile small trust and treehole actions share one icon button component', async () => {

@@ -219,6 +219,15 @@ test('V1 UX docs include mobile shared advanced toggles', async () => {
   assert.match(ux, /normal\s+and compact variants/)
 })
 
+test('V1 UX docs include mobile shared Direct contact chips', async () => {
+  const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
+  const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
+
+  assert.match(audit, /mobile Direct trusted-contact recipient chips/)
+  assert.match(ux, /Mobile Direct trusted-contact recipient chips/)
+  assert.match(ux, /selected accessibility state/)
+})
+
 test('V1 UX docs include mobile direct contact and revoke state polish', async () => {
   const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
   const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
