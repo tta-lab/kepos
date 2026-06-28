@@ -66,3 +66,27 @@ test('mobile request actions use icon-led trust controls', async () => {
   assert.match(directBubble, /testID='message-request-ignore-button'[\s\S]*<X\b/)
   assert.match(directBubble, /testID='message-request-accept-button'[\s\S]*<Check\b/)
 })
+
+test('mobile direct contact chips and revoke actions expose trust state', async () => {
+  const source = await readMobileSource()
+  const contactManager = source.slice(
+    source.indexOf('function ContactManager('),
+    source.indexOf('function TabButton(')
+  )
+  const directPane = source.slice(
+    source.indexOf('function DirectPane('),
+    source.indexOf('function ContactManager(')
+  )
+
+  assert.match(contactManager, /accessibilityLabel=\{`Revoke \$\{formatMobileTrustedContactName/)
+  assert.match(contactManager, /<UserMinus color=\{theme\.danger\} size=\{18\} \/>/)
+  assert.match(
+    directPane,
+    /accessibilityLabel=\{`Direct recipient \$\{formatMobileTrustedContactName/
+  )
+  assert.match(directPane, /accessibilityRole='button'/)
+  assert.match(
+    directPane,
+    /accessibilityState=\{\{ selected: recipient === contact\.profileId \}\}/
+  )
+})

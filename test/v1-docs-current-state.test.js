@@ -133,6 +133,15 @@ test('V1 UX docs include mobile icon-led request actions', async () => {
   assert.match(ux, /Accept and Ignore/)
 })
 
+test('V1 UX docs include mobile direct contact and revoke state polish', async () => {
+  const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
+  const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
+
+  assert.match(audit, /mobile Direct trusted-contact chips expose selected accessibility state/)
+  assert.match(ux, /Mobile Direct trusted-contact chips now expose selected accessibility state/)
+  assert.match(ux, /trusted-friend revoke actions use an icon/)
+})
+
 test('V1 UX docs include Home trust source product copy', async () => {
   const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
   const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')

@@ -1808,6 +1808,9 @@ function DirectPane({
           >
             {contactOptions.map((contact) => (
               <Pressable
+                accessibilityLabel={`Direct recipient ${formatMobileTrustedContactName(contact)}`}
+                accessibilityRole='button'
+                accessibilityState={{ selected: recipient === contact.profileId }}
                 key={contact.profileId}
                 onPress={() => onRecipientChange(contact.profileId)}
                 style={[
