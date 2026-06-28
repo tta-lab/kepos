@@ -66,3 +66,12 @@ test('V1 UX docs include accessible desktop primary empty states', async () => {
   assert.match(ux, /Desktop Home, Direct, and Treehole empty states now render/)
   assert.match(ux, /assistive technology/)
 })
+
+test('V1 UX docs include mobile Direct zero-contact empty state polish', async () => {
+  const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
+  const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
+
+  assert.match(audit, /mobile Direct's zero-contact state now reuses/)
+  assert.match(ux, /Mobile Direct's zero-contact state now uses/)
+  assert.match(ux, /before linking users to People/)
+})

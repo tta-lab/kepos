@@ -1866,10 +1866,11 @@ function DirectPane({
           </ScrollView>
         ) : (
           <View style={styles.directEmptyContacts}>
-            <Text style={styles.panelEmptyTitle}>No trusted friends yet</Text>
-            <Text style={styles.panelEmptyCopy}>
-              Trust a friend first, then come back here to write privately.
-            </Text>
+            <PanelEmptyState
+              copy='Trust a friend first, then come back here to write privately.'
+              icon={Users}
+              title='No trusted friends yet'
+            />
             <Pressable
               onPress={onOpenPeople}
               style={styles.secondaryButton}

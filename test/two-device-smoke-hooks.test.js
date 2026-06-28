@@ -642,6 +642,7 @@ test('Android direct message zero-contact state links to People', async () => {
 
   assert.match(chatRoom, /onOpenPeople=\{\(\) => onTabChange\('people'\)\}/)
   assert.match(directPane, /onOpenPeople/)
+  assert.match(directPane, /<PanelEmptyState[\s\S]*icon=\{Users\}/)
   assert.match(directPane, /No trusted friends yet/)
   assert.match(directPane, /Trust a friend first, then come back here to write privately\./)
   assert.match(directPane, /testID='dm-open-people-button'/)
