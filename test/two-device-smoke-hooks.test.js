@@ -548,8 +548,12 @@ test('Android room tabs use icons for main navigation', async () => {
   assert.match(tabs, /icon={Send}[\s\S]*label='Direct'[\s\S]*testID='dm-tab'/)
   assert.match(tabs, /icon={Sprout}[\s\S]*label='Treehole'[\s\S]*testID='treehole-tab'/)
   assert.match(tabs, /icon={Users}[\s\S]*label='People'[\s\S]*testID='people-tab'/)
-  assert.match(tabButton, /function TabButton\(\{ active, icon: Icon, label, onPress, testID \}\)/)
+  assert.match(
+    tabButton,
+    /function TabButton\(\{ active, badgeCount = 0, icon: Icon, label, onPress, testID \}\)/
+  )
   assert.match(tabButton, /<Icon[\s\S]*color=\{active \? theme\.surface : theme\.iconMuted\}/)
+  assert.match(tabButton, /badgeCount > 0/)
   assert.match(source, /tabIcon: \{/)
 })
 
