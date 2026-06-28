@@ -69,9 +69,16 @@ test('desktop file profile context persists profile and contacts outside localSt
 
 test('desktop controller uses profile context instead of direct local adapters', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const localProfile = await readFile(
+    new URL('../desktop/local-profile.js', import.meta.url),
+    'utf8'
+  )
 
-  assert.match(source, /createDesktopFileProfileContext/)
+  assert.match(source, /getLocalProfileApi/)
+  assert.match(source, /require\('\.\/local-profile\.bundle\.cjs'\)/)
+  assert.match(localProfile, /createDesktopFileProfileContext/)
   assert.doesNotMatch(source, /from '..\/src\/desktop-local-adapters\.js'/)
+  assert.doesNotMatch(source, /from '..\/src\/desktop-profile-context\.js'/)
   assert.doesNotMatch(source, /getDesktopLocalProfile/)
   assert.doesNotMatch(source, /loadDesktopContactBook/)
   assert.doesNotMatch(source, /saveDesktopContactBook/)
@@ -79,10 +86,16 @@ test('desktop controller uses profile context instead of direct local adapters',
 
 test('desktop controller uses file-backed profile context when a storage base path exists', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const localProfile = await readFile(
+    new URL('../desktop/local-profile.js', import.meta.url),
+    'utf8'
+  )
 
-  assert.match(source, /const storageBasePath = getDesktopStorageBasePath\(\)/)
-  assert.match(source, /if \(storageBasePath\) return createDesktopFileProfileContext/)
-  assert.match(source, /return createDesktopProfileContext\(\{ displayName \}\)/)
+  assert.match(source, /getLocalProfileApi\(\)\.createProfileContext/)
+  assert.doesNotMatch(source, /import \{ getDesktopStorageBasePath \}/)
+  assert.match(localProfile, /const storageBasePath = getDesktopStorageBasePath\(\)/)
+  assert.match(localProfile, /if \(storageBasePath\) return createDesktopFileProfileContext/)
+  assert.match(localProfile, /return createDesktopProfileContext\(\{ displayName \}\)/)
 })
 
 function createMemoryFs(files) {

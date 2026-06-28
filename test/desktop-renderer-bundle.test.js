@@ -42,7 +42,7 @@ test('desktop scripts build the renderer bundle before launch', async () => {
 
   assert.equal(
     packageJson.scripts['desktop:bundle'],
-    'esbuild desktop/app.jsx --bundle --platform=browser --format=iife --define:process.env.NODE_ENV=\\\"production\\\" --minify --outfile=desktop/app.bundle.js && esbuild desktop/controller.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/controller.bundle.cjs && esbuild desktop/local-backend.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/local-backend.bundle.cjs'
+    'esbuild desktop/app.jsx --bundle --platform=browser --format=iife --define:process.env.NODE_ENV=\\\"production\\\" --minify --outfile=desktop/app.bundle.js && esbuild desktop/controller.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/controller.bundle.cjs && esbuild desktop/local-backend.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/local-backend.bundle.cjs && esbuild desktop/local-profile.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/local-profile.bundle.cjs'
   )
   assert.equal(packageJson.scripts.desktop, 'npm run start --prefix desktop')
   assert.equal(desktopPackageJson.scripts.prestart, 'npm run desktop:bundle --prefix ..')
@@ -254,7 +254,10 @@ test('desktop React owns action and composer disabled state', async () => {
 test('desktop React owns the large QR dialog surface', async () => {
   const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
-  const actions = await readFile(new URL('../src/desktop-qr-actions.js', import.meta.url), 'utf8')
+  const localProfile = await readFile(
+    new URL('../desktop/local-profile.js', import.meta.url),
+    'utf8'
+  )
 
   assert.match(source, /function LargeQrDialog\(\{ onClose, qr \}\)/)
   assert.match(source, /setLargeQr\(qr = EMPTY_LARGE_QR\)/)
@@ -273,8 +276,13 @@ test('desktop React owns the large QR dialog surface', async () => {
     source,
     /<LargeQrDialog onClose=\{model\.shellActions\.hideLargeQr\} qr=\{model\.largeQr\} \/>/
   )
-  assert.match(controller, /setLargeQr: \(qr\) => globalThis\.keposDesktopUi\?\.setLargeQr\(qr\)/)
-  assert.match(actions, /setLargeQr\(\{/)
+  assert.match(controller, /globalThis\.keposDesktopUi\?\.setLargeQr\(\{/)
+  assert.match(controller, /let largeQrReturnFocus = null/)
+  assert.match(controller, /largeQrReturnFocus = returnFocus/)
+  assert.match(controller, /largeQrReturnFocus\?\.focus\(\)/)
+  assert.match(controller, /getShareQrSvgForUri\(uri\)/)
+  assert.match(controller, /getLocalProfileApi\(\)\.renderQrSvg\(uri/)
+  assert.match(localProfile, /renderDesktopQrSvg/)
   assert.doesNotMatch(controller, /largeQrCloseButton: document\.querySelector/)
   assert.doesNotMatch(controller, /largeQrDialog: document\.querySelector/)
   assert.doesNotMatch(controller, /els\.largeQrCloseButton\.addEventListener/)
@@ -314,7 +322,10 @@ test('desktop React owns shell busy and leave action', async () => {
 test('desktop React owns inline QR share outputs', async () => {
   const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
-  const actions = await readFile(new URL('../src/desktop-qr-actions.js', import.meta.url), 'utf8')
+  const localProfile = await readFile(
+    new URL('../desktop/local-profile.js', import.meta.url),
+    'utf8'
+  )
 
   assert.match(source, /function QrShareOutput\(/)
   assert.match(source, /setShareQrOutputs\(outputs = EMPTY_SHARE_QR_OUTPUTS\)/)
@@ -324,11 +335,18 @@ test('desktop React owns inline QR share outputs', async () => {
   assert.match(source, /uri=\{shareQrOutputs\.homeUri\}/)
   assert.match(source, /svg=\{shareQrOutputs\.profileSvg\}/)
   assert.match(source, /uri=\{shareQrOutputs\.profileUri\}/)
+  assert.match(controller, /let shareQrOutputs = \{/)
+  assert.match(controller, /getShareQrOutputs\(\) \{[\s\S]*return shareQrOutputs/)
   assert.match(
     controller,
-    /setShareQrOutputs: \(outputs\) => globalThis\.keposDesktopUi\?\.setShareQrOutputs\(outputs\)/
+    /setShareQrOutputs\(outputs\) \{[\s\S]*setShareQrOutputsSnapshot\(outputs\)/
   )
-  assert.match(actions, /setShareQrOutputs\(shareQrOutputs\)/)
+  assert.match(
+    controller,
+    /setShareQrOutputsSnapshot\(await getLocalProfileApi\(\)\.createShareQrOutputs/
+  )
+  assert.match(controller, /globalThis\.keposDesktopUi\?\.setShareQrOutputs\(shareQrOutputs\)/)
+  assert.match(localProfile, /createDesktopShareQrOutputs/)
   assert.doesNotMatch(controller, /els\.profileQrOutput\.value =/)
   assert.doesNotMatch(controller, /els\.homeQrOutput\.value =/)
   assert.doesNotMatch(controller, /els\.profileQrCode\.innerHTML/)

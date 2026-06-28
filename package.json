@@ -14,7 +14,7 @@
     "compat:probe": "node scripts/probe-compatibility.mjs",
     "compat:typescript": "node scripts/probe-typescript.ts",
     "desktop": "npm run start --prefix desktop",
-    "desktop:bundle": "esbuild desktop/app.jsx --bundle --platform=browser --format=iife --define:process.env.NODE_ENV=\\\"production\\\" --minify --outfile=desktop/app.bundle.js && esbuild desktop/controller.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/controller.bundle.cjs && esbuild desktop/local-backend.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/local-backend.bundle.cjs",
+    "desktop:bundle": "esbuild desktop/app.jsx --bundle --platform=browser --format=iife --define:process.env.NODE_ENV=\\\"production\\\" --minify --outfile=desktop/app.bundle.js && esbuild desktop/controller.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/controller.bundle.cjs && esbuild desktop/local-backend.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/local-backend.bundle.cjs && esbuild desktop/local-profile.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/local-profile.bundle.cjs",
     "desktop:install": "npm install --prefix desktop",
     "format": "prettier --write . && lunte --fix",
     "lint": "prettier --check . && lunte && npm run typecheck && node scripts/check-platform-boundaries.mjs",

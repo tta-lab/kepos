@@ -2,15 +2,9 @@
 
 import { createDesktopBackendSubscriptions } from '../src/desktop-backend-subscriptions.js'
 import { createDesktopCommandDispatcher } from '../src/desktop-command-dispatcher.js'
-import {
-  createDesktopFileProfileContext,
-  createDesktopProfileContext
-} from '../src/desktop-profile-context.js'
-import { createDesktopQrActions } from '../src/desktop-qr-actions.js'
 import { createDesktopRenderPresenter } from '../src/desktop-render-presenter.js'
 import { setDesktopTab } from '../src/desktop-state.js'
 import { createDesktopRendererBackendClient } from '../src/desktop-renderer-backend-client.js'
-import { getDesktopStorageBasePath } from '../src/desktop-storage-base.js'
 import { createDesktopControllerState } from '../src/desktop-controller-state.js'
 import { createDesktopUiActionBindings } from '../src/desktop-ui-action-bindings.js'
 
@@ -20,21 +14,20 @@ const controllerState = createDesktopControllerState()
 let backendContactBook = null
 let localBackendSession = null
 let localBackendSessionFactory = null
+let localProfileApi = null
+let largeQrReturnFocus = null
+let shareQrOutputs = {
+  homeSvg: '',
+  homeUri: '',
+  profileSvg: '',
+  profileUri: ''
+}
 const renderPresenter = createDesktopRenderPresenter({
   formatTime,
   shortenProfileId: shorten,
   ui: globalThis.keposDesktopUi
 })
-const qrActions = createDesktopQrActions({
-  copyText: (value) => navigator.clipboard.writeText(value),
-  getProfileContext,
-  onChanged: () => render(),
-  setLargeQr: (qr) => globalThis.keposDesktopUi?.setLargeQr(qr),
-  setNotice: (notice) => {
-    controllerState.updateState((state) => ({ ...state, notice }))
-  },
-  setShareQrOutputs: (outputs) => globalThis.keposDesktopUi?.setShareQrOutputs(outputs)
-})
+const qrActions = createControllerQrActions()
 const backendClient = createDesktopRendererBackendClient({
   createLocalBackend: () => getLocalBackendSession().backendHost.bridge,
   mode: globalThis.keposBackend ? 'preload' : 'auto'
@@ -108,10 +101,7 @@ function getCurrentDisplayName() {
 }
 
 function getProfileContext(displayName = getCurrentDisplayName()) {
-  const storageBasePath = getDesktopStorageBasePath()
-  if (storageBasePath) return createDesktopFileProfileContext({ displayName, storageBasePath })
-
-  return createDesktopProfileContext({ displayName })
+  return getLocalProfileApi().createProfileContext({ displayName })
 }
 
 function setTab(tab) {
@@ -212,7 +202,7 @@ function getLocalBackendSession() {
         controllerState.updateState((state) => ({ ...state, notice }))
       },
       shortenProfileId: shorten,
-      storageBasePath: getDesktopStorageBasePath(),
+      storageBasePath: getLocalProfileApi().getStorageBasePath(),
       updateState: (updater) => {
         controllerState.updateState(updater)
       }
@@ -229,4 +219,70 @@ function loadLocalBackendSessionFactory() {
   }
 
   return localBackendSessionFactory
+}
+
+function getLocalProfileApi() {
+  if (!localProfileApi) {
+    localProfileApi = globalThis.eval("require('./local-profile.bundle.cjs')")
+  }
+
+  return localProfileApi
+}
+
+function createControllerQrActions() {
+  return {
+    async copyQrValue({ notice, value }) {
+      if (!value.trim()) return
+
+      await navigator.clipboard.writeText(value)
+      setNotice(notice)
+      render()
+    },
+    getShareQrOutputs() {
+      return shareQrOutputs
+    },
+    hideLargeQr() {
+      globalThis.keposDesktopUi?.setLargeQr({ isOpen: false, svg: '', title: '' })
+      largeQrReturnFocus?.focus()
+      largeQrReturnFocus = null
+    },
+    setShareQrOutputs(outputs) {
+      setShareQrOutputsSnapshot(outputs)
+    },
+    async showLargeQr({ returnFocus, title, uri }) {
+      if (!uri) return
+
+      largeQrReturnFocus = returnFocus
+      const svg =
+        getShareQrSvgForUri(uri) ||
+        (await getLocalProfileApi().renderQrSvg(uri, {
+          margin: 2,
+          width: 520
+        }))
+      globalThis.keposDesktopUi?.setLargeQr({
+        isOpen: true,
+        svg,
+        title
+      })
+    },
+    async updateQrOutputs() {
+      const { profile } = getProfileContext()
+      setShareQrOutputsSnapshot(await getLocalProfileApi().createShareQrOutputs({ profile }))
+    }
+  }
+}
+
+function setNotice(notice) {
+  controllerState.updateState((state) => ({ ...state, notice }))
+}
+
+function setShareQrOutputsSnapshot(outputs) {
+  shareQrOutputs = outputs
+  globalThis.keposDesktopUi?.setShareQrOutputs(shareQrOutputs)
+}
+
+function getShareQrSvgForUri(uri) {
+  if (uri === shareQrOutputs.homeUri) return shareQrOutputs.homeSvg
+  if (uri === shareQrOutputs.profileUri) return shareQrOutputs.profileSvg
+  return ''
 }
