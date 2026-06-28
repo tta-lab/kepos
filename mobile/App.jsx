@@ -17,6 +17,7 @@ import {
 } from 'react-native'
 import {
   ArrowRight,
+  Check,
   Heart,
   LogOut,
   MessageCircle,
@@ -26,7 +27,8 @@ import {
   Settings,
   Sprout,
   UserMinus,
-  Users
+  Users,
+  X
 } from 'lucide-react-native'
 import QRCode from 'react-native-qrcode-svg'
 import { appendLocalMessage, appendRemoteMessage } from '../src/chat-session.js'
@@ -1477,7 +1479,7 @@ function PeoplePane({
 }
 
 function MessageRequestManager({ onAcceptRequest, onIgnoreRequest, pendingRequests, profileId }) {
-  const { styles } = useMobileTheme()
+  const { styles, theme } = useMobileTheme()
 
   return (
     <View style={styles.panel}>
@@ -1511,6 +1513,7 @@ function MessageRequestManager({ onAcceptRequest, onIgnoreRequest, pendingReques
                 style={styles.requestIgnoreButton}
                 testID='people-message-request-ignore-button'
               >
+                <X color={theme.inkSoft} size={14} />
                 <Text style={styles.requestIgnoreButtonText}>Ignore</Text>
               </Pressable>
               <Pressable
@@ -1529,6 +1532,7 @@ function MessageRequestManager({ onAcceptRequest, onIgnoreRequest, pendingReques
                 style={[styles.requestButton, !canAccept && styles.disabledButton]}
                 testID='people-message-request-accept-button'
               >
+                <Check color={theme.surface} size={14} />
                 <Text style={styles.requestButtonText}>Accept</Text>
               </Pressable>
             </View>
@@ -2182,7 +2186,7 @@ function EmptyDirectMessages() {
 }
 
 function DirectBubble({ message, onAcceptRequest, onIgnoreRequest }) {
-  const { styles } = useMobileTheme()
+  const { styles, theme } = useMobileTheme()
   const outgoing = message.direction === 'out'
   const isRequest = message.type === 'kepos.message.request.v1'
 
@@ -2210,6 +2214,7 @@ function DirectBubble({ message, onAcceptRequest, onIgnoreRequest }) {
             style={styles.requestIgnoreButton}
             testID='message-request-ignore-button'
           >
+            <X color={theme.inkSoft} size={14} />
             <Text style={styles.requestIgnoreButtonText}>Ignore</Text>
           </Pressable>
           <Pressable
@@ -2219,6 +2224,7 @@ function DirectBubble({ message, onAcceptRequest, onIgnoreRequest }) {
             }}
             testID='message-request-accept-button'
           >
+            <Check color={theme.surface} size={14} />
             <Text style={styles.requestButtonText}>Accept</Text>
           </Pressable>
         </View>
@@ -2878,9 +2884,12 @@ function createMobileStyles(theme) {
       color: theme.ink
     },
     requestButton: {
+      alignItems: 'center',
       alignSelf: 'flex-start',
       backgroundColor: theme.accent,
       borderRadius: 7,
+      flexDirection: 'row',
+      gap: 6,
       marginTop: 10,
       paddingHorizontal: 12,
       paddingVertical: 7
@@ -2896,10 +2905,13 @@ function createMobileStyles(theme) {
       gap: 8
     },
     requestIgnoreButton: {
+      alignItems: 'center',
       alignSelf: 'flex-start',
       borderColor: theme.borderStrong,
       borderRadius: 7,
       borderWidth: 1,
+      flexDirection: 'row',
+      gap: 6,
       marginTop: 10,
       paddingHorizontal: 12,
       paddingVertical: 7

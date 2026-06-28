@@ -124,6 +124,15 @@ test('V1 UX docs include desktop icon-led trust and QR actions', async () => {
   assert.match(ux, /lucide icons with text labels/)
 })
 
+test('V1 UX docs include mobile icon-led request actions', async () => {
+  const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
+  const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
+
+  assert.match(audit, /mobile Direct request and People request actions use lucide icons/)
+  assert.match(ux, /Mobile Direct request and People request actions now use lucide icons/)
+  assert.match(ux, /Accept and Ignore/)
+})
+
 test('V1 UX docs include Home trust source product copy', async () => {
   const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
   const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')

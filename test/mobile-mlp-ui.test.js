@@ -43,3 +43,26 @@ test('mobile tabs surface pending direct and people work without changing tab la
   assert.match(source, /tabBadge: \{/)
   assert.match(source, /tabBadgeText: \{/)
 })
+
+test('mobile request actions use icon-led trust controls', async () => {
+  const source = await readMobileSource()
+  const importBlock = source.match(/import\s+\{([\s\S]*?)\}\s+from 'lucide-react-native'/)?.[1]
+  const messageRequestManager = source.slice(
+    source.indexOf('function MessageRequestManager('),
+    source.indexOf('function PanelEmptyState(')
+  )
+  const directBubble = source.slice(
+    source.indexOf('function DirectBubble('),
+    source.indexOf('function MessageBubble(')
+  )
+
+  assert.match(importBlock, /\bCheck\b/)
+  assert.match(importBlock, /\bX\b/)
+  assert.match(messageRequestManager, /testID='people-message-request-ignore-button'[\s\S]*<X\b/)
+  assert.match(
+    messageRequestManager,
+    /testID='people-message-request-accept-button'[\s\S]*<Check\b/
+  )
+  assert.match(directBubble, /testID='message-request-ignore-button'[\s\S]*<X\b/)
+  assert.match(directBubble, /testID='message-request-accept-button'[\s\S]*<Check\b/)
+})
