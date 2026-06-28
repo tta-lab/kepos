@@ -5987,6 +5987,10 @@ function createDesktopMainBackendSessionCore({
   });
   publishSnapshots();
   publishShareQrOutputs();
+  backendSession.publishSnapshots = () => {
+    publishSnapshots();
+    void publishShareQrOutputs();
+  };
   return backendSession;
   function publishSnapshots() {
     backendSession?.backendHost.bridge.emit("desktopStateChanged", controllerState.getState());
@@ -6028,9 +6032,11 @@ var init_desktop_main_backend_session_core = __esm({
 // src/desktop-backend-worker-bare-entry.js
 var desktop_backend_worker_bare_entry_exports = {};
 __export(desktop_backend_worker_bare_entry_exports, {
+  installBareEncodingGlobals: () => installBareEncodingGlobals,
   startDesktopBackendBareWorker: () => startDesktopBackendBareWorker
 });
 module.exports = __toCommonJS(desktop_backend_worker_bare_entry_exports);
+var import_bare_encoding = __toESM(require("bare-encoding"), 1);
 
 // src/desktop-backend-worker-ipc.js
 init_desktop_command_vocabulary();
@@ -6077,15 +6083,51 @@ function readIpcMessages(stream, onMessage) {
     buffer = lines.pop() || "";
     for (const line of lines) {
       if (!line) continue;
-      onMessage(JSON.parse(line));
+      onMessage(JSON.parse(line, reviveIpcValue));
     }
   }
   stream.on("data", onData);
   return () => stream.off?.("data", onData);
 }
 function writeIpcMessage(stream, message) {
-  stream.write(`${JSON.stringify(message)}
+  stream.write(`${JSON.stringify(message, replaceIpcValue)}
 `);
+}
+function replaceIpcValue(_key, value) {
+  if (value instanceof Error) {
+    return {
+      __keposIpcType: "Error",
+      code: value.code,
+      message: value.message,
+      name: value.name,
+      stack: value.stack
+    };
+  }
+  if (value instanceof Map) {
+    return {
+      __keposIpcType: "Map",
+      entries: Array.from(value.entries())
+    };
+  }
+  if (value instanceof Set) {
+    return {
+      __keposIpcType: "Set",
+      values: Array.from(value.values())
+    };
+  }
+  return value;
+}
+function reviveIpcValue(_key, value) {
+  if (value?.__keposIpcType === "Error") {
+    const error = new Error(value.message || "Desktop worker error");
+    error.name = value.name || "Error";
+    if (value.stack) error.stack = value.stack;
+    if (value.code) error.code = value.code;
+    return error;
+  }
+  if (value?.__keposIpcType === "Map") return new Map(value.entries || []);
+  if (value?.__keposIpcType === "Set") return new Set(value.values || []);
+  return value;
 }
 
 // src/desktop-backend-worker-bare-entry.js
@@ -6096,6 +6138,7 @@ function startDesktopBackendBareWorker({
   startBackendWorker = startDesktopBackendWorkerInBare
 } = {}) {
   if (!BareRuntime?.IPC) throw new Error("Bare IPC is required for desktop backend worker");
+  installBareEncodingGlobals();
   const worker = startBackendWorker({
     createIpcServer,
     createMainBackendSession,
@@ -6104,6 +6147,13 @@ function startDesktopBackendBareWorker({
   });
   BareRuntime.on?.("beforeExit", () => worker.close());
   return worker;
+}
+function installBareEncodingGlobals({
+  globalObject = globalThis,
+  utils = import_bare_encoding.default
+} = {}) {
+  if (!globalObject.TextEncoder) globalObject.TextEncoder = utils.TextEncoder;
+  if (!globalObject.TextDecoder) globalObject.TextDecoder = utils.TextDecoder;
 }
 function startDesktopBackendWorkerInBare({
   createIpcServer,
@@ -6119,6 +6169,7 @@ function startDesktopBackendWorkerInBare({
     bridge: session.backendHost.bridge,
     stream
   });
+  session.publishSnapshots?.();
   return {
     close() {
       server.close();
@@ -6141,5 +6192,6 @@ async function startDefaultDesktopBackendBareWorker() {
 if (globalThis.Bare?.IPC) startDefaultDesktopBackendBareWorker();
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
+  installBareEncodingGlobals,
   startDesktopBackendBareWorker
 });

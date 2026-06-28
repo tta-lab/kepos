@@ -20,6 +20,22 @@ test('desktop smoke is wired to Playwright Electron with isolated state', async 
   assert.match(source, /KEPOS_SMOKE_DESKTOP/)
 })
 
+test('desktop pear smoke runs the Electron app through pear-runtime', async () => {
+  const packageJson = JSON.parse(
+    await readFile(new URL('../package.json', import.meta.url), 'utf8')
+  )
+
+  assert.equal(
+    packageJson.scripts['smoke:desktop:pear'],
+    'npm run desktop:bundle && node scripts/smoke-desktop.mjs --pear'
+  )
+
+  const source = await readFile(new URL('../scripts/smoke-desktop.mjs', import.meta.url), 'utf8')
+
+  assert.match(source, /process\.argv\.includes\('--pear'\)/)
+  assert.match(source, /KEPOS_SMOKE_DESKTOP:\s*usePearRuntime \? undefined : '1'/)
+})
+
 test('desktop contact persistence smoke restarts with the same user data', async () => {
   const packageJson = JSON.parse(
     await readFile(new URL('../package.json', import.meta.url), 'utf8')

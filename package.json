@@ -23,6 +23,7 @@
     "prepare": "lefthook install",
     "smoke:android": "node scripts/smoke-android.mjs",
     "smoke:desktop": "npm run desktop:bundle && node scripts/smoke-desktop.mjs",
+    "smoke:desktop:pear": "npm run desktop:bundle && node scripts/smoke-desktop.mjs --pear",
     "smoke:desktop:contacts": "npm run desktop:bundle && node scripts/smoke-desktop-contacts.mjs",
     "smoke:two-device:debug": "npm run desktop:bundle && node scripts/smoke-two-device-debug.mjs",
     "start": "node src/cli.js",
@@ -33,6 +34,7 @@
   "dependencies": {
     "autobase": "^7.28.1",
     "b4a": "^1.8.1",
+    "bare-encoding": "^1.0.3",
     "bare-os": "^3.9.1",
     "bare-rpc": "^1.3.3",
     "compact-encoding": "^3.3.0",

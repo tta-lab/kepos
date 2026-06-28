@@ -46,6 +46,11 @@ export function createDesktopMainBackendSessionCore({
   publishSnapshots()
   publishShareQrOutputs()
 
+  backendSession.publishSnapshots = () => {
+    publishSnapshots()
+    void publishShareQrOutputs()
+  }
+
   return backendSession
 
   function publishSnapshots() {

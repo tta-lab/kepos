@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict'
 import { Duplex } from 'node:stream'
 import test from 'node:test'
-import { startDesktopBackendBareWorker } from '../src/desktop-backend-worker-bare-entry.js'
+import {
+  installBareEncodingGlobals,
+  startDesktopBackendBareWorker
+} from '../src/desktop-backend-worker-bare-entry.js'
 import {
   createDesktopBackendWorkerIpcClient,
   createDesktopBackendWorkerIpcServer
@@ -46,6 +49,20 @@ test('desktop backend bare worker entry attaches Bare IPC to the backend worker'
   await bareHandlers.get('beforeExit')()
 
   assert.deepEqual(calls.slice(1), [['close']])
+})
+
+test('desktop backend bare worker entry installs encoding globals for web crypto helpers', () => {
+  class TestTextEncoder {}
+  class TestTextDecoder {}
+  const globalObject = {}
+
+  installBareEncodingGlobals({
+    globalObject,
+    utils: { TextDecoder: TestTextDecoder, TextEncoder: TestTextEncoder }
+  })
+
+  assert.equal(globalObject.TextEncoder, TestTextEncoder)
+  assert.equal(globalObject.TextDecoder, TestTextDecoder)
 })
 
 function createIpcStreamPair() {

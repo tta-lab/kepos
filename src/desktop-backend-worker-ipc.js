@@ -1,6 +1,19 @@
 import { DESKTOP_COMMANDS, DESKTOP_EVENTS } from './desktop-command-vocabulary.ts'
 
+const REPLAY_EVENT_SET = new Set([
+  'contactBookChanged',
+  'contextFormDraftChanged',
+  'desktopStateChanged',
+  'directComposerRecipientChanged',
+  'dmMessageReceived',
+  'homeMessageReceived',
+  'peerCountChanged',
+  'shareQrOutputsChanged',
+  'treeholeStateChanged'
+])
+
 export function createDesktopBackendWorkerIpcClient({ stream } = {}) {
+  const latestEventPayloads = new Map()
   const pendingDispatches = new Map()
   const listenersByEvent = new Map()
   let nextRequestId = 1
@@ -32,6 +45,7 @@ export function createDesktopBackendWorkerIpcClient({ stream } = {}) {
           listenersByEvent.set(event, listeners)
         }
         listeners.add(handler)
+        if (latestEventPayloads.has(event)) handler(latestEventPayloads.get(event))
         return () => listeners.delete(handler)
       }
     },
@@ -54,6 +68,8 @@ export function createDesktopBackendWorkerIpcClient({ stream } = {}) {
   }
 
   function emitLocalEvent(event, payload) {
+    if (REPLAY_EVENT_SET.has(event)) latestEventPayloads.set(event, payload)
+
     const listeners = listenersByEvent.get(event)
     if (!listeners) return
 
@@ -110,7 +126,7 @@ function readIpcMessages(stream, onMessage) {
 
     for (const line of lines) {
       if (!line) continue
-      onMessage(JSON.parse(line))
+      onMessage(JSON.parse(line, reviveIpcValue))
     }
   }
 
@@ -119,5 +135,43 @@ function readIpcMessages(stream, onMessage) {
 }
 
 function writeIpcMessage(stream, message) {
-  stream.write(`${JSON.stringify(message)}\n`)
+  stream.write(`${JSON.stringify(message, replaceIpcValue)}\n`)
+}
+
+function replaceIpcValue(_key, value) {
+  if (value instanceof Error) {
+    return {
+      __keposIpcType: 'Error',
+      code: value.code,
+      message: value.message,
+      name: value.name,
+      stack: value.stack
+    }
+  }
+  if (value instanceof Map) {
+    return {
+      __keposIpcType: 'Map',
+      entries: Array.from(value.entries())
+    }
+  }
+  if (value instanceof Set) {
+    return {
+      __keposIpcType: 'Set',
+      values: Array.from(value.values())
+    }
+  }
+  return value
+}
+
+function reviveIpcValue(_key, value) {
+  if (value?.__keposIpcType === 'Error') {
+    const error = new Error(value.message || 'Desktop worker error')
+    error.name = value.name || 'Error'
+    if (value.stack) error.stack = value.stack
+    if (value.code) error.code = value.code
+    return error
+  }
+  if (value?.__keposIpcType === 'Map') return new Map(value.entries || [])
+  if (value?.__keposIpcType === 'Set') return new Set(value.values || [])
+  return value
 }

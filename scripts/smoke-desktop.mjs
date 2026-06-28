@@ -14,6 +14,7 @@ const electronExecutable = path.join(
 )
 
 const userDataDir = await mkdtemp(path.join(os.tmpdir(), 'kepos-desktop-smoke-'))
+const usePearRuntime = process.argv.includes('--pear')
 let app = null
 
 try {
@@ -22,7 +23,7 @@ try {
     cwd: desktopDir,
     env: {
       ...process.env,
-      KEPOS_SMOKE_DESKTOP: '1'
+      KEPOS_SMOKE_DESKTOP: usePearRuntime ? undefined : '1'
     },
     executablePath: electronExecutable,
     timeout: 60000

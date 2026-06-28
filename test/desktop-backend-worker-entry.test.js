@@ -33,6 +33,40 @@ test('desktop backend worker entry attaches a backend session to worker ipc', as
   assert.deepEqual(calls, [{ storageBasePath: '/user-data/kepos/v1' }, ['closeAll']])
 })
 
+test('desktop backend worker entry publishes initial snapshots after ipc subscribes', async () => {
+  const backendHandlers = new Map()
+  const { clientStream, workerStream } = createIpcStreamPair()
+
+  startDesktopBackendWorker({
+    createMainBackendSession: () => ({
+      backendHost: {
+        bridge: {
+          dispatch: () => undefined,
+          emit: (event, payload) => backendHandlers.get(event)?.(payload),
+          subscribe: (event, handler) => {
+            backendHandlers.set(event, handler)
+            return () => backendHandlers.delete(event)
+          }
+        }
+      },
+      publishSnapshots() {
+        this.backendHost.bridge.emit('shareQrOutputsChanged', {
+          profileUri: 'kepos://profile/worker'
+        })
+      }
+    }),
+    stream: workerStream
+  })
+  const client = createDesktopBackendWorkerIpcClient({ stream: clientStream })
+  const events = []
+  await new Promise((resolve) => setTimeout(resolve, 0))
+  client.bridge.subscribe('shareQrOutputsChanged', (payload) => {
+    events.push(payload)
+  })
+
+  assert.deepEqual(events, [{ profileUri: 'kepos://profile/worker' }])
+})
+
 function createIpcStreamPair() {
   const clientStream = createLinkedDuplex()
   const workerStream = createLinkedDuplex()

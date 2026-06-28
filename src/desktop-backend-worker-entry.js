@@ -12,6 +12,7 @@ export function startDesktopBackendWorker({
     bridge: session.backendHost.bridge,
     stream
   })
+  session.publishSnapshots?.()
 
   return {
     close() {

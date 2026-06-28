@@ -71,6 +71,86 @@ test('desktop backend worker ipc forwards backend events over a stream', async (
   assert.deepEqual(events, [{ status: 'ready' }])
 })
 
+test('desktop backend worker ipc replays latest snapshot events to late subscribers', async () => {
+  const backendHandlers = new Map()
+  const { clientStream, serverStream } = createDuplexPair()
+  createDesktopBackendWorkerIpcServer({
+    bridge: {
+      dispatch: () => undefined,
+      subscribe: (event, handler) => {
+        backendHandlers.set(event, handler)
+        return () => backendHandlers.delete(event)
+      }
+    },
+    stream: serverStream
+  })
+  const client = createDesktopBackendWorkerIpcClient({ stream: clientStream })
+
+  backendHandlers.get('shareQrOutputsChanged')({ profileUri: 'kepos://profile' })
+  await new Promise((resolve) => setTimeout(resolve, 0))
+
+  const events = []
+  client.bridge.subscribe('shareQrOutputsChanged', (payload) => {
+    events.push(payload)
+  })
+
+  assert.deepEqual(events, [{ profileUri: 'kepos://profile' }])
+})
+
+test('desktop backend worker ipc preserves map payloads across the json stream', async () => {
+  const backendHandlers = new Map()
+  const { clientStream, serverStream } = createDuplexPair()
+  createDesktopBackendWorkerIpcServer({
+    bridge: {
+      dispatch: () => undefined,
+      subscribe: (event, handler) => {
+        backendHandlers.set(event, handler)
+        return () => backendHandlers.delete(event)
+      }
+    },
+    stream: serverStream
+  })
+  const client = createDesktopBackendWorkerIpcClient({ stream: clientStream })
+  const events = []
+  client.bridge.subscribe('contactBookChanged', (payload) => {
+    events.push(payload)
+  })
+
+  backendHandlers.get('contactBookChanged')({
+    contactsByProfileId: new Map([['profile-1', { alias: 'Ada' }]])
+  })
+  await waitFor(() => events.length === 1)
+
+  assert.equal(events[0].contactsByProfileId instanceof Map, true)
+  assert.deepEqual([...events[0].contactsByProfileId.entries()], [['profile-1', { alias: 'Ada' }]])
+})
+
+test('desktop backend worker ipc preserves error event messages across the json stream', async () => {
+  const backendHandlers = new Map()
+  const { clientStream, serverStream } = createDuplexPair()
+  createDesktopBackendWorkerIpcServer({
+    bridge: {
+      dispatch: () => undefined,
+      subscribe: (event, handler) => {
+        backendHandlers.set(event, handler)
+        return () => backendHandlers.delete(event)
+      }
+    },
+    stream: serverStream
+  })
+  const client = createDesktopBackendWorkerIpcClient({ stream: clientStream })
+  const events = []
+  client.bridge.subscribe('errorReceived', (payload) => {
+    events.push(payload)
+  })
+
+  backendHandlers.get('errorReceived')(new Error('QR render failed'))
+  await waitFor(() => events.length === 1)
+
+  assert.equal(events[0] instanceof Error, true)
+  assert.equal(events[0].message, 'QR render failed')
+})
+
 function createDuplexPair() {
   const clientStream = createLinkedDuplex()
   const serverStream = createLinkedDuplex()

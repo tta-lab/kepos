@@ -1,3 +1,4 @@
+import BareEncoding from 'bare-encoding'
 import { createDesktopBackendWorkerIpcServer } from './desktop-backend-worker-ipc.js'
 
 export function startDesktopBackendBareWorker({
@@ -7,6 +8,8 @@ export function startDesktopBackendBareWorker({
   startBackendWorker = startDesktopBackendWorkerInBare
 } = {}) {
   if (!BareRuntime?.IPC) throw new Error('Bare IPC is required for desktop backend worker')
+
+  installBareEncodingGlobals()
 
   const worker = startBackendWorker({
     createIpcServer,
@@ -18,6 +21,14 @@ export function startDesktopBackendBareWorker({
   BareRuntime.on?.('beforeExit', () => worker.close())
 
   return worker
+}
+
+export function installBareEncodingGlobals({
+  globalObject = globalThis,
+  utils = BareEncoding
+} = {}) {
+  if (!globalObject.TextEncoder) globalObject.TextEncoder = utils.TextEncoder
+  if (!globalObject.TextDecoder) globalObject.TextDecoder = utils.TextDecoder
 }
 
 function startDesktopBackendWorkerInBare({
@@ -35,6 +46,7 @@ function startDesktopBackendWorkerInBare({
     bridge: session.backendHost.bridge,
     stream
   })
+  session.publishSnapshots?.()
 
   return {
     close() {
