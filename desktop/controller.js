@@ -85,7 +85,7 @@ createDesktopBackendSubscriptions({
   }
 })
 
-qrActions.updateQrOutputs().catch(showError)
+refreshLocalShareQrOutputs().catch(showError)
 render()
 
 async function dispatchCommand(command, payload) {
@@ -94,7 +94,12 @@ async function dispatchCommand(command, payload) {
 
 function updateDisplayName(displayName = 'Desktop') {
   controllerState.setCurrentDisplayName(displayName)
-  qrActions.updateQrOutputs().catch(showError)
+  refreshLocalShareQrOutputs().catch(showError)
+}
+
+async function refreshLocalShareQrOutputs() {
+  if (backendClient.isPreloadConnected()) return
+  await qrActions.updateQrOutputs()
 }
 
 function getCurrentDisplayName() {

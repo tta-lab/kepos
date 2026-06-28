@@ -54,6 +54,34 @@ test('desktop renderer backend client uses connected preload bridge in auto mode
   ])
 })
 
+test('desktop renderer backend client reports whether auto mode has connected preload', () => {
+  let connected = false
+  const preload = createBackend('preload', [])
+  preload.isConnected = () => connected
+  const client = createDesktopRendererBackendClient({
+    localBackend: createBackend('local', []),
+    preloadBackend: preload
+  })
+
+  assert.equal(client.isPreloadConnected(), false)
+
+  connected = true
+
+  assert.equal(client.isPreloadConnected(), true)
+})
+
+test('desktop renderer backend client reports disconnected preload outside auto mode', () => {
+  const preload = createBackend('preload', [])
+  preload.isConnected = () => true
+  const client = createDesktopRendererBackendClient({
+    localBackend: createBackend('local', []),
+    mode: 'preload',
+    preloadBackend: preload
+  })
+
+  assert.equal(client.isPreloadConnected(), false)
+})
+
 test('desktop renderer backend client does not create local fallback when preload is connected', async () => {
   const calls = []
   const preload = createBackend('preload', calls)

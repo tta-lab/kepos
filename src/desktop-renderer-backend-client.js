@@ -15,6 +15,9 @@ export function createDesktopRendererBackendClient({
       const backend = selectBackend({ getLocalBackend, mode, preloadBackend })
       return await backend.dispatch(command, payload)
     },
+    isPreloadConnected() {
+      return mode === 'auto' && isConnectedPreloadBackend(preloadBackend)
+    },
     subscribe(event, handler) {
       if (mode === 'auto') {
         return subscribeAuto({ event, getLocalBackend, handler, preloadBackend })

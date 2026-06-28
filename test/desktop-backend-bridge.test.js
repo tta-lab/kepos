@@ -139,6 +139,15 @@ test('desktop controller renders backend contact book snapshots from the bridge'
   assert.doesNotMatch(source, /const \{ contactBook \} = getProfileContext\(\)/)
 })
 
+test('desktop controller only generates local share QR outputs as a fallback', async () => {
+  const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+
+  assert.match(source, /refreshLocalShareQrOutputs\(\)\.catch\(showError\)/)
+  assert.match(source, /function refreshLocalShareQrOutputs\(\)/)
+  assert.match(source, /if \(backendClient\.isPreloadConnected\(\)\) return/)
+  assert.doesNotMatch(source, /^qrActions\.updateQrOutputs\(\)\.catch\(showError\)$/m)
+})
+
 test('desktop controller delegates home transport to a runtime boundary', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const session = await readFile(
