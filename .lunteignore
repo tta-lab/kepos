@@ -3,6 +3,7 @@ node_modules/
 android/
 desktop/app.bundle.cjs
 desktop/app.bundle.js
+desktop/controller.browser.bundle.js
 desktop/controller.bundle.cjs
 desktop/local-backend.bundle.cjs
 desktop/local-profile.bundle.cjs

@@ -2,7 +2,6 @@ const { contextBridge, ipcRenderer } = require('electron')
 
 let nextListenerId = 1
 let backendConnected = false
-let controllerStarted = false
 const connectedListeners = new Set()
 const listeners = new Map()
 
@@ -60,13 +59,4 @@ exposeDesktopApi('keposBackend', {
 
 exposeDesktopApi('keposDesktopConfig', {
   storageBasePath: process.env.KEPOS_DESKTOP_STORAGE_BASE_PATH
-})
-
-exposeDesktopApi('keposDesktopController', {
-  start() {
-    if (controllerStarted) return
-
-    controllerStarted = true
-    require('../controller.bundle.cjs')
-  }
 })

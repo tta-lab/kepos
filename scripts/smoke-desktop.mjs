@@ -39,6 +39,10 @@ try {
       `Expected Electron renderer nodeIntegration to be disabled, got ${pageRequireType}`
     )
   }
+  const controllerApiType = await page.evaluate(() => typeof globalThis.keposDesktopController)
+  if (controllerApiType !== 'undefined') {
+    throw new Error(`Expected browser controller script startup, got ${controllerApiType}`)
+  }
 
   await page.waitForSelector('#profileQrOutput', { state: 'attached' })
   await waitForInputPrefix(page, '#profileQrOutput', 'kepos://profile')

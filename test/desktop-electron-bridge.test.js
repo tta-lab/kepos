@@ -22,7 +22,7 @@ test('desktop renderer runs without page-level node integration', async () => {
 
   assert.match(source, /nodeIntegration: false/)
   assert.match(source, /contextIsolation: false/)
-  assert.match(preload, /require\('\.\.\/controller\.bundle\.cjs'\)/)
+  assert.doesNotMatch(preload, /require\('\.\.\/controller\.bundle\.cjs'\)/)
   assert.doesNotMatch(preload, /globalThis\.eval\("require\('\.\/controller\.bundle\.cjs'\)"\)/)
 })
 
@@ -49,15 +49,14 @@ test('desktop preload exposes a narrow backend bridge api', async () => {
   assert.doesNotMatch(source, /Hyperswarm/)
 })
 
-test('desktop preload owns controller bundle startup', async () => {
+test('desktop page owns browser controller bundle startup', async () => {
   const source = await readFile(new URL('../desktop/electron/preload.cjs', import.meta.url), 'utf8')
   const html = await readFile(new URL('../desktop/index.html', import.meta.url), 'utf8')
 
-  assert.match(source, /exposeDesktopApi\('keposDesktopController'/)
-  assert.match(source, /start\(\)/)
-  assert.match(source, /require\('\.\.\/controller\.bundle\.cjs'\)/)
+  assert.doesNotMatch(source, /exposeDesktopApi\('keposDesktopController'/)
+  assert.doesNotMatch(source, /require\('\.\.\/controller\.bundle\.cjs'\)/)
   assert.doesNotMatch(html, /require\('\.\/controller\.bundle\.cjs'\)/)
-  assert.match(html, /window\.keposDesktopController\.start\(\)/)
+  assert.match(html, /<script src="\.\/controller\.browser\.bundle\.js"><\/script>/)
 })
 
 test('desktop preload exposes bridge apis when context isolation is disabled', async () => {
@@ -69,7 +68,7 @@ test('desktop preload exposes bridge apis when context isolation is disabled', a
   assert.match(source, /globalThis\[name\] = api/)
   assert.match(source, /exposeDesktopApi\('keposBackend'/)
   assert.match(source, /exposeDesktopApi\('keposDesktopConfig'/)
-  assert.match(source, /exposeDesktopApi\('keposDesktopController'/)
+  assert.doesNotMatch(source, /exposeDesktopApi\('keposDesktopController'/)
 })
 
 test('desktop electron backend ipc validates commands and forwards events', () => {

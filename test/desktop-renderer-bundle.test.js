@@ -22,14 +22,15 @@ test('desktop renderer loads separate UI and controller bundles', async () => {
   const html = await readFile(new URL('../desktop/index.html', import.meta.url), 'utf8')
 
   assert.match(html, /<script src="\.\/app\.bundle\.js"><\/script>/)
-  assert.match(html, /window\.keposDesktopController\.start\(\)/)
+  assert.match(html, /<script src="\.\/controller\.browser\.bundle\.js"><\/script>/)
   assert.match(
     html,
-    /<script src="\.\/app\.bundle\.js"><\/script>[\s\S]*window\.keposDesktopController\.start\(\)/
+    /<script src="\.\/app\.bundle\.js"><\/script>[\s\S]*<script src="\.\/controller\.browser\.bundle\.js"><\/script>/
   )
   assert.doesNotMatch(html, /src="\.\/app\.js" type="module"/)
   assert.doesNotMatch(html, /require\('\.\/app\.bundle\.cjs'\)/)
   assert.doesNotMatch(html, /require\('\.\/controller\.bundle\.cjs'\)/)
+  assert.doesNotMatch(html, /keposDesktopController/)
 })
 
 test('desktop scripts build the renderer bundle before launch', async () => {
@@ -42,7 +43,7 @@ test('desktop scripts build the renderer bundle before launch', async () => {
 
   assert.equal(
     packageJson.scripts['desktop:bundle'],
-    'esbuild desktop/app.jsx --bundle --platform=browser --format=iife --define:process.env.NODE_ENV=\\\"production\\\" --minify --outfile=desktop/app.bundle.js && esbuild desktop/controller.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/controller.bundle.cjs && esbuild desktop/local-backend.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/local-backend.bundle.cjs && esbuild desktop/local-profile.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/local-profile.bundle.cjs'
+    'esbuild desktop/app.jsx --bundle --platform=browser --format=iife --define:process.env.NODE_ENV=\\\"production\\\" --minify --outfile=desktop/app.bundle.js && esbuild desktop/controller.js --bundle --platform=browser --format=iife --define:process.env.NODE_ENV=\\\"production\\\" --outfile=desktop/controller.browser.bundle.js && esbuild desktop/controller.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/controller.bundle.cjs && esbuild desktop/local-backend.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/local-backend.bundle.cjs && esbuild desktop/local-profile.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/local-profile.bundle.cjs'
   )
   assert.equal(packageJson.scripts.desktop, 'npm run start --prefix desktop')
   assert.equal(desktopPackageJson.scripts.prestart, 'npm run desktop:bundle --prefix ..')
@@ -58,7 +59,7 @@ test('desktop React entry renders before starting the controller', async () => {
   assert.doesNotMatch(source, /import\('\.\/controller\.js'\)/)
   assert.match(
     html,
-    /<script src="\.\/app\.bundle\.js"><\/script>[\s\S]*window\.keposDesktopController\.start\(\)/
+    /<script src="\.\/app\.bundle\.js"><\/script>[\s\S]*<script src="\.\/controller\.browser\.bundle\.js"><\/script>/
   )
 })
 
