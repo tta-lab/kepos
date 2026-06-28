@@ -172,6 +172,15 @@ test('V1 UX docs include mobile shared composer send buttons', async () => {
   assert.match(ux, /one send button component/)
 })
 
+test('V1 UX docs include mobile shared advanced toggles', async () => {
+  const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
+  const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
+
+  assert.match(audit, /mobile room and Direct Advanced toggles/)
+  assert.match(ux, /Mobile room and Direct Advanced toggles/)
+  assert.match(ux, /normal\s+and compact variants/)
+})
+
 test('V1 UX docs include mobile direct contact and revoke state polish', async () => {
   const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
   const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')

@@ -123,14 +123,37 @@ test('mobile collapsible controls expose expanded state', async () => {
     /accessibilityState=\{\{ expanded: showPeopleSetup \}\}[\s\S]*testID='people-setup-toggle'/
   )
   assert.match(quickStart, /accessibilityState=\{\{ expanded: showQuickHomeQr \}\}/)
-  assert.match(room, /accessibilityState=\{\{ expanded: showRoomAdvanced \}\}/)
+  assert.match(room, /expanded=\{showRoomAdvanced\}/)
   assert.match(peopleActions, /accessibilityState=\{\{ expanded: showHomeQr \}\}/)
   assert.match(peopleActions, /accessibilityState=\{\{ expanded: showProfileQr \}\}/)
   assert.match(peopleActions, /accessibilityState=\{\{ expanded: showAdvancedShare \}\}/)
   assert.match(
     directPane,
-    /accessibilityState=\{\{ expanded: showAdvancedDmRecipient \}\}[\s\S]*testID='advanced-dm-recipient-toggle'/
+    /expanded=\{showAdvancedDmRecipient\}[\s\S]*testID='advanced-dm-recipient-toggle'/
   )
+})
+
+test('mobile room and direct advanced toggles share one component', async () => {
+  const source = await readMobileSource()
+  const room = source.slice(
+    source.indexOf('function ChatRoom('),
+    source.indexOf('function TaskHeader(')
+  )
+  const directPane = source.slice(
+    source.indexOf('function DirectPane('),
+    source.indexOf('function ContactManager(')
+  )
+  const advancedToggle = source.slice(
+    source.indexOf('function MobileAdvancedToggle('),
+    source.indexOf('function QuickStartPanel(')
+  )
+
+  assert.match(advancedToggle, /function MobileAdvancedToggle\(/)
+  assert.match(advancedToggle, /accessibilityState=\{\{ expanded \}\}/)
+  assert.match(advancedToggle, /variant === 'compact'/)
+  assert.match(advancedToggle, /styles\.directAdvancedToggle : styles\.roomAdvancedButton/)
+  assert.match(room, /<MobileAdvancedToggle[\s\S]*testID='room-advanced-toggle'/)
+  assert.match(directPane, /<MobileAdvancedToggle[\s\S]*variant='compact'/)
 })
 
 test('mobile setup actions share one icon button component', async () => {

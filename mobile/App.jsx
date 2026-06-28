@@ -1210,14 +1210,11 @@ function ChatRoom({
           <Text style={styles.roomName}>{roomSurface}</Text>
         </View>
         <View style={styles.roomActions}>
-          <Pressable
-            accessibilityState={{ expanded: showRoomAdvanced }}
+          <MobileAdvancedToggle
+            expanded={showRoomAdvanced}
             onPress={() => setShowRoomAdvanced((value) => !value)}
-            style={styles.roomAdvancedButton}
-          >
-            <Settings color={theme.inkSoft} size={15} />
-            <Text style={styles.advancedSummary}>Advanced</Text>
-          </Pressable>
+            testID='room-advanced-toggle'
+          />
           <Pressable
             accessibilityLabel='Leave home'
             onPress={onLeave}
@@ -1406,6 +1403,23 @@ function MobileSendButton({
       testID={testID}
     >
       <Send color={theme.surface} size={isSmall ? 15 : 18} />
+    </Pressable>
+  )
+}
+
+function MobileAdvancedToggle({ expanded, onPress, testID, variant = 'room' }) {
+  const { styles, theme } = useMobileTheme()
+  const isCompact = variant === 'compact'
+
+  return (
+    <Pressable
+      accessibilityState={{ expanded }}
+      onPress={onPress}
+      style={isCompact ? styles.directAdvancedToggle : styles.roomAdvancedButton}
+      testID={testID}
+    >
+      <Settings color={theme.inkSoft} size={15} />
+      <Text style={styles.advancedSummary}>Advanced</Text>
     </Pressable>
   )
 }
@@ -1845,15 +1859,12 @@ function DirectPane({
             />
           </View>
         )}
-        <Pressable
-          accessibilityState={{ expanded: showAdvancedDmRecipient }}
+        <MobileAdvancedToggle
+          expanded={showAdvancedDmRecipient}
           onPress={() => setShowAdvancedDmRecipient((value) => !value)}
-          style={styles.directAdvancedToggle}
           testID='advanced-dm-recipient-toggle'
-        >
-          <Settings color={theme.inkSoft} size={15} />
-          <Text style={styles.advancedSummary}>Advanced</Text>
-        </Pressable>
+          variant='compact'
+        />
         {showAdvancedDmRecipient ? (
           <TextInput
             autoCapitalize='none'

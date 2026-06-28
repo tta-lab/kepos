@@ -168,7 +168,7 @@ test('Android setup action buttons use icons consistently', async () => {
   assert.match(peopleActions, /icon=\{Plus\}[\s\S]*testID='scan-profile-qr-button'/)
   assert.match(lobby, /icon=\{Settings\}[\s\S]*testID='advanced-join-toggle'/)
   assert.match(peopleActions, /icon=\{Settings\}[\s\S]*testID='advanced-share-toggle'/)
-  assert.match(directPane, /testID='advanced-dm-recipient-toggle'[\s\S]*<Settings\b/)
+  assert.match(directPane, /testID='advanced-dm-recipient-toggle'[\s\S]*variant='compact'/)
 })
 
 test('Android lobby uses shared task headers for setup panels', async () => {
@@ -529,10 +529,18 @@ test('Android room advanced action uses an icon like other advanced controls', a
     source.indexOf('function ChatRoom('),
     source.indexOf('function TaskHeader(')
   )
+  const advancedToggle = source.slice(
+    source.indexOf('function MobileAdvancedToggle('),
+    source.indexOf('function QuickStartPanel(')
+  )
 
-  assert.match(chatRoom, /style=\{styles\.roomAdvancedButton\}/)
-  assert.match(chatRoom, /<Settings color=\{theme\.inkSoft\} size=\{15\} \/>/)
-  assert.match(chatRoom, /<Text style=\{styles\.advancedSummary\}>Advanced<\/Text>/)
+  assert.match(chatRoom, /<MobileAdvancedToggle[\s\S]*testID='room-advanced-toggle'/)
+  assert.match(
+    advancedToggle,
+    /style=\{isCompact \? styles\.directAdvancedToggle : styles\.roomAdvancedButton\}/
+  )
+  assert.match(advancedToggle, /<Settings color=\{theme\.inkSoft\} size=\{15\} \/>/)
+  assert.match(advancedToggle, /<Text style=\{styles\.advancedSummary\}>Advanced<\/Text>/)
 })
 
 test('Android room panes label live and durable surfaces', async () => {
