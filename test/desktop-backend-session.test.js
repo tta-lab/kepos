@@ -50,9 +50,17 @@ test('desktop backend session composes actions and runtime host behind one bound
 
 test('desktop controller delegates backend session composition to a boundary', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const localBackendSource = await readFile(
+    new URL('../desktop/local-backend.js', import.meta.url),
+    'utf8'
+  )
 
-  assert.match(source, /createDesktopBackendSession/)
+  assert.doesNotMatch(source, /import \{ createDesktopBackendSession \}/)
   assert.match(source, /function getLocalBackendSession\(\)/)
+  assert.match(source, /loadLocalBackendSessionFactory\(\)/)
+  assert.match(source, /require\('\.\/local-backend\.bundle\.cjs'\)/)
+  assert.match(localBackendSource, /createDesktopBackendSession/)
+  assert.match(localBackendSource, /export function createLocalBackendSession/)
   assert.match(source, /mode: globalThis\.keposBackend \? 'preload' : 'auto'/)
   assert.match(
     source,

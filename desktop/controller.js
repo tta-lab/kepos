@@ -1,6 +1,5 @@
 /* global navigator */
 
-import { createDesktopBackendSession } from '../src/desktop-backend-session.js'
 import { createDesktopBackendSubscriptions } from '../src/desktop-backend-subscriptions.js'
 import { createDesktopCommandDispatcher } from '../src/desktop-command-dispatcher.js'
 import {
@@ -20,6 +19,7 @@ const BLOCKING_COMMANDS = new Set(['joinHome', 'joinHomeUri', 'leaveHome', 'trus
 const controllerState = createDesktopControllerState()
 let backendContactBook = null
 let localBackendSession = null
+let localBackendSessionFactory = null
 const renderPresenter = createDesktopRenderPresenter({
   formatTime,
   shortenProfileId: shorten,
@@ -195,7 +195,8 @@ globalThis.Pear?.teardown?.(() => localBackendSession?.roomActions.leaveHome())
 
 function getLocalBackendSession() {
   if (!localBackendSession) {
-    localBackendSession = createDesktopBackendSession({
+    const createLocalBackendSession = loadLocalBackendSessionFactory()
+    localBackendSession = createLocalBackendSession({
       controllerState,
       createId,
       getProfileContext,
@@ -219,4 +220,13 @@ function getLocalBackendSession() {
   }
 
   return localBackendSession
+}
+
+function loadLocalBackendSessionFactory() {
+  if (!localBackendSessionFactory) {
+    const localBackendModule = globalThis.eval("require('./local-backend.bundle.cjs')")
+    localBackendSessionFactory = localBackendModule.createLocalBackendSession
+  }
+
+  return localBackendSessionFactory
 }

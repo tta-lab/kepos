@@ -59,8 +59,14 @@ test('desktop controller routes commands through the backend bridge', async () =
     new URL('../src/desktop-command-dispatcher.js', import.meta.url),
     'utf8'
   )
+  const localBackend = await readFile(
+    new URL('../desktop/local-backend.js', import.meta.url),
+    'utf8'
+  )
 
-  assert.match(source, /createDesktopBackendSession/)
+  assert.match(source, /loadLocalBackendSessionFactory/)
+  assert.match(source, /require\('\.\/local-backend\.bundle\.cjs'\)/)
+  assert.match(localBackend, /createDesktopBackendSession/)
   assert.match(session, /createDesktopLocalBackendHost/)
   assert.match(host, /createDesktopBackendBridge/)
   assert.match(host, /createDesktopCommandHost/)
@@ -223,8 +229,13 @@ test('desktop controller uses one backend runtime facade for long lived runtimes
     new URL('../src/desktop-local-backend-host.js', import.meta.url),
     'utf8'
   )
+  const localBackend = await readFile(
+    new URL('../desktop/local-backend.js', import.meta.url),
+    'utf8'
+  )
 
-  assert.match(source, /createDesktopBackendSession/)
+  assert.match(source, /loadLocalBackendSessionFactory/)
+  assert.match(localBackend, /createDesktopBackendSession/)
   assert.match(session, /createDesktopLocalBackendHost/)
   assert.match(host, /createDesktopBackendRuntime/)
   assert.doesNotMatch(source, /from '..\/src\/desktop-dm-runtime\.js'/)

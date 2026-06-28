@@ -50,8 +50,13 @@ test('desktop controller routes UI actions through the command host', async () =
     new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
     'utf8'
   )
+  const localBackend = await readFile(
+    new URL('../desktop/local-backend.js', import.meta.url),
+    'utf8'
+  )
 
-  assert.match(source, /createDesktopBackendSession/)
+  assert.match(source, /loadLocalBackendSessionFactory/)
+  assert.match(localBackend, /createDesktopBackendSession/)
   assert.match(session, /createDesktopLocalBackendHost/)
   assert.match(host, /createDesktopCommandHost/)
   assert.doesNotMatch(source, /createDesktopCommandRegistry/)
