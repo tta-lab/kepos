@@ -1,6 +1,6 @@
 import React from 'react'
 import { Copy, Home, LogOut, QrCode, ShieldCheck, UserPlus } from 'lucide-react'
-import { PanelHeader, SectionTitle } from './ui-components.jsx'
+import { ActionButton, PanelHeader, SectionTitle } from './ui-components.jsx'
 
 const ROOM_KEY_PATTERN = /^[0-9a-f]{64}$/
 
@@ -65,15 +65,13 @@ export function ContextPanel({ actions, controls, form, setForm, shareQrOutputs 
             />
           </label>
           <div className='actions singleAction'>
-            <button
-              id='createButton'
-              type='button'
+            <ActionButton
               disabled={!controls.canCreateHome}
+              icon={<Home size={17} />}
+              id='createButton'
+              label='Create my home'
               onClick={() => actions.createHome({ displayName })}
-            >
-              <HomeIcon />
-              Create my home
-            </button>
+            />
           </div>
           <details id='advancedJoin' className='advanced'>
             <summary>Advanced</summary>
@@ -87,10 +85,13 @@ export function ContextPanel({ actions, controls, form, setForm, shareQrOutputs 
                 onChange={(event) => updateForm({ roomKey: event.target.value })}
               />
             </label>
-            <button id='joinButton' type='submit' disabled={!canJoinManualHome}>
-              <LogOut size={17} />
-              Join home
-            </button>
+            <ActionButton
+              disabled={!canJoinManualHome}
+              icon={<LogOut size={17} />}
+              id='joinButton'
+              label='Join home'
+              type='submit'
+            />
           </details>
         </form>
 
@@ -101,18 +102,18 @@ export function ContextPanel({ actions, controls, form, setForm, shareQrOutputs 
             description='Share or paste Home QR.'
           />
           <div className='actions'>
-            <button
+            <ActionButton
+              icon={<QrCode size={17} />}
               id='showLargeHomeQrButton'
-              type='button'
+              label='Invite a friend'
               onClick={(event) => actions.showLargeHomeQr({ returnFocus: event.currentTarget })}
-            >
-              <QrCode size={17} />
-              Invite a friend
-            </button>
-            <button id='copyHomeQrButton' type='button' onClick={() => actions.copyHomeQr()}>
-              <Copy size={17} />
-              Copy Home QR
-            </button>
+            />
+            <ActionButton
+              icon={<Copy size={17} />}
+              id='copyHomeQrButton'
+              label='Copy Home QR'
+              onClick={() => actions.copyHomeQr()}
+            />
           </div>
           <QrShareOutput
             detailsId='advancedHomeShare'
@@ -134,10 +135,13 @@ export function ContextPanel({ actions, controls, form, setForm, shareQrOutputs 
               onChange={(event) => updateForm({ homeQrUri: event.target.value })}
             />
           </label>
-          <button id='joinHomeQrButton' type='submit' disabled={!canJoinHomeQr}>
-            <LogOut size={17} />
-            Join home
-          </button>
+          <ActionButton
+            disabled={!canJoinHomeQr}
+            icon={<LogOut size={17} />}
+            id='joinHomeQrButton'
+            label='Join home'
+            type='submit'
+          />
         </form>
       </details>
 
@@ -154,18 +158,18 @@ export function ContextPanel({ actions, controls, form, setForm, shareQrOutputs 
             description='Add a Profile QR first.'
           />
           <div className='actions'>
-            <button
+            <ActionButton
+              icon={<QrCode size={17} />}
               id='showLargeProfileQrButton'
-              type='button'
+              label='Show my profile'
               onClick={(event) => actions.showLargeProfileQr({ returnFocus: event.currentTarget })}
-            >
-              <QrCode size={17} />
-              Show my profile
-            </button>
-            <button id='copyProfileQrButton' type='button' onClick={() => actions.copyProfileQr()}>
-              <Copy size={17} />
-              Copy Profile QR
-            </button>
+            />
+            <ActionButton
+              icon={<Copy size={17} />}
+              id='copyProfileQrButton'
+              label='Copy Profile QR'
+              onClick={() => actions.copyProfileQr()}
+            />
           </div>
           <QrShareOutput
             detailsId='advancedProfileShare'
@@ -197,10 +201,13 @@ export function ContextPanel({ actions, controls, form, setForm, shareQrOutputs 
               onChange={(event) => updateForm({ trustAlias: event.target.value })}
             />
           </label>
-          <button id='trustButton' type='submit' disabled={!canTrustProfile}>
-            <UserPlus size={17} />
-            Add trusted friend
-          </button>
+          <ActionButton
+            disabled={!canTrustProfile}
+            icon={<UserPlus size={17} />}
+            id='trustButton'
+            label='Add trusted friend'
+            type='submit'
+          />
         </form>
       </details>
     </>
@@ -223,8 +230,4 @@ function QrShareOutput({ detailsId, label, outputId, qrId, qrLabel, svg, uri }) 
       </label>
     </details>
   )
-}
-
-function HomeIcon() {
-  return <Home size={17} />
 }

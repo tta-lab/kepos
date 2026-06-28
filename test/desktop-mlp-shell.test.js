@@ -101,7 +101,11 @@ test('desktop context forms use task panel headers', async () => {
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
 
   assert.match(shared, /export function PanelHeader\(/)
-  assert.match(context, /import \{ PanelHeader, SectionTitle \} from '\.\/ui-components\.jsx'/)
+  assert.match(shared, /export function ActionButton\(/)
+  assert.match(
+    context,
+    /import \{ ActionButton, PanelHeader, SectionTitle \} from '\.\/ui-components\.jsx'/
+  )
   assert.match(
     context,
     /id='lobbyForm'[\s\S]*<PanelHeader[\s\S]*eyebrow='Start'[\s\S]*title='My home'[\s\S]*description='Create a local home\.'[\s\S]*\/>/
@@ -257,7 +261,10 @@ test('desktop panes share product headers with short guidance', async () => {
     people,
     /import \{ PaneHeader, RequestActionButton, SectionTitle \} from '\.\/ui-components\.jsx'/
   )
-  assert.match(context, /import \{ PanelHeader, SectionTitle \} from '\.\/ui-components\.jsx'/)
+  assert.match(
+    context,
+    /import \{ ActionButton, PanelHeader, SectionTitle \} from '\.\/ui-components\.jsx'/
+  )
   assert.match(
     panes,
     /<PaneHeader[\s\S]*eyebrow='live'[\s\S]*title='Live home chat'[\s\S]*description='Ephemeral messages for everyone currently inside this home\.'[\s\S]*\/>/
@@ -380,6 +387,10 @@ test('desktop keeps inline QR codes as advanced share detail', async () => {
 
 test('desktop QR sharing exposes copy actions without surfacing raw URI copy', async () => {
   const source = await readDesktopUiSource()
+  const context = await readFile(
+    new URL('../desktop/context-components.jsx', import.meta.url),
+    'utf8'
+  )
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const bindings = await readFile(
     new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
@@ -388,10 +399,10 @@ test('desktop QR sharing exposes copy actions without surfacing raw URI copy', a
 
   assert.match(source, /Copy Home QR/)
   assert.match(source, /Copy Profile QR/)
-  assert.match(source, /id='copyHomeQrButton'[\s\S]*onClick=\{\(\) => actions\.copyHomeQr\(\)\}/)
+  assert.match(context, /<ActionButton[\s\S]*id='copyHomeQrButton'[\s\S]*actions\.copyHomeQr\(\)/)
   assert.match(
-    source,
-    /id='copyProfileQrButton'[\s\S]*onClick=\{\(\) => actions\.copyProfileQr\(\)\}/
+    context,
+    /<ActionButton[\s\S]*id='copyProfileQrButton'[\s\S]*actions\.copyProfileQr\(\)/
   )
   assert.match(bindings, /copyHomeQr: \(\) =>/)
   assert.match(bindings, /copyProfileQr: \(\) =>/)
@@ -767,7 +778,11 @@ test('desktop composers disable unavailable sends', async () => {
   }
 
   assert.match(shared, /export function ComposerSubmitButton\(\{ disabled, icon, id, label \}\)/)
-  assert.match(shared, /<button id=\{id\} type='submit' disabled=\{disabled\}>/)
+  assert.match(shared, /export function ActionButton\(/)
+  assert.match(
+    shared,
+    /<ActionButton disabled=\{disabled\} icon=\{icon\} id=\{id\} label=\{label\} type='submit' \/>/
+  )
   assert.match(panes, /<ComposerSubmitButton[\s\S]*id='chatSendButton'[\s\S]*label='Send'/)
   assert.match(panes, /<ComposerSubmitButton[\s\S]*id='dmSendButton'[\s\S]*label='Send message'/)
   assert.match(panes, /<ComposerSubmitButton[\s\S]*id='treeholeSendButton'[\s\S]*label='Post'/)
@@ -791,6 +806,10 @@ test('desktop composers disable unavailable sends', async () => {
 
 test('desktop context actions disable unavailable joins and trust', async () => {
   const source = await readDesktopUiSource()
+  const context = await readFile(
+    new URL('../desktop/context-components.jsx', import.meta.url),
+    'utf8'
+  )
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const presenter = await readFile(
     new URL('../src/desktop-render-presenter.js', import.meta.url),
@@ -805,9 +824,9 @@ test('desktop context actions disable unavailable joins and trust', async () => 
   assert.match(source, /const canJoinManualHome =[\s\S]*controls\.canUseManualHomeJoin/)
   assert.match(source, /const canJoinHomeQr =[\s\S]*controls\.canUseHomeQrJoin/)
   assert.match(source, /const canTrustProfile =[\s\S]*controls\.canUseTrustProfile/)
-  assert.match(source, /disabled=\{!canJoinManualHome\}/)
-  assert.match(source, /disabled=\{!canJoinHomeQr\}/)
-  assert.match(source, /disabled=\{!canTrustProfile\}/)
+  assert.match(context, /<ActionButton[\s\S]*disabled=\{!canJoinManualHome\}/)
+  assert.match(context, /<ActionButton[\s\S]*disabled=\{!canJoinHomeQr\}/)
+  assert.match(context, /<ActionButton[\s\S]*disabled=\{!canTrustProfile\}/)
   assert.match(presenter, /canUseManualHomeJoin: !isActionPending && !inRoom/)
   assert.match(presenter, /canUseHomeQrJoin: !isActionPending && !inRoom/)
   assert.match(presenter, /canUseTrustProfile: !isActionPending/)

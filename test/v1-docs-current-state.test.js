@@ -183,6 +183,15 @@ test('V1 UX docs include desktop shared composer send buttons', async () => {
   assert.match(ux, /one submit button\s+component/)
 })
 
+test('V1 UX docs include desktop shared context action buttons', async () => {
+  const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
+  const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
+
+  assert.match(audit, /desktop context action buttons/)
+  assert.match(ux, /Desktop context action buttons/)
+  assert.match(ux, /one icon-led action component/)
+})
+
 test('V1 UX docs include mobile shared advanced toggles', async () => {
   const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
   const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
