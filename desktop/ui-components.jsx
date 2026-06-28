@@ -35,6 +35,7 @@ export function SectionTitle({ icon, id, text }) {
 }
 
 export function ActionButton({
+  ariaLabel,
   className,
   disabled = false,
   icon,
@@ -44,7 +45,14 @@ export function ActionButton({
   type = 'button'
 }) {
   return (
-    <button className={className} id={id} type={type} disabled={disabled} onClick={onClick}>
+    <button
+      aria-label={ariaLabel}
+      className={className}
+      id={id}
+      type={type}
+      disabled={disabled}
+      onClick={onClick}
+    >
       {icon}
       {label}
     </button>

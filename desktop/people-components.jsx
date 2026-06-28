@@ -1,6 +1,6 @@
 import React from 'react'
 import { MessageCircle, UserX, Users } from 'lucide-react'
-import { PaneHeader, RequestActionButton, SectionTitle } from './ui-components.jsx'
+import { ActionButton, PaneHeader, RequestActionButton, SectionTitle } from './ui-components.jsx'
 
 export function PeoplePane({ activeTab, actions, messageRequests, trustedContacts }) {
   return (
@@ -77,15 +77,13 @@ export function PeopleLists({ actions, messageRequests, trustedContacts }) {
                     <span>{contact.trustedAtLabel}</span>
                   </div>
                 </div>
-                <button
-                  aria-label={`Revoke trust for ${contact.alias}`}
+                <ActionButton
+                  ariaLabel={`Revoke trust for ${contact.alias}`}
                   className='smallButton dangerButton'
-                  type='button'
+                  icon={<UserX size={15} />}
+                  label='Revoke'
                   onClick={() => actions.revokeContact(contact.profileId)}
-                >
-                  <UserX size={15} />
-                  Revoke
-                </button>
+                />
               </div>
             ))
           )}

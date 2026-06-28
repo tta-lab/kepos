@@ -163,7 +163,10 @@ test('desktop people UI uses trusted friends copy', async () => {
   assert.match(source, /\{contact\.statusLabel\}/)
   assert.match(source, /\{contact\.sourceLabel\}/)
   assert.match(source, /\{contact\.trustedAtLabel\}/)
-  assert.match(source, /aria-label=\{`Revoke trust for \$\{contact\.alias\}`\}/)
+  assert.match(source, /<ActionButton[\s\S]*ariaLabel=\{`Revoke trust for \$\{contact\.alias\}`\}/)
+  assert.match(source, /<ActionButton[\s\S]*className='smallButton dangerButton'/)
+  assert.match(source, /<ActionButton[\s\S]*icon=\{<UserX size=\{15\} \/>\}/)
+  assert.match(source, /<ActionButton[\s\S]*label='Revoke'/)
   assert.match(presenter, /ui\?\.setPeople\(/)
   assert.match(bindings, /revokeContact: \(profileId\) => dispatchCommand\('revokeContact'/)
   assert.equal(source.indexOf("id='contactList'") > source.indexOf("id='peoplePane'"), true)
@@ -211,7 +214,7 @@ test('desktop People pane lives behind a dedicated component boundary', async ()
   assert.match(people, /export function PeopleLists\(/)
   assert.match(
     people,
-    /import \{ PaneHeader, RequestActionButton, SectionTitle \} from '\.\/ui-components\.jsx'/
+    /import \{ ActionButton, PaneHeader, RequestActionButton, SectionTitle \} from '\.\/ui-components\.jsx'/
   )
   assert.doesNotMatch(source, /<PaneLabel eyebrow='trusted' title='People' \/>/)
   assert.doesNotMatch(source, /function PeopleLists\(/)
@@ -256,7 +259,7 @@ test('desktop panes share product headers with short guidance', async () => {
   assert.match(panes, /ActionButton,[\s\S]*ComposerSubmitButton,[\s\S]*PaneHeader/)
   assert.match(
     people,
-    /import \{ PaneHeader, RequestActionButton, SectionTitle \} from '\.\/ui-components\.jsx'/
+    /import \{ ActionButton, PaneHeader, RequestActionButton, SectionTitle \} from '\.\/ui-components\.jsx'/
   )
   assert.match(
     context,
@@ -434,7 +437,10 @@ test('desktop request and QR dialog actions use clear icons', async () => {
     people,
     /<RequestActionButton[\s\S]*ariaLabel=\{`Accept message request from \$\{request\.title\}`\}[\s\S]*actions\.acceptMessageRequest\(request\.acceptMessage\)[\s\S]*variant='accept'/
   )
-  assert.match(source, /actions\.revokeContact[\s\S]*<UserX size=\{15\} \/>[\s\S]*Revoke/)
+  assert.match(
+    people,
+    /<ActionButton[\s\S]*icon=\{<UserX size=\{15\} \/>\}[\s\S]*label='Revoke'[\s\S]*actions\.revokeContact\(contact\.profileId\)/
+  )
   assert.match(source, /import \{ Heart, MessageCircle, Send, Sprout, UserPlus \}/)
   assert.match(
     panes,
@@ -787,6 +793,7 @@ test('desktop composers disable unavailable sends', async () => {
     /export function ComposerSubmitButton\(\{ className, disabled, icon, id, label \}\)/
   )
   assert.match(shared, /export function ActionButton\(/)
+  assert.match(shared, /aria-label=\{ariaLabel\}/)
   assert.match(
     shared,
     /<ActionButton[\s\S]*className=\{className\}[\s\S]*disabled=\{disabled\}[\s\S]*icon=\{icon\}[\s\S]*id=\{id\}[\s\S]*label=\{label\}[\s\S]*type='submit'/
