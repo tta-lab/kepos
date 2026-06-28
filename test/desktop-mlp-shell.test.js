@@ -872,7 +872,10 @@ test('desktop context actions expose a pending lock during blocking commands', a
   assert.match(dispatcher, /pendingCommand = null/)
   assert.match(source, /document\.body\.setAttribute\('aria-busy', String\(isShellBusy\)\)/)
   assert.match(presenter, /ui\?\.setShellBusy\(isActionPending\)/)
-  assert.match(source, /disabled=\{!controls\.canLeaveHome\}/)
+  assert.match(
+    source,
+    /<ActionButton[\s\S]*disabled=\{!controls\.canLeaveHome\}[\s\S]*icon=\{<LogOut size=\{17\} \/>\}[\s\S]*id='leaveButton'[\s\S]*label='Leave'[\s\S]*onClick=\{onLeave\}/
+  )
   assert.match(source, /disabled=\{!controls\.canCreateHome\}/)
   assert.match(presenter, /canLeaveHome: inRoom && !isActionPending/)
   assert.match(presenter, /canCreateHome: !inRoom && !isActionPending/)

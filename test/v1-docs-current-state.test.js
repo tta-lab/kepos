@@ -210,6 +210,15 @@ test('V1 UX docs include desktop shared People revoke actions', async () => {
   assert.match(ux, /shared icon-led action\s+button/)
 })
 
+test('V1 UX docs include desktop shared Leave home action', async () => {
+  const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
+  const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
+
+  assert.match(audit, /desktop Leave home/)
+  assert.match(ux, /Desktop Leave home/)
+  assert.match(ux, /pending-command disabled state/)
+})
+
 test('V1 UX docs include mobile shared small action buttons', async () => {
   const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
   const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')

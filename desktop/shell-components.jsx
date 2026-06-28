@@ -1,5 +1,6 @@
 import React from 'react'
 import { LogOut, MessageCircle, Moon, Send, Sprout, Sun, Users } from 'lucide-react'
+import { ActionButton } from './ui-components.jsx'
 
 export function AppRail({ activeTab, navBadges, shellActions }) {
   return (
@@ -124,10 +125,13 @@ export function HomeStatusPanel({ controls, onLeave, status }) {
           {status.errorDetailLabel}
         </p>
       </details>
-      <button id='leaveButton' type='button' disabled={!controls.canLeaveHome} onClick={onLeave}>
-        <LogOut size={17} />
-        Leave
-      </button>
+      <ActionButton
+        disabled={!controls.canLeaveHome}
+        icon={<LogOut size={17} />}
+        id='leaveButton'
+        label='Leave'
+        onClick={onLeave}
+      />
     </section>
   )
 }
