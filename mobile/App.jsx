@@ -1084,15 +1084,13 @@ function Lobby({
         profileReady={profileReady}
       />
 
-      <Pressable
+      <MobileActionButton
         accessibilityState={{ expanded: showAdvancedJoin }}
+        icon={Settings}
+        label='Advanced'
         onPress={onToggleAdvancedJoin}
-        style={styles.secondaryButton}
         testID='advanced-join-toggle'
-      >
-        <Settings color={theme.accentStrong} size={18} />
-        <Text style={styles.secondaryButtonText}>Advanced</Text>
-      </Pressable>
+      />
       {showAdvancedJoin ? (
         <View style={styles.panel}>
           <TaskHeader
@@ -1111,29 +1109,23 @@ function Lobby({
             testID='manual-home-key-input'
             value={roomKey}
           />
-          <Pressable
+          <MobileActionButton
             disabled={!canJoin}
+            icon={ArrowRight}
+            label='Join home'
             onPress={onJoinRoom}
-            style={[styles.secondaryButton, !canJoin && styles.disabledButton]}
             testID='manual-home-join-button'
-          >
-            <ArrowRight color={canJoin ? theme.accentStrong : theme.placeholder} size={18} />
-            <Text style={[styles.secondaryButtonText, !canJoin && styles.disabledButtonText]}>
-              Join home
-            </Text>
-          </Pressable>
+          />
         </View>
       ) : null}
 
-      <Pressable
+      <MobileActionButton
         accessibilityState={{ expanded: showPeopleSetup }}
+        icon={Users}
+        label='People setup'
         onPress={() => setShowPeopleSetup((value) => !value)}
-        style={styles.secondaryButton}
         testID='people-setup-toggle'
-      >
-        <Users color={theme.accentStrong} size={18} />
-        <Text style={styles.secondaryButtonText}>People setup</Text>
-      </Pressable>
+      />
       {showPeopleSetup ? (
         <PeopleActions
           canJoinHome={true}

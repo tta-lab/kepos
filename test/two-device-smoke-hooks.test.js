@@ -166,7 +166,7 @@ test('Android setup action buttons use icons consistently', async () => {
 
   assert.match(peopleActions, /icon=\{ArrowRight\}[\s\S]*testID='scan-home-qr-button'/)
   assert.match(peopleActions, /icon=\{Plus\}[\s\S]*testID='scan-profile-qr-button'/)
-  assert.match(lobby, /testID='advanced-join-toggle'[\s\S]*<Settings\b/)
+  assert.match(lobby, /icon=\{Settings\}[\s\S]*testID='advanced-join-toggle'/)
   assert.match(peopleActions, /icon=\{Settings\}[\s\S]*testID='advanced-share-toggle'/)
   assert.match(directPane, /testID='advanced-dm-recipient-toggle'[\s\S]*<Settings\b/)
 })

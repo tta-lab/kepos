@@ -155,8 +155,11 @@ test('V1 UX docs include mobile shared setup action buttons', async () => {
   const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
   const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
 
-  assert.match(audit, /mobile setup, QR, trust, and zero-contact Direct entry actions/)
-  assert.match(ux, /Mobile setup, QR, trust, and zero-contact Direct entry actions/)
+  assert.match(
+    audit,
+    /mobile setup, Advanced join, QR, trust, and zero-contact Direct entry actions/
+  )
+  assert.match(ux, /Mobile setup, Advanced join, QR, trust, and zero-contact Direct entry actions/)
   assert.match(ux, /one\s+icon button component/)
 })
 

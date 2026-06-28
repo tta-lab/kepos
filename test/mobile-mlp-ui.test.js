@@ -135,6 +135,10 @@ test('mobile collapsible controls expose expanded state', async () => {
 
 test('mobile setup actions share one icon button component', async () => {
   const source = await readMobileSource()
+  const lobby = source.slice(
+    source.indexOf('function Lobby('),
+    source.indexOf('function ChatRoom(')
+  )
   const quickStart = source.slice(
     source.indexOf('function QuickStartPanel('),
     source.indexOf('function PeoplePane(')
@@ -152,6 +156,9 @@ test('mobile setup actions share one icon button component', async () => {
   assert.match(actionButton, /const isPrimary = variant === 'primary'/)
   assert.match(actionButton, /disabled && styles\.disabledButton/)
   assert.match(actionButton, /icon: Icon/)
+  assert.match(lobby, /<MobileActionButton[\s\S]*testID='advanced-join-toggle'/)
+  assert.match(lobby, /<MobileActionButton[\s\S]*testID='manual-home-join-button'/)
+  assert.match(lobby, /<MobileActionButton[\s\S]*testID='people-setup-toggle'/)
   assert.match(quickStart, /<MobileActionButton[\s\S]*variant='primary'/)
   assert.match(quickStart, /<MobileActionButton[\s\S]*testID='quick-scan-home-qr-button'/)
   assert.match(peopleActions, /<MobileActionButton[\s\S]*testID='scan-profile-qr-button'/)
