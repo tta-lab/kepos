@@ -702,7 +702,7 @@ test('Android treehole interactions disable when the profile cannot interact', a
   )
   const treeholePost = source.slice(
     source.indexOf('function TreeholePost('),
-    source.indexOf('function displayPostAuthor(')
+    source.indexOf('function EmptyMessages(')
   )
 
   assert.match(source, /const \[treeholeCanInteract, setTreeholeCanInteract\] = useState\(false\)/)

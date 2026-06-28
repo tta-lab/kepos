@@ -70,6 +70,8 @@ import { getMobileThemeForScheme, mobileThemes } from '../src/mobile-theme-token
 import { applyMobileHomeQrScan, applyMobileProfileQrScan } from '../src/mobile-qr-actions.js'
 import { getScannedQrData } from '../src/mobile-qr-event.js'
 import {
+  displayDirectPeer,
+  displayPostAuthor,
   formatMessageRequestTitle,
   formatMobileTrustSource,
   formatMobileTrustTime,
@@ -79,7 +81,8 @@ import {
   getMobileHomeStatus,
   getMobileRoomSurface,
   getMobileTabButtonLabel,
-  getMobileTreeholeStatus
+  getMobileTreeholeStatus,
+  shortenProfileId
 } from '../src/mobile-product-copy.js'
 import { applyLocalContactRevoke } from '../src/revoke-state.js'
 import {
@@ -2155,18 +2158,6 @@ function TreeholePost({ canInteract, onComment, onLike, post }) {
       </View>
     </View>
   )
-}
-
-function displayPostAuthor(post) {
-  return post.authorDisplayName || post.author || shortenProfileId(post.authorProfileId) || 'anon'
-}
-
-function displayDirectPeer(profileId, displayName = '') {
-  return displayName?.trim() || `Profile ${shortenProfileId(profileId)}`
-}
-
-function shortenProfileId(value) {
-  return value ? `${value.slice(0, 8)}...${value.slice(-8)}` : ''
 }
 
 function EmptyMessages() {

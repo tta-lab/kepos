@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
+  displayDirectPeer,
+  displayPostAuthor,
   formatMessageRequestTitle,
   formatMobileTrustSource,
   formatMobileTrustTime,
@@ -10,7 +12,8 @@ import {
   getMobileBackendNotice,
   getMobileHomeStatus,
   getMobileRoomSurface,
-  getMobileTreeholeStatus
+  getMobileTreeholeStatus,
+  shortenProfileId
 } from '../src/mobile-product-copy.js'
 
 test('mobile product copy formats home and treehole status', () => {
@@ -66,4 +69,17 @@ test('mobile product copy formats pending tab badges', () => {
   assert.equal(formatPendingBadgeCount(0), '0')
   assert.equal(formatPendingBadgeCount(12), '12')
   assert.equal(formatPendingBadgeCount(100), '99+')
+})
+
+test('mobile product copy formats profile and author labels', () => {
+  const profileId = '1234567890abcdef1234567890abcdef'
+
+  assert.equal(shortenProfileId(profileId), '12345678...90abcdef')
+  assert.equal(shortenProfileId(''), '')
+  assert.equal(displayDirectPeer(profileId), 'Profile 12345678...90abcdef')
+  assert.equal(displayDirectPeer(profileId, ' Ada '), 'Ada')
+  assert.equal(displayPostAuthor({ authorDisplayName: 'Ada' }), 'Ada')
+  assert.equal(displayPostAuthor({ author: 'anon-name' }), 'anon-name')
+  assert.equal(displayPostAuthor({ authorProfileId: profileId }), '12345678...90abcdef')
+  assert.equal(displayPostAuthor({}), 'anon')
 })

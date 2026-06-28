@@ -107,3 +107,15 @@ export function getMobileTabButtonLabel(label, badgeCount) {
 export function formatPendingBadgeCount(badgeCount) {
   return badgeCount > 99 ? '99+' : String(badgeCount)
 }
+
+export function shortenProfileId(value) {
+  return value ? `${value.slice(0, 8)}...${value.slice(-8)}` : ''
+}
+
+export function displayDirectPeer(profileId, displayName = '') {
+  return displayName?.trim() || `Profile ${shortenProfileId(profileId)}`
+}
+
+export function displayPostAuthor(post) {
+  return post.authorDisplayName || post.author || shortenProfileId(post.authorProfileId) || 'anon'
+}
