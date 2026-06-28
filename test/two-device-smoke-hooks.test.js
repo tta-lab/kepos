@@ -912,23 +912,26 @@ test('Android QR scanner has an in-flow permission denied state', async () => {
 
 test('Android supports Neo Cozy light and Indie Console dark themes', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const tokens = await readFile(new URL('../src/mobile-theme-tokens.js', import.meta.url), 'utf8')
 
   assert.match(source, /useColorScheme/)
-  assert.match(source, /const mobileThemes = \{/)
-  assert.match(source, /neoCozy/)
-  assert.match(source, /indieConsole/)
+  assert.match(source, /from '\.\.\/src\/mobile-theme-tokens\.js'/)
+  assert.match(tokens, /const mobileThemes = \{/)
+  assert.match(tokens, /neoCozy/)
+  assert.match(tokens, /indieConsole/)
   assert.match(source, /function createMobileStyles\(theme\)/)
   assert.match(source, /MobileThemeContext\.Provider/)
   assert.match(source, /StatusBar barStyle=\{theme\.statusBar\}/)
   assert.match(source, /backgroundColor: theme\.surface/)
-  assert.match(source, /surface: '#171d33'/)
-  assert.match(source, /accent: '#ffcf3d'/)
+  assert.match(tokens, /surface: '#171d33'/)
+  assert.match(tokens, /accent: '#ffcf3d'/)
 })
 
 test('Android theme styles are passed through context instead of mutable module state', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 
   assert.match(source, /const fallbackMobileStyles = createMobileStyles\(mobileThemes\.neoCozy\)/)
+  assert.match(source, /const theme = getMobileThemeForScheme\(colorScheme\)/)
   assert.match(
     source,
     /const themedStyles = useMemo\(\(\) => createMobileStyles\(theme\), \[theme\]\)/
