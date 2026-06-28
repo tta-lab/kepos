@@ -302,6 +302,19 @@ test('V1 UX docs include polite live regions for product notices', async () => {
   assert.match(ux, /join, trust, revoke, and error states are announced/)
 })
 
+test('V1 docs include desktop rail tab semantics', async () => {
+  const architecture = await readText('../docs/v1.11-mlp-desktop-react-architecture.md')
+  const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
+  const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
+
+  assert.match(audit, /desktop rail navigation uses tablist\/tab semantics/)
+  assert.match(ux, /Desktop rail navigation now uses tablist\/tab semantics/)
+  assert.match(architecture, /tablist\/tab `aria-selected` state/)
+  assert.match(audit, /tablist\/tab `aria-selected` state/)
+  assert.doesNotMatch(architecture, /`aria-current`/)
+  assert.doesNotMatch(audit, /`aria-current`/)
+})
+
 test('V1 UX docs include Home trust source product copy', async () => {
   const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
   const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
