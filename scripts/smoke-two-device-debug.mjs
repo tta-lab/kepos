@@ -27,6 +27,8 @@ const androidMessageRequestText = 'Android DM request'
 const desktopChatText = 'desktop hello'
 const desktopDmBodyText = 'desktop signed DM body'
 const desktopTreeholeText = 'desktop treehole smoke'
+const directAdvertisedHost =
+  process.env.KEPOS_DIRECT_ADVERTISED_HOST || resolveDirectAdvertisedHost()
 const smokeInputMethod = 'org.futo.inputmethod.latin/.LatinIME'
 let app = null
 let page = null
@@ -51,6 +53,7 @@ try {
 
   const androidProfileUri = await readAndroidProfileUri()
   const androidProfile = decodeKeposUri(androidProfileUri)
+  resetAndroidDmData()
 
   await openDesktopPeopleActions(page)
   await page.fill('#trustQrInput', androidProfileUri)
@@ -63,6 +66,7 @@ try {
 
   await page.click('#createButton')
   await waitForText(page, '#noticeLabel', 'Home joined.')
+  const desktopDirectEndpoint = await waitForDesktopDirectEndpoint(page)
 
   await writeAndroidContactBook({
     alias: 'Desktop smoke',
@@ -70,7 +74,7 @@ try {
     trustedProfileId: desktopProfile.profileId
   })
 
-  await runAndroidJoinFlow(desktopHome.roomKey)
+  await runAndroidJoinFlow(desktopHome.roomKey, desktopDirectEndpoint)
   await waitForDesktopPeer(page, 'desktop and Android connect as peers')
 
   await page.fill('#chatInput', desktopChatText)
@@ -78,20 +82,14 @@ try {
   await waitForAndroidText(desktopChatText)
 
   await sendAndroidChat()
-  await waitFor(async () => {
-    const text = await page.locator('#messageList').textContent()
-    return textIncludes(text, androidChatText)
-  }, 'desktop receives Android chat')
+  await waitForDesktopChatText(page, androidChatText)
 
   await page.click('#treeholeTab')
   await page.fill('#treeholeInput', desktopTreeholeText)
   await page.click('#treeholeForm button[type="submit"]')
-  await waitFor(async () => {
-    const text = await page.locator('#treeholeList').textContent()
-    return textIncludes(text, desktopTreeholeText)
-  }, 'desktop shows its treehole post')
+  await waitForDesktopTreeholeText(page, desktopTreeholeText)
   await tapAndroidByTestId('treehole-tab')
-  await waitForAndroidText(desktopTreeholeText)
+  await waitForAndroidTextWithSnapshot(page, desktopTreeholeText)
 
   await sendAndroidMessageRequest()
   await acceptDesktopMessageRequest(page)
@@ -169,6 +167,8 @@ async function launchDesktopApp() {
     cwd: desktopDir,
     env: {
       ...process.env,
+      KEPOS_DIRECT_ADVERTISED_HOST: directAdvertisedHost,
+      KEPOS_DIRECT_LISTEN_HOST: '0.0.0.0',
       KEPOS_SMOKE_DESKTOP: usePearRuntime ? undefined : '1'
     },
     executablePath: electronExecutable,
@@ -272,7 +272,7 @@ async function writeAndroidContactBook({ alias, ownerProfileId, trustedProfileId
   runAdb(['shell', 'rm', '-f', devicePath])
 }
 
-async function runAndroidJoinFlow(roomKey) {
+async function runAndroidJoinFlow(roomKey, directEndpoint) {
   launchAndroidDevClient()
   await waitForAndroidAppSurface()
   runAdb(['shell', 'input', 'tap', '1000', '2210'])
@@ -300,6 +300,11 @@ async function runAndroidJoinFlow(roomKey) {
   )
   runMaestro(['test', openFlow])
   runAdb(['shell', 'input', 'text', roomKey])
+  if (directEndpoint) {
+    runAdb(['shell', 'input', 'keyevent', 'KEYCODE_BACK'])
+    tapAndroidResourceId('manual-home-endpoint-input')
+    runAdb(['shell', 'input', 'text', escapeAndroidInputText(directEndpoint)])
+  }
 
   const submitFlow = path.join(workDir, 'android-debug-join-submit.yaml')
   await writeFile(
@@ -373,6 +378,13 @@ function grantAndroidCameraPermission() {
   runAdb(['shell', 'pm', 'grant', 'io.guion.kepos', 'android.permission.CAMERA'])
 }
 
+function resetAndroidDmData() {
+  runAdb([
+    'shell',
+    "run-as io.guion.kepos sh -c 'rm -rf files/kepos/dm files/kepos/kepos/dm && mkdir -p files/kepos/dm files/kepos/kepos/dm'"
+  ])
+}
+
 function ensureAdbReverse() {
   runAdb(['reverse', 'tcp:8081', 'tcp:8081'])
 }
@@ -440,7 +452,7 @@ async function acceptDesktopMessageRequest(page) {
   await page.locator('#dmList button', { hasText: 'Accept' }).click()
   await waitFor(async () => {
     const text = await page.locator('#noticeLabel').textContent()
-    return textIncludes(text, 'Accepted message request')
+    return textIncludes(text, 'Message request accepted.')
   }, 'desktop accepted Android message request')
 }
 
@@ -474,12 +486,11 @@ async function sendAndroidDirectMessage({ fileName, text }) {
 
 async function sendDesktopDmBody(page, toProfileId, text) {
   await page.click('#dmTab')
-  await page.locator('#advancedDmRecipient').evaluate((node) => {
-    node.open = true
-  })
-  await page.fill('#dmRecipientInput', toProfileId)
-  await page.fill('#dmInput', text)
-  await page.click('#dmForm button[type="submit"]')
+  await page.evaluate(
+    ({ text, toProfileId }) =>
+      globalThis.keposDesktopDispatchCommand('sendDmMessage', { text, toProfileId }),
+    { text, toProfileId }
+  )
   await waitFor(async () => {
     const dmText = await page.locator('#dmList').textContent()
     return textIncludes(dmText, text)
@@ -495,8 +506,9 @@ async function restartBothAppsAndRejoin({ androidRemoteProfileId, roomKey }) {
   await waitForInputPrefix(nextPage, '#homeQrOutput', 'kepos://home')
   await nextPage.click('#createButton')
   await waitForText(nextPage, '#noticeLabel', 'Home joined.')
+  const desktopDirectEndpoint = await waitForDesktopDirectEndpoint(nextPage)
 
-  await runAndroidJoinFlow(roomKey)
+  await runAndroidJoinFlow(roomKey, desktopDirectEndpoint)
   await waitForDesktopPeer(nextPage, 'desktop and Android reconnect as peers')
   await waitForAndroidDmThread(androidRemoteProfileId)
   await tapAndroidByTestId('dm-tab')
@@ -509,10 +521,13 @@ async function verifyDmPersistsAfterRestart(text) {
 }
 
 async function revokeDesktopContact(page, profileId) {
-  await page.locator('#contactList button', { hasText: 'Revoke' }).click()
+  await page.evaluate(
+    (profileId) => globalThis.keposDesktopDispatchCommand('revokeContact', { profileId }),
+    profileId
+  )
   await waitFor(async () => {
     const text = await page.locator('#noticeLabel').textContent()
-    return textIncludes(text, `Revoked ${shorten(profileId)}`)
+    return textIncludes(text, 'Trust revoked.')
   }, 'desktop revoked Android contact')
   await waitFor(async () => {
     const text = await page.locator('#contactList').textContent()
@@ -584,6 +599,14 @@ async function waitForAndroidText(text) {
   )
 }
 
+async function waitForAndroidTextWithSnapshot(page, text) {
+  try {
+    await waitForAndroidText(text)
+  } catch (error) {
+    throw new Error(`${error.message}\n${await createTwoDeviceDebugSnapshot(page)}`)
+  }
+}
+
 function dumpAndroidUi() {
   return runAdb(['exec-out', 'uiautomator', 'dump', '/dev/tty'])
 }
@@ -613,6 +636,34 @@ function decodeKeposUri(uri) {
   const payload = url.searchParams.get('payload')
   if (!payload) throw new Error('Kepos URI payload is missing')
   return JSON.parse(payload)
+}
+
+async function waitForDesktopDirectEndpoint(page) {
+  let endpoint = null
+  await waitFor(async () => {
+    const text = await page.locator('#transportDebugLabel').textContent()
+    endpoint = parseDirectEndpointFromDebug(text)
+    return Boolean(endpoint)
+  }, 'desktop direct endpoint')
+  return endpoint
+}
+
+function parseDirectEndpointFromDebug(text = '') {
+  return text.match(/\bdirect=([^\s]+)/)?.[1] || null
+}
+
+function resolveDirectAdvertisedHost() {
+  for (const entries of Object.values(os.networkInterfaces())) {
+    for (const entry of entries || []) {
+      if (entry.family === 'IPv4' && !entry.internal) return entry.address
+    }
+  }
+
+  return '127.0.0.1'
+}
+
+function escapeAndroidInputText(text) {
+  return text.replace(/\s/g, '%s')
 }
 
 async function waitForInputPrefix(page, selector, prefix) {
@@ -681,6 +732,98 @@ async function waitForDesktopPeer(page, label) {
       `${error.message}\nDesktop: ${JSON.stringify(desktopSnapshot)}\nAndroid: ${JSON.stringify(androidSnapshot)}`
     )
   }
+}
+
+async function waitForDesktopChatText(page, expectedText) {
+  try {
+    await waitFor(async () => {
+      const text = await page.locator('#messageList').textContent()
+      return textIncludes(text, expectedText)
+    }, 'desktop receives Android chat')
+  } catch (error) {
+    throw new Error(`${error.message}\n${await createTwoDeviceDebugSnapshot(page)}`)
+  }
+}
+
+async function waitForDesktopTreeholeText(page, expectedText) {
+  try {
+    await waitFor(async () => {
+      const text = await page.locator('#treeholeList').textContent()
+      return textIncludes(text, expectedText)
+    }, 'desktop shows its treehole post')
+  } catch (error) {
+    const desktopSnapshot = {
+      errorDetail: await page
+        .locator('#errorDetailLabel')
+        .textContent()
+        .catch(() => null),
+      notice: await page
+        .locator('#noticeLabel')
+        .textContent()
+        .catch(() => null),
+      transportDebug: await page
+        .locator('#transportDebugLabel')
+        .textContent()
+        .catch(() => null),
+      treeholeList: await page
+        .locator('#treeholeList')
+        .textContent()
+        .catch(() => null),
+      treeholeStatus: await page
+        .locator('#treeholeStatusLabel')
+        .textContent()
+        .catch(() => null)
+    }
+    throw new Error(`${error.message}\nDesktop: ${JSON.stringify(desktopSnapshot)}`)
+  }
+}
+
+async function createTwoDeviceDebugSnapshot(page) {
+  const desktopSnapshot = {
+    errorDetail: await page
+      .locator('#errorDetailLabel')
+      .textContent()
+      .catch(() => null),
+    homeMessages: await page
+      .locator('#messageList')
+      .textContent()
+      .catch(() => null),
+    homeStatus: await page
+      .locator('#homeStatusLabel')
+      .textContent()
+      .catch(() => null),
+    notice: await page
+      .locator('#noticeLabel')
+      .textContent()
+      .catch(() => null),
+    peerLabel: await page
+      .locator('#peerLabel')
+      .textContent()
+      .catch(() => null),
+    transportDebug: await page
+      .locator('#transportDebugLabel')
+      .textContent()
+      .catch(() => null)
+  }
+  let androidXml = ''
+  try {
+    androidXml = dumpAndroidUi()
+  } catch {
+    androidXml = ''
+  }
+  try {
+    await revealAndroidRoomAdvanced()
+    androidXml = dumpAndroidUi()
+  } catch {
+    // Keep the base dump if the optional advanced reveal fails.
+  }
+  const androidSnapshot = {
+    errorDetail: androidXml ? textByResourceId(androidXml, 'room-error-detail') : null,
+    notice: androidXml ? textByResourceId(androidXml, 'app-notice') : null,
+    transportDebug: androidXml ? textByResourceId(androidXml, 'room-transport-debug') : null
+  }
+
+  return `Desktop: ${JSON.stringify(desktopSnapshot)}\nAndroid: ${JSON.stringify(androidSnapshot)}`
 }
 
 async function revealAndroidRoomAdvanced() {

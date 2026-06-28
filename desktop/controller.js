@@ -86,6 +86,8 @@ async function dispatchCommand(command, payload) {
   await commandDispatcher.dispatch(command, payload)
 }
 
+globalThis.keposDesktopDispatchCommand = dispatchCommand
+
 function updateDisplayName(displayName = 'Desktop') {
   controllerState.setCurrentDisplayName(displayName)
   refreshLocalShareQrOutputs().catch(showError)

@@ -3,6 +3,7 @@ import { createDesktopHomeRuntime } from './desktop-home-runtime.js'
 import { createDesktopTreeholeRuntime } from './desktop-treehole-runtime.js'
 
 export function createDesktopBackendRuntime({
+  createDirectTransport = null,
   createDmRuntime = createDesktopDmRuntime,
   createHomeRuntime = createDesktopHomeRuntime,
   createTreeholeRuntime = createDesktopTreeholeRuntime,
@@ -11,6 +12,7 @@ export function createDesktopBackendRuntime({
   onHomeDebugState = () => {},
   onHomeControl = () => {},
   onHomeSessionChanged = () => {},
+  onTreeholeStateChanged = () => {},
   onVerifiedHello = () => {},
   storageBasePath = null
 } = {}) {
@@ -21,6 +23,7 @@ export function createDesktopBackendRuntime({
     }
   })
   const home = createHomeRuntime({
+    createDirectTransport,
     onControl: onHomeControl,
     onDebugState: (debug) => {
       emit('transportDebugChanged', debug)
@@ -36,7 +39,14 @@ export function createDesktopBackendRuntime({
   })
   const treehole = createTreeholeRuntime({
     onError: (error) => emit('errorReceived', error),
-    onStateChanged: (snapshot) => emit('treeholeStateChanged', snapshot),
+    onStateChanged: (snapshot) => {
+      emit('treeholeStateChanged', snapshot)
+      onTreeholeStateChanged(snapshot)
+      home.broadcastControl({
+        snapshot,
+        type: 'treehole.state.v1'
+      })
+    },
     storageBasePath
   })
 

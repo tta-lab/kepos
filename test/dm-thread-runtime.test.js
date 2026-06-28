@@ -84,6 +84,118 @@ describe('DM thread runtime', () => {
     assert.deepEqual(displayed, [{ direction: 'out', message, thread }])
   })
 
+  test('receives signed fallback messages for open threads and skips duplicates', async () => {
+    const local = createSigningKeyPair()
+    const remote = createSigningKeyPair()
+    const saved = []
+    const displayed = []
+    const channels = []
+    const runtime = createDmThreadRuntime({
+      createChannel: (options) => new FakeDmChannel(options, channels),
+      identity: local,
+      loadMessages: () => [],
+      localProfileId: local.publicKey,
+      onMessage: (thread, message, direction) => displayed.push({ direction, message, thread }),
+      saveMessages: (_thread, messages) => saved.push(messages)
+    })
+    const thread = createThread({
+      localProfileId: local.publicKey,
+      remoteProfileId: remote.publicKey
+    })
+    const message = createSignedDmMessage({
+      createdAt: 1300,
+      identity: remote,
+      messageId: 'remote-1',
+      text: 'fallback',
+      threadId: thread.threadId
+    })
+
+    await runtime.openThread(thread)
+
+    assert.equal(runtime.receiveMessage(message), true)
+    assert.equal(runtime.receiveMessage(message), false)
+    assert.deepEqual(saved.at(-1), [message])
+    assert.deepEqual(displayed, [{ direction: 'in', message, thread }])
+  })
+
+  test('rejects signed fallback messages for the wrong thread or sender', async () => {
+    const local = createSigningKeyPair()
+    const remote = createSigningKeyPair()
+    const other = createSigningKeyPair()
+    const displayed = []
+    const channels = []
+    const runtime = createDmThreadRuntime({
+      createChannel: (options) => new FakeDmChannel(options, channels),
+      identity: local,
+      loadMessages: () => [],
+      localProfileId: local.publicKey,
+      onMessage: (thread, message, direction) => displayed.push({ direction, message, thread })
+    })
+    const thread = createThread({
+      localProfileId: local.publicKey,
+      remoteProfileId: remote.publicKey
+    })
+
+    await runtime.openThread(thread)
+
+    assert.equal(
+      runtime.receiveMessage(
+        createSignedDmMessage({
+          createdAt: 1300,
+          identity: remote,
+          messageId: 'wrong-thread',
+          text: 'wrong',
+          threadId: 'other-thread'
+        })
+      ),
+      false
+    )
+    assert.equal(
+      runtime.receiveMessage(
+        createSignedDmMessage({
+          createdAt: 1400,
+          identity: other,
+          messageId: 'wrong-sender',
+          text: 'wrong',
+          threadId: thread.threadId
+        })
+      ),
+      false
+    )
+    assert.deepEqual(displayed, [])
+  })
+
+  test('deduplicates incoming channel messages after fallback delivery', async () => {
+    const local = createSigningKeyPair()
+    const remote = createSigningKeyPair()
+    const displayed = []
+    const channels = []
+    const runtime = createDmThreadRuntime({
+      createChannel: (options) => new FakeDmChannel(options, channels),
+      identity: local,
+      loadMessages: () => [],
+      localProfileId: local.publicKey,
+      onMessage: (thread, message, direction) => displayed.push({ direction, message, thread })
+    })
+    const thread = createThread({
+      localProfileId: local.publicKey,
+      remoteProfileId: remote.publicKey
+    })
+    const message = createSignedDmMessage({
+      createdAt: 1300,
+      identity: remote,
+      messageId: 'remote-1',
+      text: 'fallback',
+      threadId: thread.threadId
+    })
+
+    await runtime.openThread(thread)
+    runtime.receiveMessage(message)
+    channels[0].emitIncoming(message)
+
+    assert.equal(displayed.length, 1)
+  })
+
   test('supports async message storage adapters', async () => {
     const local = createSigningKeyPair()
     const remote = createSigningKeyPair()

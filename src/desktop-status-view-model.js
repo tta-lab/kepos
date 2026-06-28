@@ -33,7 +33,17 @@ function formatTransportDebug(debug) {
     `knownPeers=${debug.knownPeers ?? 0}`,
     `discovered=${debug.discovered ?? 0}`,
     `localPeers=${debug.localPeers ?? 0}`,
+    `reads=${debug.frameReads ?? 0}/${debug.byteReads ?? 0}`,
+    `writes=${debug.frameWrites ?? 0}/${debug.byteWrites ?? 0}`,
+    `decodeErrors=${debug.frameDecodeErrors ?? 0}`,
+    debug.lastReadType ? `lastRead=${debug.lastReadType}` : null,
+    debug.lastWriteType ? `lastWrite=${debug.lastWriteType}` : null,
+    formatFrameTypes('readTypes', debug.readTypes),
+    formatFrameTypes('writeTypes', debug.writeTypes),
     `topics=${debug.topics ?? 0}`,
+    debug.directEndpoint?.host && debug.directEndpoint?.port
+      ? `direct=${debug.directEndpoint.host}:${debug.directEndpoint.port}`
+      : null,
     `client=${debug.isClient ? 'yes' : 'no'}`,
     `server=${debug.isServer ? 'yes' : 'no'}`,
     `listening=${debug.listening ? 'yes' : 'no'}`,
@@ -44,5 +54,16 @@ function formatTransportDebug(debug) {
     `dhtOnline=${debug.dhtOnline ? 'yes' : 'no'}`,
     `dhtFirewalled=${debug.dhtFirewalled ? 'yes' : 'no'}`,
     `dhtNodes=${debug.dhtNodes ?? 0}`
-  ].join(' ')
+  ]
+    .filter(Boolean)
+    .join(' ')
+}
+
+function formatFrameTypes(label, counts) {
+  if (!counts || typeof counts !== 'object') return null
+
+  const entries = Object.entries(counts)
+  if (entries.length === 0) return null
+
+  return `${label}=${entries.map(([type, count]) => `${type}:${count}`).join(',')}`
 }

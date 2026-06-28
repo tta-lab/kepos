@@ -148,6 +148,27 @@ test('Android lobby keeps manual join advanced reachable before people setup', a
     lobby.indexOf("testID='manual-home-key-input'") < lobby.indexOf("testID='people-setup-toggle'"),
     true
   )
+  assert.match(lobby, /testID='manual-home-endpoint-input'/)
+  assert.equal(
+    lobby.indexOf("testID='manual-home-endpoint-input'") <
+      lobby.indexOf("testID='manual-home-join-button'"),
+    true
+  )
+})
+
+test('Android manual home join can pass direct guest endpoint to backend', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+
+  assert.match(
+    source,
+    /import \{ parseDirectRoomEndpoint \} from '\.\.\/src\/direct-room-endpoint\.js'/
+  )
+  assert.match(source, /const \[directRoomEndpoint, setDirectRoomEndpoint\] = useState\(''\)/)
+  assert.match(source, /const directEndpoint = parseDirectRoomEndpoint\(directRoomEndpoint\)/)
+  assert.match(
+    source,
+    /directEndpoint\s+\?\s+\{\s*directTransport:\s+\{\s*endpoint:\s+directEndpoint,\s*mode:\s+'guest'\s*\}\s*\}\s+:\s+\{\}/
+  )
 })
 
 test('Android setup action buttons use icons consistently', async () => {
@@ -412,6 +433,7 @@ test('Android keeps raw error detail in room advanced status', async () => {
   assert.match(source, /lastError={lastError}/)
   assert.match(source, /setLastError\(error\.message\)/)
   assert.match(source, /setLastError\(payload\.message \|\| 'Home connection error'\)/)
+  assert.equal(source.includes("console.error('Home connection error'"), false)
   assert.match(source, /<Text style={styles\.roomLabel}>Error detail<\/Text>/)
   assert.match(source, /testID='room-error-detail'/)
   assert.match(source, /\{lastError \|\| 'none'\}/)
@@ -520,6 +542,7 @@ test('Android room bar keeps raw home key behind advanced details', async () => 
   assert.match(source, /showRoomAdvanced \? \(/)
   assert.match(source, /testID='room-transport-debug'/)
   assert.match(source, /formatTransportDebug\(transportDebug\)/)
+  assert.match(source, /`directReady=\$\{debug\.directReady \? 'yes' : 'no'\}`/)
   assert.equal(
     source.indexOf("testID='room-home-address'") > source.indexOf('showRoomAdvanced ? ('),
     true
@@ -1145,4 +1168,41 @@ test('debug two-device smoke covers live DM exchange and restart persistence', a
     source.indexOf("id: 'people-tab'") < source.indexOf("id: 'advanced-share-toggle'"),
     true
   )
+})
+
+test('Android records accepted DM threads in UI state before async storage completes', async () => {
+  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+
+  assert.match(source, /import \{ upsertDmThread \} from '\.\.\/src\/dm-thread-list\.js'/)
+  assert.match(
+    source,
+    /if \(req\.command === RPC_DM_THREAD\) \{[\s\S]*setDmThreads\(\(current\) => upsertDmThread\(current, payload\)\)/
+  )
+})
+
+test('debug two-device smoke resets Android DM data before exercising current threads', async () => {
+  const source = await readFile(
+    new URL('../scripts/smoke-two-device-debug.mjs', import.meta.url),
+    'utf8'
+  )
+
+  assert.match(source, /resetAndroidDmData\(\)/)
+  assert.match(source, /rm -rf files\/kepos\/dm files\/kepos\/kepos\/dm/)
+})
+
+test('debug two-device smoke passes desktop direct endpoint into Android manual join', async () => {
+  const source = await readFile(
+    new URL('../scripts/smoke-two-device-debug.mjs', import.meta.url),
+    'utf8'
+  )
+
+  assert.match(source, /KEPOS_DIRECT_ADVERTISED_HOST: directAdvertisedHost/)
+  assert.match(source, /const desktopDirectEndpoint = await waitForDesktopDirectEndpoint\(page\)/)
+  assert.match(source, /await runAndroidJoinFlow\(desktopHome\.roomKey, desktopDirectEndpoint\)/)
+  assert.match(source, /tapAndroidResourceId\('manual-home-endpoint-input'\)/)
+  assert.match(
+    source,
+    /runAdb\(\['shell', 'input', 'text', escapeAndroidInputText\(directEndpoint\)\]\)/
+  )
+  assert.match(source, /function parseDirectEndpointFromDebug\(text = ''\)/)
 })

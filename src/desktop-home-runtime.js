@@ -3,6 +3,7 @@ import { createHomeHello, verifyHomeHello } from './home-presence.ts'
 import { createP2PRoom } from './p2p-room.js'
 
 export function createDesktopHomeRuntime({
+  createDirectTransport = null,
   createHomeHello: createHello = createHomeHello,
   createRoom = createP2PRoom,
   onControl = () => {},
@@ -14,6 +15,7 @@ export function createDesktopHomeRuntime({
   verifyHomeHello: verifyHello = verifyHomeHello
 } = {}) {
   let homeJoinDetails = null
+  let directEndpoint = null
   let room = null
   let session = null
 
@@ -25,8 +27,20 @@ export function createDesktopHomeRuntime({
     if (!homeJoinDetails || !session) return
 
     room = createRoom({
+      createDirectTransport: homeJoinDetails.directTransport
+        ? ({ addPeer, roomKey }) =>
+            createDirectTransport?.({
+              addPeer,
+              ...homeJoinDetails.directTransport,
+              onEndpoint: (endpoint) => {
+                directEndpoint = endpoint
+                emitDebugState({ stage: 'direct-endpoint' })
+              },
+              roomKey
+            })
+        : undefined,
       onControl: (message, peer) => handleControl(message, peer),
-      onDebugState,
+      onDebugState: emitDebugState,
       onDiscoveryError: (error) => {
         onError(new Error(`Home discovery unavailable: ${error.message}`))
       },
@@ -48,7 +62,15 @@ export function createDesktopHomeRuntime({
     await room?.leave()
     room = null
     homeJoinDetails = null
+    directEndpoint = null
     session = null
+  }
+
+  function emitDebugState(debug) {
+    onDebugState({
+      ...debug,
+      ...(directEndpoint ? { directEndpoint } : {})
+    })
   }
 
   function configure(nextContext) {

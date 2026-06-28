@@ -46,6 +46,7 @@ import {
   saveDmSessionMessagesToFileSystem
 } from '../src/dm-session-storage.js'
 import { loadDmThreadsFromFileSystem, saveDmThreadsToFileSystem } from '../src/dm-thread-storage.js'
+import { upsertDmThread } from '../src/dm-thread-list.js'
 import {
   acceptMessageRequest,
   ignoreMessageRequest,
@@ -62,6 +63,7 @@ import {
   createHomeJoinSessionFromAddress,
   createManualHomeJoinSession
 } from '../src/home-session.js'
+import { parseDirectRoomEndpoint } from '../src/direct-room-endpoint.js'
 import { createIdentityKeyPairFromSeed } from '../src/identity.js'
 import { getOrCreateLocalProfile } from '../src/local-profile.js'
 import {
@@ -151,6 +153,7 @@ export default function App() {
   const [contactBook, setContactBook] = useState(null)
   const [treeholePolicy, setTreeholePolicy] = useState(null)
   const [roomKey, setRoomKey] = useState('')
+  const [directRoomEndpoint, setDirectRoomEndpoint] = useState('')
   const [homeQrUri, setHomeQrUri] = useState('')
   const [trustAlias, setTrustAlias] = useState('')
   const [trustQrUri, setTrustQrUri] = useState('')
@@ -299,6 +302,7 @@ export default function App() {
         profileId,
         roomKey: roomKey.trim()
       })
+      const directEndpoint = parseDirectRoomEndpoint(directRoomEndpoint)
       const nextDmSession = await restoreMobileDirectMessageSession()
       setSession(homeJoin.session)
       setDmSession(nextDmSession)
@@ -312,6 +316,14 @@ export default function App() {
         ...homeJoin,
         nick,
         createTreehole: false,
+        ...(directEndpoint
+          ? {
+              directTransport: {
+                endpoint: directEndpoint,
+                mode: 'guest'
+              }
+            }
+          : {}),
         storageBasePath,
         treeholePolicy
       })
@@ -678,6 +690,7 @@ export default function App() {
         }
 
         if (req.command === RPC_DM_THREAD) {
+          setDmThreads((current) => upsertDmThread(current, payload))
           saveMobileDmThread(payload).catch((error) => {
             console.error('DM thread unavailable', error)
             setLastError(error.message)
@@ -718,7 +731,6 @@ export default function App() {
         }
 
         if (req.command === RPC_ERROR) {
-          console.error('Home connection error', payload)
           setLastError(payload.message || 'Home connection error')
           setNotice('Home connection error.')
         }
@@ -851,10 +863,7 @@ export default function App() {
       baseUri,
       fileSystem: FileSystem
     })
-    const nextThreads = [
-      ...threads.filter((existing) => existing.threadId !== thread.threadId),
-      thread
-    ]
+    const nextThreads = upsertDmThread(threads, thread)
 
     await saveDmThreadsToFileSystem({
       baseUri,
@@ -945,6 +954,7 @@ export default function App() {
                   onHomeQrChange={setHomeQrUri}
                   onJoinRoom={joinRoom}
                   onJoinHomeQr={joinHomeQr}
+                  onDirectRoomEndpointChange={setDirectRoomEndpoint}
                   onNickChange={setNick}
                   onRoomKeyChange={setRoomKey}
                   onScanHomeQr={() => startQrScan('home')}
@@ -957,6 +967,7 @@ export default function App() {
                   profileReady={profileReady}
                   profileQrUri={profileQrUri}
                   roomKey={roomKey}
+                  directRoomEndpoint={directRoomEndpoint}
                   showAdvancedJoin={showAdvancedJoin}
                   trustAlias={trustAlias}
                   trustQrUri={trustQrUri}
@@ -1047,10 +1058,12 @@ function QrScanner({ onCancel, onScanned, permissionDenied }) {
 
 function Lobby({
   canJoin,
+  directRoomEndpoint,
   homeQrUri,
   myHomeQrUri,
   nick,
   onCreateRoom,
+  onDirectRoomEndpointChange,
   onHomeQrChange,
   onJoinRoom,
   onJoinHomeQr,
@@ -1116,6 +1129,16 @@ function Lobby({
             testID='manual-home-key-input'
             value={roomKey}
           />
+          <TextInput
+            autoCapitalize='none'
+            autoCorrect={false}
+            onChangeText={onDirectRoomEndpointChange}
+            placeholder='Optional direct host:port'
+            placeholderTextColor={theme.placeholder}
+            style={styles.keyInput}
+            testID='manual-home-endpoint-input'
+            value={directRoomEndpoint}
+          />
           <MobileActionButton
             disabled={!canJoin}
             icon={ArrowRight}
@@ -1167,7 +1190,18 @@ function formatTransportDebug(debug) {
     `knownPeers=${debug.knownPeers ?? 0}`,
     `discovered=${debug.discovered ?? 0}`,
     `localPeers=${debug.localPeers ?? 0}`,
+    `reads=${debug.frameReads ?? 0}/${debug.byteReads ?? 0}`,
+    `writes=${debug.frameWrites ?? 0}/${debug.byteWrites ?? 0}`,
+    `decodeErrors=${debug.frameDecodeErrors ?? 0}`,
+    debug.lastReadType ? `lastRead=${debug.lastReadType}` : null,
+    debug.lastWriteType ? `lastWrite=${debug.lastWriteType}` : null,
+    formatFrameTypes('readTypes', debug.readTypes),
+    formatFrameTypes('writeTypes', debug.writeTypes),
     `topics=${debug.topics ?? 0}`,
+    debug.directEndpoint?.host && debug.directEndpoint?.port
+      ? `direct=${debug.directEndpoint.host}:${debug.directEndpoint.port}`
+      : null,
+    `directReady=${debug.directReady ? 'yes' : 'no'}`,
     `client=${debug.isClient ? 'yes' : 'no'}`,
     `server=${debug.isServer ? 'yes' : 'no'}`,
     `listening=${debug.listening ? 'yes' : 'no'}`,
@@ -1178,7 +1212,18 @@ function formatTransportDebug(debug) {
     `dhtOnline=${debug.dhtOnline ? 'yes' : 'no'}`,
     `dhtFirewalled=${debug.dhtFirewalled ? 'yes' : 'no'}`,
     `dhtNodes=${debug.dhtNodes ?? 0}`
-  ].join(' ')
+  ]
+    .filter(Boolean)
+    .join(' ')
+}
+
+function formatFrameTypes(label, counts) {
+  if (!counts || typeof counts !== 'object') return null
+
+  const entries = Object.entries(counts)
+  if (entries.length === 0) return null
+
+  return `${label}=${entries.map(([type, count]) => `${type}:${count}`).join(',')}`
 }
 
 function ChatRoom({

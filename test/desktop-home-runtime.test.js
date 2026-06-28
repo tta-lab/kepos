@@ -31,14 +31,16 @@ function createFakeRoom() {
   return { calls, room }
 }
 
-function createRuntime() {
+function createRuntime({ createDirectTransport = undefined } = {}) {
   const { calls, room } = createFakeRoom()
   const controls = []
   const errors = []
+  const debugStates = []
   const peerCounts = []
   const sessions = []
   const verifiedHellos = []
   const runtime = createDesktopHomeRuntime({
+    createDirectTransport,
     createHomeHello: () => ({
       homeAddress: homeJoinDetails.address,
       profileId: identity.publicKey,
@@ -49,6 +51,7 @@ function createRuntime() {
       return room
     },
     onControl: (message, peer) => controls.push([message, peer]),
+    onDebugState: (debug) => debugStates.push(debug),
     onError: (error) => errors.push(error.message),
     onPeerCount: (peers) => peerCounts.push(peers),
     onSessionChanged: (session) => sessions.push(session),
@@ -56,8 +59,57 @@ function createRuntime() {
     verifyHomeHello: (message) => message.signature === 'sig'
   })
 
-  return { calls, controls, errors, peerCounts, room, runtime, sessions, verifiedHellos }
+  return {
+    calls,
+    controls,
+    debugStates,
+    errors,
+    peerCounts,
+    room,
+    runtime,
+    sessions,
+    verifiedHellos
+  }
 }
+
+test('desktop home runtime wires configured direct transport into the room', async () => {
+  const { debugStates, room, runtime } = createRuntime({
+    createDirectTransport: (options) => options
+  })
+  const directTransport = { listenHost: '0.0.0.0', mode: 'host' }
+
+  await runtime.join({ homeJoinDetails: { ...homeJoinDetails, directTransport } })
+
+  assert.equal(typeof room.options.createDirectTransport, 'function')
+  const transportOptions = room.options.createDirectTransport({
+    addPeer: () => {},
+    roomKey: 'room'
+  })
+  assert.equal(typeof transportOptions.addPeer, 'function')
+  assert.deepEqual(
+    {
+      listenHost: transportOptions.listenHost,
+      mode: transportOptions.mode,
+      roomKey: transportOptions.roomKey
+    },
+    {
+      listenHost: directTransport.listenHost,
+      mode: directTransport.mode,
+      roomKey: 'room'
+    }
+  )
+  transportOptions.onEndpoint({ host: '192.168.1.203', port: 40123 })
+  assert.deepEqual(debugStates.at(-1), {
+    directEndpoint: { host: '192.168.1.203', port: 40123 },
+    stage: 'direct-endpoint'
+  })
+  room.options.onDebugState({ connections: 0, stage: 'flushed' })
+  assert.deepEqual(debugStates.at(-1), {
+    connections: 0,
+    directEndpoint: { host: '192.168.1.203', port: 40123 },
+    stage: 'flushed'
+  })
+})
 
 test('desktop home runtime joins and leaves a room lifecycle', async () => {
   const { calls, runtime } = createRuntime()

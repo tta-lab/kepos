@@ -52,6 +52,12 @@ export function createDesktopMessageActions({
       })
 
       if (!result) return
+      if (result.kind === 'message') {
+        homeRuntime.broadcastControl({
+          message: result.message,
+          type: 'kepos.dm.body.v1'
+        })
+      }
 
       onChanged()
     },

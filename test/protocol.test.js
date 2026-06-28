@@ -57,8 +57,13 @@ describe('wire frames', () => {
       type: 'treehole.bootstrap',
       key: 'b'.repeat(64)
     }
+    const state = {
+      type: 'treehole.state.v1',
+      snapshot: { posts: [] }
+    }
 
     assert.deepEqual(decodeFrame(encodeFrame(frame).trimEnd()), frame)
+    assert.deepEqual(decodeFrame(encodeFrame(state).trimEnd()), state)
   })
 
   test('decodeFrame rejects direct message body frames', () => {
@@ -87,6 +92,18 @@ describe('wire frames', () => {
 
     assert.deepEqual(decodeFrame(encodeFrame(request).trimEnd()), request)
     assert.deepEqual(decodeFrame(encodeFrame(invite).trimEnd()), invite)
+  })
+
+  test('decodeFrame accepts signed DM body fallback control frames', () => {
+    const frame = {
+      type: 'kepos.dm.body.v1',
+      message: {
+        messageId: 'message-1',
+        threadId: 'thread-1'
+      }
+    }
+
+    assert.deepEqual(decodeFrame(encodeFrame(frame).trimEnd()), frame)
   })
 
   test('decodeFrame accepts signed home hello control frames', () => {

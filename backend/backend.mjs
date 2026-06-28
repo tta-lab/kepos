@@ -3,6 +3,7 @@
 import RPC from 'bare-rpc'
 import b4a from 'b4a'
 import * as fs from 'bare-fs/promises'
+import tcp from 'bare-tcp'
 import crypto from 'hypercore-crypto'
 import Hyperswarm from 'hyperswarm'
 import { createDmInvite, createDmEncryptionKeyPair } from '../src/dm-invite.ts'
@@ -16,6 +17,7 @@ import { acceptDmThread, createDmThread, revokeDmThread } from '../src/dm-thread
 import { createDmThreadRuntime } from '../src/dm-thread-runtime.js'
 import { loadDmThreadsFromFileSystem, saveDmThreadsToFileSystem } from '../src/dm-thread-storage.js'
 import { createMessageRequest, verifyMessageRequest } from '../src/message-request.ts'
+import { createDirectRoomTransport } from '../src/direct-room-transport.js'
 import { createP2PRoom } from '../src/p2p-room.js'
 import { createHomeHello, verifyHomeHello } from '../src/home-presence.ts'
 import { createTreeholeBase } from '../src/treehole-base.js'
@@ -26,6 +28,7 @@ import {
 } from '../src/treehole-policy.ts'
 import { createTreeholeStoragePath } from '../src/treehole-storage.js'
 import { createTreeholeStatePublisher } from '../src/treehole-state-publisher.js'
+import { mergeTreeholeSnapshots } from '../src/treehole-snapshot-merge.js'
 import { serializeTreeholeState } from '../src/treehole-view.js'
 import {
   RPC_ERROR,
@@ -60,6 +63,7 @@ const rpc = new RPC(BareKit.IPC, (req) => {
 
 let room = null
 let treehole = null
+let treeholeOpening = null
 let treeholeSwarm = null
 let treeholeStatePublisher = null
 let roomKey = null
@@ -67,6 +71,7 @@ let homeAddress = null
 let homeOwnerProfileId = null
 let homePolicy = 'trusted_only'
 let treeholeStorageBasePath = null
+let remoteTreeholeSnapshot = null
 let nick = 'anon'
 let profileId = null
 let identity = null
@@ -178,6 +183,15 @@ async function joinRoom(payload) {
   })
 
   room = createP2PRoom({
+    createDirectTransport: payload.directTransport
+      ? ({ addPeer, roomKey }) =>
+          createDirectRoomTransport({
+            addPeer,
+            ...payload.directTransport,
+            roomKey,
+            tcpApi: tcp
+          })
+      : undefined,
     onDiscoveryError: (error) => {
       sendToUI(RPC_ERROR, { message: `Home discovery unavailable: ${error.message}` })
     },
@@ -230,6 +244,7 @@ async function leaveRoom() {
   homeOwnerProfileId = null
   homePolicy = 'trusted_only'
   treeholeStorageBasePath = null
+  remoteTreeholeSnapshot = null
   profileId = null
   identity = null
   dmEncryptionKeyPair = null
@@ -241,7 +256,17 @@ async function openTreehole(bootstrapKey = null) {
   if (treehole) {
     return
   }
+  if (treeholeOpening) {
+    return treeholeOpening
+  }
 
+  treeholeOpening = openTreeholeOnce(bootstrapKey).finally(() => {
+    treeholeOpening = null
+  })
+  return treeholeOpening
+}
+
+async function openTreeholeOnce(bootstrapKey = null) {
   sendToUI(RPC_STATUS, { status: 'opening-treehole-store' })
   sendToUI(RPC_TREEHOLE_STATUS, { status: 'opening-store' })
   treehole = await createTreeholeBase(
@@ -275,6 +300,8 @@ async function openTreehole(bootstrapKey = null) {
 }
 
 async function closeTreehole() {
+  treeholeOpening = null
+  remoteTreeholeSnapshot = null
   await treeholeSwarm?.destroy()
   treeholeSwarm = null
   treeholeStatePublisher?.stop()
@@ -330,6 +357,11 @@ async function handleControl(message, peer) {
     return
   }
 
+  if (message.type === 'kepos.dm.body.v1') {
+    dmRuntime?.receiveMessage(message.message)
+    return
+  }
+
   if (message.type === 'treehole.bootstrap') {
     homeOwnerProfileId = message.ownerProfileId?.trim() || homeOwnerProfileId
     await openTreehole(message.key)
@@ -355,6 +387,16 @@ async function handleControl(message, peer) {
     addedWriters.add(message.key)
     await treehole.addWriter(message.key, { profileId: message.profileId })
     await sendTreeholeState()
+  }
+
+  if (message.type === 'treehole.state.v1') {
+    remoteTreeholeSnapshot = mergeTreeholeSnapshots(remoteTreeholeSnapshot, message.snapshot)
+    sendToUI(RPC_TREEHOLE_STATUS, {
+      canInteract: canInteractWithCurrentTreehole(),
+      canPost: canPostToCurrentTreehole(),
+      status: 'ready'
+    })
+    sendToUI(RPC_TREEHOLE_STATE, createTreeholeSnapshotForUI())
   }
 }
 
@@ -592,11 +634,15 @@ function sendDmBody(payload) {
     throw new Error('DM runtime is not ready')
   }
 
-  dmRuntime.sendMessage({
+  const message = dmRuntime.sendMessage({
     createdAt: payload.createdAt || Date.now(),
     messageId: payload.messageId || createId(),
     text: payload.text,
     threadId: payload.threadId
+  })
+  room?.broadcastControl({
+    message,
+    type: 'kepos.dm.body.v1'
   })
 }
 
@@ -739,7 +785,7 @@ async function sendTreeholeState() {
   }
 
   const state = await treehole.getState()
-  sendToUI(RPC_TREEHOLE_STATE, serializeTreeholeState(state))
+  sendToUI(RPC_TREEHOLE_STATE, createTreeholeSnapshotForUI(serializeTreeholeState(state)))
 }
 
 function startTreeholeStatePublisher() {
@@ -752,8 +798,12 @@ function startTreeholeStatePublisher() {
     onError: (error) => {
       sendToUI(RPC_ERROR, { message: `Treehole state unavailable: ${error.message}` })
     },
-    publish: (snapshot) => sendToUI(RPC_TREEHOLE_STATE, snapshot)
+    publish: (snapshot) => sendToUI(RPC_TREEHOLE_STATE, createTreeholeSnapshotForUI(snapshot))
   })
+}
+
+function createTreeholeSnapshotForUI(localSnapshot = null) {
+  return mergeTreeholeSnapshots(remoteTreeholeSnapshot, localSnapshot)
 }
 
 function readPayload(req) {

@@ -1,14 +1,20 @@
+import net from 'node:net'
 import { createDesktopBackendActions } from './desktop-backend-actions.js'
 import { createDesktopControlActions } from './desktop-control-actions.js'
+import { getDesktopDirectTransportConfig } from './desktop-direct-transport-config.js'
 import { createDesktopLocalBackendHost } from './desktop-local-backend-host.js'
 import { createDesktopMessageActions } from './desktop-message-actions.js'
 import { createDesktopMessageRequestActions } from './desktop-message-request-actions.js'
 import { createDesktopRoomActions } from './desktop-room-actions.js'
 import { createDesktopTrustActions } from './desktop-trust-actions.js'
+import { createDirectRoomTransport } from './direct-room-transport.js'
+import { setDesktopTreehole } from './desktop-state.js'
 
 export function createDesktopBackendSession({
   controllerState,
+  createDirectTransport = createDesktopDirectRoomTransport,
   createId,
+  env = process.env,
   createLocalBackendHost = createDesktopLocalBackendHost,
   getCurrentDisplayName,
   getProfileContext,
@@ -72,6 +78,7 @@ export function createDesktopBackendSession({
   const roomActions = createDesktopRoomActions({
     closeAll: () => backendRuntime.closeAll(),
     configureTreeholeRuntime,
+    getDirectTransportConfig: ({ mode }) => getDesktopDirectTransportConfig({ env, mode }),
     getCurrentDisplayName,
     getDmRuntime: () => dmRuntime,
     getHomeRuntime: () => homeRuntime,
@@ -120,12 +127,24 @@ export function createDesktopBackendSession({
         onChanged()
       },
       onHomeDebugState: (transportDebug) => {
-        controllerState.updateState((state) => ({ ...state, transportDebug }))
+        controllerState.updateState((state) => ({
+          ...state,
+          peers:
+            Number.isInteger(transportDebug?.localPeers) && transportDebug.localPeers > 0
+              ? transportDebug.localPeers
+              : state.peers,
+          transportDebug
+        }))
         onChanged()
       },
       onHomeControl: (message, peer) => controlActions.handleControl(message, peer).catch(onError),
+      onTreeholeStateChanged: (snapshot) => {
+        controllerState.updateState((state) => setDesktopTreehole(state, snapshot))
+        onChanged()
+      },
       onVerifiedHello: (message, peer) =>
         controlActions.sendTreeholeBootstrap(peer, message.profileId),
+      createDirectTransport,
       storageBasePath
     }
   })
@@ -172,4 +191,11 @@ export function createDesktopBackendSession({
     roomActions,
     treeholeRuntime
   }
+}
+
+function createDesktopDirectRoomTransport(options) {
+  return createDirectRoomTransport({
+    ...options,
+    tcpApi: net
+  })
 }

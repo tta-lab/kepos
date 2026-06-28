@@ -198,6 +198,10 @@ export function createDesktopDmRuntime({
     return dmSession
   }
 
+  function receiveMessage(message) {
+    return dmRuntime?.receiveMessage(message) || false
+  }
+
   function findThread(remoteProfileId) {
     return loadLocalThreads().find(
       (thread) =>
@@ -271,6 +275,7 @@ export function createDesktopDmRuntime({
     getSession,
     loadThreads: loadLocalThreads,
     openLocalThreads,
+    receiveMessage,
     replaceThreads,
     saveThread,
     sendMessageOrRequest,

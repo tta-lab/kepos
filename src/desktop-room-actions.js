@@ -10,6 +10,7 @@ export function createDesktopRoomActions({
   createInitialState = createDesktopState,
   getCurrentDisplayName,
   getDmRuntime,
+  getDirectTransportConfig = () => null,
   getHomeRuntime,
   getProfileContext,
   getTreeholeRuntime,
@@ -44,6 +45,16 @@ export function createDesktopRoomActions({
       profile,
       roomKey
     })
+    const directTransport = getDirectTransportConfig({ mode })
+    if (directTransport) {
+      homeJoin.homeJoinDetails = {
+        ...homeJoin.homeJoinDetails,
+        directTransport: {
+          ...directTransport,
+          mode: directTransport.mode || mode
+        }
+      }
+    }
 
     setContextFormDraft({ roomKey: homeJoin.homeJoinDetails.roomKey })
     setHomeJoinDetails(homeJoin.homeJoinDetails)

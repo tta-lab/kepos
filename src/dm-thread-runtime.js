@@ -1,4 +1,5 @@
 import { mergeDmMessages } from './dm-message-storage.ts'
+import { verifySignedDmMessage } from './dm-message.ts'
 import { createDmReplicationChannel } from './dm-replication.js'
 import { isDmThreadActive } from './dm-thread.ts'
 
@@ -61,6 +62,22 @@ export function createDmThreadRuntime({
     return message
   }
 
+  function receiveMessage(message) {
+    const record = threads.get(message?.threadId)
+
+    if (
+      !record ||
+      !shouldAcceptRemoteMessage(record, message) ||
+      hasMessage(record, message.messageId)
+    ) {
+      return false
+    }
+
+    persistMessage(record, message)
+    onMessage(record.thread, message, 'in')
+    return true
+  }
+
   async function closeThread(threadId) {
     const record = threads.get(threadId)
 
@@ -79,12 +96,25 @@ export function createDmThreadRuntime({
   function handleIncomingMessage(threadId, message) {
     const record = threads.get(threadId)
 
-    if (!record) {
+    if (!record || hasMessage(record, message?.messageId)) {
       return
     }
 
     persistMessage(record, message)
     onMessage(record.thread, message, 'in')
+  }
+
+  function shouldAcceptRemoteMessage(record, message) {
+    return (
+      message?.threadId === record.thread.threadId &&
+      message.fromProfileId === record.thread.remoteProfileId &&
+      message.fromProfileId !== localProfileId &&
+      verifySignedDmMessage(message)
+    )
+  }
+
+  function hasMessage(record, messageId) {
+    return Boolean(messageId && record.messages.some((message) => message.messageId === messageId))
   }
 
   function persistMessage(record, message) {
@@ -96,6 +126,7 @@ export function createDmThreadRuntime({
     closeAll,
     closeThread,
     openThread,
+    receiveMessage,
     sendMessage
   }
 }

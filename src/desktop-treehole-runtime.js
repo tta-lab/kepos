@@ -22,6 +22,7 @@ export function createDesktopTreeholeRuntime({
   let session = null
   let homeJoinDetails = null
   let treehole = null
+  let treeholeOpening = null
   let treeholeSwarm = null
   let treeholeStatePublisher = null
   const addedWriters = new Set()
@@ -33,8 +34,16 @@ export function createDesktopTreeholeRuntime({
 
   async function open({ bootstrapKey = null, initialPosts = [], initialStatus = 'ready' } = {}) {
     if (treehole) return
+    if (treeholeOpening) return treeholeOpening
     if (!session) return
 
+    treeholeOpening = openOnce({ bootstrapKey, initialPosts, initialStatus }).finally(() => {
+      treeholeOpening = null
+    })
+    return treeholeOpening
+  }
+
+  async function openOnce({ bootstrapKey, initialPosts, initialStatus }) {
     treehole = await createTreehole(
       createTreeholeSessionOptions({
         bootstrapKey,
@@ -64,6 +73,7 @@ export function createDesktopTreeholeRuntime({
   }
 
   async function close() {
+    treeholeOpening = null
     await treeholeSwarm?.destroy()
     treeholeSwarm = null
     treeholeStatePublisher?.stop()

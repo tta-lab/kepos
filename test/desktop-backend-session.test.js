@@ -25,7 +25,7 @@ test('desktop backend session composes actions and runtime host behind one bound
           closeAll: () => Promise.resolve(),
           configure: (context) => createdHosts.push(context)
         },
-        treeholeRuntime: { canPost: () => false }
+        treeholeRuntime: { canPost: () => false, open: () => {} }
       }
     },
     getCurrentDisplayName: () => 'Desktop',
@@ -51,6 +51,60 @@ test('desktop backend session composes actions and runtime host behind one bound
   assert.equal(typeof session.configureTreeholeRuntime, 'function')
   assert.equal(typeof session.openTreehole, 'function')
   assert.equal(typeof session.roomActions.leaveHome, 'function')
+})
+
+test('desktop backend session wires configured direct transport into room actions and runtime', async () => {
+  const controllerState = createControllerState()
+  const createdHosts = []
+  const homeJoins = []
+
+  createDesktopBackendSession({
+    controllerState,
+    createId: () => 'id-1',
+    createLocalBackendHost: (options) => {
+      createdHosts.push(options)
+      return {
+        bridge: { label: 'bridge' },
+        dmRuntime: {
+          loadThreads: () => [],
+          replaceThreads: () => {},
+          start: () => ({ id: 'dm-session' })
+        },
+        homeRuntime: {
+          isJoined: () => false,
+          join: (payload) => homeJoins.push(payload),
+          requestHomeHello: () => {}
+        },
+        runtime: {
+          closeAll: () => Promise.resolve(),
+          configure: () => {}
+        },
+        treeholeRuntime: { canPost: () => false, open: () => {} }
+      }
+    },
+    env: {
+      KEPOS_DIRECT_ADVERTISED_HOST: '192.168.1.203',
+      KEPOS_DIRECT_LISTEN_HOST: '0.0.0.0'
+    },
+    getCurrentDisplayName: () => 'Desktop',
+    getProfileContext: () => createProfileContext(),
+    onChanged: () => {},
+    setContextFormDraft: () => {},
+    setDirectComposerRecipient: () => {},
+    setNotice: () => {},
+    shortenProfileId: (value) => value.slice(0, 8),
+    storageBasePath: '/user-data/kepos/v1',
+    updateState: (updater) => controllerState.updateState(updater)
+  })
+
+  await createdHosts[0].actions.joinHome({ createTreehole: true, mode: 'host' })
+
+  assert.equal(typeof createdHosts[0].runtimeOptions.createDirectTransport, 'function')
+  assert.deepEqual(homeJoins[0].homeJoinDetails.directTransport, {
+    advertisedHost: '192.168.1.203',
+    listenHost: '0.0.0.0',
+    mode: 'host'
+  })
 })
 
 test('desktop backend session starts direct messages before joining a home', async () => {
@@ -184,13 +238,16 @@ test('desktop backend session keeps runtime transport debug in controller state'
 
   createdHosts[0].runtimeOptions.onHomeDebugState({
     connections: 0,
+    localPeers: 1,
     stage: 'flushed'
   })
 
   assert.deepEqual(controllerState.getState().transportDebug, {
     connections: 0,
+    localPeers: 1,
     stage: 'flushed'
   })
+  assert.equal(controllerState.getState().peers, 1)
   assert.deepEqual(changes, ['changed'])
 })
 
@@ -268,7 +325,7 @@ function createProfileContext() {
         publicKey: 'b'.repeat(64),
         secretKey: 'c'.repeat(64)
       },
-      homeRoom: { roomKey: 'd'.repeat(64) },
+      homeRoom: { ownerProfileId: 'a'.repeat(64), roomKey: 'd'.repeat(64) },
       id: 'a'.repeat(64),
       identity: {
         publicKey: 'a'.repeat(64),

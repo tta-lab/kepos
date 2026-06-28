@@ -129,6 +129,21 @@ test('desktop room actions create a host home and start runtimes', async () => {
   ])
 })
 
+test('desktop room actions attach host direct transport when configured', async () => {
+  const harness = createHarness({
+    getDirectTransportConfig: ({ mode }) =>
+      mode === 'host' ? { advertisedHost: '192.168.1.203', listenHost: '0.0.0.0' } : null
+  })
+
+  await harness.actions.joinHome({ createTreehole: true, displayName: 'Ada', mode: 'host' })
+
+  assert.deepEqual(harness.homeJoinDetails.directTransport, {
+    advertisedHost: '192.168.1.203',
+    listenHost: '0.0.0.0',
+    mode: 'host'
+  })
+})
+
 test('desktop room actions join a home from QR details', async () => {
   const harness = createHarness()
 

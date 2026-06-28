@@ -4,12 +4,15 @@ import { createDesktopBackendRuntime } from '../src/desktop-backend-runtime.js'
 
 function createFakeRuntime(name) {
   return function (options = {}) {
+    const broadcasts = []
     return {
       name,
       options,
+      broadcasts,
       closeAll: () => `${name}:closeAll`,
       close: () => `${name}:close`,
       leave: () => `${name}:leave`,
+      broadcastControl: (message) => broadcasts.push(message),
       configure: (context) => {
         options.context = context
       }
@@ -28,6 +31,7 @@ test('desktop backend runtime wires Home DM and Treehole runtimes to backend eve
     onDmSessionChanged: (session) => sessions.push(['dm', session]),
     onHomeControl: (message, peer) => events.push(['control', message, peer]),
     onHomeSessionChanged: (session) => sessions.push(['home', session]),
+    onTreeholeStateChanged: (snapshot) => events.push(['treehole-callback', snapshot]),
     onVerifiedHello: (message, peer) => events.push(['hello', message, peer])
   })
 
@@ -48,7 +52,11 @@ test('desktop backend runtime wires Home DM and Treehole runtimes to backend eve
     ['hello', { profileId: 'friend' }, 'peer-1'],
     ['errorReceived', new Error('home failed')],
     ['treeholeStateChanged', { status: 'ready' }],
+    ['treehole-callback', { status: 'ready' }],
     ['errorReceived', new Error('treehole failed')]
+  ])
+  assert.deepEqual(runtime.home.broadcasts, [
+    { snapshot: { status: 'ready' }, type: 'treehole.state.v1' }
   ])
   assert.deepEqual(sessions, [
     ['dm', { messages: ['dm'] }],
@@ -81,4 +89,16 @@ test('desktop backend runtime passes storage base path to treehole runtime', () 
   })
 
   assert.equal(runtime.treehole.options.storageBasePath, '/app/user-data/kepos/v1')
+})
+
+test('desktop backend runtime passes direct transport factory to Home runtime', () => {
+  const createDirectTransport = () => ({ close: () => {} })
+  const runtime = createDesktopBackendRuntime({
+    createDirectTransport,
+    createDmRuntime: createFakeRuntime('dm'),
+    createHomeRuntime: createFakeRuntime('home'),
+    createTreeholeRuntime: createFakeRuntime('treehole')
+  })
+
+  assert.equal(runtime.home.options.createDirectTransport, createDirectTransport)
 })

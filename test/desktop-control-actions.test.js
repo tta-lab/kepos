@@ -23,6 +23,10 @@ function createHarness(overrides = {}) {
     },
     getSession() {
       return { localProfileId: 'local' }
+    },
+    receiveMessage(message) {
+      calls.push(['dm.receiveMessage', message])
+      return true
     }
   }
   const homeRuntime = {
@@ -127,6 +131,18 @@ test('desktop control actions accept incoming DM invites', async () => {
   await actions.handleControl({ type: 'kepos.dm.invite.v1' }, 'peer-1')
 
   assert.deepEqual(calls, [['notice', 'Direct message ready.'], ['render']])
+})
+
+test('desktop control actions receive signed DM body fallback frames', async () => {
+  const { actions, calls } = createHarness()
+  const message = {
+    messageId: 'message-1',
+    threadId: 'thread-1'
+  }
+
+  await actions.handleControl({ message, type: 'kepos.dm.body.v1' }, 'peer-1')
+
+  assert.deepEqual(calls, [['dm.receiveMessage', message], ['render']])
 })
 
 test('desktop control actions open treehole bootstrap and send writer control', async () => {

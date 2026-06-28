@@ -5,11 +5,13 @@ const ROOM_KEY_PATTERN = /^[0-9a-f]{64}$/
 const TOPIC_PREFIX = 'kepos-room:v1:'
 const SUPPORTED_FRAME_TYPES = new Set([
   'chat',
+  'kepos.dm.body.v1',
   'kepos.dm.invite.v1',
   'kepos.home.hello.request.v1',
   'kepos.home.hello.v1',
   'kepos.message.request.v1',
   'treehole.bootstrap',
+  'treehole.state.v1',
   'treehole.writer'
 ])
 

@@ -4,6 +4,7 @@ import { decodeFrame, deriveTopic, encodeFrame } from './protocol.js'
 
 export function createP2PRoom(options = {}) {
   const createSwarm = options.createSwarm || (() => new Hyperswarm())
+  const createDirectTransport = options.createDirectTransport || null
   const awaitDiscoveryFlush = options.awaitDiscoveryFlush ?? true
   const onDiscoveryError = options.onDiscoveryError || (() => {})
   const onMessage = options.onMessage || (() => {})
@@ -14,6 +15,18 @@ export function createP2PRoom(options = {}) {
   const peers = new Set()
   const seenMessages = new Set()
   let currentTopic = null
+  let directEndpoint = null
+  let directReady = false
+  let directTransport = null
+  let frameDecodeErrors = 0
+  let frameReads = 0
+  let frameWrites = 0
+  let byteReads = 0
+  let byteWrites = 0
+  let lastReadType = null
+  let lastWriteType = null
+  const readTypes = new Map()
+  const writeTypes = new Map()
   let lastPeerInfo = null
   let swarm = null
   let nick = 'anon'
@@ -28,11 +41,22 @@ export function createP2PRoom(options = {}) {
       activeQuery: Boolean(discovery?._activeQuery),
       connections: getCollectionSize(swarm?.connections),
       connecting: Number(swarm?.connecting || 0),
+      ...(directEndpoint ? { directEndpoint } : {}),
+      directReady,
       discovered: getCollectionSize(discovery?._discovered),
       destroyed: Boolean(swarm?.destroyed),
       dhtFirewalled: Boolean(swarm?.dht?.firewalled),
       dhtNodes: getCollectionSize(swarm?.dht?.nodes),
       dhtOnline: Boolean(swarm?.dht?.online),
+      byteReads,
+      byteWrites,
+      frameDecodeErrors,
+      frameReads,
+      frameWrites,
+      ...(lastReadType ? { lastReadType } : {}),
+      ...(lastWriteType ? { lastWriteType } : {}),
+      readTypes: Object.fromEntries(readTypes),
+      writeTypes: Object.fromEntries(writeTypes),
       isClient: Boolean(discovery?.isClient),
       isServer: Boolean(discovery?.isServer),
       knownPeers: getCollectionSize(swarm?.peers),
@@ -72,6 +96,7 @@ export function createP2PRoom(options = {}) {
 
     let buffer = ''
     socket.on('data', (chunk) => {
+      byteReads += chunk?.byteLength || chunk?.length || 0
       buffer += b4a.toString(chunk)
       const lines = buffer.split('\n')
       buffer = lines.pop() || ''
@@ -83,6 +108,9 @@ export function createP2PRoom(options = {}) {
 
         try {
           const message = decodeFrame(line)
+          frameReads += 1
+          lastReadType = message.type
+          incrementType(readTypes, message.type)
 
           if (message.type === 'chat') {
             if (shouldSkipMessage(message)) {
@@ -96,9 +124,11 @@ export function createP2PRoom(options = {}) {
 
           onControl(message, socket)
         } catch {
+          frameDecodeErrors += 1
           // Ignore malformed peer frames in the prototype.
         }
       }
+      emitDebugState('peer-data')
     })
 
     socket.on('close', () => {
@@ -127,6 +157,19 @@ export function createP2PRoom(options = {}) {
       server: true
     })
     emitDebugState('joined-topic')
+
+    if (createDirectTransport) {
+      directTransport = createDirectTransport({
+        addPeer,
+        roomKey
+      })
+      directTransport?.ready?.then?.((endpoint) => {
+        directEndpoint = endpoint || null
+        directReady = Boolean(endpoint)
+        emitDebugState('direct-ready')
+      })
+      emitDebugState('direct-started')
+    }
 
     if (awaitDiscoveryFlush) {
       await discovery.flushed()
@@ -160,16 +203,26 @@ export function createP2PRoom(options = {}) {
       return
     }
 
-    peer.write(encodeFrame(message))
+    writeFrame(peer, message)
+    emitDebugState('peer-write')
   }
 
   function broadcastFrame(message) {
-    const frame = encodeFrame(message)
     for (const peer of peers) {
       if (!peer.destroyed) {
-        peer.write(frame)
+        writeFrame(peer, message)
       }
     }
+    emitDebugState('peer-write')
+  }
+
+  function writeFrame(peer, message) {
+    const frame = b4a.from(encodeFrame(message))
+    peer.write(frame)
+    frameWrites += 1
+    byteWrites += frame.byteLength || frame.length || 0
+    lastWriteType = message.type
+    incrementType(writeTypes, message.type)
   }
 
   function shouldSkipMessage(message) {
@@ -183,6 +236,11 @@ export function createP2PRoom(options = {}) {
 
     peers.clear()
     onPeerCount(0)
+
+    await directTransport?.close?.()
+    directEndpoint = null
+    directReady = false
+    directTransport = null
 
     if (swarm) {
       await swarm.destroy()
@@ -210,4 +268,8 @@ function getCollectionSize(value) {
   if (typeof value[Symbol.iterator] === 'function') return Array.from(value).length
   if (typeof value === 'object') return Object.keys(value).length
   return 0
+}
+
+function incrementType(counts, type) {
+  counts.set(type, (counts.get(type) || 0) + 1)
 }

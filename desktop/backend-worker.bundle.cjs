@@ -1528,6 +1528,12 @@ function createDesktopControlActions({
       onChanged();
       return;
     }
+    if (message.type === "kepos.dm.body.v1") {
+      if (getDmRuntime().receiveMessage?.(message.message)) {
+        onChanged();
+      }
+      return;
+    }
     if (message.type === "treehole.bootstrap") {
       const result = await createControlMessageResult({ message, peer });
       if (!result) return;
@@ -1581,6 +1587,23 @@ var init_desktop_control_actions = __esm({
   "src/desktop-control-actions.js"() {
     "use strict";
     init_desktop_control_service();
+  }
+});
+
+// src/desktop-direct-transport-config.js
+function getDesktopDirectTransportConfig({ env = process.env, mode } = {}) {
+  if (mode !== "host") return null;
+  const advertisedHost = env.KEPOS_DIRECT_ADVERTISED_HOST?.trim();
+  if (!advertisedHost) return null;
+  return {
+    advertisedHost,
+    listenHost: env.KEPOS_DIRECT_LISTEN_HOST?.trim() || "0.0.0.0",
+    mode: "host"
+  };
+}
+var init_desktop_direct_transport_config = __esm({
+  "src/desktop-direct-transport-config.js"() {
+    "use strict";
   }
 });
 
@@ -2428,6 +2451,15 @@ function createDmThreadRuntime({
     onMessage(record.thread, message, "out");
     return message;
   }
+  function receiveMessage(message) {
+    const record = threads.get(message?.threadId);
+    if (!record || !shouldAcceptRemoteMessage(record, message) || hasMessage(record, message.messageId)) {
+      return false;
+    }
+    persistMessage(record, message);
+    onMessage(record.thread, message, "in");
+    return true;
+  }
   async function closeThread(threadId) {
     const record = threads.get(threadId);
     if (!record) {
@@ -2441,11 +2473,17 @@ function createDmThreadRuntime({
   }
   function handleIncomingMessage(threadId, message) {
     const record = threads.get(threadId);
-    if (!record) {
+    if (!record || hasMessage(record, message?.messageId)) {
       return;
     }
     persistMessage(record, message);
     onMessage(record.thread, message, "in");
+  }
+  function shouldAcceptRemoteMessage(record, message) {
+    return message?.threadId === record.thread.threadId && message.fromProfileId === record.thread.remoteProfileId && message.fromProfileId !== localProfileId && verifySignedDmMessage(message);
+  }
+  function hasMessage(record, messageId) {
+    return Boolean(messageId && record.messages.some((message) => message.messageId === messageId));
   }
   function persistMessage(record, message) {
     record.messages = mergeDmMessages(record.messages, [message]);
@@ -2455,6 +2493,7 @@ function createDmThreadRuntime({
     closeAll,
     closeThread,
     openThread,
+    receiveMessage,
     sendMessage
   };
 }
@@ -2462,6 +2501,7 @@ var init_dm_thread_runtime = __esm({
   "src/dm-thread-runtime.js"() {
     "use strict";
     init_dm_message_storage();
+    init_dm_message();
     init_dm_replication();
     init_dm_thread();
   }
@@ -2726,6 +2766,9 @@ function createDesktopDmRuntime({
     onSessionChanged(dmSession);
     return dmSession;
   }
+  function receiveMessage(message) {
+    return dmRuntime?.receiveMessage(message) || false;
+  }
   function findThread(remoteProfileId) {
     return loadLocalThreads().find(
       (thread) => thread.remoteProfileId === remoteProfileId && thread.state === "accepted" && thread.revokedAt === void 0
@@ -2783,6 +2826,7 @@ function createDesktopDmRuntime({
     getSession,
     loadThreads: loadLocalThreads,
     openLocalThreads,
+    receiveMessage,
     replaceThreads,
     saveThread,
     sendMessageOrRequest,
@@ -2980,11 +3024,13 @@ var init_protocol = __esm({
     TOPIC_PREFIX = "kepos-room:v1:";
     SUPPORTED_FRAME_TYPES = /* @__PURE__ */ new Set([
       "chat",
+      "kepos.dm.body.v1",
       "kepos.dm.invite.v1",
       "kepos.home.hello.request.v1",
       "kepos.home.hello.v1",
       "kepos.message.request.v1",
       "treehole.bootstrap",
+      "treehole.state.v1",
       "treehole.writer"
     ]);
   }
@@ -2993,6 +3039,7 @@ var init_protocol = __esm({
 // src/p2p-room.js
 function createP2PRoom(options = {}) {
   const createSwarm = options.createSwarm || (() => new import_hyperswarm2.default());
+  const createDirectTransport = options.createDirectTransport || null;
   const awaitDiscoveryFlush = options.awaitDiscoveryFlush ?? true;
   const onDiscoveryError = options.onDiscoveryError || (() => {
   });
@@ -3009,6 +3056,18 @@ function createP2PRoom(options = {}) {
   const peers = /* @__PURE__ */ new Set();
   const seenMessages = /* @__PURE__ */ new Set();
   let currentTopic = null;
+  let directEndpoint = null;
+  let directReady = false;
+  let directTransport = null;
+  let frameDecodeErrors = 0;
+  let frameReads = 0;
+  let frameWrites = 0;
+  let byteReads = 0;
+  let byteWrites = 0;
+  let lastReadType = null;
+  let lastWriteType = null;
+  const readTypes = /* @__PURE__ */ new Map();
+  const writeTypes = /* @__PURE__ */ new Map();
   let lastPeerInfo = null;
   let swarm = null;
   let nick = "anon";
@@ -3021,11 +3080,22 @@ function createP2PRoom(options = {}) {
       activeQuery: Boolean(discovery?._activeQuery),
       connections: getCollectionSize(swarm?.connections),
       connecting: Number(swarm?.connecting || 0),
+      ...directEndpoint ? { directEndpoint } : {},
+      directReady,
       discovered: getCollectionSize(discovery?._discovered),
       destroyed: Boolean(swarm?.destroyed),
       dhtFirewalled: Boolean(swarm?.dht?.firewalled),
       dhtNodes: getCollectionSize(swarm?.dht?.nodes),
       dhtOnline: Boolean(swarm?.dht?.online),
+      byteReads,
+      byteWrites,
+      frameDecodeErrors,
+      frameReads,
+      frameWrites,
+      ...lastReadType ? { lastReadType } : {},
+      ...lastWriteType ? { lastWriteType } : {},
+      readTypes: Object.fromEntries(readTypes),
+      writeTypes: Object.fromEntries(writeTypes),
       isClient: Boolean(discovery?.isClient),
       isServer: Boolean(discovery?.isServer),
       knownPeers: getCollectionSize(swarm?.peers),
@@ -3059,6 +3129,7 @@ function createP2PRoom(options = {}) {
     onPeer(socket);
     let buffer = "";
     socket.on("data", (chunk) => {
+      byteReads += chunk?.byteLength || chunk?.length || 0;
       buffer += import_b4a7.default.toString(chunk);
       const lines = buffer.split("\n");
       buffer = lines.pop() || "";
@@ -3068,6 +3139,9 @@ function createP2PRoom(options = {}) {
         }
         try {
           const message = decodeFrame(line);
+          frameReads += 1;
+          lastReadType = message.type;
+          incrementType(readTypes, message.type);
           if (message.type === "chat") {
             if (shouldSkipMessage(message)) {
               continue;
@@ -3078,8 +3152,10 @@ function createP2PRoom(options = {}) {
           }
           onControl(message, socket);
         } catch {
+          frameDecodeErrors += 1;
         }
       }
+      emitDebugState("peer-data");
     });
     socket.on("close", () => {
       lastPeerInfo = peerInfo;
@@ -3105,6 +3181,18 @@ function createP2PRoom(options = {}) {
       server: true
     });
     emitDebugState("joined-topic");
+    if (createDirectTransport) {
+      directTransport = createDirectTransport({
+        addPeer,
+        roomKey
+      });
+      directTransport?.ready?.then?.((endpoint) => {
+        directEndpoint = endpoint || null;
+        directReady = Boolean(endpoint);
+        emitDebugState("direct-ready");
+      });
+      emitDebugState("direct-started");
+    }
     if (awaitDiscoveryFlush) {
       await discovery.flushed();
       emitDebugState("flushed");
@@ -3129,15 +3217,24 @@ function createP2PRoom(options = {}) {
     if (!peers.has(peer) || peer.destroyed) {
       return;
     }
-    peer.write(encodeFrame(message));
+    writeFrame(peer, message);
+    emitDebugState("peer-write");
   }
   function broadcastFrame(message) {
-    const frame = encodeFrame(message);
     for (const peer of peers) {
       if (!peer.destroyed) {
-        peer.write(frame);
+        writeFrame(peer, message);
       }
     }
+    emitDebugState("peer-write");
+  }
+  function writeFrame(peer, message) {
+    const frame = import_b4a7.default.from(encodeFrame(message));
+    peer.write(frame);
+    frameWrites += 1;
+    byteWrites += frame.byteLength || frame.length || 0;
+    lastWriteType = message.type;
+    incrementType(writeTypes, message.type);
   }
   function shouldSkipMessage(message) {
     return !message.id || seenMessages.has(message.id);
@@ -3148,6 +3245,10 @@ function createP2PRoom(options = {}) {
     }
     peers.clear();
     onPeerCount(0);
+    await directTransport?.close?.();
+    directEndpoint = null;
+    directReady = false;
+    directTransport = null;
     if (swarm) {
       await swarm.destroy();
       swarm = null;
@@ -3173,6 +3274,9 @@ function getCollectionSize(value) {
   if (typeof value === "object") return Object.keys(value).length;
   return 0;
 }
+function incrementType(counts, type) {
+  counts.set(type, (counts.get(type) || 0) + 1);
+}
 var import_hyperswarm2, import_b4a7;
 var init_p2p_room = __esm({
   "src/p2p-room.js"() {
@@ -3185,6 +3289,7 @@ var init_p2p_room = __esm({
 
 // src/desktop-home-runtime.js
 function createDesktopHomeRuntime({
+  createDirectTransport = null,
   createHomeHello: createHello = createHomeHello,
   createRoom = createP2PRoom,
   onControl = () => {
@@ -3202,6 +3307,7 @@ function createDesktopHomeRuntime({
   verifyHomeHello: verifyHello = verifyHomeHello
 } = {}) {
   let homeJoinDetails = null;
+  let directEndpoint = null;
   let room = null;
   let session = null;
   async function join({ homeJoinDetails: nextHomeJoinDetails }) {
@@ -3210,8 +3316,17 @@ function createDesktopHomeRuntime({
     session = nextHomeJoinDetails?.session || null;
     if (!homeJoinDetails || !session) return;
     room = createRoom({
+      createDirectTransport: homeJoinDetails.directTransport ? ({ addPeer, roomKey }) => createDirectTransport?.({
+        addPeer,
+        ...homeJoinDetails.directTransport,
+        onEndpoint: (endpoint) => {
+          directEndpoint = endpoint;
+          emitDebugState({ stage: "direct-endpoint" });
+        },
+        roomKey
+      }) : void 0,
       onControl: (message, peer) => handleControl(message, peer),
-      onDebugState,
+      onDebugState: emitDebugState,
       onDiscoveryError: (error) => {
         onError(new Error(`Home discovery unavailable: ${error.message}`));
       },
@@ -3231,7 +3346,14 @@ function createDesktopHomeRuntime({
     await room?.leave();
     room = null;
     homeJoinDetails = null;
+    directEndpoint = null;
     session = null;
+  }
+  function emitDebugState(debug) {
+    onDebugState({
+      ...debug,
+      ...directEndpoint ? { directEndpoint } : {}
+    });
   }
   function configure(nextContext) {
     homeJoinDetails = nextContext?.homeJoinDetails || homeJoinDetails;
@@ -4322,6 +4444,7 @@ function createDesktopTreeholeRuntime({
   let session = null;
   let homeJoinDetails = null;
   let treehole = null;
+  let treeholeOpening = null;
   let treeholeSwarm = null;
   let treeholeStatePublisher = null;
   const addedWriters = /* @__PURE__ */ new Set();
@@ -4331,7 +4454,14 @@ function createDesktopTreeholeRuntime({
   }
   async function open2({ bootstrapKey = null, initialPosts = [], initialStatus = "ready" } = {}) {
     if (treehole) return;
+    if (treeholeOpening) return treeholeOpening;
     if (!session) return;
+    treeholeOpening = openOnce({ bootstrapKey, initialPosts, initialStatus }).finally(() => {
+      treeholeOpening = null;
+    });
+    return treeholeOpening;
+  }
+  async function openOnce({ bootstrapKey, initialPosts, initialStatus }) {
     treehole = await createTreehole(
       createTreeholeSessionOptions({
         bootstrapKey,
@@ -4358,6 +4488,7 @@ function createDesktopTreeholeRuntime({
     onStateChanged({ canPost: canPost(), posts: initialPosts, status: initialStatus });
   }
   async function close() {
+    treeholeOpening = null;
     await treeholeSwarm?.destroy();
     treeholeSwarm = null;
     treeholeStatePublisher?.stop();
@@ -4494,6 +4625,7 @@ var init_desktop_treehole_runtime = __esm({
 
 // src/desktop-backend-runtime.js
 function createDesktopBackendRuntime({
+  createDirectTransport = null,
   createDmRuntime = createDesktopDmRuntime,
   createHomeRuntime = createDesktopHomeRuntime,
   createTreeholeRuntime = createDesktopTreeholeRuntime,
@@ -4507,6 +4639,8 @@ function createDesktopBackendRuntime({
   },
   onHomeSessionChanged = () => {
   },
+  onTreeholeStateChanged = () => {
+  },
   onVerifiedHello = () => {
   },
   storageBasePath = null
@@ -4518,6 +4652,7 @@ function createDesktopBackendRuntime({
     }
   });
   const home = createHomeRuntime({
+    createDirectTransport,
     onControl: onHomeControl,
     onDebugState: (debug) => {
       emit("transportDebugChanged", debug);
@@ -4533,7 +4668,14 @@ function createDesktopBackendRuntime({
   });
   const treehole = createTreeholeRuntime({
     onError: (error) => emit("errorReceived", error),
-    onStateChanged: (snapshot) => emit("treeholeStateChanged", snapshot),
+    onStateChanged: (snapshot) => {
+      emit("treeholeStateChanged", snapshot);
+      onTreeholeStateChanged(snapshot);
+      home.broadcastControl({
+        snapshot,
+        type: "treehole.state.v1"
+      });
+    },
     storageBasePath
   });
   function configure(context) {
@@ -4721,6 +4863,12 @@ function createDesktopMessageActions({
         toProfileId
       });
       if (!result) return;
+      if (result.kind === "message") {
+        homeRuntime.broadcastControl({
+          message: result.message,
+          type: "kepos.dm.body.v1"
+        });
+      }
       onChanged();
     },
     sendHomeMessage({ text } = {}) {
@@ -5698,6 +5846,7 @@ function createDesktopRoomActions({
   createInitialState = createDesktopState,
   getCurrentDisplayName,
   getDmRuntime,
+  getDirectTransportConfig = () => null,
   getHomeRuntime,
   getProfileContext,
   getTreeholeRuntime,
@@ -5732,6 +5881,16 @@ function createDesktopRoomActions({
       profile,
       roomKey
     });
+    const directTransport = getDirectTransportConfig({ mode });
+    if (directTransport) {
+      homeJoin.homeJoinDetails = {
+        ...homeJoin.homeJoinDetails,
+        directTransport: {
+          ...directTransport,
+          mode: directTransport.mode || mode
+        }
+      };
+    }
     setContextFormDraft({ roomKey: homeJoin.homeJoinDetails.roomKey });
     setHomeJoinDetails(homeJoin.homeJoinDetails);
     setSession(homeJoin.session);
@@ -5932,10 +6091,118 @@ var init_desktop_trust_actions = __esm({
   }
 });
 
+// src/direct-room-transport.js
+function createDirectRoomTransport({
+  addPeer,
+  endpoint = null,
+  advertisedHost = null,
+  listenHost = "0.0.0.0",
+  mode,
+  onEndpoint = () => {
+  },
+  onError = () => {
+  },
+  tcpApi = null
+} = {}) {
+  if (typeof addPeer !== "function") {
+    throw new Error("Direct transport peer handler is required");
+  }
+  if (mode === "host") {
+    return createHostTransport({
+      addPeer,
+      advertisedHost,
+      listenHost,
+      onEndpoint,
+      onError,
+      tcpApi: tcpApi || loadTcpApi()
+    });
+  }
+  if (mode === "guest") {
+    return createGuestTransport({
+      addPeer,
+      endpoint,
+      onError,
+      tcpApi: tcpApi || loadTcpApi()
+    });
+  }
+  return {
+    ready: Promise.resolve(null),
+    close: () => {
+    }
+  };
+}
+function loadTcpApi() {
+  const require2 = Function('return typeof require === "function" ? require : null')();
+  if (!require2) throw new Error("Direct transport TCP API is unavailable");
+  return require2("bare-tcp");
+}
+function createHostTransport({ addPeer, advertisedHost, listenHost, onEndpoint, onError, tcpApi }) {
+  const server = tcpApi.createServer((socket) => addPeer(socket));
+  server.on?.("error", onError);
+  const ready = new Promise((resolve, reject) => {
+    server.on?.("error", reject);
+    server.listen(0, listenHost, () => {
+      const address = server.address();
+      const endpoint = {
+        host: advertisedHost || address.address,
+        port: address.port
+      };
+      onEndpoint(endpoint);
+      resolve(endpoint);
+    });
+  });
+  return {
+    ready,
+    close: () => closeServer(server)
+  };
+}
+function createGuestTransport({ addPeer, endpoint, onError, tcpApi }) {
+  if (!endpoint?.host || !endpoint?.port) {
+    return {
+      ready: Promise.resolve(null),
+      close: () => {
+      }
+    };
+  }
+  const socket = tcpApi.createConnection(endpoint.port, endpoint.host);
+  socket.on?.("error", onError);
+  const ready = new Promise((resolve) => {
+    socket.on?.("error", () => resolve(null));
+    socket.on?.("connect", () => {
+      addPeer(socket);
+      resolve(endpoint);
+    });
+  });
+  return {
+    ready,
+    close: () => closeSocket(socket)
+  };
+}
+function closeServer(server) {
+  return new Promise((resolve) => {
+    server.close?.(() => resolve());
+  });
+}
+function closeSocket(socket) {
+  return new Promise((resolve) => {
+    socket.on?.("close", resolve);
+    socket.end?.();
+    socket.destroy?.();
+    setTimeout(resolve, 50);
+  });
+}
+var init_direct_room_transport = __esm({
+  "src/direct-room-transport.js"() {
+    "use strict";
+  }
+});
+
 // src/desktop-backend-session.js
 function createDesktopBackendSession({
   controllerState,
+  createDirectTransport = createDesktopDirectRoomTransport,
   createId,
+  env = process.env,
   createLocalBackendHost = createDesktopLocalBackendHost,
   getCurrentDisplayName,
   getProfileContext,
@@ -5998,6 +6265,7 @@ function createDesktopBackendSession({
   const roomActions = createDesktopRoomActions({
     closeAll: () => backendRuntime.closeAll(),
     configureTreeholeRuntime,
+    getDirectTransportConfig: ({ mode }) => getDesktopDirectTransportConfig({ env, mode }),
     getCurrentDisplayName,
     getDmRuntime: () => dmRuntime,
     getHomeRuntime: () => homeRuntime,
@@ -6046,11 +6314,20 @@ function createDesktopBackendSession({
         onChanged();
       },
       onHomeDebugState: (transportDebug) => {
-        controllerState.updateState((state) => ({ ...state, transportDebug }));
+        controllerState.updateState((state) => ({
+          ...state,
+          peers: Number.isInteger(transportDebug?.localPeers) && transportDebug.localPeers > 0 ? transportDebug.localPeers : state.peers,
+          transportDebug
+        }));
         onChanged();
       },
       onHomeControl: (message, peer) => controlActions.handleControl(message, peer).catch(onError),
+      onTreeholeStateChanged: (snapshot) => {
+        controllerState.updateState((state) => setDesktopTreehole(state, snapshot));
+        onChanged();
+      },
       onVerifiedHello: (message, peer) => controlActions.sendTreeholeBootstrap(peer, message.profileId),
+      createDirectTransport,
       storageBasePath
     }
   });
@@ -6091,16 +6368,27 @@ function createDesktopBackendSession({
     treeholeRuntime
   };
 }
+function createDesktopDirectRoomTransport(options) {
+  return createDirectRoomTransport({
+    ...options,
+    tcpApi: import_node_net.default
+  });
+}
+var import_node_net;
 var init_desktop_backend_session = __esm({
   "src/desktop-backend-session.js"() {
     "use strict";
+    import_node_net = __toESM(require("node:net"), 1);
     init_desktop_backend_actions();
     init_desktop_control_actions();
+    init_desktop_direct_transport_config();
     init_desktop_local_backend_host();
     init_desktop_message_actions();
     init_desktop_message_request_actions();
     init_desktop_room_actions();
     init_desktop_trust_actions();
+    init_direct_room_transport();
+    init_desktop_state();
   }
 });
 

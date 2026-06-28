@@ -140,6 +140,7 @@ test('desktop direct message command carries composer fields as payload', async 
     /sendDirectMessage: \(\{ text, toProfileId \}\) =>\s*dispatchCommand\('sendDmMessage', \{ text, toProfileId \}\)/
   )
   assert.match(bindings, /ui\?\.setDirectComposerActions\(\{/)
+  assert.match(source, /globalThis\.keposDesktopDispatchCommand = dispatchCommand/)
   assert.match(
     host,
     /sendDmMessage: \(payload\) => actions\.sendDmMessage\(readCommandPayload\(payload\)\)/

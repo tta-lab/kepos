@@ -229,6 +229,59 @@ describe('p2p room backend', () => {
     assert.deepEqual(peers, [socket])
   })
 
+  test('join accepts peers from an optional direct transport', async () => {
+    const directSocket = new FakeSocket()
+    const messages = []
+    const starts = []
+    const room = createP2PRoom({
+      createDirectTransport: ({ addPeer, roomKey }) => {
+        starts.push(roomKey)
+        addPeer(directSocket)
+        return {
+          close: () => starts.push('closed')
+        }
+      },
+      createSwarm: () => new FakeSwarm(),
+      onMessage: (message) => messages.push(message)
+    })
+
+    await room.join({ roomKey: 'a'.repeat(64), nick: 'Neil' })
+    directSocket.emitData('{"type":"chat","id":"direct-1","nick":"Ada","text":"hi","at":1}\n')
+    await room.leave()
+
+    assert.deepEqual(starts, ['a'.repeat(64), 'closed'])
+    assert.equal(messages[0].text, 'hi')
+  })
+
+  test('join emits debug when optional direct transport becomes ready', async () => {
+    const debugStates = []
+    const room = createP2PRoom({
+      createDirectTransport: () => ({
+        close: () => {},
+        ready: Promise.resolve({ host: '127.0.0.1', port: 40123 })
+      }),
+      createSwarm: () => new FakeSwarm(),
+      onDebugState: (debug) => debugStates.push(debug)
+    })
+
+    await room.join({ roomKey: 'a'.repeat(64), nick: 'Neil' })
+    await new Promise((resolve) => setTimeout(resolve, 0))
+
+    const directReadyDebug = debugStates.find((state) => state.stage === 'direct-ready')
+    assert.deepEqual(
+      {
+        directEndpoint: directReadyDebug.directEndpoint,
+        directReady: directReadyDebug.directReady,
+        stage: directReadyDebug.stage
+      },
+      {
+        directEndpoint: { host: '127.0.0.1', port: 40123 },
+        directReady: true,
+        stage: 'direct-ready'
+      }
+    )
+  })
+
   test('join emits transport debug snapshots', async () => {
     const debugStates = []
     const room = createP2PRoom({
@@ -244,13 +297,19 @@ describe('p2p room backend', () => {
     )
     assert.deepEqual(debugStates.at(-1), {
       activeQuery: false,
+      byteReads: 0,
+      byteWrites: 0,
       connections: 0,
       connecting: 0,
+      directReady: false,
       discovered: 0,
       destroyed: false,
       dhtFirewalled: false,
       dhtNodes: 0,
       dhtOnline: false,
+      frameDecodeErrors: 0,
+      frameReads: 0,
+      frameWrites: 0,
       isClient: true,
       isServer: true,
       knownPeers: 0,
@@ -259,9 +318,11 @@ describe('p2p room backend', () => {
       lastPeerTopics: 0,
       listening: false,
       localPeers: 0,
+      readTypes: {},
       refreshes: 1,
       stage: 'flushed',
-      topics: 1
+      topics: 1,
+      writeTypes: {}
     })
   })
 })
@@ -328,7 +389,7 @@ class FakeSocket {
   }
 
   write(frame) {
-    this.writes.push(frame)
+    this.writes.push(Buffer.isBuffer(frame) ? frame.toString() : frame)
   }
 
   emitData(data) {

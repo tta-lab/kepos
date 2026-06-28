@@ -53,6 +53,13 @@ export function createDesktopControlActions({
       return
     }
 
+    if (message.type === 'kepos.dm.body.v1') {
+      if (getDmRuntime().receiveMessage?.(message.message)) {
+        onChanged()
+      }
+      return
+    }
+
     if (message.type === 'treehole.bootstrap') {
       const result = await createControlMessageResult({ message, peer })
       if (!result) return
