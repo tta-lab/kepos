@@ -1591,7 +1591,10 @@ var init_desktop_control_actions = __esm({
 });
 
 // src/desktop-direct-transport-config.js
-function getDesktopDirectTransportConfig({ env = process.env, mode } = {}) {
+function getDesktopDirectTransportConfig({
+  env = globalThis.process?.env || {},
+  mode
+} = {}) {
   if (mode !== "host") return null;
   const advertisedHost = env.KEPOS_DIRECT_ADVERTISED_HOST?.trim();
   if (!advertisedHost) return null;
@@ -6132,9 +6135,8 @@ function createDirectRoomTransport({
   };
 }
 function loadTcpApi() {
-  const require2 = Function('return typeof require === "function" ? require : null')();
-  if (!require2) throw new Error("Direct transport TCP API is unavailable");
-  return require2("bare-tcp");
+  if (typeof require !== "function") throw new Error("Direct transport TCP API is unavailable");
+  return require("bare-tcp");
 }
 function createHostTransport({ addPeer, advertisedHost, listenHost, onEndpoint, onError, tcpApi }) {
   const server = tcpApi.createServer((socket) => addPeer(socket));
@@ -6202,7 +6204,7 @@ function createDesktopBackendSession({
   controllerState,
   createDirectTransport = createDesktopDirectRoomTransport,
   createId,
-  env = process.env,
+  env = globalThis.process?.env || {},
   createLocalBackendHost = createDesktopLocalBackendHost,
   getCurrentDisplayName,
   getProfileContext,
@@ -6371,14 +6373,16 @@ function createDesktopBackendSession({
 function createDesktopDirectRoomTransport(options) {
   return createDirectRoomTransport({
     ...options,
-    tcpApi: import_node_net.default
+    tcpApi: loadNodeTcpApi()
   });
 }
-var import_node_net;
+function loadNodeTcpApi() {
+  const require2 = Function('return typeof require === "function" ? require : null')();
+  return require2?.("node:net") || null;
+}
 var init_desktop_backend_session = __esm({
   "src/desktop-backend-session.js"() {
     "use strict";
-    import_node_net = __toESM(require("node:net"), 1);
     init_desktop_backend_actions();
     init_desktop_control_actions();
     init_desktop_direct_transport_config();
@@ -6468,6 +6472,7 @@ function createDesktopMainBackendSessionCore({
   createBackendSession = createDesktopBackendSession,
   createControllerState = createDesktopControllerState,
   createId = defaultCreateId,
+  env,
   createProfileContext,
   createShareQrOutputs = createDesktopShareQrOutputs,
   defaultDisplayName = "Desktop",
@@ -6479,6 +6484,7 @@ function createDesktopMainBackendSessionCore({
   backendSession = createBackendSession({
     controllerState,
     createId,
+    env,
     getCurrentDisplayName: () => controllerState.getCurrentDisplayName(),
     getProfileContext: (displayName = controllerState.getCurrentDisplayName()) => createProfileContext({ displayName, storageBasePath }),
     onChanged: () => {
@@ -6659,6 +6665,7 @@ function startDesktopBackendBareWorker({
   const worker = startBackendWorker({
     createIpcServer,
     createMainBackendSession,
+    env: parseWorkerEnv(BareRuntime.argv?.[3]),
     storageBasePath: BareRuntime.argv?.[2],
     stream: BareRuntime.IPC
   });
@@ -6674,6 +6681,7 @@ function installBareEncodingGlobals({
 }
 function startDesktopBackendWorkerInBare({
   createIpcServer,
+  env,
   createMainBackendSession,
   storageBasePath,
   stream
@@ -6681,7 +6689,7 @@ function startDesktopBackendWorkerInBare({
   if (!createMainBackendSession) {
     throw new Error("Desktop Bare backend session factory is required");
   }
-  const session = createMainBackendSession({ storageBasePath });
+  const session = createMainBackendSession({ env, storageBasePath });
   const server = createIpcServer({
     bridge: session.backendHost.bridge,
     stream
@@ -6693,6 +6701,15 @@ function startDesktopBackendWorkerInBare({
       return session.backendRuntime?.closeAll?.();
     }
   };
+}
+function parseWorkerEnv(value) {
+  if (!value) return {};
+  try {
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
 }
 async function startDefaultDesktopBackendBareWorker() {
   const [{ createDesktopBareProfileContext: createDesktopBareProfileContext2 }, { createDesktopMainBackendSessionCore: createDesktopMainBackendSessionCore2 }] = await Promise.all([

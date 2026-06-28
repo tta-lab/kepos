@@ -39,8 +39,7 @@ export function createDirectRoomTransport({
 }
 
 function loadTcpApi() {
-  const require = Function('return typeof require === "function" ? require : null')()
-  if (!require) throw new Error('Direct transport TCP API is unavailable')
+  if (typeof require !== 'function') throw new Error('Direct transport TCP API is unavailable')
   return require('bare-tcp')
 }
 

@@ -13,6 +13,7 @@
   "dependencies": {
     "autobase": "^7.28.1",
     "b4a": "^1.8.1",
+    "bare-tcp": "^2.5.1",
     "corestore": "^7.10.1",
     "hypercore-crypto": "^3.7.0",
     "hyperswarm": "^4.17.0",

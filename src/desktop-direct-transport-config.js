@@ -1,4 +1,7 @@
-export function getDesktopDirectTransportConfig({ env = process.env, mode } = {}) {
+export function getDesktopDirectTransportConfig({
+  env = globalThis.process?.env || {},
+  mode
+} = {}) {
   if (mode !== 'host') return null
 
   const advertisedHost = env.KEPOS_DIRECT_ADVERTISED_HOST?.trim()

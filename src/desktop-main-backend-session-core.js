@@ -6,6 +6,7 @@ export function createDesktopMainBackendSessionCore({
   createBackendSession = createDesktopBackendSession,
   createControllerState = createDesktopControllerState,
   createId = defaultCreateId,
+  env,
   createProfileContext,
   createShareQrOutputs = createDesktopShareQrOutputs,
   defaultDisplayName = 'Desktop',
@@ -19,6 +20,7 @@ export function createDesktopMainBackendSessionCore({
   backendSession = createBackendSession({
     controllerState,
     createId,
+    env,
     getCurrentDisplayName: () => controllerState.getCurrentDisplayName(),
     getProfileContext: (displayName = controllerState.getCurrentDisplayName()) =>
       createProfileContext({ displayName, storageBasePath }),

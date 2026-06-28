@@ -60,7 +60,14 @@ async function connectMainBackend() {
 
 function createPearBackendWorkerStream({ storageBasePath, workerEntryPath }) {
   if (!pear) throw new Error('pear-runtime is not ready')
-  return pear.run(workerEntryPath, [storageBasePath])
+  return pear.run(workerEntryPath, [storageBasePath, JSON.stringify(getWorkerEnv())])
+}
+
+function getWorkerEnv() {
+  return {
+    KEPOS_DIRECT_ADVERTISED_HOST: process.env.KEPOS_DIRECT_ADVERTISED_HOST || '',
+    KEPOS_DIRECT_LISTEN_HOST: process.env.KEPOS_DIRECT_LISTEN_HOST || ''
+  }
 }
 
 async function startPearRuntime() {

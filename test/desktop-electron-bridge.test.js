@@ -33,7 +33,11 @@ test('desktop main connects Electron IPC to the backend worker host', async () =
   assert.match(source, /desktop-backend-worker-host\.js/)
   assert.match(source, /backend-worker\.bundle\.cjs/)
   assert.match(source, /createPearBackendWorkerStream/)
-  assert.match(source, /pear\.run\(workerEntryPath,\s*\[storageBasePath\]\)/)
+  assert.match(
+    source,
+    /pear\.run\(workerEntryPath,\s*\[storageBasePath,\s*JSON\.stringify\(getWorkerEnv\(\)\)\]\)/
+  )
+  assert.match(source, /function getWorkerEnv\(\)/)
   assert.doesNotMatch(source, /createDesktopMainBackendSession/)
   assert.doesNotMatch(source, /desktop-main-backend-session\.js/)
   assert.match(source, /connectMainBackend/)

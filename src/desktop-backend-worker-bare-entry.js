@@ -14,6 +14,7 @@ export function startDesktopBackendBareWorker({
   const worker = startBackendWorker({
     createIpcServer,
     createMainBackendSession,
+    env: parseWorkerEnv(BareRuntime.argv?.[3]),
     storageBasePath: BareRuntime.argv?.[2],
     stream: BareRuntime.IPC
   })
@@ -33,6 +34,7 @@ export function installBareEncodingGlobals({
 
 function startDesktopBackendWorkerInBare({
   createIpcServer,
+  env,
   createMainBackendSession,
   storageBasePath,
   stream
@@ -41,7 +43,7 @@ function startDesktopBackendWorkerInBare({
     throw new Error('Desktop Bare backend session factory is required')
   }
 
-  const session = createMainBackendSession({ storageBasePath })
+  const session = createMainBackendSession({ env, storageBasePath })
   const server = createIpcServer({
     bridge: session.backendHost.bridge,
     stream
@@ -53,6 +55,17 @@ function startDesktopBackendWorkerInBare({
       server.close()
       return session.backendRuntime?.closeAll?.()
     }
+  }
+}
+
+function parseWorkerEnv(value) {
+  if (!value) return {}
+
+  try {
+    const parsed = JSON.parse(value)
+    return parsed && typeof parsed === 'object' ? parsed : {}
+  } catch {
+    return {}
   }
 }
 

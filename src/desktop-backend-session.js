@@ -1,4 +1,3 @@
-import net from 'node:net'
 import { createDesktopBackendActions } from './desktop-backend-actions.js'
 import { createDesktopControlActions } from './desktop-control-actions.js'
 import { getDesktopDirectTransportConfig } from './desktop-direct-transport-config.js'
@@ -14,7 +13,7 @@ export function createDesktopBackendSession({
   controllerState,
   createDirectTransport = createDesktopDirectRoomTransport,
   createId,
-  env = process.env,
+  env = globalThis.process?.env || {},
   createLocalBackendHost = createDesktopLocalBackendHost,
   getCurrentDisplayName,
   getProfileContext,
@@ -196,6 +195,11 @@ export function createDesktopBackendSession({
 function createDesktopDirectRoomTransport(options) {
   return createDirectRoomTransport({
     ...options,
-    tcpApi: net
+    tcpApi: loadNodeTcpApi()
   })
+}
+
+function loadNodeTcpApi() {
+  const require = Function('return typeof require === "function" ? require : null')()
+  return require?.('node:net') || null
 }
