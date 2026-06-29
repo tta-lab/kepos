@@ -267,7 +267,7 @@ export function canAcceptDmInviteFromContactBook(
     return false
   }
 
-  return isContactTrusted(book, fromProfileId) || Boolean(invite?.requestId?.trim())
+  return isContactTrusted(book, fromProfileId)
 }
 
 export function recordMessageRequest(

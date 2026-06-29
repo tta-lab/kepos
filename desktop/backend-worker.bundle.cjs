@@ -293,7 +293,7 @@ function canAcceptDmInviteFromContactBook(book, invite) {
   if (isContactRevoked(book, fromProfileId)) {
     return false;
   }
-  return isContactTrusted(book, fromProfileId) || Boolean(invite?.requestId?.trim());
+  return isContactTrusted(book, fromProfileId);
 }
 function recordMessageRequest(book, {
   profileId,
@@ -2024,10 +2024,9 @@ function acceptDmInviteAsRecipient({
   if (!localProfileId || invite?.toProfileId !== localProfileId) {
     throw new Error("DM invite is not addressed to this profile");
   }
-  if (contactBook && !canAcceptDmInviteFromContactBook(contactBook, invite)) {
-    throw new Error("DM invite is not authorized");
-  }
-  if (canAcceptInvite && !canAcceptInvite(invite)) {
+  const isContactBookAuthorized = contactBook && canAcceptDmInviteFromContactBook(contactBook, invite);
+  const isExplicitlyAuthorized = canAcceptInvite && canAcceptInvite(invite);
+  if (!isContactBookAuthorized && !isExplicitlyAuthorized) {
     throw new Error("DM invite is not authorized");
   }
   const payload = openDmInvite({ invite, now: acceptedAt, recipientEncryptionKeyPair });

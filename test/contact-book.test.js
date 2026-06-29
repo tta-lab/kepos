@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
 import {
   acceptMessageRequest,
+  canAcceptDmInviteFromContactBook,
   canContactAccessHome,
   canContactSeePresence,
   canSendMessageRequest,
@@ -285,6 +286,38 @@ describe('contact book', () => {
     })
 
     assert.equal(canSendMessageRequest(trusted, 'profile-b'), false)
+  })
+
+  test('DM invite ContactBook policy requires trusted sender', () => {
+    const book = createContactBook({ ownerProfileId: 'owner-a' })
+    const trusted = trustContact(book, {
+      alias: 'Ada',
+      profileId: 'profile-b',
+      trustedAt: 1000
+    })
+
+    assert.equal(
+      canAcceptDmInviteFromContactBook(book, {
+        fromProfileId: 'profile-b',
+        requestId: 'request-1',
+        toProfileId: 'owner-a'
+      }),
+      false
+    )
+    assert.equal(
+      canAcceptDmInviteFromContactBook(trusted, {
+        fromProfileId: 'profile-b',
+        toProfileId: 'owner-a'
+      }),
+      true
+    )
+    assert.equal(
+      canAcceptDmInviteFromContactBook(trusted, {
+        fromProfileId: 'profile-b',
+        toProfileId: 'owner-c'
+      }),
+      false
+    )
   })
 
   test('serializes and restores contact books with schema version', () => {

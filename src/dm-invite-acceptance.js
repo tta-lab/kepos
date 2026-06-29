@@ -14,11 +14,11 @@ export function acceptDmInviteAsRecipient({
     throw new Error('DM invite is not addressed to this profile')
   }
 
-  if (contactBook && !canAcceptDmInviteFromContactBook(contactBook, invite)) {
-    throw new Error('DM invite is not authorized')
-  }
+  const isContactBookAuthorized =
+    contactBook && canAcceptDmInviteFromContactBook(contactBook, invite)
+  const isExplicitlyAuthorized = canAcceptInvite && canAcceptInvite(invite)
 
-  if (canAcceptInvite && !canAcceptInvite(invite)) {
+  if (!isContactBookAuthorized && !isExplicitlyAuthorized) {
     throw new Error('DM invite is not authorized')
   }
 

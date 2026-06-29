@@ -76,6 +76,7 @@ describe('DM invite acceptance', () => {
     })
 
     const thread = acceptDmInviteAsRecipient({
+      canAcceptInvite: (candidate) => candidate.requestId === 'request-1',
       contactBook: book,
       invite,
       localProfileId: recipient.publicKey,
@@ -84,6 +85,39 @@ describe('DM invite acceptance', () => {
 
     assert.equal(thread.remoteProfileId, sender.publicKey)
     assert.equal(isDmThreadActive(thread), true)
+  })
+
+  test('rejects request-bound invites without explicit local request authorization', () => {
+    const sender = createSigningKeyPair()
+    const recipient = createSigningKeyPair()
+    const recipientEncryption = createDmEncryptionKeyPair()
+    const book = createContactBook({ ownerProfileId: recipient.publicKey })
+    const invite = createDmInvite({
+      channelDiscoveryKey: '1'.repeat(64),
+      channelPublicKey: '2'.repeat(64),
+      createdAt: 1000,
+      fromIdentity: sender,
+      inviteId: 'invite-1',
+      payload: {
+        channelDiscoveryKey: '1'.repeat(64),
+        channelPublicKey: '2'.repeat(64),
+        threadId: 'thread-1'
+      },
+      recipientEncryptionPublicKey: recipientEncryption.publicKey,
+      requestId: 'request-1',
+      toProfileId: recipient.publicKey
+    })
+
+    assert.throws(
+      () =>
+        acceptDmInviteAsRecipient({
+          contactBook: book,
+          invite,
+          localProfileId: recipient.publicKey,
+          recipientEncryptionKeyPair: recipientEncryption
+        }),
+      /DM invite is not authorized/
+    )
   })
 
   test('rejects ordinary invites from untrusted senders', () => {
@@ -216,6 +250,7 @@ describe('DM invite acceptance', () => {
       () =>
         acceptDmInviteAsRecipient({
           acceptedAt: 2000,
+          canAcceptInvite: () => true,
           invite,
           localProfileId: recipient.publicKey,
           recipientEncryptionKeyPair: recipientEncryption
