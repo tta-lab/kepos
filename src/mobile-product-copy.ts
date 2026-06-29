@@ -1,4 +1,45 @@
-export function getMobileHomeStatus({ online, session }) {
+export interface MobileHomeStatusInput {
+  online: number
+  session?: { roomKey?: string | null } | null
+}
+
+export interface MobileContactLike {
+  alias?: string | null
+  profileId?: string | null
+  source?: string | null
+  trustedAt?: number | null
+}
+
+export interface MobileMessageRequestLike {
+  alias?: string | null
+  profileId?: string | null
+  text?: string | null
+}
+
+export interface MobileDirectMessageLike extends MobileMessageRequestLike {
+  direction?: string
+  fromProfileId?: string | null
+  nick?: string | null
+  toProfileId?: string | null
+  type?: string
+}
+
+export interface MobileHomeMessageLike {
+  nick?: string | null
+}
+
+export interface MobileTreeholePostLike {
+  author?: string | null
+  authorDisplayName?: string | null
+  authorProfileId?: string | null
+}
+
+export type MobileTimeFormatter = (
+  value: number | string | Date,
+  options: Intl.DateTimeFormatOptions
+) => string
+
+export function getMobileHomeStatus({ online, session }: MobileHomeStatusInput) {
   if (!session) {
     return 'Offline'
   }
@@ -10,7 +51,7 @@ export function getMobileHomeStatus({ online, session }) {
   return 'Waiting for friends'
 }
 
-export function getMobileTreeholeStatus(status) {
+export function getMobileTreeholeStatus(status?: string) {
   if (status === 'ready') {
     return 'Treehole ready'
   }
@@ -26,7 +67,7 @@ export function getMobileTreeholeStatus(status) {
   return 'Treehole offline'
 }
 
-export function getMobileBackendNotice(status) {
+export function getMobileBackendNotice(status?: string) {
   if (
     status === 'joining' ||
     status === 'preparing' ||
@@ -56,7 +97,7 @@ export function getMobileBackendNotice(status) {
   return 'Home status updated.'
 }
 
-export function getMobileRoomSurface(activeTab) {
+export function getMobileRoomSurface(activeTab?: string) {
   if (activeTab === 'dm') {
     return 'Direct messages'
   }
@@ -72,7 +113,7 @@ export function getMobileRoomSurface(activeTab) {
   return 'Home chat'
 }
 
-export function formatMobileTrustSource(source) {
+export function formatMobileTrustSource(source?: string | null) {
   if (source === 'profile_qr' || source === 'person_qr') return 'Profile QR'
   if (source === 'home_room') return 'Home'
   if (source === 'message_request') return 'Message request'
@@ -80,31 +121,31 @@ export function formatMobileTrustSource(source) {
 }
 
 export function formatMobileTrustTime(
-  trustedAt,
-  formatDate = (value) => new Date(value).toLocaleDateString()
+  trustedAt?: number | null,
+  formatDate: (value: number) => string = (value) => new Date(value).toLocaleDateString()
 ) {
-  if (!Number.isFinite(trustedAt)) return 'recently'
+  if (typeof trustedAt !== 'number' || !Number.isFinite(trustedAt)) return 'recently'
   return formatDate(trustedAt)
 }
 
-export function formatMobileTrustedContactName(contact) {
+export function formatMobileTrustedContactName(contact?: MobileContactLike | null) {
   return contact?.alias?.trim() || displayDirectPeer(contact?.profileId)
 }
 
-export function formatRequestPreview(text) {
+export function formatRequestPreview(text?: string | null) {
   return text?.trim() || 'No message yet'
 }
 
-export function formatMessageRequestTitle(request) {
+export function formatMessageRequestTitle(request?: MobileMessageRequestLike | null) {
   const name = request?.alias?.trim() || 'Someone'
   return `${name} wants to start a direct chat.`
 }
 
-export function formatMessageRequestSubtitle(request) {
+export function formatMessageRequestSubtitle(request?: MobileMessageRequestLike | null) {
   return request?.alias?.trim() || shortenProfileId(request?.profileId)
 }
 
-export function formatMobileDirectMessageMeta(message) {
+export function formatMobileDirectMessageMeta(message?: MobileDirectMessageLike | null) {
   const outgoing = message?.direction === 'out'
   const isRequest = message?.type === 'kepos.message.request.v1'
 
@@ -119,11 +160,11 @@ export function formatMobileDirectMessageMeta(message) {
     : `${displayDirectPeer(message?.fromProfileId, message?.nick)} to you`
 }
 
-export function formatMobileHomeMessageMeta(message) {
+export function formatMobileHomeMessageMeta(message?: MobileHomeMessageLike | null) {
   return message?.nick?.trim() || 'Someone'
 }
 
-export function getMobileTabButtonLabel(label, badgeCount) {
+export function getMobileTabButtonLabel(label: string, badgeCount: number) {
   if (badgeCount > 0) {
     return `${label}, ${badgeCount} pending`
   }
@@ -131,25 +172,26 @@ export function getMobileTabButtonLabel(label, badgeCount) {
   return label
 }
 
-export function formatPendingBadgeCount(badgeCount) {
+export function formatPendingBadgeCount(badgeCount: number) {
   return badgeCount > 99 ? '99+' : String(badgeCount)
 }
 
-export function shortenProfileId(value) {
+export function shortenProfileId(value?: string | null) {
   return value ? `${value.slice(0, 8)}...${value.slice(-8)}` : ''
 }
 
-export function displayDirectPeer(profileId, displayName = '') {
+export function displayDirectPeer(profileId?: string | null, displayName: string | null = '') {
   return displayName?.trim() || `Profile ${shortenProfileId(profileId)}`
 }
 
-export function displayPostAuthor(post) {
+export function displayPostAuthor(post: MobileTreeholePostLike) {
   return post.authorDisplayName || post.author || shortenProfileId(post.authorProfileId) || 'anon'
 }
 
 export function formatMobilePostTime(
-  value,
-  formatTime = (nextValue, options) => new Date(nextValue).toLocaleTimeString([], options)
+  value: number | string | Date,
+  formatTime: MobileTimeFormatter = (nextValue, options) =>
+    new Date(nextValue).toLocaleTimeString([], options)
 ) {
   return formatTime(value, {
     hour: '2-digit',
@@ -157,7 +199,7 @@ export function formatMobilePostTime(
   })
 }
 
-export function getMobileTreeholeEmptyCopy(status) {
+export function getMobileTreeholeEmptyCopy(status?: string) {
   if (status === 'waiting' || status === 'waiting-for-bootstrap') {
     return 'Waiting for the home owner to share the treehole.'
   }

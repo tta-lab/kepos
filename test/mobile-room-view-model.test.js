@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { getMobileRoomKeyPreview, getMobileTabBadges } from '../src/mobile-room-view-model.js'
+import { getMobileRoomKeyPreview, getMobileTabBadges } from '../src/mobile-room-view-model.ts'
 
 test('mobile room view model counts pending tab work', () => {
   assert.deepEqual(

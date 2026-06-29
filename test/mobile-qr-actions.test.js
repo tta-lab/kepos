@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
 import { createContactBook, getContact, isContactTrusted } from '../src/contact-book.ts'
-import { applyMobileHomeQrScan, applyMobileProfileQrScan } from '../src/mobile-qr-actions.js'
-import { getScannedQrData } from '../src/mobile-qr-event.js'
+import { applyMobileHomeQrScan, applyMobileProfileQrScan } from '../src/mobile-qr-actions.ts'
+import { getScannedQrData } from '../src/mobile-qr-event.ts'
 import {
   createSignedHomeAddressPayload,
   createSignedTrustInvitePayload,

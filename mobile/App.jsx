@@ -70,11 +70,11 @@ import {
   getOrCreateMobileHomeRoomKey,
   getOrCreateMobileIdentity,
   getRequiredMobileDocumentDirectory
-} from '../src/mobile-profile.js'
-import { getMobileRoomKeyPreview, getMobileTabBadges } from '../src/mobile-room-view-model.js'
-import { getMobileThemeForScheme, mobileThemes } from '../src/mobile-theme-tokens.js'
-import { applyMobileHomeQrScan, applyMobileProfileQrScan } from '../src/mobile-qr-actions.js'
-import { getScannedQrData } from '../src/mobile-qr-event.js'
+} from '../src/mobile-profile.ts'
+import { getMobileRoomKeyPreview, getMobileTabBadges } from '../src/mobile-room-view-model.ts'
+import { getMobileThemeForScheme, mobileThemes } from '../src/mobile-theme-tokens.ts'
+import { applyMobileHomeQrScan, applyMobileProfileQrScan } from '../src/mobile-qr-actions.ts'
+import { getScannedQrData } from '../src/mobile-qr-event.ts'
 import {
   displayPostAuthor,
   formatMobileDirectMessageMeta,
@@ -94,7 +94,7 @@ import {
   getMobileTreeholeEmptyCopy,
   getMobileTreeholeStatus,
   shortenProfileId
-} from '../src/mobile-product-copy.js'
+} from '../src/mobile-product-copy.ts'
 import { applyLocalContactRevoke } from '../src/revoke-state.js'
 import {
   createSignedHomeAddressPayload,

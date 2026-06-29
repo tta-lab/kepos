@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { createContactBook, recordMessageRequest, trustContact } from '../src/contact-book.ts'
-import { createDesktopPeopleViewModel } from '../src/desktop-people-view-model.js'
+import { createDesktopPeopleViewModel } from '../src/desktop-people-view-model.ts'
 
 test('desktop people view model formats trusted contacts for rendering', () => {
   const profileId = 'b'.repeat(64)

@@ -20,7 +20,7 @@ import {
   getMobileRoomSurface,
   getMobileTreeholeStatus,
   shortenProfileId
-} from '../src/mobile-product-copy.js'
+} from '../src/mobile-product-copy.ts'
 
 test('mobile product copy formats home and treehole status', () => {
   assert.equal(getMobileHomeStatus({ online: 0, session: null }), 'Offline')

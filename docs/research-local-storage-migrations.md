@@ -16,7 +16,7 @@ Use simple versioned JSON documents plus existing Corestore/Autobase directories
 ## Current Repo State
 
 - Verified: `src/local-profile.js` reads/writes `kepos.v1.identity` and `kepos.v1.home` JSON envelopes using `globalThis.localStorage` by default, and imports the legacy keys `kepos.profile.id`, `kepos.identity.publicKey`, `kepos.identity.secretKey`, and `kepos.home.roomKey`.
-- Verified: `src/mobile-profile.js` reads/writes `identity.json` and `home.json` V1 JSON envelopes under `<baseUri>/kepos/v1`, and imports the earlier text files `profile-id.txt`, `home-room-key.txt`, `identity-public-key.txt`, and `identity-secret-key.txt`.
+- Verified: `src/mobile-profile.ts` reads/writes `identity.json` and `home.json` V1 JSON envelopes under `<baseUri>/kepos/v1`, and imports the earlier text files `profile-id.txt`, `home-room-key.txt`, `identity-public-key.txt`, and `identity-secret-key.txt`.
 - Verified: `mobile/App.jsx` imports `expo-file-system/legacy`, builds a backend storage base at `<documentDirectory>/kepos`, creates it, and passes it as `storageBasePath` to Bare.
 - Verified: Android first-run identity/home generation uses `expo-crypto` secure random bytes. The React Native UI must not call `hypercore-crypto.keyPair()` or `hypercore-crypto.randomBytes()` without a native-safe seed/source, because that path can throw `No secure random number generator available`.
 - Verified: `backend/backend.mjs` stores treehole Autobase/Corestore data through `createTreeholeStoragePath({ basePath, roomKey, bootstrapKey })` using a React Native-provided app-private storage base on Android.
@@ -26,7 +26,7 @@ Use simple versioned JSON documents plus existing Corestore/Autobase directories
 Current and future owner files/modules:
 
 - `src/local-profile.js`: owns desktop/localStorage-shaped V1 identity and home envelopes plus legacy import.
-- `src/mobile-profile.js`: owns the Expo FileSystem adapter for V1 identity/home JSON envelopes and legacy text-file import.
+- `src/mobile-profile.ts`: owns the Expo FileSystem adapter for V1 identity/home JSON envelopes and legacy text-file import.
 - `src/contact-book.ts` and `src/contact-book-storage.ts`: own shared ContactBook domain rules, validation, serialization, and platform adapters.
 - `src/dm-thread.ts`, `src/dm-thread-storage.ts`, and `src/dm-message-storage.ts`: own durable DM metadata/message state.
 - Later `src/local-store.js` or `src/persistence.js`: can centralize the envelope/migration dispatcher when a second schema version appears.
@@ -123,7 +123,7 @@ Corrupt data behavior:
 ## Sources
 
 - Local: `src/local-profile.js` — current desktop/localStorage-shaped V1 identity and home envelope persistence.
-- Local: `src/mobile-profile.js` — current Android file-based V1 profile, identity, and home envelope persistence.
+- Local: `src/mobile-profile.ts` — current Android file-based V1 profile, identity, and home envelope persistence.
 - Local: `mobile/App.jsx` — current `expo-file-system/legacy` usage and Bare backend storage base handoff.
 - Local: `backend/backend.mjs` — current Bare backend treehole storage path usage.
 - Local: `src/treehole-storage.ts` — current normalized treehole Corestore path helper.

@@ -6,7 +6,7 @@ import {
   getOrCreateMobileIdentity,
   getOrCreateMobileProfileId,
   getRequiredMobileDocumentDirectory
-} from '../src/mobile-profile.js'
+} from '../src/mobile-profile.ts'
 
 describe('mobile profile persistence', () => {
   test('uses document directory for durable app storage', () => {

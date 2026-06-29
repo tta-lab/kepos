@@ -7,11 +7,11 @@ async function readMobileSource() {
 }
 
 async function readMobileProductCopySource() {
-  return await readFile(new URL('../src/mobile-product-copy.js', import.meta.url), 'utf8')
+  return await readFile(new URL('../src/mobile-product-copy.ts', import.meta.url), 'utf8')
 }
 
 async function readMobileRoomViewModelSource() {
-  return await readFile(new URL('../src/mobile-room-view-model.js', import.meta.url), 'utf8')
+  return await readFile(new URL('../src/mobile-room-view-model.ts', import.meta.url), 'utf8')
 }
 
 test('mobile tabs surface pending direct and people work without changing tab layout', async () => {
@@ -22,7 +22,7 @@ test('mobile tabs surface pending direct and people work without changing tab la
   assert.match(source, /getMobileTabBadges\(\{ dmMessages, pendingRequests \}\)/)
   assert.match(
     viewModel,
-    /function getMobileTabBadges\(\{ dmMessages = \[\], pendingRequests = \[\] \}\)/
+    /function getMobileTabBadges\(\{[\s\S]*dmMessages = \[\],[\s\S]*pendingRequests = \[\][\s\S]*\}: MobileTabBadgesInput\)/
   )
   assert.match(viewModel, /message\?\.type === 'kepos\.message\.request\.v1'/)
   assert.match(viewModel, /message\?\.direction === 'in'/)
@@ -31,14 +31,14 @@ test('mobile tabs surface pending direct and people work without changing tab la
   assert.match(source, /badgeCount=\{tabBadges\.people\}[\s\S]*testID='people-tab'/)
   assert.match(source, /function TabButton\(\{ active, badgeCount = 0, icon: Icon, label/)
   assert.match(source, /accessibilityLabel=\{getMobileTabButtonLabel\(label, badgeCount\)\}/)
-  assert.match(copy, /function getMobileTabButtonLabel\(label, badgeCount\) \{/)
+  assert.match(copy, /function getMobileTabButtonLabel\(label: string, badgeCount: number\) \{/)
   assert.match(copy, /return `\$\{label\}, \$\{badgeCount\} pending`/)
   assert.match(
     source,
     /<View style=\{styles\.tabBadge\} accessibilityLabel=\{`\$\{label\} pending \$\{badgeCount\}`\}>/
   )
   assert.match(source, /\{formatPendingBadgeCount\(badgeCount\)\}/)
-  assert.match(copy, /function formatPendingBadgeCount\(badgeCount\) \{/)
+  assert.match(copy, /function formatPendingBadgeCount\(badgeCount: number\) \{/)
   assert.match(copy, /return badgeCount > 99 \? '99\+' : String\(badgeCount\)/)
   assert.match(source, /tabBadge: \{/)
   assert.match(source, /tabBadgeText: \{/)

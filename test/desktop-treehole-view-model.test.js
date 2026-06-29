@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createDesktopTreeholeViewModel } from '../src/desktop-treehole-view-model.js'
+import { createDesktopTreeholeViewModel } from '../src/desktop-treehole-view-model.ts'
 
 test('desktop treehole view model formats posts and comments', () => {
   const viewModel = createDesktopTreeholeViewModel({

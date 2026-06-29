@@ -4,11 +4,69 @@ import {
   getDesktopTreeholeStatus
 } from './desktop-state.js'
 
+type ShortenProfileId = (value: string) => string
+
+type DesktopSessionLike = {
+  profileId?: string
+}
+
+type DesktopTransportDebug = {
+  activeQuery?: boolean
+  byteReads?: number
+  byteWrites?: number
+  connecting?: number
+  connections?: number
+  dhtFirewalled?: boolean
+  dhtNodes?: number
+  dhtOnline?: boolean
+  directEndpoint?: {
+    host?: string
+    port?: number
+  }
+  discovered?: number
+  frameDecodeErrors?: number
+  frameReads?: number
+  frameWrites?: number
+  isClient?: boolean
+  isServer?: boolean
+  knownPeers?: number
+  lastPeerClient?: boolean
+  lastPeerSelf?: boolean
+  lastPeerTopics?: number
+  lastReadType?: string
+  lastWriteType?: string
+  listening?: boolean
+  localPeers?: number
+  readTypes?: Record<string, number>
+  stage?: string
+  topics?: number
+  writeTypes?: Record<string, number>
+}
+
+type DesktopStateLike = ReturnType<typeof createDesktopState> & {
+  transportDebug?: DesktopTransportDebug | null
+}
+
+export type DesktopStatusViewModel = {
+  errorDetailLabel: string
+  homeStatusLabel: string
+  noticeLabel: string
+  peerLabel: string
+  profileIdLabel: string
+  roomKeyLabel: string
+  transportDebugLabel: string
+  treeholeStatusLabel: string
+}
+
 export function createDesktopStatusViewModel({
   session = null,
   shortenProfileId = (value) => value,
   state = createDesktopState()
-} = {}) {
+}: {
+  session?: DesktopSessionLike | null
+  shortenProfileId?: ShortenProfileId
+  state?: DesktopStateLike
+} = {}): DesktopStatusViewModel {
   const inRoom = state?.view === 'room'
 
   return {
@@ -23,7 +81,7 @@ export function createDesktopStatusViewModel({
   }
 }
 
-function formatTransportDebug(debug) {
+function formatTransportDebug(debug?: DesktopTransportDebug | null): string {
   if (!debug) return 'none'
 
   return [
@@ -59,7 +117,7 @@ function formatTransportDebug(debug) {
     .join(' ')
 }
 
-function formatFrameTypes(label, counts) {
+function formatFrameTypes(label: string, counts?: Record<string, number>): string | null {
   if (!counts || typeof counts !== 'object') return null
 
   const entries = Object.entries(counts)

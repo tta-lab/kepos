@@ -539,7 +539,7 @@ test('desktop error handling keeps raw exception detail advanced', async () => {
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const state = await readFile(new URL('../src/desktop-state.js', import.meta.url), 'utf8')
   const statusViewModel = await readFile(
-    new URL('../src/desktop-status-view-model.js', import.meta.url),
+    new URL('../src/desktop-status-view-model.ts', import.meta.url),
     'utf8'
   )
 

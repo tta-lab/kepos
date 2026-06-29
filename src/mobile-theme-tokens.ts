@@ -1,4 +1,35 @@
-export const mobileThemes = {
+export type MobileThemeTokens = {
+  accent: string
+  accentInk: string
+  accentStrong: string
+  border: string
+  borderStrong: string
+  danger: string
+  dangerBorder: string
+  disabled: string
+  disabledBorder: string
+  field: string
+  iconMuted: string
+  ink: string
+  inkMuted: string
+  inkSoft: string
+  panel: string
+  placeholder: string
+  quickPanel: string
+  quickPanelBorder: string
+  raised: string
+  scanner: string
+  statusBar: 'dark-content' | 'light-content'
+  statusDot: string
+  statusText: string
+  surface: string
+  treeComment: string
+  treeCommentBorder: string
+}
+
+export type MobileThemeName = 'neoCozy' | 'indieConsole'
+
+export const mobileThemes: Record<MobileThemeName, MobileThemeTokens> = {
   neoCozy: {
     accent: '#d9714b',
     accentInk: '#fffaf0',
@@ -57,6 +88,6 @@ export const mobileThemes = {
   }
 }
 
-export function getMobileThemeForScheme(colorScheme) {
+export function getMobileThemeForScheme(colorScheme?: string | null): MobileThemeTokens {
   return colorScheme === 'dark' ? mobileThemes.indieConsole : mobileThemes.neoCozy
 }

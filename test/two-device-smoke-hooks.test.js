@@ -327,7 +327,7 @@ test('Android paste QR fallback stays behind advanced people controls', async ()
 test('DM request copy reads as a social action', async () => {
   const mobile = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
   const mobileCopy = await readFile(
-    new URL('../src/mobile-product-copy.js', import.meta.url),
+    new URL('../src/mobile-product-copy.ts', import.meta.url),
     'utf8'
   )
   const desktopApp = await readDesktopUiSource()
@@ -337,11 +337,11 @@ test('DM request copy reads as a social action', async () => {
     'utf8'
   )
   const desktopPeopleViewModel = await readFile(
-    new URL('../src/desktop-people-view-model.js', import.meta.url),
+    new URL('../src/desktop-people-view-model.ts', import.meta.url),
     'utf8'
   )
   const desktopDirectViewModel = await readFile(
-    new URL('../src/desktop-direct-view-model.js', import.meta.url),
+    new URL('../src/desktop-direct-view-model.ts', import.meta.url),
     'utf8'
   )
 
@@ -375,12 +375,12 @@ test('DM request copy reads as a social action', async () => {
 test('direct message meta avoids DM fallback and raw recipient framing', async () => {
   const mobile = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
   const mobileCopy = await readFile(
-    new URL('../src/mobile-product-copy.js', import.meta.url),
+    new URL('../src/mobile-product-copy.ts', import.meta.url),
     'utf8'
   )
   const desktop = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const desktopDirectViewModel = await readFile(
-    new URL('../src/desktop-direct-view-model.js', import.meta.url),
+    new URL('../src/desktop-direct-view-model.ts', import.meta.url),
     'utf8'
   )
 
@@ -398,11 +398,11 @@ test('direct message meta avoids DM fallback and raw recipient framing', async (
 
 test('Android message bubbles separate metadata from readable bodies', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
-  const copy = await readFile(new URL('../src/mobile-product-copy.js', import.meta.url), 'utf8')
+  const copy = await readFile(new URL('../src/mobile-product-copy.ts', import.meta.url), 'utf8')
 
   assert.match(source, /style=\{styles\.bubbleMetaRow\}/)
   assert.match(source, /formatMobileHomeMessageMeta\(message\)/)
-  assert.match(copy, /function formatMobileHomeMessageMeta\(message\)/)
+  assert.match(copy, /function formatMobileHomeMessageMeta\(message\?: MobileHomeMessageLike/)
   assert.equal(source.includes('{message.nick}</Text>'), false)
   assert.match(source, /style=\{\[\s*styles\.bubbleTextBlock/)
   assert.match(source, /bubbleMetaRow: \{/)
@@ -495,11 +495,11 @@ test('desktop success notices avoid profile id snippets', async () => {
 
 test('Android header shows product home status instead of raw peer count', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
-  const copy = await readFile(new URL('../src/mobile-product-copy.js', import.meta.url), 'utf8')
+  const copy = await readFile(new URL('../src/mobile-product-copy.ts', import.meta.url), 'utf8')
 
-  assert.match(source, /from '\.\.\/src\/mobile-product-copy\.js'/)
-  assert.match(copy, /function getMobileHomeStatus\(/)
-  assert.match(copy, /function getMobileTreeholeStatus\(/)
+  assert.match(source, /from '\.\.\/src\/mobile-product-copy\.ts'/)
+  assert.match(copy, /function getMobileHomeStatus\(\{ online, session \}: MobileHomeStatusInput\)/)
+  assert.match(copy, /function getMobileTreeholeStatus\(status\?: string\)/)
   assert.match(source, /getMobileHomeStatus\(\{ online: peerCount, session \}\)/)
   assert.match(source, /getMobileTreeholeStatus\(treeholeStatus\)/)
   assert.match(source, /treeholeStatusLabel=\{treeholeStatusLabel\}/)
@@ -517,9 +517,9 @@ test('Android header shows product home status instead of raw peer count', async
 
 test('Android backend status notices avoid raw worker status codes', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
-  const copy = await readFile(new URL('../src/mobile-product-copy.js', import.meta.url), 'utf8')
+  const copy = await readFile(new URL('../src/mobile-product-copy.ts', import.meta.url), 'utf8')
 
-  assert.match(copy, /function getMobileBackendNotice\(status\)/)
+  assert.match(copy, /function getMobileBackendNotice\(status\?: string\)/)
   assert.match(source, /setNotice\(getMobileBackendNotice\(payload\.status\)\)/)
   assert.match(copy, /return 'Starting home\.\.\.'/)
   assert.match(copy, /return 'Syncing treehole\.\.\.'/)
@@ -531,10 +531,10 @@ test('Android backend status notices avoid raw worker status codes', async () =>
 
 test('Android room bar keeps raw home key behind advanced details', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
-  const copy = await readFile(new URL('../src/mobile-product-copy.js', import.meta.url), 'utf8')
+  const copy = await readFile(new URL('../src/mobile-product-copy.ts', import.meta.url), 'utf8')
 
   assert.match(source, /const \[showRoomAdvanced, setShowRoomAdvanced\] = useState\(false\)/)
-  assert.match(copy, /function getMobileRoomSurface\(activeTab\)/)
+  assert.match(copy, /function getMobileRoomSurface\(activeTab\?: string\)/)
   assert.match(source, /const roomSurface = getMobileRoomSurface\(activeTab\)/)
   assert.match(source, /Current space/)
   assert.match(source, /\{roomSurface\}/)
@@ -738,7 +738,7 @@ test('Android direct message zero-contact state links to People', async () => {
 
 test('Android treehole empty state talks about posts', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
-  const copy = await readFile(new URL('../src/mobile-product-copy.js', import.meta.url), 'utf8')
+  const copy = await readFile(new URL('../src/mobile-product-copy.ts', import.meta.url), 'utf8')
 
   assert.match(source, /No posts yet/)
   assert.match(source, /getMobileTreeholeEmptyCopy\(status\)/)
@@ -809,7 +809,7 @@ test('Android room has a People tab for QR and trusted contacts', async () => {
 
 test('Android people UI uses trusted friends copy', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
-  const copy = await readFile(new URL('../src/mobile-product-copy.js', import.meta.url), 'utf8')
+  const copy = await readFile(new URL('../src/mobile-product-copy.ts', import.meta.url), 'utf8')
 
   assert.match(source, /Trusted friends/)
   assert.match(source, /<Text style=\{styles\.trustStatus\}>Trusted<\/Text>/)
@@ -817,8 +817,8 @@ test('Android people UI uses trusted friends copy', async () => {
   assert.match(source, /`Revoke \$\{formatMobileTrustedContactName\(contact\)\}`/)
   assert.match(source, /\{formatMobileTrustSource\(contact\.source\)\}/)
   assert.match(source, /\{formatMobileTrustTime\(contact\.trustedAt\)\}/)
-  assert.match(copy, /function formatMobileTrustedContactName\(contact\)/)
-  assert.match(copy, /function formatMobileTrustSource\(source\)/)
+  assert.match(copy, /function formatMobileTrustedContactName\(contact\?: MobileContactLike/)
+  assert.match(copy, /function formatMobileTrustSource\(source\?: string \| null\)/)
   assert.match(copy, /if \(source === 'home_room'\) return 'Home'/)
   assert.match(copy, /function formatMobileTrustTime\([\s\S]*trustedAt/)
   assert.equal(source.includes('<Text style={styles.panelTitle}>Contacts</Text>'), false)
@@ -1017,11 +1017,11 @@ test('Android QR scanner has an in-flow permission denied state', async () => {
 
 test('Android supports Neo Cozy light and Indie Console dark themes', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
-  const tokens = await readFile(new URL('../src/mobile-theme-tokens.js', import.meta.url), 'utf8')
+  const tokens = await readFile(new URL('../src/mobile-theme-tokens.ts', import.meta.url), 'utf8')
 
   assert.match(source, /useColorScheme/)
-  assert.match(source, /from '\.\.\/src\/mobile-theme-tokens\.js'/)
-  assert.match(tokens, /const mobileThemes = \{/)
+  assert.match(source, /from '\.\.\/src\/mobile-theme-tokens\.ts'/)
+  assert.match(tokens, /const mobileThemes[:\w\s<>,]*= \{/)
   assert.match(tokens, /neoCozy/)
   assert.match(tokens, /indieConsole/)
   assert.match(source, /function createMobileStyles\(theme\)/)

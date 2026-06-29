@@ -1,9 +1,9 @@
 import { createDesktopDirectContactPickerViewModel } from './desktop-direct-contact-picker-view-model.js'
-import { createDesktopDirectMessageListViewModel } from './desktop-direct-view-model.js'
-import { createDesktopHomeChatViewModel } from './desktop-home-chat-view-model.js'
-import { createDesktopPeopleViewModel } from './desktop-people-view-model.js'
-import { createDesktopStatusViewModel } from './desktop-status-view-model.js'
-import { createDesktopTreeholeViewModel } from './desktop-treehole-view-model.js'
+import { createDesktopDirectMessageListViewModel } from './desktop-direct-view-model.ts'
+import { createDesktopHomeChatViewModel } from './desktop-home-chat-view-model.ts'
+import { createDesktopPeopleViewModel } from './desktop-people-view-model.ts'
+import { createDesktopStatusViewModel } from './desktop-status-view-model.ts'
+import { createDesktopTreeholeViewModel } from './desktop-treehole-view-model.ts'
 
 export function createDesktopRenderPresenter({
   formatTime = (value) =>

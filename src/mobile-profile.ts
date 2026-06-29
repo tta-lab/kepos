@@ -1,4 +1,5 @@
 import { isIdentityKey, isIdentityKeyPair } from './identity.js'
+import type { SigningIdentity } from './signed-record.ts'
 
 const PROFILE_ID_FILE = 'profile-id.txt'
 const HOME_ROOM_KEY_FILE = 'home-room-key.txt'
@@ -11,7 +12,36 @@ const DM_ENCRYPTION_PUBLIC_KEY_FILE = 'dm-encryption-public-key.txt'
 const DM_ENCRYPTION_SECRET_KEY_FILE = 'dm-encryption-secret-key.txt'
 const HEX_32_PATTERN = /^[0-9a-f]{64}$/
 
-export function getRequiredMobileDocumentDirectory(fileSystem) {
+type MobileFileSystem = {
+  documentDirectory?: string | null
+  getInfoAsync?: (path: string) => Promise<{ exists?: boolean }> | { exists?: boolean }
+  makeDirectoryAsync: (
+    path: string,
+    options?: {
+      intermediates?: boolean
+    }
+  ) => Promise<unknown> | unknown
+  readAsStringAsync: (path: string) => Promise<string> | string
+  writeAsStringAsync: (path: string, value: string) => Promise<unknown> | unknown
+}
+
+type MobileStorageDocument<TData> = {
+  data: TData
+  schemaVersion: 1
+  type: string
+}
+
+type MobileHomeDocumentData = {
+  ownerProfileId: string | null
+  roomKey: string
+}
+
+export type MobileDmEncryptionKeyPair = {
+  publicKey: string
+  secretKey: string
+}
+
+export function getRequiredMobileDocumentDirectory(fileSystem?: MobileFileSystem | null): string {
   const documentDirectory = fileSystem?.documentDirectory?.trim?.() || null
 
   if (!documentDirectory) {
@@ -21,7 +51,15 @@ export function getRequiredMobileDocumentDirectory(fileSystem) {
   return documentDirectory
 }
 
-export async function getOrCreateMobileProfileId({ baseUri, createId, fileSystem }) {
+export async function getOrCreateMobileProfileId({
+  baseUri,
+  createId,
+  fileSystem
+}: {
+  baseUri?: string | null
+  createId: () => string
+  fileSystem: MobileFileSystem
+}): Promise<string> {
   if (!baseUri) {
     throw new Error('App storage directory is unavailable')
   }
@@ -32,7 +70,11 @@ export async function getOrCreateMobileProfileId({ baseUri, createId, fileSystem
 
   await fileSystem.makeDirectoryAsync(profileDir, { intermediates: true })
 
-  const identityDocument = await readMobileDocument(fileSystem, identityPath, 'kepos.identity')
+  const identityDocument = await readMobileDocument<SigningIdentity>(
+    fileSystem,
+    identityPath,
+    'kepos.identity'
+  )
   if (identityDocument) {
     return identityDocument.data.publicKey
   }
@@ -50,7 +92,15 @@ export async function getOrCreateMobileProfileId({ baseUri, createId, fileSystem
   return profileId
 }
 
-export async function getOrCreateMobileHomeRoomKey({ baseUri, createKey, fileSystem }) {
+export async function getOrCreateMobileHomeRoomKey({
+  baseUri,
+  createKey,
+  fileSystem
+}: {
+  baseUri?: string | null
+  createKey: () => string
+  fileSystem: MobileFileSystem
+}): Promise<string> {
   if (!baseUri) {
     throw new Error('App storage directory is unavailable')
   }
@@ -62,7 +112,11 @@ export async function getOrCreateMobileHomeRoomKey({ baseUri, createKey, fileSys
   await fileSystem.makeDirectoryAsync(profileDir, { intermediates: true })
   await fileSystem.makeDirectoryAsync(`${profileDir}/${V1_DIR}`, { intermediates: true })
 
-  const homeDocument = await readMobileDocument(fileSystem, homePath, 'kepos.home')
+  const homeDocument = await readMobileDocument<MobileHomeDocumentData>(
+    fileSystem,
+    homePath,
+    'kepos.home'
+  )
   const existingHomeRoomKey = homeDocument?.data?.roomKey || null
 
   const existingKey = existingHomeRoomKey || (await readOptionalFile(fileSystem, homeRoomKeyPath))
@@ -95,7 +149,15 @@ export async function getOrCreateMobileHomeRoomKey({ baseUri, createKey, fileSys
   return homeRoomKey
 }
 
-export async function getOrCreateMobileIdentity({ baseUri, createIdentity, fileSystem }) {
+export async function getOrCreateMobileIdentity({
+  baseUri,
+  createIdentity,
+  fileSystem
+}: {
+  baseUri?: string | null
+  createIdentity: () => SigningIdentity
+  fileSystem: MobileFileSystem
+}): Promise<SigningIdentity> {
   if (!baseUri) {
     throw new Error('App storage directory is unavailable')
   }
@@ -109,11 +171,15 @@ export async function getOrCreateMobileIdentity({ baseUri, createIdentity, fileS
   await fileSystem.makeDirectoryAsync(profileDir, { intermediates: true })
   await fileSystem.makeDirectoryAsync(`${profileDir}/${V1_DIR}`, { intermediates: true })
 
-  const identityDocument = await readMobileDocument(fileSystem, identityPath, 'kepos.identity')
+  const identityDocument = await readMobileDocument<SigningIdentity>(
+    fileSystem,
+    identityPath,
+    'kepos.identity'
+  )
   if (identityDocument) {
     const identity = identityDocument.data
 
-    if (!isIdentityKeyPair(identity)) {
+    if (!isSigningIdentity(identity)) {
       throw new Error('Corrupt mobile identity')
     }
 
@@ -129,7 +195,7 @@ export async function getOrCreateMobileIdentity({ baseUri, createIdentity, fileS
       secretKey
     }
 
-    if (!isIdentityKeyPair(identity)) {
+    if (!isSigningIdentity(identity)) {
       throw new Error('Corrupt mobile identity')
     }
 
@@ -139,7 +205,7 @@ export async function getOrCreateMobileIdentity({ baseUri, createIdentity, fileS
   }
 
   const identity = createIdentity()
-  if (!isIdentityKeyPair(identity)) {
+  if (!isSigningIdentity(identity)) {
     throw new Error('Invalid mobile identity')
   }
 
@@ -150,7 +216,15 @@ export async function getOrCreateMobileIdentity({ baseUri, createIdentity, fileS
   return identity
 }
 
-export async function getOrCreateMobileDmEncryptionKeyPair({ baseUri, createKeyPair, fileSystem }) {
+export async function getOrCreateMobileDmEncryptionKeyPair({
+  baseUri,
+  createKeyPair,
+  fileSystem
+}: {
+  baseUri?: string | null
+  createKeyPair: () => MobileDmEncryptionKeyPair
+  fileSystem: MobileFileSystem
+}): Promise<MobileDmEncryptionKeyPair> {
   if (!baseUri) {
     throw new Error('App storage directory is unavailable')
   }
@@ -187,7 +261,10 @@ export async function getOrCreateMobileDmEncryptionKeyPair({ baseUri, createKeyP
   return keyPair
 }
 
-async function readOptionalFile(fileSystem, path) {
+async function readOptionalFile(
+  fileSystem: MobileFileSystem,
+  path: string
+): Promise<string | null> {
   try {
     return (await fileSystem.readAsStringAsync(path)).trim() || null
   } catch (error) {
@@ -199,7 +276,11 @@ async function readOptionalFile(fileSystem, path) {
   }
 }
 
-async function readMobileDocument(fileSystem, path, type) {
+async function readMobileDocument<TData>(
+  fileSystem: MobileFileSystem,
+  path: string,
+  type: string
+): Promise<MobileStorageDocument<TData> | null> {
   const raw = await readOptionalFile(fileSystem, path)
 
   if (!raw) {
@@ -207,19 +288,28 @@ async function readMobileDocument(fileSystem, path, type) {
   }
 
   try {
-    const document = JSON.parse(raw)
+    const document = JSON.parse(raw) as Partial<MobileStorageDocument<TData>>
 
     if (document?.type !== type || document?.schemaVersion !== 1 || !document?.data) {
       throw new Error(`Unsupported ${type} storage document`)
     }
 
-    return document
-  } catch (error) {
-    throw new Error(`Corrupt mobile ${type} storage: ${error.message}`)
+    return {
+      data: document.data,
+      schemaVersion: document.schemaVersion,
+      type: document.type
+    }
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error)
+    throw new Error(`Corrupt mobile ${type} storage: ${message}`)
   }
 }
 
-async function writeMobileIdentityDocument(fileSystem, path, identity) {
+async function writeMobileIdentityDocument(
+  fileSystem: MobileFileSystem,
+  path: string,
+  identity: SigningIdentity
+): Promise<void> {
   await fileSystem.writeAsStringAsync(
     path,
     JSON.stringify({
@@ -233,7 +323,11 @@ async function writeMobileIdentityDocument(fileSystem, path, identity) {
   )
 }
 
-async function writeMobileHomeDocument(fileSystem, path, home) {
+async function writeMobileHomeDocument(
+  fileSystem: MobileFileSystem,
+  path: string,
+  home: MobileHomeDocumentData
+): Promise<void> {
   await fileSystem.writeAsStringAsync(
     path,
     JSON.stringify({
@@ -247,11 +341,14 @@ async function writeMobileHomeDocument(fileSystem, path, home) {
   )
 }
 
-function readMobileProfileId(fileSystem, profileDir) {
+function readMobileProfileId(
+  fileSystem: MobileFileSystem,
+  profileDir: string
+): Promise<string | null> {
   return readOptionalFile(fileSystem, `${profileDir}/${PROFILE_ID_FILE}`)
 }
 
-async function fileExists(fileSystem, path) {
+async function fileExists(fileSystem: MobileFileSystem, path: string): Promise<boolean> {
   if (!fileSystem.getInfoAsync) {
     return false
   }
@@ -264,6 +361,11 @@ async function fileExists(fileSystem, path) {
   }
 }
 
-function isDmEncryptionKeyPair(keyPair) {
+function isSigningIdentity(value: unknown): value is SigningIdentity {
+  return isIdentityKeyPair(value)
+}
+
+function isDmEncryptionKeyPair(value: unknown): value is MobileDmEncryptionKeyPair {
+  const keyPair = value as Partial<MobileDmEncryptionKeyPair> | null | undefined
   return isIdentityKey(keyPair?.publicKey) && isIdentityKey(keyPair?.secretKey)
 }

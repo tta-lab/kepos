@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createDesktopHomeChatViewModel } from '../src/desktop-home-chat-view-model.js'
+import { createDesktopHomeChatViewModel } from '../src/desktop-home-chat-view-model.ts'
 
 test('desktop home chat view model formats live chat messages', () => {
   const viewModel = createDesktopHomeChatViewModel({

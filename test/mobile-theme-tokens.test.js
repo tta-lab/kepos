@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { getMobileThemeForScheme, mobileThemes } from '../src/mobile-theme-tokens.js'
+import { getMobileThemeForScheme, mobileThemes } from '../src/mobile-theme-tokens.ts'
 
 test('mobile theme tokens expose Neo Cozy light and Indie Console dark palettes', () => {
   assert.equal(mobileThemes.neoCozy.surface, '#fffaf0')

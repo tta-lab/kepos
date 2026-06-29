@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createDesktopDirectMessageListViewModel } from '../src/desktop-direct-view-model.js'
+import { createDesktopDirectMessageListViewModel } from '../src/desktop-direct-view-model.ts'
 
 test('desktop direct view model formats normal direct messages', () => {
   const viewModel = createDesktopDirectMessageListViewModel({
