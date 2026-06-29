@@ -211,6 +211,34 @@ describe('contact book', () => {
     )
   })
 
+  test('revoking a contact clears any pending message request', () => {
+    const requested = recordMessageRequest(createContactBook({ ownerProfileId: 'owner-a' }), {
+      profileId: 'profile-b',
+      alias: 'Ada',
+      requestedAt: 1000,
+      requestId: 'request-1',
+      source: 'home_room'
+    })
+
+    const revoked = revokeContact(requested, {
+      profileId: 'profile-b',
+      revokedAt: 2000
+    })
+
+    assert.equal(requested.pendingRequestsByProfileId.has('profile-b'), true)
+    assert.equal(revoked.pendingRequestsByProfileId.has('profile-b'), false)
+    assert.equal(getContact(revoked, 'profile-b').revokedAt, 2000)
+    assert.throws(
+      () =>
+        acceptMessageRequest(revoked, {
+          profileId: 'profile-b',
+          alias: 'Ada',
+          acceptedAt: 3000
+        }),
+      /revoked contact/i
+    )
+  })
+
   test('accepting a message request trusts the contact and clears pending request', () => {
     const requested = recordMessageRequest(createContactBook({ ownerProfileId: 'owner-a' }), {
       profileId: 'profile-b',

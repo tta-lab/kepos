@@ -1,6 +1,6 @@
 import b4a from 'b4a'
 import crypto from 'hypercore-crypto'
-import { acceptMessageRequest } from './contact-book.ts'
+import { acceptMessageRequest, getContact } from './contact-book.ts'
 import { createDmInvite, openDmInvite } from './dm-invite.ts'
 import { acceptDmThread, createDmThread } from './dm-thread.ts'
 
@@ -11,6 +11,11 @@ export function acceptMessageRequestWithInvite({
   remoteProfileId,
   threadId
 }) {
+  const contact = getContact(book, remoteProfileId)
+  if (contact?.revokedAt !== undefined && contact.revokedAt !== null) {
+    throw new Error('Revoked contact cannot be accepted')
+  }
+
   const request = book?.pendingRequestsByProfileId?.get(remoteProfileId)
 
   if (!request) {

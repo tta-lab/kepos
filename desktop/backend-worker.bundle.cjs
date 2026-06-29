@@ -257,12 +257,15 @@ function trustContact(book, {
   });
 }
 function revokeContact(book, { profileId, revokedAt }) {
-  return upsertContact(book, {
-    profileId,
-    alias: getContact(book, profileId)?.alias,
-    displayNameSnapshot: getContact(book, profileId)?.displayNameSnapshot,
+  const cleanProfileId4 = cleanRequiredString(profileId, "Contact profile id is required");
+  const nextBook = upsertContact(book, {
+    profileId: cleanProfileId4,
+    alias: getContact(book, cleanProfileId4)?.alias,
+    displayNameSnapshot: getContact(book, cleanProfileId4)?.displayNameSnapshot,
     revokedAt
   });
+  nextBook.pendingRequestsByProfileId.delete(cleanProfileId4);
+  return nextBook;
 }
 function getContact(book, profileId) {
   return book?.contactsByProfileId?.get(
@@ -2590,6 +2593,10 @@ function acceptMessageRequestWithInvite({
   remoteProfileId,
   threadId
 }) {
+  const contact = getContact(book, remoteProfileId);
+  if (contact?.revokedAt !== void 0 && contact.revokedAt !== null) {
+    throw new Error("Revoked contact cannot be accepted");
+  }
   const request = book?.pendingRequestsByProfileId?.get(remoteProfileId);
   if (!request) {
     throw new Error("Pending message request is required");

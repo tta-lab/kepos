@@ -181,12 +181,17 @@ export function revokeContact(
   book: ContactBook,
   { profileId, revokedAt }: { profileId: string; revokedAt: number }
 ): ContactBook {
-  return upsertContact(book, {
-    profileId,
-    alias: getContact(book, profileId)?.alias,
-    displayNameSnapshot: getContact(book, profileId)?.displayNameSnapshot,
+  const cleanProfileId = cleanRequiredString(profileId, 'Contact profile id is required')
+  const nextBook = upsertContact(book, {
+    profileId: cleanProfileId,
+    alias: getContact(book, cleanProfileId)?.alias,
+    displayNameSnapshot: getContact(book, cleanProfileId)?.displayNameSnapshot,
     revokedAt
   })
+
+  nextBook.pendingRequestsByProfileId.delete(cleanProfileId)
+
+  return nextBook
 }
 
 export function getContact(book: ContactBook, profileId: string): ContactBookContact | null {

@@ -3,6 +3,7 @@ import test from 'node:test'
 import {
   createContactBook,
   createTreeholePolicyFromContactBook,
+  recordMessageRequest,
   trustContact
 } from '../src/contact-book.ts'
 import { acceptDmThread, createDmThread } from '../src/dm-thread.ts'
@@ -59,4 +60,27 @@ test('local contact revoke updates trust, treehole policy, and matching DM threa
   assert.deepEqual(result.treeholePolicy, createTreeholePolicyFromContactBook(result.book))
   assert.deepEqual(result.treeholePolicy.revokedProfileIds, [revokedProfileId])
   assert.deepEqual(result.treeholePolicy.trustedProfileIds, [keptProfileId])
+})
+
+test('local contact revoke clears pending message requests from the revoked profile', () => {
+  const ownerProfileId = 'a'.repeat(64)
+  const revokedProfileId = 'b'.repeat(64)
+  const requestedBook = recordMessageRequest(createContactBook({ ownerProfileId }), {
+    alias: 'Ada',
+    profileId: revokedProfileId,
+    requestedAt: 1000,
+    requestId: 'request-1',
+    source: 'home_room'
+  })
+
+  const result = applyLocalContactRevoke({
+    book: requestedBook,
+    profileId: revokedProfileId,
+    revokedAt: 1200,
+    threads: []
+  })
+
+  assert.equal(requestedBook.pendingRequestsByProfileId.has(revokedProfileId), true)
+  assert.equal(result.book.pendingRequestsByProfileId.has(revokedProfileId), false)
+  assert.deepEqual(result.treeholePolicy.revokedProfileIds, [revokedProfileId])
 })
