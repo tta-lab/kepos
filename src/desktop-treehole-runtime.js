@@ -84,16 +84,18 @@ export function createDesktopTreeholeRuntime({
   }
 
   async function post(payload) {
-    if (!treehole || !payload?.text?.trim() || !canPost()) return
+    const text = cleanText(payload?.text)
+    if (!treehole || !text || !canPost()) return
 
-    await treehole.post(payload)
+    await treehole.post({ ...payload, text })
     await publishSnapshot()
   }
 
   async function comment(payload) {
-    if (!treehole || !payload?.text?.trim()) return
+    const text = cleanText(payload?.text)
+    if (!treehole || !text) return
 
-    await treehole.comment(payload)
+    await treehole.comment({ ...payload, text })
     await publishSnapshot()
   }
 
@@ -221,4 +223,8 @@ function defaultDesktopTreeholeStorageBase() {
   const home = env.HOME || env.USERPROFILE
   if (home) return home
   throw new Error('Desktop treehole storage base path is required')
+}
+
+function cleanText(text) {
+  return typeof text === 'string' ? text.trim() : ''
 }

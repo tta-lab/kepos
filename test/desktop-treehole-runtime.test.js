@@ -129,8 +129,10 @@ test('desktop treehole runtime refreshes state after post comment and like', asy
   const { emitted, runtime, treehole } = createRuntime()
 
   await runtime.open()
-  await runtime.post({ createdAt: 1, id: 'post-1', text: 'hello' })
-  await runtime.comment({ createdAt: 2, id: 'comment-1', postId: 'post-1', text: 'reply' })
+  await runtime.post({ createdAt: 1, id: 'post-1', text: '  hello  ' })
+  await runtime.comment({ createdAt: 2, id: 'comment-1', postId: 'post-1', text: '  reply  ' })
+  await runtime.post({ createdAt: 4, id: 'blank-post', text: '   ' })
+  await runtime.comment({ createdAt: 5, id: 'blank-comment', postId: 'post-1', text: '   ' })
   await runtime.like({ createdAt: 3, postId: 'post-1' })
 
   assert.deepEqual(treehole.calls.slice(0, 3), [

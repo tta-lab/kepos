@@ -4564,13 +4564,15 @@ function createDesktopTreeholeRuntime({
     addedWriters.clear();
   }
   async function post(payload) {
-    if (!treehole || !payload?.text?.trim() || !canPost()) return;
-    await treehole.post(payload);
+    const text = cleanText4(payload?.text);
+    if (!treehole || !text || !canPost()) return;
+    await treehole.post({ ...payload, text });
     await publishSnapshot();
   }
   async function comment(payload) {
-    if (!treehole || !payload?.text?.trim()) return;
-    await treehole.comment(payload);
+    const text = cleanText4(payload?.text);
+    if (!treehole || !text) return;
+    await treehole.comment({ ...payload, text });
     await publishSnapshot();
   }
   async function like(payload) {
@@ -4675,6 +4677,9 @@ function defaultDesktopTreeholeStorageBase() {
   const home = env.HOME || env.USERPROFILE;
   if (home) return home;
   throw new Error("Desktop treehole storage base path is required");
+}
+function cleanText4(text) {
+  return typeof text === "string" ? text.trim() : "";
 }
 var import_hyperswarm3;
 var init_desktop_treehole_runtime = __esm({
@@ -4894,13 +4899,13 @@ function createDesktopMessageActions({
 } = {}) {
   return {
     async commentTreehole({ postId, text } = {}) {
-      const cleanText4 = cleanMessageText(text);
-      if (!cleanText4) return;
+      const cleanText5 = cleanMessageText(text);
+      if (!cleanText5) return;
       await getTreeholeRuntime()?.comment({
         createdAt: now(),
         id: createId(),
         postId,
-        text: cleanText4
+        text: cleanText5
       });
     },
     async likeTreehole(postId) {
@@ -4910,25 +4915,25 @@ function createDesktopMessageActions({
       });
     },
     async postTreehole({ text } = {}) {
-      const cleanText4 = cleanMessageText(text);
-      if (!cleanText4 || !getTreeholeCanPost()) return;
+      const cleanText5 = cleanMessageText(text);
+      if (!cleanText5 || !getTreeholeCanPost()) return;
       await getTreeholeRuntime()?.post({
         createdAt: now(),
         id: createId(),
-        text: cleanText4
+        text: cleanText5
       });
     },
     sendDmMessage({ text, toProfileId } = {}) {
-      const cleanText4 = cleanMessageText(text);
+      const cleanText5 = cleanMessageText(text);
       const homeRuntime = getHomeRuntime();
       const dmRuntime = getDmRuntime();
-      if (!homeRuntime?.isJoined() || !getDmSession() || !toProfileId || !cleanText4) return;
+      if (!homeRuntime?.isJoined() || !getDmSession() || !toProfileId || !cleanText5) return;
       const result = dmRuntime?.sendMessageOrRequest({
         broadcastControl: (request) => homeRuntime.broadcastControl(request),
         createdAt: now(),
         messageId: createId(),
         requestId: createId(),
-        text: cleanText4,
+        text: cleanText5,
         toProfileId
       });
       if (!result) return;
@@ -4941,14 +4946,14 @@ function createDesktopMessageActions({
       onChanged();
     },
     sendHomeMessage({ text } = {}) {
-      const cleanText4 = cleanMessageText(text);
+      const cleanText5 = cleanMessageText(text);
       const homeRuntime = getHomeRuntime();
       const session = getSession();
-      if (!homeRuntime?.isJoined() || !session || !cleanText4) return;
+      if (!homeRuntime?.isJoined() || !session || !cleanText5) return;
       const nextSession = homeRuntime.sendMessage({
         at: now(),
         id: createId(),
-        text: cleanText4
+        text: cleanText5
       });
       setSession(nextSession);
       onChanged();
