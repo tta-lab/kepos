@@ -1,4 +1,9 @@
-export function parseDirectRoomEndpoint(value = '') {
+export type DirectRoomEndpoint = {
+  host: string
+  port: number
+}
+
+export function parseDirectRoomEndpoint(value = ''): DirectRoomEndpoint | null {
   const trimmed = value.trim()
   if (!trimmed) return null
 

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { parseDirectRoomEndpoint } from '../src/direct-room-endpoint.js'
+import { parseDirectRoomEndpoint } from '../src/direct-room-endpoint.ts'
 
 test('direct room endpoint parser accepts host and port', () => {
   assert.deepEqual(parseDirectRoomEndpoint('192.168.1.203:40123'), {

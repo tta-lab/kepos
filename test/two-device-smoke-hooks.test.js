@@ -163,7 +163,7 @@ test('Android manual home join can pass direct guest endpoint to backend', async
 
   assert.match(
     source,
-    /import \{ parseDirectRoomEndpoint \} from '\.\.\/src\/direct-room-endpoint\.js'/
+    /import \{ parseDirectRoomEndpoint \} from '\.\.\/src\/direct-room-endpoint\.ts'/
   )
   assert.match(source, /const \[directRoomEndpoint, setDirectRoomEndpoint\] = useState\(''\)/)
   assert.match(source, /const directEndpoint = parseDirectRoomEndpoint\(directRoomEndpoint\)/)
@@ -1191,7 +1191,7 @@ test('debug two-device smoke covers live DM exchange and restart persistence', a
 test('Android records accepted DM threads in UI state before async storage completes', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 
-  assert.match(source, /import \{ upsertDmThread \} from '\.\.\/src\/dm-thread-list\.js'/)
+  assert.match(source, /import \{ upsertDmThread \} from '\.\.\/src\/dm-thread-list\.ts'/)
   assert.match(
     source,
     /if \(req\.command === RPC_DM_THREAD\) \{[\s\S]*setDmThreads\(\(current\) => upsertDmThread\(current, payload\)\)/

@@ -63,7 +63,7 @@ import {
   createHomeJoinSessionFromAddress,
   createManualHomeJoinSession
 } from '../src/home-session.ts'
-import { parseDirectRoomEndpoint } from '../src/direct-room-endpoint.js'
+import { parseDirectRoomEndpoint } from '../src/direct-room-endpoint.ts'
 import { createIdentityKeyPairFromSeed } from '../src/identity.js'
 import { getOrCreateLocalProfile } from '../src/local-profile.js'
 import {
