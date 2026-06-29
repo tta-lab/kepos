@@ -1,6 +1,6 @@
 /* global document */
 
-import React from 'react'
+import type { KeyboardEvent, MouseEvent } from 'react'
 import { createRoot } from 'react-dom/client'
 import { flushSync } from 'react-dom'
 import { X } from 'lucide-react'
@@ -11,8 +11,46 @@ import { PeoplePane } from './people-components.jsx'
 import { AppRail, HomeStatusPanel, Topbar } from './shell-components.jsx'
 import { ActionButton } from './ui-components.jsx'
 
+type LargeQrState = {
+  isOpen: boolean
+  svg: string
+  title?: string
+}
+
+type DesktopAppModel = {
+  activeTab: string
+  contextForm: unknown
+  contextFormActions: unknown
+  controls: unknown
+  directComposer: unknown
+  directComposerActions: unknown
+  directContactPicker: unknown
+  directContactPickerActions: unknown
+  directMessageActions: unknown
+  directMessages: Array<{ actions?: unknown }>
+  homeComposerActions: { sendHomeMessage: () => void }
+  homeMessages: unknown[]
+  largeQr: LargeQrState
+  people: { messageRequests: unknown[]; trustedContacts: unknown[] }
+  peopleActions: unknown
+  setContextForm: unknown
+  setDirectComposer: unknown
+  setTheme: (theme: string) => void
+  shareQrOutputs: unknown
+  shellActions: {
+    hideLargeQr: () => void
+    leaveHome: () => void
+    setTab: (tab: string) => void
+  }
+  status: unknown
+  theme: string
+  treeholeActions: unknown
+  treeholeComposerActions: { postTreehole: () => void }
+  treeholePosts: unknown[]
+}
+
 function DesktopApp() {
-  const model = useDesktopAppModel()
+  const model = useDesktopAppModel() as DesktopAppModel
   const navBadges = {
     direct: model.directMessages.filter((message) => message.actions).length,
     people: model.people.messageRequests.length
@@ -86,7 +124,7 @@ function DesktopApp() {
   )
 }
 
-function LargeQrDialog({ onClose, qr }) {
+function LargeQrDialog({ onClose, qr }: { onClose: () => void; qr: LargeQrState }) {
   return (
     <div
       id='largeQrDialog'
@@ -95,10 +133,10 @@ function LargeQrDialog({ onClose, qr }) {
       aria-modal='true'
       aria-labelledby='largeQrTitle'
       tabIndex={-1}
-      onClick={(event) => {
+      onClick={(event: MouseEvent<HTMLDivElement>) => {
         if (event.target === event.currentTarget) onClose()
       }}
-      onKeyDown={(event) => {
+      onKeyDown={(event: KeyboardEvent<HTMLDivElement>) => {
         if (event.key === 'Escape') onClose()
       }}
     >
@@ -128,7 +166,10 @@ function LargeQrDialog({ onClose, qr }) {
   )
 }
 
-const root = createRoot(document.querySelector('#root'))
+const rootElement = document.querySelector('#root')
+if (!rootElement) throw new Error('Desktop root element is missing.')
+
+const root = createRoot(rootElement)
 
 flushSync(() => {
   root.render(<DesktopApp />)

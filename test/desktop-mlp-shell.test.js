@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 
 async function readDesktopAppSource() {
-  return await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  return await readFile(new URL('../desktop/app.tsx', import.meta.url), 'utf8')
 }
 
 async function readDesktopUiSource() {

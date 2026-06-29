@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 
 async function readDesktopUiSource() {
-  const app = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const app = await readFile(new URL('../desktop/app.tsx', import.meta.url), 'utf8')
   const appState = await readFile(new URL('../desktop/app-state.jsx', import.meta.url), 'utf8')
   const panes = await readFile(new URL('../desktop/pane-components.jsx', import.meta.url), 'utf8')
   const shell = await readFile(new URL('../desktop/shell-components.jsx', import.meta.url), 'utf8')

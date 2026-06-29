@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 
 async function readDesktopUiSource() {
-  const app = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const app = await readFile(new URL('../desktop/app.tsx', import.meta.url), 'utf8')
   const appState = await readFile(new URL('../desktop/app-state.jsx', import.meta.url), 'utf8')
   const panes = await readFile(new URL('../desktop/pane-components.jsx', import.meta.url), 'utf8')
   const shell = await readFile(new URL('../desktop/shell-components.jsx', import.meta.url), 'utf8')
@@ -43,7 +43,11 @@ test('desktop scripts build the renderer bundle before launch', async () => {
 
   assert.equal(
     packageJson.scripts['desktop:bundle'],
-    'esbuild desktop/app.jsx --bundle --platform=browser --format=iife --define:process.env.NODE_ENV=\\\"production\\\" --minify --outfile=desktop/app.bundle.js && esbuild desktop/controller.js --bundle --platform=browser --format=iife --define:process.env.NODE_ENV=\\\"production\\\" --outfile=desktop/controller.browser.bundle.js && esbuild desktop/controller.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/controller.bundle.cjs && esbuild desktop/local-backend.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/local-backend.bundle.cjs && esbuild desktop/local-profile.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/local-profile.bundle.cjs && esbuild src/desktop-backend-worker-bare-entry.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/backend-worker.bundle.cjs'
+    'npm run desktop:styles && esbuild desktop/app.tsx --bundle --platform=browser --format=iife --define:process.env.NODE_ENV=\\\"production\\\" --minify --outfile=desktop/app.bundle.js && esbuild desktop/controller.js --bundle --platform=browser --format=iife --define:process.env.NODE_ENV=\\\"production\\\" --outfile=desktop/controller.browser.bundle.js && esbuild desktop/controller.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/controller.bundle.cjs && esbuild desktop/local-backend.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/local-backend.bundle.cjs && esbuild desktop/local-profile.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/local-profile.bundle.cjs && esbuild src/desktop-backend-worker-bare-entry.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/backend-worker.bundle.cjs'
+  )
+  assert.equal(
+    packageJson.scripts['desktop:styles'],
+    'tailwindcss -i desktop/tailwind.source.css -o desktop/tailwind.css --minify'
   )
   assert.equal(packageJson.scripts.desktop, 'npm run start --prefix desktop')
   assert.equal(desktopPackageJson.scripts.prestart, 'npm run desktop:bundle --prefix ..')
@@ -72,9 +76,12 @@ test('desktop React entry renders before starting the controller', async () => {
   const source = await readDesktopUiSource()
   const html = await readFile(new URL('../desktop/index.html', import.meta.url), 'utf8')
 
-  assert.match(source, /createRoot\(document\.querySelector\('#root'\)\)/)
+  assert.match(source, /const rootElement = document\.querySelector\('#root'\)/)
+  assert.match(source, /if \(!rootElement\) throw new Error\('Desktop root element is missing\.'\)/)
+  assert.match(source, /createRoot\(rootElement\)/)
   assert.match(source, /flushSync/)
   assert.doesNotMatch(source, /import\('\.\/controller\.js'\)/)
+  assert.match(html, /<link rel="stylesheet" href="\.\/tailwind\.css" \/>/)
   assert.match(
     html,
     /<script src="\.\/app\.bundle\.js"><\/script>[\s\S]*<script src="\.\/controller\.browser\.bundle\.js"><\/script>/
@@ -278,16 +285,19 @@ test('desktop React owns the large QR dialog surface', async () => {
     'utf8'
   )
 
-  assert.match(source, /function LargeQrDialog\(\{ onClose, qr \}\)/)
+  assert.match(
+    source,
+    /function LargeQrDialog\(\{ onClose, qr \}: \{ onClose: \(\) => void; qr: LargeQrState \}\)/
+  )
   assert.match(source, /setLargeQr\(qr = EMPTY_LARGE_QR\)/)
   assert.match(source, /className=\{qr\.isOpen \? 'largeQrDialog' : 'largeQrDialog hidden'\}/)
   assert.match(
     source,
-    /onClick=\{\(event\) => \{[\s\S]*if \(event\.target === event\.currentTarget\) onClose\(\)/
+    /onClick=\{\(event: MouseEvent<HTMLDivElement>\) => \{[\s\S]*if \(event\.target === event\.currentTarget\) onClose\(\)/
   )
   assert.match(
     source,
-    /onKeyDown=\{\(event\) => \{[\s\S]*if \(event\.key === 'Escape'\) onClose\(\)/
+    /onKeyDown=\{\(event: KeyboardEvent<HTMLDivElement>\) => \{[\s\S]*if \(event\.key === 'Escape'\) onClose\(\)/
   )
   assert.match(source, /onClick=\{onClose\}/)
   assert.match(source, /dangerouslySetInnerHTML=\{\{ __html: qr\.svg \}\}/)

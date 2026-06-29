@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 
 test('desktop exposes contact revoke controls that update trust and DM threads', async () => {
-  const app = await readFile(new URL('../desktop/app.jsx', import.meta.url), 'utf8')
+  const app = await readFile(new URL('../desktop/app.tsx', import.meta.url), 'utf8')
   const people = await readFile(
     new URL('../desktop/people-components.jsx', import.meta.url),
     'utf8'

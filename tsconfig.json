@@ -3,6 +3,7 @@
     "allowImportingTsExtensions": true,
     "allowJs": true,
     "checkJs": false,
+    "jsx": "react-jsx",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "noEmit": true,
@@ -10,6 +11,12 @@
     "strict": true,
     "target": "ES2024"
   },
-  "include": ["src/**/*.ts", "test/**/*.ts", "scripts/**/*.ts"],
+  "include": [
+    "desktop/**/*.ts",
+    "desktop/**/*.tsx",
+    "src/**/*.ts",
+    "test/**/*.ts",
+    "scripts/**/*.ts"
+  ],
   "extends": "expo/tsconfig.base"
 }
