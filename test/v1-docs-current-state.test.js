@@ -409,6 +409,19 @@ test('V1 docs record DM body Home fallback as debug-only', async () => {
   assert.doesNotMatch(docs, /signed DM body fallback,\s+Android/)
 })
 
+test('V1 audit records Direct security hardening evidence', async () => {
+  const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
+
+  assert.match(audit, /DM invite acceptance rejects revoked senders/)
+  assert.match(audit, /request-bound\s+platform exceptions/)
+  assert.match(audit, /Direct runtime verifies channel-delivered messages/)
+  assert.match(audit, /before persistence or UI\s+display/)
+  assert.match(audit, /`test\/dm-invite-acceptance\.test\.js`/)
+  assert.match(audit, /`test\/dm-thread-runtime\.test\.js`/)
+  assert.match(audit, /`npm test` passed with 655 Node\s+tests/)
+  assert.match(audit, /Device smoke was intentionally not rerun/)
+})
+
 test('V1 UX docs include composer payload trimming on desktop and mobile', async () => {
   const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
   const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
