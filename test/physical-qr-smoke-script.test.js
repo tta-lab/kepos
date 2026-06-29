@@ -26,7 +26,8 @@ test('physical QR smoke stages desktop QR dialogs and Android scanners', async (
   for (const token of [
     '#showLargeProfileQrButton',
     '#showLargeHomeQrButton',
-    'quick-scan-profile-qr-button',
+    'people-setup-toggle',
+    'scan-profile-qr-button',
     'quick-scan-home-qr-button',
     'qr-scanner-camera',
     'Trusted friend added.',

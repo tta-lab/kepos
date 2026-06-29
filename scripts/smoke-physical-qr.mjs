@@ -46,7 +46,8 @@ try {
   await clickDesktopContextButton(page, '#showLargeProfileQrButton')
   await page.locator('#largeQrDialog:not(.hidden)').waitFor({ state: 'visible' })
   await page.bringToFront()
-  await openAndroidScanner('quick-scan-profile-qr-button')
+  await openAndroidPeopleSetup()
+  await openAndroidScanner('scan-profile-qr-button')
   console.log('Point the Android camera at the desktop Profile QR.')
   await waitForAndroidTextWithDiagnostics(page, 'Trusted friend added.', 'profile', {
     timeoutMs: 180000
@@ -123,6 +124,14 @@ async function openAndroidScanner(testId) {
   await waitForAndroidResourceId(testId)
   tapAndroidResourceId(testId)
   await waitForAndroidResourceId('qr-scanner-camera')
+}
+
+async function openAndroidPeopleSetup() {
+  if (boundsByResourceId(dumpAndroidUi(), 'scan-profile-qr-button')) return
+
+  await waitForAndroidResourceId('people-setup-toggle')
+  tapAndroidResourceId('people-setup-toggle')
+  await waitForAndroidResourceId('scan-profile-qr-button')
 }
 
 async function clickDesktopContextButton(page, selector) {

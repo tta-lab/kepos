@@ -19,7 +19,9 @@ appId: io.guion.kepos
 - tapOn:
     id: 'qr-scanner-cancel'
 - tapOn:
-    id: 'quick-scan-profile-qr-button'
+    id: 'people-setup-toggle'
+- tapOn:
+    id: 'scan-profile-qr-button'
 - assertVisible:
     id: 'qr-scanner-overlay'
 - tapOn:
