@@ -360,6 +360,8 @@ test('V1 UX docs include composer payload trimming on desktop and mobile', async
   assert.match(ux, /Desktop Home, Direct, and Treehole runtime calls also trim outgoing text/)
   assert.match(audit, /mobile Home, Direct, Treehole post, and Treehole comment payloads trim/)
   assert.match(ux, /Mobile Home, Direct, Treehole post, and Treehole comment payloads trim/)
+  assert.match(audit, /Android Bare backend RPC handlers also trim Home, Direct, and Treehole/)
+  assert.match(ux, /Android Bare backend RPC handlers also trim Home, Direct, and Treehole/)
 })
 
 test('V1 audit records warning-free low-cost lint gate', async () => {
