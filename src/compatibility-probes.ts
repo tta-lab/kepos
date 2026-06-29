@@ -6,20 +6,29 @@ import { deriveDmTopic } from './dm-replication.js'
 
 const PROBE_TEXT = 'kepos sealed box probe'
 
+type CompactState = any
+
+type SignedProbeRecord = {
+  message: string
+  signerProfileId: string
+  type: string
+  version: number
+}
+
 const signedProbeEncoding = {
-  preencode(state, record) {
+  preencode(state: CompactState, record: SignedProbeRecord) {
     compact.string.preencode(state, record.type)
     compact.uint.preencode(state, record.version)
     compact.string.preencode(state, record.signerProfileId)
     compact.string.preencode(state, record.message)
   },
-  encode(state, record) {
+  encode(state: CompactState, record: SignedProbeRecord) {
     compact.string.encode(state, record.type)
     compact.uint.encode(state, record.version)
     compact.string.encode(state, record.signerProfileId)
     compact.string.encode(state, record.message)
   },
-  decode(state) {
+  decode(state: CompactState): SignedProbeRecord {
     return {
       type: compact.string.decode(state),
       version: compact.uint.decode(state),

@@ -1,4 +1,4 @@
-import { runCompatibilityProbes } from '../src/compatibility-probes.js'
+import { runCompatibilityProbes } from '../src/compatibility-probes.ts'
 
 const result = runCompatibilityProbes()
 

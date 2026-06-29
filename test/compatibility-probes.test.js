@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { runCompatibilityProbes } from '../src/compatibility-probes.js'
+import { runCompatibilityProbes } from '../src/compatibility-probes.ts'
 
 test('compatibility probes cover signing encoding and sealed boxes', () => {
   const result = runCompatibilityProbes()
