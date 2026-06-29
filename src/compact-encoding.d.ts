@@ -34,6 +34,8 @@ declare module 'hypercore-crypto' {
       publicKey: Uint8Array
       secretKey: Uint8Array
     }
+    randomBytes(size: number): Uint8Array
+    hash(message: Uint8Array): Uint8Array
     sign(message: Uint8Array, secretKey: Uint8Array): Uint8Array
     verify(message: Uint8Array, signature: Uint8Array, publicKey: Uint8Array): boolean
   }

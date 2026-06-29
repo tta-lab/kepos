@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
-import { createRoomKey, decodeFrame, deriveTopic, encodeFrame, isRoomKey } from '../src/protocol.js'
+import { createRoomKey, decodeFrame, deriveTopic, encodeFrame, isRoomKey } from '../src/protocol.ts'
 
 describe('room keys', () => {
   test('createRoomKey returns a 32-byte hex secret', () => {

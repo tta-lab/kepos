@@ -4,7 +4,7 @@ import Hyperswarm from 'hyperswarm'
 import readline from 'node:readline'
 import { randomUUID } from 'node:crypto'
 import { pathToFileURL } from 'node:url'
-import { createRoomKey, decodeFrame, deriveTopic, encodeFrame, isRoomKey } from './protocol.js'
+import { createRoomKey, decodeFrame, deriveTopic, encodeFrame, isRoomKey } from './protocol.ts'
 
 function usage() {
   return `Kepos P2P chat prototype

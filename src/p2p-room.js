@@ -1,6 +1,6 @@
 import Hyperswarm from 'hyperswarm'
 import b4a from 'b4a'
-import { decodeFrame, deriveTopic, encodeFrame } from './protocol.js'
+import { decodeFrame, deriveTopic, encodeFrame } from './protocol.ts'
 
 export function createP2PRoom(options = {}) {
   const createSwarm = options.createSwarm || (() => new Hyperswarm())
