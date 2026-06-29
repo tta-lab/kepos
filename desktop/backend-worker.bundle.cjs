@@ -619,6 +619,7 @@ function createDmInvite({
   channelDiscoveryKey,
   channelPublicKey,
   createdAt = Date.now(),
+  expiresAt,
   fromIdentity,
   inviteId,
   payload,
@@ -630,6 +631,7 @@ function createDmInvite({
   const cleanPayload = cleanDmInvitePayload({
     channelDiscoveryKey,
     channelPublicKey,
+    expiresAt,
     fromProfileId: fromIdentity?.publicKey,
     inviteId,
     recipientEncryptionPublicKey,
@@ -683,10 +685,14 @@ function verifyDmInvite(invite) {
 }
 function openDmInvite({
   invite,
+  now = Date.now(),
   recipientEncryptionKeyPair
 }) {
   if (!verifyDmInvite(invite)) {
     throw new Error("Invalid DM invite");
+  }
+  if (isDmInviteExpired(invite, now)) {
+    throw new Error("Expired DM invite");
   }
   const publicKey = cleanHex32(
     recipientEncryptionKeyPair?.publicKey,
@@ -715,6 +721,10 @@ function openDmInvite({
   }
   return JSON.parse(import_b4a2.default.toString(opened));
 }
+function isDmInviteExpired(invite, now = Date.now()) {
+  const expiresAt = asRecord(invite).expiresAt;
+  return typeof expiresAt === "number" && expiresAt <= now;
+}
 function sealPayload(payload, recipientEncryptionPublicKey) {
   const publicKey = import_b4a2.default.from(
     cleanHex32(recipientEncryptionPublicKey, "Recipient encryption public key is required"),
@@ -739,9 +749,19 @@ function cleanDmInvitePayload(payload = {}) {
       payload.channelDiscoveryKey,
       "Channel discovery key is required"
     ),
+    expiresAt: cleanOptionalTimestamp(payload.expiresAt),
     requestId: cleanOptionalString2(payload.requestId),
     sealedPayload: cleanHex(payload.sealedPayload, "Sealed payload is required")
   };
+}
+function cleanOptionalTimestamp(value) {
+  if (value === void 0 || value === null) {
+    return void 0;
+  }
+  if (typeof value !== "number" || !Number.isSafeInteger(value) || value <= 0) {
+    throw new Error("Invalid expiration timestamp");
+  }
+  return value;
 }
 function asRecord(value) {
   if (!value || typeof value !== "object") {
@@ -793,6 +813,10 @@ var init_dm_invite = __esm({
         import_compact_encoding2.default.string.preencode(state, payload.recipientEncryptionPublicKey);
         import_compact_encoding2.default.string.preencode(state, payload.channelPublicKey);
         import_compact_encoding2.default.string.preencode(state, payload.channelDiscoveryKey);
+        import_compact_encoding2.default.bool.preencode(state, payload.expiresAt !== void 0);
+        if (payload.expiresAt !== void 0) {
+          import_compact_encoding2.default.uint.preencode(state, payload.expiresAt);
+        }
         import_compact_encoding2.default.string.preencode(state, payload.requestId || "");
         import_compact_encoding2.default.string.preencode(state, payload.sealedPayload);
       },
@@ -803,17 +827,29 @@ var init_dm_invite = __esm({
         import_compact_encoding2.default.string.encode(state, payload.recipientEncryptionPublicKey);
         import_compact_encoding2.default.string.encode(state, payload.channelPublicKey);
         import_compact_encoding2.default.string.encode(state, payload.channelDiscoveryKey);
+        import_compact_encoding2.default.bool.encode(state, payload.expiresAt !== void 0);
+        if (payload.expiresAt !== void 0) {
+          import_compact_encoding2.default.uint.encode(state, payload.expiresAt);
+        }
         import_compact_encoding2.default.string.encode(state, payload.requestId || "");
         import_compact_encoding2.default.string.encode(state, payload.sealedPayload);
       },
       decode(state) {
+        const inviteId = import_compact_encoding2.default.string.decode(state);
+        const fromProfileId = import_compact_encoding2.default.string.decode(state);
+        const toProfileId = import_compact_encoding2.default.string.decode(state);
+        const recipientEncryptionPublicKey = import_compact_encoding2.default.string.decode(state);
+        const channelPublicKey = import_compact_encoding2.default.string.decode(state);
+        const channelDiscoveryKey = import_compact_encoding2.default.string.decode(state);
+        const hasExpiresAt = import_compact_encoding2.default.bool.decode(state);
         return {
-          inviteId: import_compact_encoding2.default.string.decode(state),
-          fromProfileId: import_compact_encoding2.default.string.decode(state),
-          toProfileId: import_compact_encoding2.default.string.decode(state),
-          recipientEncryptionPublicKey: import_compact_encoding2.default.string.decode(state),
-          channelPublicKey: import_compact_encoding2.default.string.decode(state),
-          channelDiscoveryKey: import_compact_encoding2.default.string.decode(state),
+          inviteId,
+          fromProfileId,
+          toProfileId,
+          recipientEncryptionPublicKey,
+          channelPublicKey,
+          channelDiscoveryKey,
+          expiresAt: hasExpiresAt ? import_compact_encoding2.default.uint.decode(state) : void 0,
           requestId: import_compact_encoding2.default.string.decode(state) || void 0,
           sealedPayload: import_compact_encoding2.default.string.decode(state)
         };
@@ -1974,7 +2010,7 @@ function acceptDmInviteAsRecipient({
   if (canAcceptInvite && !canAcceptInvite(invite)) {
     throw new Error("DM invite is not authorized");
   }
-  const payload = openDmInvite({ invite, recipientEncryptionKeyPair });
+  const payload = openDmInvite({ invite, now: acceptedAt, recipientEncryptionKeyPair });
   if (payload.channelDiscoveryKey !== invite.channelDiscoveryKey || payload.channelPublicKey !== invite.channelPublicKey) {
     throw new Error("DM invite payload mismatch");
   }
@@ -5404,7 +5440,7 @@ function cleanTrustInvitePayload(payload = {}) {
   }
   return {
     displayName: cleanString5(payload.displayName, "Display name is required"),
-    expiresAt: cleanOptionalTimestamp(payload.expiresAt),
+    expiresAt: cleanOptionalTimestamp2(payload.expiresAt),
     identityPublicKey,
     profileId
   };
@@ -5413,7 +5449,7 @@ function cleanHomeAddressPayload(payload = {}) {
   const policy = cleanHomePolicy(payload.policy || "trusted_only");
   return {
     address: cleanKey4(payload.address, "Home address is required"),
-    expiresAt: cleanOptionalTimestamp(payload.expiresAt),
+    expiresAt: cleanOptionalTimestamp2(payload.expiresAt),
     ownerProfileId: cleanKey4(payload.ownerProfileId, "Home owner profile id is required"),
     policy,
     roomKey: cleanKey4(payload.roomKey, "Home room key is required")
@@ -5451,7 +5487,7 @@ function cleanTimestamp3(value) {
   }
   return value;
 }
-function cleanOptionalTimestamp(value) {
+function cleanOptionalTimestamp2(value) {
   if (value === void 0 || value === null) {
     return null;
   }
@@ -5647,7 +5683,7 @@ function cleanTrustGrantPayload({
 }) {
   return {
     ownerProfileId: cleanKey5(ownerProfileId, "Owner profile id is required"),
-    revokedAt: cleanOptionalTimestamp2(revokedAt),
+    revokedAt: cleanOptionalTimestamp3(revokedAt),
     scope: cleanScope(scope),
     trustedProfileId: cleanKey5(trustedProfileId, "Trusted profile id is required")
   };
@@ -5678,7 +5714,7 @@ function cleanString6(value, message) {
   }
   return cleaned;
 }
-function cleanOptionalTimestamp2(value) {
+function cleanOptionalTimestamp3(value) {
   if (value === null || value === void 0) {
     return null;
   }

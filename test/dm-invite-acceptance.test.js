@@ -191,4 +191,42 @@ describe('DM invite acceptance', () => {
       /DM invite payload mismatch/
     )
   })
+
+  test('rejects expired invites before opening a recipient thread', () => {
+    const sender = createSigningKeyPair()
+    const recipient = createSigningKeyPair()
+    const recipientEncryption = createDmEncryptionKeyPair()
+    const book = trustContact(createContactBook({ ownerProfileId: recipient.publicKey }), {
+      alias: 'Sender',
+      profileId: sender.publicKey,
+      trustedAt: 1500
+    })
+    const invite = createDmInvite({
+      channelDiscoveryKey: '1'.repeat(64),
+      channelPublicKey: '2'.repeat(64),
+      createdAt: 1000,
+      expiresAt: 1800,
+      fromIdentity: sender,
+      inviteId: 'invite-1',
+      payload: {
+        channelDiscoveryKey: '1'.repeat(64),
+        channelPublicKey: '2'.repeat(64),
+        threadId: 'thread-1'
+      },
+      recipientEncryptionPublicKey: recipientEncryption.publicKey,
+      toProfileId: recipient.publicKey
+    })
+
+    assert.throws(
+      () =>
+        acceptDmInviteAsRecipient({
+          acceptedAt: 2000,
+          contactBook: book,
+          invite,
+          localProfileId: recipient.publicKey,
+          recipientEncryptionKeyPair: recipientEncryption
+        }),
+      /Expired DM invite/
+    )
+  })
 })

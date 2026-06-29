@@ -62,8 +62,12 @@ export function acceptMessageRequestWithInvite({
   }
 }
 
-export function openAcceptedMessageRequestInvite({ invite, recipientEncryptionKeyPair }) {
-  return openDmInvite({ invite, recipientEncryptionKeyPair })
+export function openAcceptedMessageRequestInvite({
+  invite,
+  now = Date.now(),
+  recipientEncryptionKeyPair
+}) {
+  return openDmInvite({ invite, now, recipientEncryptionKeyPair })
 }
 
 function createKey() {

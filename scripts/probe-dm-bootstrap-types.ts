@@ -16,6 +16,7 @@ const invite: DmInvite = createDmInvite({
   channelDiscoveryKey: 'b'.repeat(64),
   channelPublicKey: 'c'.repeat(64),
   createdAt: 1000,
+  expiresAt: 2000,
   fromIdentity: from,
   inviteId: 'invite-1',
   payload: invitePayload,

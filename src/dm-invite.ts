@@ -20,6 +20,7 @@ type SignedProof = {
 type DmInviteSignedPayload = {
   channelDiscoveryKey: string
   channelPublicKey: string
+  expiresAt?: number
   fromProfileId: string
   inviteId: string
   recipientEncryptionPublicKey: string
@@ -52,6 +53,10 @@ const dmInvitePayloadEncoding: PayloadEncoding<DmInviteSignedPayload> = {
     compact.string.preencode(state, payload.recipientEncryptionPublicKey)
     compact.string.preencode(state, payload.channelPublicKey)
     compact.string.preencode(state, payload.channelDiscoveryKey)
+    compact.bool.preencode(state, payload.expiresAt !== undefined)
+    if (payload.expiresAt !== undefined) {
+      compact.uint.preencode(state, payload.expiresAt)
+    }
     compact.string.preencode(state, payload.requestId || '')
     compact.string.preencode(state, payload.sealedPayload)
   },
@@ -62,17 +67,29 @@ const dmInvitePayloadEncoding: PayloadEncoding<DmInviteSignedPayload> = {
     compact.string.encode(state, payload.recipientEncryptionPublicKey)
     compact.string.encode(state, payload.channelPublicKey)
     compact.string.encode(state, payload.channelDiscoveryKey)
+    compact.bool.encode(state, payload.expiresAt !== undefined)
+    if (payload.expiresAt !== undefined) {
+      compact.uint.encode(state, payload.expiresAt)
+    }
     compact.string.encode(state, payload.requestId || '')
     compact.string.encode(state, payload.sealedPayload)
   },
   decode(state) {
+    const inviteId = compact.string.decode(state)
+    const fromProfileId = compact.string.decode(state)
+    const toProfileId = compact.string.decode(state)
+    const recipientEncryptionPublicKey = compact.string.decode(state)
+    const channelPublicKey = compact.string.decode(state)
+    const channelDiscoveryKey = compact.string.decode(state)
+    const hasExpiresAt = compact.bool.decode(state)
     return {
-      inviteId: compact.string.decode(state),
-      fromProfileId: compact.string.decode(state),
-      toProfileId: compact.string.decode(state),
-      recipientEncryptionPublicKey: compact.string.decode(state),
-      channelPublicKey: compact.string.decode(state),
-      channelDiscoveryKey: compact.string.decode(state),
+      inviteId,
+      fromProfileId,
+      toProfileId,
+      recipientEncryptionPublicKey,
+      channelPublicKey,
+      channelDiscoveryKey,
+      expiresAt: hasExpiresAt ? compact.uint.decode(state) : undefined,
       requestId: compact.string.decode(state) || undefined,
       sealedPayload: compact.string.decode(state)
     }
@@ -95,6 +112,7 @@ export function createDmInvite({
   channelDiscoveryKey,
   channelPublicKey,
   createdAt = Date.now(),
+  expiresAt,
   fromIdentity,
   inviteId,
   payload,
@@ -105,6 +123,7 @@ export function createDmInvite({
   channelDiscoveryKey: string
   channelPublicKey: string
   createdAt?: number
+  expiresAt?: number
   fromIdentity: SigningIdentity
   inviteId: string
   payload?: DmInvitePayload
@@ -116,6 +135,7 @@ export function createDmInvite({
   const cleanPayload = cleanDmInvitePayload({
     channelDiscoveryKey,
     channelPublicKey,
+    expiresAt,
     fromProfileId: fromIdentity?.publicKey,
     inviteId,
     recipientEncryptionPublicKey,
@@ -180,13 +200,19 @@ export function verifyDmInvite(invite: unknown): invite is DmInvite {
 
 export function openDmInvite({
   invite,
+  now = Date.now(),
   recipientEncryptionKeyPair
 }: {
   invite: DmInvite
+  now?: number
   recipientEncryptionKeyPair: DmEncryptionKeyPair
 }): DmInvitePayload {
   if (!verifyDmInvite(invite)) {
     throw new Error('Invalid DM invite')
+  }
+
+  if (isDmInviteExpired(invite, now)) {
+    throw new Error('Expired DM invite')
   }
 
   const publicKey = cleanHex32(
@@ -223,6 +249,11 @@ export function openDmInvite({
   return JSON.parse(b4a.toString(opened))
 }
 
+export function isDmInviteExpired(invite: unknown, now = Date.now()): boolean {
+  const expiresAt = asRecord(invite).expiresAt
+  return typeof expiresAt === 'number' && expiresAt <= now
+}
+
 function sealPayload(
   payload: DmInvitePayload | undefined,
   recipientEncryptionPublicKey: string
@@ -253,9 +284,22 @@ function cleanDmInvitePayload(payload: Record<string, unknown> = {}): DmInviteSi
       payload.channelDiscoveryKey,
       'Channel discovery key is required'
     ),
+    expiresAt: cleanOptionalTimestamp(payload.expiresAt),
     requestId: cleanOptionalString(payload.requestId),
     sealedPayload: cleanHex(payload.sealedPayload, 'Sealed payload is required')
   }
+}
+
+function cleanOptionalTimestamp(value: unknown): number | undefined {
+  if (value === undefined || value === null) {
+    return undefined
+  }
+
+  if (typeof value !== 'number' || !Number.isSafeInteger(value) || value <= 0) {
+    throw new Error('Invalid expiration timestamp')
+  }
+
+  return value
 }
 
 function asRecord(value: unknown): Record<string, unknown> {

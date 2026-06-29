@@ -18,7 +18,7 @@ export function acceptDmInviteAsRecipient({
     throw new Error('DM invite is not authorized')
   }
 
-  const payload = openDmInvite({ invite, recipientEncryptionKeyPair })
+  const payload = openDmInvite({ invite, now: acceptedAt, recipientEncryptionKeyPair })
 
   if (
     payload.channelDiscoveryKey !== invite.channelDiscoveryKey ||
