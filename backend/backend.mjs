@@ -81,6 +81,7 @@ let dmRuntime = null
 let treeholePolicy = null
 let allowHomeDmBodyFallback = false
 const addedWriters = new Set()
+const outgoingMessageRequestsByProfileId = new Map()
 
 async function handleRequest(req) {
   const payload = readPayload(req)
@@ -260,6 +261,7 @@ async function leaveRoom() {
   treeholePolicy = null
   allowHomeDmBodyFallback = false
   addedWriters.clear()
+  outgoingMessageRequestsByProfileId.clear()
 }
 
 function openTreehole(bootstrapKey = null) {
@@ -559,17 +561,16 @@ function sendMessageRequest(payload) {
   }
 
   const text = cleanRequiredText(payload.text)
-  room.broadcastControl(
-    createMessageRequest({
-      createdAt: payload.at || Date.now(),
-      fromIdentity: identity,
-      requestId: payload.id,
-      senderEncryptionPublicKey:
-        dmEncryptionKeyPair?.publicKey || payload.senderEncryptionPublicKey,
-      text,
-      toProfileId: payload.toProfileId
-    })
-  )
+  const request = createMessageRequest({
+    createdAt: payload.at || Date.now(),
+    fromIdentity: identity,
+    requestId: payload.id,
+    senderEncryptionPublicKey: dmEncryptionKeyPair?.publicKey || payload.senderEncryptionPublicKey,
+    text,
+    toProfileId: payload.toProfileId
+  })
+  outgoingMessageRequestsByProfileId.set(request.toProfileId, request.requestId)
+  room.broadcastControl(request)
 }
 
 async function acceptMessageRequest(payload) {
@@ -645,6 +646,10 @@ async function acceptDmInvite(invite) {
     recipientEncryptionKeyPair: dmEncryptionKeyPair
   })
 
+  if (invite?.requestId?.trim()) {
+    outgoingMessageRequestsByProfileId.delete(invite.fromProfileId)
+  }
+
   await saveBackendDmThread(thread)
   await dmRuntime?.openThread(thread)
   sendToUI(RPC_DM_THREAD, thread)
@@ -661,9 +666,11 @@ function canAcceptIncomingDmInvite(invite) {
     return false
   }
 
-  return (
-    Boolean(invite?.requestId?.trim()) || treeholePolicy?.trustedProfileIds?.includes(fromProfileId)
-  )
+  if (treeholePolicy?.trustedProfileIds?.includes(fromProfileId)) {
+    return true
+  }
+
+  return outgoingMessageRequestsByProfileId.get(fromProfileId) === invite?.requestId?.trim()
 }
 
 function sendDmBody(payload) {

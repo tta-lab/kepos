@@ -4,6 +4,7 @@ import {
   appendRemoteMessageRequest,
   appendRemoteSignedDirectMessage,
   dismissDirectMessage,
+  hasOutgoingMessageRequest,
   restoreDirectMessageSession
 } from './dm-session.ts'
 import { acceptDmInviteAsRecipient } from './dm-invite-acceptance.js'
@@ -163,6 +164,12 @@ export function createDesktopDmRuntime({
 
     const thread = acceptInvite({
       acceptedAt,
+      canAcceptInvite: (invite) =>
+        !invite?.requestId?.trim() ||
+        hasOutgoingMessageRequest(dmSession, {
+          remoteProfileId: invite.fromProfileId,
+          requestId: invite.requestId
+        }),
       contactBook,
       invite,
       localProfileId: localProfile.id,

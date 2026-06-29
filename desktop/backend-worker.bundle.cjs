@@ -1763,6 +1763,19 @@ function dismissDirectMessage(session, { id }) {
     messages: session.messages.filter((message) => message.id !== cleanId)
   };
 }
+function hasOutgoingMessageRequest(session, {
+  remoteProfileId,
+  requestId
+}) {
+  const cleanRemoteProfileId = cleanOptionalString3(remoteProfileId);
+  const cleanRequestId = cleanOptionalString3(requestId);
+  if (!session || !cleanRemoteProfileId || !cleanRequestId) {
+    return false;
+  }
+  return session.messages.some(
+    (message) => message.type === "kepos.message.request.v1" && message.direction === "out" && message.requestId === cleanRequestId && message.toProfileId === cleanRemoteProfileId
+  );
+}
 function appendDirectMessage(session, message) {
   if (!message.id || !message.text || session.seenMessageIds.has(message.id)) {
     return session;
@@ -1829,6 +1842,10 @@ function cleanRequiredString4(value, message) {
 function cleanText(text) {
   return typeof text === "string" ? text.trim() : "";
 }
+function cleanOptionalString3(value) {
+  const cleaned = typeof value === "string" ? value.trim() : "";
+  return cleaned || null;
+}
 function cleanOptionalNumber(value) {
   return Number.isFinite(value) ? value : null;
 }
@@ -1859,7 +1876,7 @@ function createDmThread({
     remoteProfileId: cleanRemoteProfileId,
     channelPublicKey: cleanChannelKey(channelPublicKey),
     channelDiscoveryKey: cleanChannelKey(channelDiscoveryKey),
-    requestId: cleanOptionalString3(requestId),
+    requestId: cleanOptionalString4(requestId),
     createdAt: cleanTimestamp2(createdAt, "Created timestamp is required"),
     state: "pending"
   });
@@ -1920,7 +1937,7 @@ function cleanDmThread(thread = {}) {
     remoteProfileId,
     channelPublicKey: cleanChannelKey(value.channelPublicKey),
     channelDiscoveryKey: cleanChannelKey(value.channelDiscoveryKey),
-    requestId: cleanOptionalString3(value.requestId),
+    requestId: cleanOptionalString4(value.requestId),
     createdAt: cleanTimestamp2(value.createdAt, "Created timestamp is required"),
     acceptedAt: value.acceptedAt === void 0 ? void 0 : cleanTimestamp2(value.acceptedAt, "Accepted timestamp is required"),
     revokedAt: value.revokedAt === void 0 ? void 0 : cleanTimestamp2(value.revokedAt, "Revoked timestamp is required"),
@@ -1978,7 +1995,7 @@ function cleanString4(value, message) {
   }
   return cleaned;
 }
-function cleanOptionalString3(value) {
+function cleanOptionalString4(value) {
   return typeof value === "string" ? value.trim() || void 0 : void 0;
 }
 function dropEmpty2(value) {
@@ -2822,6 +2839,10 @@ function createDesktopDmRuntime({
     if (!localProfile) return null;
     const thread = acceptInvite({
       acceptedAt,
+      canAcceptInvite: (invite2) => !invite2?.requestId?.trim() || hasOutgoingMessageRequest(dmSession, {
+        remoteProfileId: invite2.fromProfileId,
+        requestId: invite2.requestId
+      }),
       contactBook,
       invite,
       localProfileId: localProfile.id,
@@ -3667,7 +3688,7 @@ function createSignedTreeholePost({
     createdAt,
     identity,
     payload: {
-      authorDisplayName: cleanOptionalString4(authorDisplayName),
+      authorDisplayName: cleanOptionalString5(authorDisplayName),
       authorProfileId: cleanKey3(identity.publicKey, "Author profile id is required"),
       postId: cleanRequiredString8(postId, "Post id is required"),
       text: cleanRequiredString8(text, "Post text is required"),
@@ -3714,7 +3735,7 @@ function createSignedTreeholeComment({
     createdAt,
     identity,
     payload: {
-      authorDisplayName: cleanOptionalString4(authorDisplayName),
+      authorDisplayName: cleanOptionalString5(authorDisplayName),
       authorProfileId: cleanKey3(identity.publicKey, "Author profile id is required"),
       commentId: cleanRequiredString8(commentId, "Comment id is required"),
       postId: cleanRequiredString8(postId, "Post id is required"),
@@ -3833,7 +3854,7 @@ function applySignedTreeholeEvents(events, policy) {
       }
       postsById.set(event.postId, {
         ...dropEmpty3({
-          authorDisplayName: cleanOptionalString4(event.authorDisplayName),
+          authorDisplayName: cleanOptionalString5(event.authorDisplayName),
           authorProfileId: event.authorProfileId,
           text: event.text
         }),
@@ -3853,7 +3874,7 @@ function applySignedTreeholeEvents(events, policy) {
         continue;
       }
       const comment = dropEmpty3({
-        authorDisplayName: cleanOptionalString4(event.authorDisplayName),
+        authorDisplayName: cleanOptionalString5(event.authorDisplayName),
         authorProfileId: event.authorProfileId,
         createdAt: event.createdAt,
         id: event.commentId,
@@ -3954,7 +3975,7 @@ function payloadFromEvent(event) {
 function cleanPayloadForType(event) {
   if (event.type === POST_CREATE2) {
     return {
-      authorDisplayName: cleanOptionalString4(event.authorDisplayName),
+      authorDisplayName: cleanOptionalString5(event.authorDisplayName),
       authorProfileId: cleanKey3(event.authorProfileId, "Author profile id is required"),
       postId: cleanRequiredString8(event.postId, "Post id is required"),
       text: cleanRequiredString8(event.text, "Post text is required"),
@@ -3976,7 +3997,7 @@ function cleanPayloadForType(event) {
   }
   if (event.type === COMMENT_CREATE2) {
     return {
-      authorDisplayName: cleanOptionalString4(event.authorDisplayName),
+      authorDisplayName: cleanOptionalString5(event.authorDisplayName),
       authorProfileId: cleanKey3(event.authorProfileId, "Author profile id is required"),
       commentId: cleanRequiredString8(event.commentId, "Comment id is required"),
       postId: cleanRequiredString8(event.postId, "Post id is required"),
@@ -4082,7 +4103,7 @@ function cleanRequiredString8(value, message) {
   }
   return cleaned;
 }
-function cleanOptionalString4(value) {
+function cleanOptionalString5(value) {
   return value?.trim() || "";
 }
 var import_compact_encoding6, POST_CREATE2, POST_TOMBSTONE, COMMENT_CREATE2, COMMENT_TOMBSTONE, LIKE_ADD2, LIKE_REMOVE, WRITER_GRANT, RECORD_VERSION2, KEY_PATTERN4, postCreateEncoding, postTombstoneEncoding, commentCreateEncoding, commentTombstoneEncoding, likeEncoding, writerGrantEncoding;

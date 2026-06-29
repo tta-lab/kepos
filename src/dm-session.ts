@@ -158,6 +158,32 @@ export function dismissDirectMessage(
   }
 }
 
+export function hasOutgoingMessageRequest(
+  session: DirectMessageSession | null | undefined,
+  {
+    remoteProfileId,
+    requestId
+  }: {
+    remoteProfileId?: string
+    requestId?: string
+  }
+): boolean {
+  const cleanRemoteProfileId = cleanOptionalString(remoteProfileId)
+  const cleanRequestId = cleanOptionalString(requestId)
+
+  if (!session || !cleanRemoteProfileId || !cleanRequestId) {
+    return false
+  }
+
+  return session.messages.some(
+    (message) =>
+      message.type === 'kepos.message.request.v1' &&
+      message.direction === 'out' &&
+      message.requestId === cleanRequestId &&
+      message.toProfileId === cleanRemoteProfileId
+  )
+}
+
 function appendDirectMessage(
   session: DirectMessageSession,
   message: DirectMessageEntry
@@ -248,6 +274,11 @@ function cleanRequiredString(value: unknown, message: string): string {
 
 function cleanText(text: unknown): string {
   return typeof text === 'string' ? text.trim() : ''
+}
+
+function cleanOptionalString(value: unknown): string | null {
+  const cleaned = typeof value === 'string' ? value.trim() : ''
+  return cleaned || null
 }
 
 function cleanOptionalNumber(value: unknown): number | null {

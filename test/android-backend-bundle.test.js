@@ -53,6 +53,17 @@ test('android backend trims outgoing text at the RPC boundary', () => {
     'async function acceptMessageRequest',
     'async function acceptDmInvite'
   )
+  const acceptDmInvite = sliceBetween(
+    source,
+    'async function acceptDmInvite',
+    'function canAcceptIncomingDmInvite'
+  )
+  const canAcceptIncomingDmInvite = sliceBetween(
+    source,
+    'function canAcceptIncomingDmInvite',
+    'function sendDmBody'
+  )
+  const leaveRoom = sliceBetween(source, 'async function leaveRoom', 'function openTreehole')
   const rpcTreeholePolicy = sliceBetween(
     source,
     'if (req.command === RPC_TREEHOLE_POLICY)',
@@ -66,6 +77,8 @@ test('android backend trims outgoing text at the RPC boundary', () => {
   const sendDmBody = sliceBetween(source, 'function sendDmBody', 'async function revokeDmByProfile')
 
   assert.match(source, /let allowHomeDmBodyFallback = false/)
+  assert.match(source, /const outgoingMessageRequestsByProfileId = new Map\(\)/)
+  assert.match(leaveRoom, /outgoingMessageRequestsByProfileId\.clear\(\)/)
   assert.match(source, /RPC_TREEHOLE_POLICY/)
   assert.match(rpcTreeholePolicy, /await updateTreeholePolicy\(payload\)/)
   assert.match(source, /async function updateTreeholePolicy\(payload\)/)
@@ -83,10 +96,20 @@ test('android backend trims outgoing text at the RPC boundary', () => {
   assert.match(postTreehole, /const text = cleanRequiredText\(payload\.text\)/)
   assert.match(commentTreehole, /const text = cleanRequiredText\(payload\.text\)/)
   assert.match(sendMessageRequest, /const text = cleanRequiredText\(payload\.text\)/)
+  assert.match(sendMessageRequest, /outgoingMessageRequestsByProfileId\.set\(/)
   assert.match(acceptMessageRequest, /canAcceptIncomingMessageRequest\(request\)/)
   assert.match(acceptMessageRequest, /verifyMessageRequest\(request\)/)
   assert.match(acceptMessageRequest, /request\.toProfileId !== profileId/)
   assert.match(acceptMessageRequest, /revokedProfileIds\?\.includes\(request\.fromProfileId\)/)
+  assert.match(
+    acceptDmInvite,
+    /outgoingMessageRequestsByProfileId\.delete\(invite\.fromProfileId\)/
+  )
+  assert.match(canAcceptIncomingDmInvite, /trustedProfileIds\?\.includes\(fromProfileId\)/)
+  assert.match(
+    canAcceptIncomingDmInvite,
+    /outgoingMessageRequestsByProfileId\.get\(fromProfileId\) === invite\?\.requestId\?\.trim\(\)/
+  )
   assert.match(sendDmBody, /const text = cleanRequiredText\(payload\.text\)/)
   assert.match(handleControlDmBody, /if \(!allowHomeDmBodyFallback\)/)
   assert.match(sendDmBody, /if \(allowHomeDmBodyFallback\)/)

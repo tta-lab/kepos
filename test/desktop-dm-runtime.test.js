@@ -21,7 +21,7 @@ const profile = {
   id: localProfileId
 }
 
-function createRuntime({ closeAll, sessionMessages = [], threads = [] } = {}) {
+function createRuntime({ acceptInvite, closeAll, sessionMessages = [], threads = [] } = {}) {
   const calls = []
   const sessions = []
   let threadRuntimeOptions = null
@@ -40,7 +40,15 @@ function createRuntime({ closeAll, sessionMessages = [], threads = [] } = {}) {
     }
   }
   const runtime = createDesktopDmRuntime({
-    acceptInvite: ({ invite }) => ({ ...thread, remoteProfileId: invite.fromProfileId }),
+    acceptInvite:
+      acceptInvite ||
+      (({ canAcceptInvite, invite }) => {
+        if (canAcceptInvite && !canAcceptInvite(invite)) {
+          throw new Error('DM invite is not authorized')
+        }
+
+        return { ...thread, remoteProfileId: invite.fromProfileId }
+      }),
     acceptRequestWithInvite: () => ({
       book: { accepted: true },
       invite: { type: 'kepos.dm.invite.v1' },
@@ -257,4 +265,42 @@ test('desktop DM runtime accepts requests and invites into saved open threads', 
     ]
   )
   assert.equal(calls.filter(([name]) => name === 'openThread').length, 2)
+})
+
+test('desktop DM runtime binds request invites to outgoing local requests', async () => {
+  const { runtime } = createRuntime({
+    sessionMessages: [
+      {
+        at: 2,
+        createdAt: 2,
+        direction: 'out',
+        fromProfileId: localProfileId,
+        id: 'request-2',
+        requestId: 'request-2',
+        text: 'hello',
+        toProfileId: remoteProfileId,
+        type: 'kepos.message.request.v1'
+      }
+    ]
+  })
+
+  await runtime.start({ nick: 'Owner', profile, storage: {} })
+  const accepted = await runtime.acceptInviteAsRecipient({
+    acceptedAt: 4,
+    contactBook: {},
+    invite: { fromProfileId: remoteProfileId, requestId: 'request-2' },
+    recipientEncryptionKeyPair: profile.dmEncryptionKeyPair
+  })
+
+  assert.equal(accepted.threadId, 'thread-1')
+  await assert.rejects(
+    () =>
+      runtime.acceptInviteAsRecipient({
+        acceptedAt: 5,
+        contactBook: {},
+        invite: { fromProfileId: remoteProfileId, requestId: 'request-3' },
+        recipientEncryptionKeyPair: profile.dmEncryptionKeyPair
+      }),
+    /not authorized/
+  )
 })

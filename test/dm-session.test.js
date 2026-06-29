@@ -8,7 +8,8 @@ import {
   appendRemoteSignedDirectMessage,
   appendRemoteMessageRequest,
   createDirectMessageSession,
-  dismissDirectMessage
+  dismissDirectMessage,
+  hasOutgoingMessageRequest
 } from '../src/dm-session.ts'
 import { createSignedDmMessage } from '../src/dm-message.ts'
 import { createSigningKeyPair } from '../src/signed-record.ts'
@@ -130,6 +131,45 @@ describe('direct message session state', () => {
     ])
     assert.equal(duplicate.messages.length, 1)
     assert.equal(duplicate.messages[0].direction, 'in')
+  })
+
+  test('outgoing message request lookup binds invite responses to local requests', () => {
+    const session = appendLocalMessageRequest(
+      createDirectMessageSession({
+        localProfileId: 'profile-a',
+        nick: 'Ada'
+      }),
+      {
+        type: 'kepos.message.request.v1',
+        requestId: 'request-1',
+        fromProfileId: 'profile-a',
+        toProfileId: 'profile-b',
+        text: 'hello',
+        createdAt: 1_797_331_200_000
+      }
+    )
+
+    assert.equal(
+      hasOutgoingMessageRequest(session, {
+        remoteProfileId: 'profile-b',
+        requestId: 'request-1'
+      }),
+      true
+    )
+    assert.equal(
+      hasOutgoingMessageRequest(session, {
+        remoteProfileId: 'profile-b',
+        requestId: 'request-2'
+      }),
+      false
+    )
+    assert.equal(
+      hasOutgoingMessageRequest(session, {
+        remoteProfileId: 'profile-c',
+        requestId: 'request-1'
+      }),
+      false
+    )
   })
 
   test('dismissing a direct message removes it without clearing seen history', () => {
