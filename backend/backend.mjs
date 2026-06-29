@@ -90,7 +90,7 @@ async function handleRequest(req) {
   }
 
   if (req.command === RPC_SEND) {
-    room?.send(payload)
+    sendHomeMessage(payload)
     req.reply?.(b4a.from(JSON.stringify({ ok: true })))
     return
   }
@@ -478,6 +478,18 @@ function canInteractWithCurrentTreehole() {
     ownerProfileId: homeOwnerProfileId || profileId,
     policy: treeholePolicy,
     writerProfileId: profileId
+  })
+}
+
+function sendHomeMessage(payload) {
+  if (!room) {
+    throw new Error('Home is not ready')
+  }
+
+  const text = cleanRequiredText(payload.text)
+  room.send({
+    ...payload,
+    text
   })
 }
 

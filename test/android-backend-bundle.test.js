@@ -23,6 +23,16 @@ test('bare bundle TypeScript emit rewrites relative ts imports', () => {
 
 test('android backend trims outgoing text at the RPC boundary', () => {
   const source = readFileSync(new URL('../backend/backend.mjs', import.meta.url), 'utf8')
+  const rpcSend = sliceBetween(
+    source,
+    'if (req.command === RPC_SEND)',
+    'if (req.command === RPC_LEAVE)'
+  )
+  const sendHomeMessage = sliceBetween(
+    source,
+    'function sendHomeMessage',
+    'async function postTreehole'
+  )
   const postTreehole = sliceBetween(
     source,
     'async function postTreehole',
@@ -42,6 +52,11 @@ test('android backend trims outgoing text at the RPC boundary', () => {
 
   assert.match(source, /function cleanRequiredText\(text\)/)
   assert.match(source, /throw new Error\('Text is required'\)/)
+  assert.match(rpcSend, /sendHomeMessage\(payload\)/)
+  assert.doesNotMatch(rpcSend, /room\?\.send\(payload\)/)
+  assert.match(sendHomeMessage, /const text = cleanRequiredText\(payload\.text\)/)
+  assert.match(sendHomeMessage, /room\.send\(\{[\s\S]*\.\.\.payload,[\s\S]*text/)
+  assert.doesNotMatch(sendHomeMessage, /text: payload\.text/)
   assert.match(postTreehole, /const text = cleanRequiredText\(payload\.text\)/)
   assert.match(commentTreehole, /const text = cleanRequiredText\(payload\.text\)/)
   assert.match(sendMessageRequest, /const text = cleanRequiredText\(payload\.text\)/)
