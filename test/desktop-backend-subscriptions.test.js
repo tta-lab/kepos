@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createDesktopBackendSubscriptions } from '../src/desktop-backend-subscriptions.js'
+import { createDesktopBackendSubscriptions } from '../src/desktop-backend-subscriptions.ts'
 import { createDesktopState } from '../src/desktop-state.ts'
 
 function createBackendClient() {

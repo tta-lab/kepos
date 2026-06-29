@@ -2,9 +2,14 @@ export function createDesktopRendererBackendClient({
   createLocalBackend = null,
   localBackend,
   mode = 'auto',
-  preloadBackend = globalThis.keposBackend
-}) {
-  let resolvedLocalBackend = localBackend
+  preloadBackend = (globalThis as { keposBackend?: DesktopPreloadBackend }).keposBackend
+}: {
+  createLocalBackend?: (() => DesktopBackendBridgeLike | null) | null
+  localBackend?: DesktopBackendBridgeLike | null
+  mode?: 'auto' | 'local' | 'preload'
+  preloadBackend?: DesktopPreloadBackend | null
+} = {}): DesktopRendererBackendClient {
+  let resolvedLocalBackend: DesktopBackendBridgeLike | null | undefined = localBackend
   const getLocalBackend = () => {
     if (!resolvedLocalBackend) resolvedLocalBackend = createLocalBackend?.()
     return resolvedLocalBackend
@@ -34,8 +39,38 @@ export function createDesktopRendererBackendClient({
   }
 }
 
-function subscribeAuto({ event, getLocalBackend, handler, preloadBackend }) {
-  if (isConnectedPreloadBackend(preloadBackend)) return preloadBackend.subscribe(event, handler)
+type DesktopBackendEventHandler = (payload?: unknown) => void
+type Unsubscribe = () => void
+
+type DesktopBackendBridgeLike = {
+  dispatch(command: string, payload?: unknown): unknown | Promise<unknown>
+  subscribe(event: string, handler: DesktopBackendEventHandler): Unsubscribe
+}
+
+type DesktopPreloadBackend = DesktopBackendBridgeLike & {
+  isConnected?: boolean | (() => boolean)
+  onConnected?: (handler: (connected: boolean) => void) => Unsubscribe
+}
+
+export type DesktopRendererBackendClient = DesktopBackendBridgeLike & {
+  hasPreloadBackend(): boolean
+  isPreloadConnected(): boolean
+}
+
+function subscribeAuto({
+  event,
+  getLocalBackend,
+  handler,
+  preloadBackend
+}: {
+  event: string
+  getLocalBackend: () => DesktopBackendBridgeLike | null | undefined
+  handler: DesktopBackendEventHandler
+  preloadBackend?: DesktopPreloadBackend | null
+}): Unsubscribe {
+  if (isConnectedPreloadBackend(preloadBackend) && preloadBackend) {
+    return preloadBackend.subscribe(event, handler)
+  }
 
   if (hasManagedPreloadBackend(preloadBackend)) {
     let unsubscribeActive = () => {}
@@ -56,19 +91,29 @@ function subscribeAuto({ event, getLocalBackend, handler, preloadBackend }) {
   return localBackend.subscribe(event, handler)
 }
 
-function selectBackend({ getLocalBackend, mode, preloadBackend }) {
+function selectBackend({
+  getLocalBackend,
+  mode,
+  preloadBackend
+}: {
+  getLocalBackend: () => DesktopBackendBridgeLike | null | undefined
+  mode: 'auto' | 'local' | 'preload'
+  preloadBackend?: DesktopPreloadBackend | null
+}): DesktopBackendBridgeLike {
   if (mode === 'preload') return requirePreloadBackend(preloadBackend)
   if (
     mode === 'auto' &&
     (isConnectedPreloadBackend(preloadBackend) || hasManagedPreloadBackend(preloadBackend))
   ) {
-    return preloadBackend
+    return requirePreloadBackend(preloadBackend)
   }
 
   return requireLocalBackend(getLocalBackend())
 }
 
-function requireLocalBackend(localBackend) {
+function requireLocalBackend(
+  localBackend: DesktopBackendBridgeLike | null | undefined
+): DesktopBackendBridgeLike {
   if (
     !localBackend ||
     typeof localBackend.dispatch !== 'function' ||
@@ -80,7 +125,9 @@ function requireLocalBackend(localBackend) {
   return localBackend
 }
 
-function requirePreloadBackend(preloadBackend) {
+function requirePreloadBackend(
+  preloadBackend: DesktopPreloadBackend | null | undefined
+): DesktopPreloadBackend {
   if (!hasUsablePreloadBackend(preloadBackend)) {
     throw new Error('Desktop preload backend is unavailable')
   }
@@ -88,20 +135,28 @@ function requirePreloadBackend(preloadBackend) {
   return preloadBackend
 }
 
-function hasUsablePreloadBackend(preloadBackend) {
+function hasUsablePreloadBackend(
+  preloadBackend: DesktopPreloadBackend | null | undefined
+): preloadBackend is DesktopPreloadBackend {
   return (
     typeof preloadBackend?.dispatch === 'function' &&
     typeof preloadBackend?.subscribe === 'function'
   )
 }
 
-function hasManagedPreloadBackend(preloadBackend) {
+function hasManagedPreloadBackend(
+  preloadBackend: DesktopPreloadBackend | null | undefined
+): preloadBackend is DesktopPreloadBackend & {
+  onConnected: (handler: (connected: boolean) => void) => Unsubscribe
+} {
   return (
     hasUsablePreloadBackend(preloadBackend) && typeof preloadBackend?.onConnected === 'function'
   )
 }
 
-function isConnectedPreloadBackend(preloadBackend) {
+function isConnectedPreloadBackend(
+  preloadBackend: DesktopPreloadBackend | null | undefined
+): boolean {
   if (!preloadBackend) return false
   if (!hasUsablePreloadBackend(preloadBackend)) return false
 

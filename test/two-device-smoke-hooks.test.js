@@ -333,7 +333,7 @@ test('DM request copy reads as a social action', async () => {
   const desktopApp = await readDesktopUiSource()
   const desktop = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const desktopBindings = await readFile(
-    new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
+    new URL('../src/desktop-ui-action-bindings.ts', import.meta.url),
     'utf8'
   )
   const desktopPeopleViewModel = await readFile(
@@ -1101,7 +1101,7 @@ test('desktop large QR dialog renders scan-sized QR codes', async () => {
 test('desktop large QR dialog is keyboard reachable', async () => {
   const app = await readDesktopUiSource()
   const bindings = await readFile(
-    new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
+    new URL('../src/desktop-ui-action-bindings.ts', import.meta.url),
     'utf8'
   )
   const actions = await readFile(new URL('../src/desktop-qr-actions.ts', import.meta.url), 'utf8')

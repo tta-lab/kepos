@@ -137,7 +137,7 @@ test('desktop people UI uses trusted friends copy', async () => {
   const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const presenter = await readFile(
-    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    new URL('../src/desktop-render-presenter.ts', import.meta.url),
     'utf8'
   )
   const actions = await readFile(
@@ -145,7 +145,7 @@ test('desktop people UI uses trusted friends copy', async () => {
     'utf8'
   )
   const bindings = await readFile(
-    new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
+    new URL('../src/desktop-ui-action-bindings.ts', import.meta.url),
     'utf8'
   )
 
@@ -316,7 +316,7 @@ test('desktop people pane surfaces pending message requests', async () => {
     'utf8'
   )
   const presenter = await readFile(
-    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    new URL('../src/desktop-render-presenter.ts', import.meta.url),
     'utf8'
   )
   const actions = await readFile(
@@ -324,7 +324,7 @@ test('desktop people pane surfaces pending message requests', async () => {
     'utf8'
   )
   const bindings = await readFile(
-    new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
+    new URL('../src/desktop-ui-action-bindings.ts', import.meta.url),
     'utf8'
   )
 
@@ -400,7 +400,7 @@ test('desktop QR sharing exposes copy actions without surfacing raw URI copy', a
   )
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const bindings = await readFile(
-    new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
+    new URL('../src/desktop-ui-action-bindings.ts', import.meta.url),
     'utf8'
   )
 
@@ -487,7 +487,7 @@ test('desktop status panel keeps raw ids in advanced details', async () => {
   const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const presenter = await readFile(
-    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    new URL('../src/desktop-render-presenter.ts', import.meta.url),
     'utf8'
   )
 
@@ -558,7 +558,7 @@ test('desktop primary panes expose short empty states before content arrives', a
   const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const presenter = await readFile(
-    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    new URL('../src/desktop-render-presenter.ts', import.meta.url),
     'utf8'
   )
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
@@ -586,7 +586,7 @@ test('desktop panes label live and durable surfaces', async () => {
   const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const presenter = await readFile(
-    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    new URL('../src/desktop-render-presenter.ts', import.meta.url),
     'utf8'
   )
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
@@ -640,7 +640,7 @@ test('desktop rail keeps current view accessible', async () => {
   const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const presenter = await readFile(
-    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    new URL('../src/desktop-render-presenter.ts', import.meta.url),
     'utf8'
   )
 
@@ -711,11 +711,11 @@ test('desktop direct messages links zero-contact state to People', async () => {
   const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const bindings = await readFile(
-    new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
+    new URL('../src/desktop-ui-action-bindings.ts', import.meta.url),
     'utf8'
   )
   const presenter = await readFile(
-    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    new URL('../src/desktop-render-presenter.ts', import.meta.url),
     'utf8'
   )
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
@@ -739,7 +739,7 @@ test('desktop treehole composer has an explicit owner-only disabled state', asyn
   const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const presenter = await readFile(
-    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    new URL('../src/desktop-render-presenter.ts', import.meta.url),
     'utf8'
   )
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
@@ -764,7 +764,7 @@ test('desktop treehole comment composer disables empty comments', async () => {
   const panes = await readFile(new URL('../desktop/pane-components.jsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const bindings = await readFile(
-    new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
+    new URL('../src/desktop-ui-action-bindings.ts', import.meta.url),
     'utf8'
   )
 
@@ -796,7 +796,7 @@ test('desktop composers disable unavailable sends', async () => {
   const shared = await readFile(new URL('../desktop/ui-components.tsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const presenter = await readFile(
-    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    new URL('../src/desktop-render-presenter.ts', import.meta.url),
     'utf8'
   )
 
@@ -846,7 +846,7 @@ test('desktop context actions disable unavailable joins and trust', async () => 
   )
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const presenter = await readFile(
-    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    new URL('../src/desktop-render-presenter.ts', import.meta.url),
     'utf8'
   )
 
@@ -874,7 +874,7 @@ test('desktop context actions expose a pending lock during blocking commands', a
     'utf8'
   )
   const presenter = await readFile(
-    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    new URL('../src/desktop-render-presenter.ts', import.meta.url),
     'utf8'
   )
 

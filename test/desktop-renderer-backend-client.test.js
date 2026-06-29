@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createDesktopRendererBackendClient } from '../src/desktop-renderer-backend-client.js'
+import { createDesktopRendererBackendClient } from '../src/desktop-renderer-backend-client.ts'
 
 function createBackend(label, calls) {
   return {

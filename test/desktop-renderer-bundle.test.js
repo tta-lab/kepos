@@ -92,7 +92,7 @@ test('desktop React owns the home chat list surface', async () => {
   const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const presenter = await readFile(
-    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    new URL('../src/desktop-render-presenter.ts', import.meta.url),
     'utf8'
   )
 
@@ -133,7 +133,7 @@ test('desktop React owns the direct message list surface', async () => {
   const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const presenter = await readFile(
-    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    new URL('../src/desktop-render-presenter.ts', import.meta.url),
     'utf8'
   )
 
@@ -153,7 +153,7 @@ test('desktop React owns the direct contact picker surface', async () => {
   const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const presenter = await readFile(
-    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    new URL('../src/desktop-render-presenter.ts', import.meta.url),
     'utf8'
   )
 
@@ -182,7 +182,7 @@ test('desktop React owns the status labels surface', async () => {
   const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const presenter = await readFile(
-    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    new URL('../src/desktop-render-presenter.ts', import.meta.url),
     'utf8'
   )
 
@@ -207,7 +207,7 @@ test('desktop React owns tab and pane active state', async () => {
   const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const presenter = await readFile(
-    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    new URL('../src/desktop-render-presenter.ts', import.meta.url),
     'utf8'
   )
 
@@ -248,7 +248,7 @@ test('desktop React owns action and composer disabled state', async () => {
   const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const presenter = await readFile(
-    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    new URL('../src/desktop-render-presenter.ts', import.meta.url),
     'utf8'
   )
 
@@ -334,11 +334,11 @@ test('desktop React owns shell busy and leave action', async () => {
   const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const bindings = await readFile(
-    new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
+    new URL('../src/desktop-ui-action-bindings.ts', import.meta.url),
     'utf8'
   )
   const presenter = await readFile(
-    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    new URL('../src/desktop-render-presenter.ts', import.meta.url),
     'utf8'
   )
 
@@ -433,7 +433,7 @@ test('desktop React owns the people list surfaces', async () => {
   const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const presenter = await readFile(
-    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    new URL('../src/desktop-render-presenter.ts', import.meta.url),
     'utf8'
   )
 
@@ -458,7 +458,7 @@ test('desktop React owns the treehole post list surface', async () => {
   const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const presenter = await readFile(
-    new URL('../src/desktop-render-presenter.js', import.meta.url),
+    new URL('../src/desktop-render-presenter.ts', import.meta.url),
     'utf8'
   )
 

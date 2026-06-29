@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createDesktopUiActionBindings } from '../src/desktop-ui-action-bindings.js'
+import { createDesktopUiActionBindings } from '../src/desktop-ui-action-bindings.ts'
 
 function createUiRecorder() {
   const actions = {}

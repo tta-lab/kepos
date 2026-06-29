@@ -47,7 +47,7 @@ test('desktop controller routes UI actions through the command host', async () =
     'utf8'
   )
   const bindings = await readFile(
-    new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
+    new URL('../src/desktop-ui-action-bindings.ts', import.meta.url),
     'utf8'
   )
   const localBackend = await readFile(
@@ -88,7 +88,7 @@ test('desktop home message command carries composer text as payload', async () =
     'utf8'
   )
   const bindings = await readFile(
-    new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
+    new URL('../src/desktop-ui-action-bindings.ts', import.meta.url),
     'utf8'
   )
   const host = await readFile(new URL('../src/desktop-command-host.ts', import.meta.url), 'utf8')
@@ -122,7 +122,7 @@ test('desktop home message command carries composer text as payload', async () =
 test('desktop direct message command carries composer fields as payload', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const bindings = await readFile(
-    new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
+    new URL('../src/desktop-ui-action-bindings.ts', import.meta.url),
     'utf8'
   )
   const host = await readFile(new URL('../src/desktop-command-host.ts', import.meta.url), 'utf8')
@@ -159,7 +159,7 @@ test('desktop direct message command carries composer fields as payload', async 
 test('desktop treehole post command carries composer text as payload', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const bindings = await readFile(
-    new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
+    new URL('../src/desktop-ui-action-bindings.ts', import.meta.url),
     'utf8'
   )
   const host = await readFile(new URL('../src/desktop-command-host.ts', import.meta.url), 'utf8')
@@ -192,7 +192,7 @@ test('desktop treehole post command carries composer text as payload', async () 
 test('desktop Home QR join command carries QR text and display name as payload', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const bindings = await readFile(
-    new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
+    new URL('../src/desktop-ui-action-bindings.ts', import.meta.url),
     'utf8'
   )
   const host = await readFile(new URL('../src/desktop-command-host.ts', import.meta.url), 'utf8')
@@ -229,7 +229,7 @@ test('desktop Home QR join command carries QR text and display name as payload',
 test('desktop Profile QR trust command carries QR text alias and display name as payload', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const bindings = await readFile(
-    new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
+    new URL('../src/desktop-ui-action-bindings.ts', import.meta.url),
     'utf8'
   )
   const host = await readFile(new URL('../src/desktop-command-host.ts', import.meta.url), 'utf8')
@@ -268,7 +268,7 @@ test('desktop Profile QR trust command carries QR text alias and display name as
 
 test('desktop display name updates are mirrored to the backend command bridge', async () => {
   const bindings = await readFile(
-    new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
+    new URL('../src/desktop-ui-action-bindings.ts', import.meta.url),
     'utf8'
   )
   const host = await readFile(new URL('../src/desktop-command-host.ts', import.meta.url), 'utf8')

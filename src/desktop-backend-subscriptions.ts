@@ -1,4 +1,9 @@
 import { setDesktopTreehole } from './desktop-state.ts'
+import type { DesktopState } from './desktop-state.ts'
+
+type BackendClient = {
+  subscribe(event: string, handler: (payload?: unknown) => void): () => void
+}
 
 export function createDesktopBackendSubscriptions({
   backendClient,
@@ -12,7 +17,19 @@ export function createDesktopBackendSubscriptions({
   setHomeSession,
   setShareQrOutputs = () => {},
   setState
-}) {
+}: {
+  backendClient: BackendClient
+  getState: () => DesktopState
+  onError: (error?: unknown) => void
+  onRender: () => void
+  setContactBook: (book: unknown) => void
+  setContextFormDraft?: (draft: unknown) => void
+  setDirectComposerRecipient?: (profileId: unknown) => void
+  setDmSession: (session: unknown) => void
+  setHomeSession: (session: unknown) => void
+  setShareQrOutputs?: (outputs: unknown) => void
+  setState: (state: DesktopState) => void
+}): () => void {
   const unsubscribers = [
     backendClient.subscribe('homeMessageReceived', (nextSession) => {
       setHomeSession(nextSession)
@@ -27,9 +44,10 @@ export function createDesktopBackendSubscriptions({
       onRender()
     }),
     backendClient.subscribe('desktopStateChanged', (nextState) => {
+      const stateSnapshot = nextState as DesktopState
       setState({
-        ...nextState,
-        activeTab: getState().activeTab || nextState.activeTab
+        ...stateSnapshot,
+        activeTab: getState().activeTab || stateSnapshot.activeTab
       })
       onRender()
     }),
@@ -42,15 +60,19 @@ export function createDesktopBackendSubscriptions({
       onRender()
     }),
     backendClient.subscribe('treeholeStateChanged', (snapshot) => {
-      setState(setDesktopTreehole(getState(), snapshot))
+      setState(setDesktopTreehole(getState(), snapshot as Parameters<typeof setDesktopTreehole>[1]))
       onRender()
     }),
-    backendClient.subscribe('peerCountChanged', ({ peers }) => {
-      setState({ ...getState(), peers })
+    backendClient.subscribe('peerCountChanged', (payload) => {
+      const { peers } = (payload || {}) as { peers?: unknown }
+      setState({ ...getState(), peers: Number(peers) || 0 })
       onRender()
     }),
     backendClient.subscribe('transportDebugChanged', (transportDebug) => {
-      setState({ ...getState(), transportDebug })
+      setState({
+        ...getState(),
+        transportDebug: transportDebug as DesktopState['transportDebug']
+      })
       onRender()
     }),
     backendClient.subscribe('shareQrOutputsChanged', (outputs) => {

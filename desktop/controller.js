@@ -1,12 +1,12 @@
 /* global navigator */
 
-import { createDesktopBackendSubscriptions } from '../src/desktop-backend-subscriptions.js'
+import { createDesktopBackendSubscriptions } from '../src/desktop-backend-subscriptions.ts'
 import { createDesktopCommandDispatcher } from '../src/desktop-command-dispatcher.ts'
-import { createDesktopRenderPresenter } from '../src/desktop-render-presenter.js'
+import { createDesktopRenderPresenter } from '../src/desktop-render-presenter.ts'
 import { setDesktopTab } from '../src/desktop-state.ts'
-import { createDesktopRendererBackendClient } from '../src/desktop-renderer-backend-client.js'
+import { createDesktopRendererBackendClient } from '../src/desktop-renderer-backend-client.ts'
 import { createDesktopControllerState } from '../src/desktop-controller-state.ts'
-import { createDesktopUiActionBindings } from '../src/desktop-ui-action-bindings.js'
+import { createDesktopUiActionBindings } from '../src/desktop-ui-action-bindings.ts'
 
 const BLOCKING_COMMANDS = new Set(['joinHome', 'joinHomeUri', 'leaveHome', 'trustProfileUri'])
 

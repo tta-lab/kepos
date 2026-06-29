@@ -93,7 +93,7 @@ test('desktop controller routes treehole runtime updates through backend bridge 
     'utf8'
   )
   const subscriptions = await readFile(
-    new URL('../src/desktop-backend-subscriptions.js', import.meta.url),
+    new URL('../src/desktop-backend-subscriptions.ts', import.meta.url),
     'utf8'
   )
 
@@ -102,7 +102,7 @@ test('desktop controller routes treehole runtime updates through backend bridge 
   assert.match(session, /treeholeRuntime = backendHost\.treeholeRuntime/)
   assert.match(source, /createDesktopBackendSubscriptions/)
   assert.match(subscriptions, /backendClient\.subscribe\('treeholeStateChanged'/)
-  assert.match(subscriptions, /setDesktopTreehole\(getState\(\), snapshot\)/)
+  assert.match(subscriptions, /setDesktopTreehole\(getState\(\), snapshot as Parameters/)
   assert.match(subscriptions, /backendClient\.subscribe\('errorReceived', onError\)/)
   assert.doesNotMatch(source, /import Hyperswarm/)
   assert.doesNotMatch(source, /createTreeholeBase/)
@@ -116,7 +116,7 @@ test('desktop controller routes Home and Direct sessions through backend bridge 
     'utf8'
   )
   const subscriptions = await readFile(
-    new URL('../src/desktop-backend-subscriptions.js', import.meta.url),
+    new URL('../src/desktop-backend-subscriptions.ts', import.meta.url),
     'utf8'
   )
 
@@ -132,7 +132,7 @@ test('desktop controller routes Home and Direct sessions through backend bridge 
 test('desktop controller renders backend contact book snapshots from the bridge', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const subscriptions = await readFile(
-    new URL('../src/desktop-backend-subscriptions.js', import.meta.url),
+    new URL('../src/desktop-backend-subscriptions.ts', import.meta.url),
     'utf8'
   )
 

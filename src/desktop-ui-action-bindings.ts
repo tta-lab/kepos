@@ -1,3 +1,21 @@
+import type { DesktopQrActions } from './desktop-qr-actions.ts'
+
+type DispatchCommand = (command: string, payload?: unknown) => unknown | Promise<unknown>
+type ErrorHandler = (error: unknown) => void
+type FormPayload = Record<string, any>
+
+type DesktopUiActionRegistrar = {
+  setContextFormActions(actions: Record<string, (payload: any) => unknown>): void
+  setDirectComposerActions(actions: Record<string, (payload: any) => unknown>): void
+  setDirectContactPickerActions(actions: Record<string, (payload: any) => unknown>): void
+  setDirectMessageActions(actions: Record<string, (payload: any) => unknown>): void
+  setHomeComposerActions(actions: Record<string, (payload: any) => unknown>): void
+  setPeopleActions(actions: Record<string, (payload: any) => unknown>): void
+  setShellActions(actions: Record<string, (payload: any) => unknown>): void
+  setTreeholeActions(actions: Record<string, (payload: any) => unknown>): void
+  setTreeholeComposerActions(actions: Record<string, (payload: any) => unknown>): void
+}
+
 export function createDesktopUiActionBindings({
   dispatchCommand,
   onError,
@@ -7,7 +25,19 @@ export function createDesktopUiActionBindings({
   ui,
   updateDirectComposerRecipient,
   updateDisplayName
-}) {
+}: {
+  dispatchCommand: DispatchCommand
+  onError: ErrorHandler
+  qrActions: Pick<
+    DesktopQrActions,
+    'copyQrValue' | 'getShareQrOutputs' | 'hideLargeQr' | 'showLargeQr'
+  >
+  selectDirectContact: (profileId?: string) => unknown
+  setTab: (tab?: string) => unknown
+  ui?: DesktopUiActionRegistrar | null
+  updateDirectComposerRecipient: (profileId?: string) => unknown
+  updateDisplayName: (displayName?: string) => unknown
+}): void {
   ui?.setContextFormActions({
     copyHomeQr: () =>
       qrActions
