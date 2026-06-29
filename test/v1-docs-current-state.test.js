@@ -368,3 +368,15 @@ test('V1 audit records warning-free low-cost lint gate', async () => {
   assert.match(audit, /npm run lint` warning-free/)
   assert.match(audit, /Prettier, lunte, TypeScript, and platform-boundary checks passing/)
 })
+
+test('V1 TypeScript boundary records current source shape and smoke policy', async () => {
+  const boundary = await readText('../docs/v1.05-typescript-boundary.md')
+
+  assert.match(boundary, /`183` JavaScript files/)
+  assert.match(boundary, /`41` TypeScript\s+files/)
+  assert.match(boundary, /## Release Proof Policy/)
+  assert.match(boundary, /not as the default response to every small V1\s+code or docs change/)
+  assert.match(boundary, /Do not run high-cost smoke unless the user\s+asks for smoke/)
+  assert.doesNotMatch(boundary, /## Temporarily Blocked Proof/)
+  assert.doesNotMatch(boundary, /blocked on physical Android availability/)
+})
