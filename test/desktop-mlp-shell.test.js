@@ -64,17 +64,19 @@ test('desktop context panel uses product actions for home and people flows', asy
 
   assert.match(source, /<h1>Kepos Home<\/h1>/)
   assert.match(source, /<details className='contextGroup homeActions'[^>]+open>/)
-  assert.match(source, /Start your home, invite a friend, or join theirs\./)
+  assert.match(source, /Open your home, share one invite, or enter a trusted home\./)
   assert.match(source, /Name[\s\S]*id='nickInput'/)
-  assert.match(source, /Invite a friend/)
-  assert.match(source, /Join a friend&apos;s home/)
-  assert.match(source, /placeholder='Paste Home QR'/)
-  assert.match(source, /placeholder='Paste Profile QR'/)
+  assert.match(source, /Show invite/)
+  assert.match(source, /Copy invite/)
+  assert.match(source, /Enter a home/)
+  assert.match(source, /placeholder='Paste invite'/)
+  assert.match(source, /Profile QR details/)
+  assert.match(source, /Copy Profile QR/)
   assert.match(source, /Friend name[\s\S]*id='trustAliasInput'/)
   assert.match(source, /placeholder='Ada'/)
   assert.match(source, /<details className='contextGroup peopleActions'/)
   assert.equal(/<details className='contextGroup peopleActions'[^>]+open>/.test(source), false)
-  assert.match(source, /Trust a friend before home access or direct messages\./)
+  assert.match(source, /Advanced profile trust and direct message setup\./)
   assert.match(source, /Add trusted friend/)
   assert.equal(source.includes('Start your room'), false)
   assert.equal(source.includes('Trust a profile before private home access or DM.'), false)
@@ -108,15 +110,15 @@ test('desktop context forms use task panel headers', async () => {
   )
   assert.match(
     context,
-    /id='lobbyForm'[\s\S]*<PanelHeader[\s\S]*eyebrow='Start'[\s\S]*title='My home'[\s\S]*description='Create a local home\.'[\s\S]*\/>/
+    /id='lobbyForm'[\s\S]*<PanelHeader[\s\S]*eyebrow='Home'[\s\S]*title='My home'[\s\S]*description='Open your saved home on this device\.'[\s\S]*\/>/
   )
   assert.match(
     context,
-    /id='homeQrForm'[\s\S]*<PanelHeader[\s\S]*eyebrow='Share'[\s\S]*title='Invite or join'[\s\S]*description='Share or paste Home QR\.'[\s\S]*\/>/
+    /id='homeQrForm'[\s\S]*<PanelHeader[\s\S]*eyebrow='Invite'[\s\S]*title='One home invite'[\s\S]*description='Trust means this friend can enter your home\.'[\s\S]*\/>/
   )
   assert.match(
     context,
-    /id='trustForm'[\s\S]*<PanelHeader[\s\S]*eyebrow='Trust'[\s\S]*title='Trusted friend'[\s\S]*description='Add a Profile QR first\.'[\s\S]*\/>/
+    /id='trustForm'[\s\S]*<PanelHeader[\s\S]*eyebrow='Advanced'[\s\S]*title='Profile trust'[\s\S]*description='Debug profile QR flow for trust-only setup\.'[\s\S]*\/>/
   )
   assert.match(styles, /\.panelHeader/)
   assert.match(styles, /\.panelTitle/)
@@ -366,7 +368,7 @@ test('desktop people pane surfaces pending message requests', async () => {
 test('desktop keeps inline QR codes as advanced share detail', async () => {
   const source = await readDesktopUiSource()
 
-  assert.match(source, /id='copyHomeQrButton'[\s\S]*Copy Home QR/)
+  assert.match(source, /id='copyHomeQrButton'[\s\S]*Copy invite/)
   assert.match(source, /id='copyProfileQrButton'[\s\S]*Copy Profile QR/)
   assert.equal(
     source.indexOf("qrId='homeQrCode'") > source.indexOf("detailsId='advancedHomeShare'"),
@@ -402,7 +404,7 @@ test('desktop QR sharing exposes copy actions without surfacing raw URI copy', a
     'utf8'
   )
 
-  assert.match(source, /Copy Home QR/)
+  assert.match(source, /Copy invite/)
   assert.match(source, /Copy Profile QR/)
   assert.match(context, /<ActionButton[\s\S]*id='copyHomeQrButton'[\s\S]*actions\.copyHomeQr\(\)/)
   assert.match(
@@ -412,7 +414,7 @@ test('desktop QR sharing exposes copy actions without surfacing raw URI copy', a
   assert.match(bindings, /copyHomeQr: \(\) =>/)
   assert.match(bindings, /copyProfileQr: \(\) =>/)
   assert.match(controller, /navigator\.clipboard\.writeText\(value\)/)
-  assert.match(bindings, /notice: 'Home QR copied\.'/)
+  assert.match(bindings, /notice: 'Invite copied\.'/)
   assert.match(bindings, /notice: 'Profile QR copied\.'/)
   assert.match(controller, /setNotice\(notice\)/)
   assert.equal(source.includes('Copy URI'), false)
@@ -471,7 +473,7 @@ test('desktop normal UI copy avoids raw home address language', async () => {
   const state = await readFile(new URL('../src/desktop-state.js', import.meta.url), 'utf8')
   const desktopCopy = `${source}\n${controller}\n${roomActions}\n${state}`
 
-  assert.match(source, /Create my home/)
+  assert.match(source, /Open my home/)
   assert.match(desktopCopy, /Create or join a home\./)
   assert.match(desktopCopy, /Joining home\.\.\./)
   assert.match(source, /<p className='label'>Home<\/p>/)

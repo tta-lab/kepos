@@ -50,7 +50,7 @@ export function ContextPanel({ actions, controls, form, setForm, shareQrOutputs 
       <details className='contextGroup homeActions' aria-labelledby='homeActionsTitle' open>
         <summary className='contextHead'>
           <SectionTitle id='homeActionsTitle' icon={<Home size={15} />} text='Home' />
-          <p className='contextHint'>Start your home, invite a friend, or join theirs.</p>
+          <p className='contextHint'>Open your home, share one invite, or enter a trusted home.</p>
         </summary>
 
         <form
@@ -58,7 +58,11 @@ export function ContextPanel({ actions, controls, form, setForm, shareQrOutputs 
           className='panel compactPanel card border border-base-300 bg-base-100/75 shadow-sm'
           onSubmit={handleManualJoin}
         >
-          <PanelHeader eyebrow='Start' title='My home' description='Create a local home.' />
+          <PanelHeader
+            eyebrow='Home'
+            title='My home'
+            description='Open your saved home on this device.'
+          />
           <label>
             Name
             <input
@@ -74,7 +78,7 @@ export function ContextPanel({ actions, controls, form, setForm, shareQrOutputs 
               disabled={!controls.canCreateHome}
               icon={<Home size={17} />}
               id='createButton'
-              label='Create my home'
+              label='Open my home'
               onClick={() => actions.createHome({ displayName })}
             />
           </div>
@@ -110,21 +114,21 @@ export function ContextPanel({ actions, controls, form, setForm, shareQrOutputs 
           onSubmit={handleHomeQrJoin}
         >
           <PanelHeader
-            eyebrow='Share'
-            title='Invite or join'
-            description='Share or paste Home QR.'
+            eyebrow='Invite'
+            title='One home invite'
+            description='Trust means this friend can enter your home.'
           />
           <div className='actions'>
             <ActionButton
               icon={<QrCode size={17} />}
               id='showLargeHomeQrButton'
-              label='Invite a friend'
+              label='Show invite'
               onClick={(event) => actions.showLargeHomeQr({ returnFocus: event.currentTarget })}
             />
             <ActionButton
               icon={<Copy size={17} />}
               id='copyHomeQrButton'
-              label='Copy Home QR'
+              label='Copy invite'
               onClick={() => actions.copyHomeQr()}
             />
           </div>
@@ -138,11 +142,11 @@ export function ContextPanel({ actions, controls, form, setForm, shareQrOutputs 
             uri={shareQrOutputs.homeUri}
           />
           <label>
-            Join a friend&apos;s home
+            Enter a home
             <textarea
               id='homeQrInput'
               className='textarea textarea-bordered compactArea min-h-16 w-full resize-y bg-base-100 text-sm normal-case text-base-content'
-              placeholder='Paste Home QR'
+              placeholder='Paste invite'
               spellCheck='false'
               value={form.homeQrUri}
               onChange={(event) => updateForm({ homeQrUri: event.target.value })}
@@ -161,7 +165,7 @@ export function ContextPanel({ actions, controls, form, setForm, shareQrOutputs 
       <details className='contextGroup peopleActions' aria-labelledby='peopleActionsTitle'>
         <summary className='contextHead'>
           <SectionTitle id='peopleActionsTitle' icon={<ShieldCheck size={15} />} text='People' />
-          <p className='contextHint'>Trust a friend before home access or direct messages.</p>
+          <p className='contextHint'>Advanced profile trust and direct message setup.</p>
         </summary>
 
         <form
@@ -170,9 +174,9 @@ export function ContextPanel({ actions, controls, form, setForm, shareQrOutputs 
           onSubmit={handleTrustProfile}
         >
           <PanelHeader
-            eyebrow='Trust'
-            title='Trusted friend'
-            description='Add a Profile QR first.'
+            eyebrow='Advanced'
+            title='Profile trust'
+            description='Debug profile QR flow for trust-only setup.'
           />
           <div className='actions'>
             <ActionButton

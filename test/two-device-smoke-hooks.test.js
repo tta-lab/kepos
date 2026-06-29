@@ -1114,7 +1114,7 @@ test('desktop large QR dialog is keyboard reachable', async () => {
   assert.match(app, /actions\.showLargeProfileQr\(\{ returnFocus: event\.currentTarget \}\)/)
   assert.match(
     bindings,
-    /showLargeHomeQr: \(\{ returnFocus \}\) =>[\s\S]*qrActions[\s\S]*\.showLargeQr\(\{[\s\S]*title: 'Home QR'/
+    /showLargeHomeQr: \(\{ returnFocus \}\) =>[\s\S]*qrActions[\s\S]*\.showLargeQr\(\{[\s\S]*title: 'Home invite'/
   )
   assert.match(
     bindings,
