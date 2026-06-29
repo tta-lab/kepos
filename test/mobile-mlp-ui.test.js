@@ -332,6 +332,40 @@ test('mobile composers share one send button component', async () => {
   assert.match(treeholePost, /<MobileSendButton[\s\S]*size='small'/)
 })
 
+test('mobile composer sends trimmed text payloads', async () => {
+  const source = await readMobileSource()
+  const sendMessage = source.slice(
+    source.indexOf('function sendMessage()'),
+    source.indexOf('function sendMessageRequest()')
+  )
+  const sendMessageRequest = source.slice(
+    source.indexOf('function sendMessageRequest()'),
+    source.indexOf('function sendTreeholePost()')
+  )
+  const sendTreeholePost = source.slice(
+    source.indexOf('function sendTreeholePost()'),
+    source.indexOf('function sendTreeholeComment(')
+  )
+  const sendTreeholeComment = source.slice(
+    source.indexOf('function sendTreeholeComment('),
+    source.indexOf('function sendTreeholeLike(')
+  )
+
+  assert.match(source, /function cleanComposerText\(text\)/)
+  assert.match(sendMessage, /const cleanText = cleanComposerText\(draft\)/)
+  assert.match(sendMessage, /text: cleanText/)
+  assert.doesNotMatch(sendMessage, /text: draft/)
+  assert.match(sendMessageRequest, /const cleanText = cleanComposerText\(dmDraft\)/)
+  assert.match(sendMessageRequest, /toProfileId: cleanRecipient/)
+  assert.match(sendMessageRequest, /text: cleanText/)
+  assert.doesNotMatch(sendMessageRequest, /text: dmDraft/)
+  assert.match(sendTreeholePost, /const cleanText = cleanComposerText\(treeholeDraft\)/)
+  assert.match(sendTreeholePost, /text: cleanText/)
+  assert.doesNotMatch(sendTreeholePost, /text: treeholeDraft/)
+  assert.match(sendTreeholeComment, /const cleanText = cleanComposerText\(text\)/)
+  assert.match(sendTreeholeComment, /text: cleanText/)
+})
+
 test('mobile product notices are announced as polite status updates', async () => {
   const source = await readMobileSource()
   const header = source.slice(

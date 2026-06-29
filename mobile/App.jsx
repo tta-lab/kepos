@@ -518,13 +518,14 @@ export default function App() {
   }
 
   function sendMessage() {
-    if (!session || !draft.trim()) {
+    const cleanText = cleanComposerText(draft)
+    if (!session || !cleanText) {
       return
     }
 
     const message = {
       id: createMessageId(),
-      text: draft,
+      text: cleanText,
       at: Date.now()
     }
 
@@ -534,7 +535,9 @@ export default function App() {
   }
 
   function sendMessageRequest() {
-    if (!dmSession || !dmDraft.trim() || !dmRecipient.trim()) {
+    const cleanText = cleanComposerText(dmDraft)
+    const cleanRecipient = dmRecipient.trim()
+    if (!dmSession || !cleanText || !cleanRecipient) {
       return
     }
 
@@ -542,8 +545,8 @@ export default function App() {
       createdAt: Date.now(),
       fromProfileId: profileId,
       requestId: createMessageId(),
-      toProfileId: dmRecipient.trim(),
-      text: dmDraft,
+      toProfileId: cleanRecipient,
+      text: cleanText,
       type: 'kepos.message.request.v1'
     }
     const thread = dmThreads.find(
@@ -587,14 +590,15 @@ export default function App() {
   }
 
   function sendTreeholePost() {
-    if (!session || !treeholeDraft.trim()) {
+    const cleanText = cleanComposerText(treeholeDraft)
+    if (!session || !cleanText) {
       return
     }
 
     rpc?.request(RPC_TREEHOLE_POST).send(
       JSON.stringify({
         id: createMessageId(),
-        text: treeholeDraft,
+        text: cleanText,
         createdAt: Date.now()
       })
     )
@@ -602,7 +606,8 @@ export default function App() {
   }
 
   function sendTreeholeComment({ postId, text }) {
-    if (!session || !treeholeCanInteract || !text.trim()) {
+    const cleanText = cleanComposerText(text)
+    if (!session || !treeholeCanInteract || !cleanText) {
       return
     }
 
@@ -611,7 +616,7 @@ export default function App() {
         createdAt: Date.now(),
         id: createMessageId(),
         postId,
-        text
+        text: cleanText
       })
     )
   }
@@ -2445,6 +2450,10 @@ function createMessageId() {
   }
 
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`
+}
+
+function cleanComposerText(text) {
+  return typeof text === 'string' ? text.trim() : ''
 }
 
 async function getBackendStorageBasePath() {
