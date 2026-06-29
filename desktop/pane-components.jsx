@@ -5,7 +5,7 @@ import {
   ComposerSubmitButton,
   PaneHeader,
   RequestActionButton
-} from './ui-components.jsx'
+} from './ui-components.tsx'
 
 export function HomePane({ activeTab, controls, messages, onSend }) {
   return (

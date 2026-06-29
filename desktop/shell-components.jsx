@@ -1,6 +1,6 @@
 import React from 'react'
 import { House, LogOut, Moon, Send, Sprout, Sun, Users } from 'lucide-react'
-import { ActionButton } from './ui-components.jsx'
+import { ActionButton } from './ui-components.tsx'
 
 export function AppRail({ activeTab, navBadges, shellActions }) {
   return (

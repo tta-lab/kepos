@@ -1,6 +1,6 @@
 import React from 'react'
 import { MessageCircle, UserX, Users } from 'lucide-react'
-import { ActionButton, PaneHeader, RequestActionButton, SectionTitle } from './ui-components.jsx'
+import { ActionButton, PaneHeader, RequestActionButton, SectionTitle } from './ui-components.tsx'
 
 export function PeoplePane({ activeTab, actions, messageRequests, trustedContacts }) {
   return (

@@ -19,7 +19,7 @@ async function readDesktopUiSource() {
     new URL('../desktop/people-components.jsx', import.meta.url),
     'utf8'
   )
-  const shared = await readFile(new URL('../desktop/ui-components.jsx', import.meta.url), 'utf8')
+  const shared = await readFile(new URL('../desktop/ui-components.tsx', import.meta.url), 'utf8')
   return `${app}\n${appState}\n${panes}\n${shell}\n${context}\n${people}\n${shared}`
 }
 
@@ -97,14 +97,14 @@ test('desktop context forms use task panel headers', async () => {
     new URL('../desktop/context-components.jsx', import.meta.url),
     'utf8'
   )
-  const shared = await readFile(new URL('../desktop/ui-components.jsx', import.meta.url), 'utf8')
+  const shared = await readFile(new URL('../desktop/ui-components.tsx', import.meta.url), 'utf8')
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
 
   assert.match(shared, /export function PanelHeader\(/)
   assert.match(shared, /export function ActionButton\(/)
   assert.match(
     context,
-    /import \{ ActionButton, PanelHeader, SectionTitle \} from '\.\/ui-components\.jsx'/
+    /import \{ ActionButton, PanelHeader, SectionTitle \} from '\.\/ui-components\.tsx'/
   )
   assert.match(
     context,
@@ -214,7 +214,7 @@ test('desktop People pane lives behind a dedicated component boundary', async ()
   assert.match(people, /export function PeopleLists\(/)
   assert.match(
     people,
-    /import \{ ActionButton, PaneHeader, RequestActionButton, SectionTitle \} from '\.\/ui-components\.jsx'/
+    /import \{ ActionButton, PaneHeader, RequestActionButton, SectionTitle \} from '\.\/ui-components\.tsx'/
   )
   assert.doesNotMatch(source, /<PaneLabel eyebrow='trusted' title='People' \/>/)
   assert.doesNotMatch(source, /function PeopleLists\(/)
@@ -251,7 +251,7 @@ test('desktop panes share product headers with short guidance', async () => {
     new URL('../desktop/context-components.jsx', import.meta.url),
     'utf8'
   )
-  const shared = await readFile(new URL('../desktop/ui-components.jsx', import.meta.url), 'utf8')
+  const shared = await readFile(new URL('../desktop/ui-components.tsx', import.meta.url), 'utf8')
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
 
   assert.match(shared, /export function PaneHeader\(/)
@@ -259,11 +259,11 @@ test('desktop panes share product headers with short guidance', async () => {
   assert.match(panes, /ActionButton,[\s\S]*ComposerSubmitButton,[\s\S]*PaneHeader/)
   assert.match(
     people,
-    /import \{ ActionButton, PaneHeader, RequestActionButton, SectionTitle \} from '\.\/ui-components\.jsx'/
+    /import \{ ActionButton, PaneHeader, RequestActionButton, SectionTitle \} from '\.\/ui-components\.tsx'/
   )
   assert.match(
     context,
-    /import \{ ActionButton, PanelHeader, SectionTitle \} from '\.\/ui-components\.jsx'/
+    /import \{ ActionButton, PanelHeader, SectionTitle \} from '\.\/ui-components\.tsx'/
   )
   assert.match(
     panes,
@@ -420,10 +420,10 @@ test('desktop request and QR dialog actions use clear icons', async () => {
     new URL('../desktop/people-components.jsx', import.meta.url),
     'utf8'
   )
-  const shared = await readFile(new URL('../desktop/ui-components.jsx', import.meta.url), 'utf8')
+  const shared = await readFile(new URL('../desktop/ui-components.tsx', import.meta.url), 'utf8')
 
   assert.match(source, /import \{ X \} from 'lucide-react'/)
-  assert.match(source, /import \{ ActionButton \} from '\.\/ui-components\.jsx'/)
+  assert.match(source, /import \{ ActionButton \} from '\.\/ui-components\.tsx'/)
   assert.match(
     source,
     /<ActionButton[\s\S]*ariaLabel='Close QR dialog'[\s\S]*autoFocus=\{qr\.isOpen\}[\s\S]*className='smallButton'[\s\S]*icon=\{<X size=\{16\} \/>\}[\s\S]*id='largeQrCloseButton'[\s\S]*label='Close'/
@@ -786,7 +786,7 @@ test('desktop treehole comment composer disables empty comments', async () => {
 test('desktop composers disable unavailable sends', async () => {
   const source = await readDesktopUiSource()
   const panes = await readFile(new URL('../desktop/pane-components.jsx', import.meta.url), 'utf8')
-  const shared = await readFile(new URL('../desktop/ui-components.jsx', import.meta.url), 'utf8')
+  const shared = await readFile(new URL('../desktop/ui-components.tsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const presenter = await readFile(
     new URL('../src/desktop-render-presenter.js', import.meta.url),
@@ -799,11 +799,13 @@ test('desktop composers disable unavailable sends', async () => {
 
   assert.match(
     shared,
-    /export function ComposerSubmitButton\(\{ className, disabled, icon, id, label \}\)/
+    /export function ComposerSubmitButton\(\{[\s\S]*className,[\s\S]*disabled,[\s\S]*icon,[\s\S]*id,[\s\S]*label[\s\S]*\}: Pick<ActionButtonProps/
   )
   assert.match(shared, /export function ActionButton\(/)
   assert.match(shared, /aria-label=\{ariaLabel\}/)
   assert.match(shared, /autoFocus=\{autoFocus\}/)
+  assert.match(shared, /className=\{cx\('btn btn-primary min-h-9 rounded-md', className\)\}/)
+  assert.match(shared, /className='btn btn-sm smallButton'/)
   assert.match(
     shared,
     /<ActionButton[\s\S]*className=\{className\}[\s\S]*disabled=\{disabled\}[\s\S]*icon=\{icon\}[\s\S]*id=\{id\}[\s\S]*label=\{label\}[\s\S]*type='submit'/

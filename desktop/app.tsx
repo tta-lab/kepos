@@ -9,7 +9,7 @@ import { ContextPanel } from './context-components.jsx'
 import { DirectPane, HomePane, TreeholePane } from './pane-components.jsx'
 import { PeoplePane } from './people-components.jsx'
 import { AppRail, HomeStatusPanel, Topbar } from './shell-components.jsx'
-import { ActionButton } from './ui-components.jsx'
+import { ActionButton } from './ui-components.tsx'
 
 type LargeQrState = {
   isOpen: boolean

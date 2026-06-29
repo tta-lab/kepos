@@ -1,6 +1,6 @@
 import React from 'react'
 import { Copy, Home, LogOut, QrCode, ShieldCheck, UserPlus } from 'lucide-react'
-import { ActionButton, PanelHeader, SectionTitle } from './ui-components.jsx'
+import { ActionButton, PanelHeader, SectionTitle } from './ui-components.tsx'
 
 const ROOM_KEY_PATTERN = /^[0-9a-f]{64}$/
 
