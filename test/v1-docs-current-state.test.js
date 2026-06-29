@@ -362,6 +362,19 @@ test('V1 docs record revoke clearing pending message requests', async () => {
   assert.match(dependencyOrder, /clear pending message requests from the revoked profile/)
 })
 
+test('V1 docs record ignored message requests as consuming the one request slot', async () => {
+  const gaps = await readText('../docs/v1.07-architecture-gaps.md')
+  const dmBootstrap = await readText('../docs/v1.08-dm-bootstrap-security.md')
+  const dependencyOrder = await readText('../docs/v1.01-dependency-order.md')
+  const docs = `${gaps}\n${dmBootstrap}\n${dependencyOrder}`
+
+  assert.match(docs, /ignored message requests consume/)
+  assert.match(docs, /trusted senders/)
+  assert.match(docs, /blocks repeat untrusted requests/)
+  assert.match(docs, /requires a pending request/)
+  assert.match(docs, /fails closed without a pending request/)
+})
+
 test('V1 docs record Android request UI gating through ContactBook', async () => {
   const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
   const gaps = await readText('../docs/v1.07-architecture-gaps.md')

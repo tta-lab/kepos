@@ -167,13 +167,25 @@ describe('contact book', () => {
     assert.equal(canContactSeePresence(revoked, 'profile-b'), false)
   })
 
-  test('trusting a revoked contact clears the revoke state', () => {
+  test('trusting a revoked or ignored contact clears blocked states', () => {
     const trusted = trustContact(createContactBook({ ownerProfileId: 'owner-a' }), {
       profileId: 'profile-b',
       alias: 'Ada',
       trustedAt: 0
     })
-    const revoked = revokeContact(trusted, {
+    const ignored = ignoreMessageRequest(
+      recordMessageRequest(trusted, {
+        alias: 'Ada',
+        profileId: 'profile-c',
+        requestedAt: 1000,
+        requestId: 'request-1'
+      }),
+      {
+        ignoredAt: 1500,
+        profileId: 'profile-c'
+      }
+    )
+    const revoked = revokeContact(ignored, {
       profileId: 'profile-b',
       revokedAt: 2000
     })
@@ -182,10 +194,17 @@ describe('contact book', () => {
       alias: 'Ada',
       trustedAt: 3000
     })
+    const acceptedAfterIgnore = trustContact(revoked, {
+      profileId: 'profile-c',
+      alias: 'Grace',
+      trustedAt: 3000
+    })
 
     assert.equal(isContactTrusted(trusted, 'profile-b'), true)
     assert.equal(isContactTrusted(trustedAgain, 'profile-b'), true)
     assert.equal(getContact(trustedAgain, 'profile-b').revokedAt, undefined)
+    assert.equal(getContact(ignored, 'profile-c').requestIgnoredAt, 1500)
+    assert.equal(getContact(acceptedAfterIgnore, 'profile-c').requestIgnoredAt, undefined)
   })
 
   test('message requests grant no access and are bounded to one pending request', () => {
@@ -275,7 +294,7 @@ describe('contact book', () => {
     )
   })
 
-  test('accepting a message request trusts the contact and clears pending request', () => {
+  test('accepting a message request requires pending state then trusts the contact', () => {
     const requested = recordMessageRequest(createContactBook({ ownerProfileId: 'owner-a' }), {
       profileId: 'profile-b',
       displayNameSnapshot: 'Ada Lovelace',
@@ -283,6 +302,16 @@ describe('contact book', () => {
       requestId: 'request-1',
       source: 'home_qr'
     })
+
+    assert.throws(
+      () =>
+        acceptMessageRequest(createContactBook({ ownerProfileId: 'owner-a' }), {
+          profileId: 'profile-b',
+          alias: 'Ada',
+          acceptedAt: 2000
+        }),
+      /Pending message request is required/
+    )
 
     const accepted = acceptMessageRequest(requested, {
       profileId: 'profile-b',
@@ -296,7 +325,7 @@ describe('contact book', () => {
     assert.deepEqual(getContact(accepted, 'profile-b').aliases, ['Ada Lovelace', 'Ada'])
   })
 
-  test('ignoring a message request only clears the pending request', () => {
+  test('ignoring a message request clears pending state and blocks repeats', () => {
     const requested = recordMessageRequest(createContactBook({ ownerProfileId: 'owner-a' }), {
       profileId: 'profile-b',
       alias: 'Ada',
@@ -305,12 +334,22 @@ describe('contact book', () => {
       source: 'home_room'
     })
 
-    const ignored = ignoreMessageRequest(requested, { profileId: 'profile-b' })
+    const ignored = ignoreMessageRequest(requested, { ignoredAt: 2000, profileId: 'profile-b' })
+    const repeated = recordMessageRequest(ignored, {
+      profileId: 'profile-b',
+      alias: 'Ada again',
+      requestedAt: 3000,
+      requestId: 'request-2',
+      source: 'home_room'
+    })
 
     assert.equal(requested.pendingRequestsByProfileId.has('profile-b'), true)
     assert.equal(ignored.pendingRequestsByProfileId.has('profile-b'), false)
+    assert.equal(repeated.pendingRequestsByProfileId.has('profile-b'), false)
     assert.equal(isContactTrusted(ignored, 'profile-b'), false)
+    assert.equal(canSendMessageRequest(ignored, 'profile-b'), false)
     assert.equal(getContact(ignored, 'profile-b').alias, 'Ada')
+    assert.equal(getContact(ignored, 'profile-b').requestIgnoredAt, 2000)
   })
 
   test('trusted contacts cannot send message requests', () => {
@@ -319,8 +358,16 @@ describe('contact book', () => {
       alias: 'Ada',
       trustedAt: 1000
     })
+    const requested = recordMessageRequest(trusted, {
+      profileId: 'profile-b',
+      alias: 'Ada',
+      requestedAt: 2000,
+      requestId: 'request-1',
+      source: 'home_room'
+    })
 
     assert.equal(canSendMessageRequest(trusted, 'profile-b'), false)
+    assert.equal(requested.pendingRequestsByProfileId.has('profile-b'), false)
   })
 
   test('DM invite ContactBook policy requires trusted sender', () => {
@@ -372,15 +419,20 @@ describe('contact book', () => {
       requestId: 'request-1',
       source: 'home_qr'
     })
+    const ignored = ignoreMessageRequest(requested, {
+      ignoredAt: 1300,
+      profileId: 'profile-c'
+    })
 
-    const stored = serializeContactBook(requested)
+    const stored = serializeContactBook(ignored)
     const restored = deserializeContactBook(stored)
 
     assert.equal(stored.version, 1)
-    assert.deepEqual(getContact(restored, 'profile-b'), getContact(requested, 'profile-b'))
+    assert.deepEqual(getContact(restored, 'profile-b'), getContact(ignored, 'profile-b'))
+    assert.deepEqual(getContact(restored, 'profile-c'), getContact(ignored, 'profile-c'))
     assert.deepEqual(
       Array.from(restored.pendingRequestsByProfileId.values()),
-      Array.from(requested.pendingRequestsByProfileId.values())
+      Array.from(ignored.pendingRequestsByProfileId.values())
     )
   })
 

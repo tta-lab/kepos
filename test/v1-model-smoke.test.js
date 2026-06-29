@@ -35,7 +35,8 @@ describe('V1 model smoke', () => {
   test('ties QR trust, trusted home access, treehole writer rights, and accepted DM together', async () => {
     const owner = createSigningKeyPair()
     const peer = createSigningKeyPair()
-    const peerDmEncryption = createDmEncryptionKeyPair()
+    const requester = createSigningKeyPair()
+    const requesterDmEncryption = createDmEncryptionKeyPair()
     let ownerBook = createContactBook({ ownerProfileId: owner.publicKey })
     let peerBook = createContactBook({ ownerProfileId: peer.publicKey })
     const ownerProfileUri = encodeQrUri(
@@ -148,14 +149,14 @@ describe('V1 model smoke', () => {
 
     const request = createMessageRequest({
       createdAt: 2000,
-      fromIdentity: peer,
+      fromIdentity: requester,
       requestId: 'request-1',
-      senderEncryptionPublicKey: peerDmEncryption.publicKey,
+      senderEncryptionPublicKey: requesterDmEncryption.publicKey,
       text: 'hello owner',
       toProfileId: owner.publicKey
     })
     ownerBook = applyMessageRequestToContactBook(ownerBook, {
-      alias: 'Peer',
+      alias: 'Requester',
       request,
       source: 'home_room'
     })
@@ -163,24 +164,24 @@ describe('V1 model smoke', () => {
       acceptedAt: 2100,
       acceptorIdentity: owner,
       book: ownerBook,
-      remoteProfileId: peer.publicKey,
+      remoteProfileId: requester.publicKey,
       threadId: 'thread-1'
     })
     ownerBook = accepted.book
     const openedInvite = openAcceptedMessageRequestInvite({
       invite: accepted.invite,
-      recipientEncryptionKeyPair: peerDmEncryption
+      recipientEncryptionKeyPair: requesterDmEncryption
     })
 
-    assert.equal(isContactTrusted(ownerBook, peer.publicKey), true)
-    assert.equal(ownerBook.pendingRequestsByProfileId.has(peer.publicKey), false)
+    assert.equal(isContactTrusted(ownerBook, requester.publicKey), true)
+    assert.equal(ownerBook.pendingRequestsByProfileId.has(requester.publicKey), false)
     assert.equal(verifyDmInvite(accepted.invite), true)
     assert.equal(openedInvite.threadId, accepted.thread.threadId)
     assert.equal(isDmThreadActive(accepted.thread), true)
 
     const storedMessages = await smokeDmThreadPersistence({
       localIdentity: owner,
-      remoteIdentity: peer,
+      remoteIdentity: requester,
       thread: accepted.thread
     })
 

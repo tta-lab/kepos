@@ -9,6 +9,7 @@ export type ContactBookContact = {
   homePolicy?: string
   profileId: string
   proof?: unknown
+  requestIgnoredAt?: number
   revokedAt?: number
   source?: string
   trustedAt?: number
@@ -138,6 +139,7 @@ export function upsertContact(book: ContactBook, contact: ContactPatch): Contact
 
   if (cleanContact.trustedAt !== undefined) {
     delete nextContact.revokedAt
+    delete nextContact.requestIgnoredAt
   }
 
   nextBook.contactsByProfileId.set(cleanContact.profileId, nextContact)
@@ -249,6 +251,7 @@ export function canSendMessageRequest(book: ContactBook, profileId: string): boo
   return (
     !isContactRevoked(book, cleanProfileId) &&
     !isContactTrusted(book, cleanProfileId) &&
+    !isMessageRequestIgnored(book, cleanProfileId) &&
     !book?.pendingRequestsByProfileId?.has(cleanProfileId)
   )
 }
@@ -290,6 +293,14 @@ export function recordMessageRequest(
 
   if (isContactRevoked(book, cleanProfileId)) {
     throw new Error('Revoked contact cannot create message request')
+  }
+
+  if (isContactTrusted(book, cleanProfileId)) {
+    return book
+  }
+
+  if (isMessageRequestIgnored(book, cleanProfileId)) {
+    return book
   }
 
   if (book?.pendingRequestsByProfileId?.has(cleanProfileId)) {
@@ -334,6 +345,10 @@ export function acceptMessageRequest(
   }
 
   const request = book?.pendingRequestsByProfileId?.get(cleanProfileId)
+  if (!request) {
+    throw new Error('Pending message request is required')
+  }
+
   const trusted = trustContact(book, {
     profileId: cleanProfileId,
     alias,
@@ -353,10 +368,23 @@ export function acceptMessageRequest(
 
 export function ignoreMessageRequest(
   book: ContactBook,
-  { profileId }: { profileId: string }
+  { ignoredAt = Date.now(), profileId }: { ignoredAt?: number; profileId: string }
 ): ContactBook {
   const cleanProfileId = cleanRequiredString(profileId, 'Contact profile id is required')
-  const nextBook = cloneContactBook(book)
+  const existing = getContact(book, cleanProfileId)
+  const request = book?.pendingRequestsByProfileId?.get(cleanProfileId)
+
+  if (!existing && !request) {
+    return cloneContactBook(book)
+  }
+
+  const nextBook = upsertContact(book, {
+    profileId: cleanProfileId,
+    alias: existing?.alias || request?.alias,
+    displayNameSnapshot: existing?.displayNameSnapshot || request?.displayNameSnapshot,
+    requestIgnoredAt: ignoredAt,
+    source: existing?.source || request?.source
+  })
 
   nextBook.pendingRequestsByProfileId.delete(cleanProfileId)
 
@@ -367,6 +395,12 @@ function isContactRevoked(book: ContactBook, profileId: string): boolean {
   const contact = getContact(book, profileId)
 
   return contact?.revokedAt !== undefined && contact.revokedAt !== null
+}
+
+function isMessageRequestIgnored(book: ContactBook, profileId: string): boolean {
+  const contact = getContact(book, profileId)
+
+  return contact?.requestIgnoredAt !== undefined && contact.requestIgnoredAt !== null
 }
 
 function cloneContactBook(book: ContactBook): ContactBook {
@@ -408,6 +442,7 @@ function cleanContactPatch(contact: ContactPatch = {}): ContactBookContact {
     trustedAt: contact.trustedAt,
     trustScope: contact.trustScope,
     revokedAt: contact.revokedAt,
+    requestIgnoredAt: contact.requestIgnoredAt,
     source: cleanOptionalString(contact.source),
     proof: contact.proof
   }) as ContactBookContact
