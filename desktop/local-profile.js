@@ -1,7 +1,7 @@
 import {
   createDesktopFileProfileContext,
   createDesktopProfileContext
-} from '../src/desktop-profile-context.js'
+} from '../src/desktop-profile-context.ts'
 import { createDesktopShareQrOutputs, renderDesktopQrSvg } from '../src/desktop-qr-service.js'
 import { getDesktopStorageBasePath } from '../src/desktop-storage-base.ts'
 

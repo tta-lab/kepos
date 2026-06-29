@@ -1,5 +1,5 @@
 import { applyDesktopProfileTrustQr } from './desktop-qr-service.js'
-import { createDesktopContactRevoke } from './desktop-revoke-service.js'
+import { createDesktopContactRevoke } from './desktop-revoke-service.ts'
 
 export function createDesktopTrustActions({
   applyProfileTrustQr = applyDesktopProfileTrustQr,

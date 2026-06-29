@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { DESKTOP_COMMANDS } from '../src/desktop-command-vocabulary.ts'
-import { createDesktopLocalBackendHost } from '../src/desktop-local-backend-host.js'
+import { createDesktopLocalBackendHost } from '../src/desktop-local-backend-host.ts'
 
 function createActions(calls) {
   return Object.fromEntries(

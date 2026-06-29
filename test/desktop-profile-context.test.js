@@ -5,7 +5,7 @@ import { upsertContact } from '../src/contact-book.ts'
 import {
   createDesktopFileProfileContext,
   createDesktopProfileContext
-} from '../src/desktop-profile-context.js'
+} from '../src/desktop-profile-context.ts'
 
 function createMemoryStorage() {
   const values = new Map()

@@ -43,7 +43,7 @@ test('desktop controller routes UI actions through the command host', async () =
     'utf8'
   )
   const host = await readFile(
-    new URL('../src/desktop-local-backend-host.js', import.meta.url),
+    new URL('../src/desktop-local-backend-host.ts', import.meta.url),
     'utf8'
   )
   const bindings = await readFile(

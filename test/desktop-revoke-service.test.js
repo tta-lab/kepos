@@ -5,7 +5,7 @@ import {
   createTreeholePolicyFromContactBook,
   trustContact
 } from '../src/contact-book.ts'
-import { createDesktopContactRevoke } from '../src/desktop-revoke-service.js'
+import { createDesktopContactRevoke } from '../src/desktop-revoke-service.ts'
 import { acceptDmThread, createDmThread } from '../src/dm-thread.ts'
 
 const ownerProfileId = 'a'.repeat(64)

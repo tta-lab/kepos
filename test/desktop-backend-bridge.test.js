@@ -52,7 +52,7 @@ test('desktop controller routes commands through the backend bridge', async () =
     'utf8'
   )
   const host = await readFile(
-    new URL('../src/desktop-local-backend-host.js', import.meta.url),
+    new URL('../src/desktop-local-backend-host.ts', import.meta.url),
     'utf8'
   )
   const dispatcher = await readFile(
@@ -89,7 +89,7 @@ test('desktop controller routes treehole runtime updates through backend bridge 
     'utf8'
   )
   const host = await readFile(
-    new URL('../src/desktop-local-backend-host.js', import.meta.url),
+    new URL('../src/desktop-local-backend-host.ts', import.meta.url),
     'utf8'
   )
   const subscriptions = await readFile(
@@ -178,7 +178,7 @@ test('desktop controller delegates home transport to a runtime boundary', async 
     'utf8'
   )
   const host = await readFile(
-    new URL('../src/desktop-local-backend-host.js', import.meta.url),
+    new URL('../src/desktop-local-backend-host.ts', import.meta.url),
     'utf8'
   )
 
@@ -206,7 +206,7 @@ test('desktop controller delegates direct message runtime and storage to a bound
     'utf8'
   )
   const host = await readFile(
-    new URL('../src/desktop-local-backend-host.js', import.meta.url),
+    new URL('../src/desktop-local-backend-host.ts', import.meta.url),
     'utf8'
   )
 
@@ -226,7 +226,7 @@ test('desktop controller uses one backend runtime facade for long lived runtimes
     'utf8'
   )
   const host = await readFile(
-    new URL('../src/desktop-local-backend-host.js', import.meta.url),
+    new URL('../src/desktop-local-backend-host.ts', import.meta.url),
     'utf8'
   )
   const localBackend = await readFile(
