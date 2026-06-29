@@ -252,7 +252,7 @@ async function leaveRoom() {
   addedWriters.clear()
 }
 
-async function openTreehole(bootstrapKey = null) {
+function openTreehole(bootstrapKey = null) {
   if (treehole) {
     return
   }

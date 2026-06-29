@@ -32,7 +32,7 @@ export function createDesktopTreeholeRuntime({
     homeJoinDetails = nextContext?.homeJoinDetails || null
   }
 
-  async function open({ bootstrapKey = null, initialPosts = [], initialStatus = 'ready' } = {}) {
+  function open({ bootstrapKey = null, initialPosts = [], initialStatus = 'ready' } = {}) {
     if (treehole) return
     if (treeholeOpening) return treeholeOpening
     if (!session) return

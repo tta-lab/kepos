@@ -4518,7 +4518,7 @@ function createDesktopTreeholeRuntime({
     session = nextContext?.session || null;
     homeJoinDetails = nextContext?.homeJoinDetails || null;
   }
-  async function open2({ bootstrapKey = null, initialPosts = [], initialStatus = "ready" } = {}) {
+  function open2({ bootstrapKey = null, initialPosts = [], initialStatus = "ready" } = {}) {
     if (treehole) return;
     if (treeholeOpening) return treeholeOpening;
     if (!session) return;
