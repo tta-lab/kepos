@@ -379,6 +379,9 @@ test('V1 docs record Android backend request acceptance validation', async () =>
 
   assert.match(gaps, /Android Bare backend verifies signed message requests again/)
   assert.match(gaps, /rejects request acceptance from revoked senders/)
+  assert.match(gaps, /Android syncs ContactBook-derived treehole policy/)
+  assert.match(gaps, /trust, request accept, and revoke/)
+  assert.match(gaps, /join-time policy snapshot/)
 })
 
 test('V1 docs record DM body Home fallback as debug-only', async () => {

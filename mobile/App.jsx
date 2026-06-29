@@ -123,6 +123,7 @@ import {
   RPC_STATUS,
   RPC_TREEHOLE_COMMENT,
   RPC_TREEHOLE_LIKE,
+  RPC_TREEHOLE_POLICY,
   RPC_TREEHOLE_POST,
   RPC_TREEHOLE_STATE,
   RPC_TREEHOLE_STATUS
@@ -408,8 +409,10 @@ export default function App() {
         book: result.book,
         fileSystem: FileSystem
       })
+      const nextPolicy = createTreeholePolicyFromContactBook(result.book)
       setContactBook(result.book)
-      setTreeholePolicy(createTreeholePolicyFromContactBook(result.book))
+      setTreeholePolicy(nextPolicy)
+      syncTreeholePolicy(nextPolicy)
       setTrustAlias('')
       setTrustQrUri('')
       setNotice('Trusted friend added.')
@@ -445,6 +448,7 @@ export default function App() {
 
     setContactBook(result.book)
     setTreeholePolicy(result.treeholePolicy)
+    syncTreeholePolicy(result.treeholePolicy)
     setDmThreads(result.nextThreads)
     if (dmRecipient === contactProfileId) {
       setDmRecipient('')
@@ -457,6 +461,14 @@ export default function App() {
       })
     )
     setNotice('Trust revoked.')
+  }
+
+  function syncTreeholePolicy(nextPolicy) {
+    rpc?.request(RPC_TREEHOLE_POLICY).send(
+      JSON.stringify({
+        treeholePolicy: nextPolicy
+      })
+    )
   }
 
   async function startQrScan(target) {
@@ -795,6 +807,7 @@ export default function App() {
       alias: shortenProfileId(request.fromProfileId),
       profileId: request.fromProfileId
     })
+    const nextPolicy = createTreeholePolicyFromContactBook(nextBook)
 
     await saveContactBookToFileSystem({
       baseUri: getRequiredMobileDocumentDirectory(FileSystem),
@@ -802,7 +815,8 @@ export default function App() {
       fileSystem: FileSystem
     })
     setContactBook(nextBook)
-    setTreeholePolicy(createTreeholePolicyFromContactBook(nextBook))
+    setTreeholePolicy(nextPolicy)
+    syncTreeholePolicy(nextPolicy)
     rpc.request(RPC_DM_ACCEPT).send(
       JSON.stringify({
         acceptedAt,

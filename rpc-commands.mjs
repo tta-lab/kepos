@@ -20,3 +20,4 @@ export const RPC_DM_BODY_SEND = 18
 export const RPC_DM_BODY_MESSAGE = 19
 export const RPC_DM_REVOKE = 20
 export const RPC_ROOM_DEBUG = 21
+export const RPC_TREEHOLE_POLICY = 22

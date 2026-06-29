@@ -38,9 +38,13 @@ test('android exposes contact revoke controls and notifies Bare backend', async 
   const rpc = await readFile(new URL('../rpc-commands.mjs', import.meta.url), 'utf8')
 
   assert.match(rpc, /RPC_DM_REVOKE/)
+  assert.match(rpc, /RPC_TREEHOLE_POLICY/)
   assert.match(app, /revokeTrustedContact/)
   assert.match(app, /RPC_DM_REVOKE/)
+  assert.match(app, /syncTreeholePolicy\(result\.treeholePolicy\)/)
   assert.match(app, /UserMinus/)
   assert.match(backend, /revokeDmByProfile/)
+  assert.match(backend, /RPC_TREEHOLE_POLICY/)
+  assert.match(backend, /updateTreeholePolicy\(payload\)/)
   assert.match(backend, /dmRuntime\?\.closeThread/)
 })

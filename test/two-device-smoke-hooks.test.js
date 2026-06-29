@@ -867,6 +867,10 @@ test('Android people pane surfaces pending message requests', async () => {
   assert.match(messageRequestManager, /Ignore/)
   assert.match(source, /function ignoreIncomingMessageRequest\(request\)/)
   assert.match(source, /ignoreMessageRequest\(contactBook, \{/)
+  assert.match(source, /function syncTreeholePolicy\(nextPolicy\)/)
+  assert.match(source, /RPC_TREEHOLE_POLICY/)
+  assert.match(source, /syncTreeholePolicy\(nextPolicy\)/)
+  assert.match(source, /syncTreeholePolicy\(result\.treeholePolicy\)/)
   assert.match(messageRequestManager, /fromProfileId: request\.profileId/)
   assert.match(messageRequestManager, /toProfileId: profileId/)
   assert.match(

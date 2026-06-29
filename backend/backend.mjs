@@ -50,6 +50,7 @@ import {
   RPC_STATUS,
   RPC_TREEHOLE_COMMENT,
   RPC_TREEHOLE_LIKE,
+  RPC_TREEHOLE_POLICY,
   RPC_TREEHOLE_POST,
   RPC_TREEHOLE_STATE,
   RPC_TREEHOLE_STATUS
@@ -141,6 +142,12 @@ async function handleRequest(req) {
 
   if (req.command === RPC_DM_REVOKE) {
     await revokeDmByProfile(payload)
+    req.reply?.(b4a.from(JSON.stringify({ ok: true })))
+    return
+  }
+
+  if (req.command === RPC_TREEHOLE_POLICY) {
+    updateTreeholePolicy(payload)
     req.reply?.(b4a.from(JSON.stringify({ ok: true })))
     return
   }
@@ -709,6 +716,10 @@ async function revokeDmByProfile(payload) {
     fileSystem: createBareFileSystem(),
     threads: nextThreads
   })
+}
+
+function updateTreeholePolicy(payload) {
+  treeholePolicy = payload.treeholePolicy || null
 }
 
 function sendDmInvite(payload) {
