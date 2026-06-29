@@ -362,6 +362,18 @@ test('V1 docs record revoke clearing pending message requests', async () => {
   assert.match(dependencyOrder, /clear pending message requests from the revoked profile/)
 })
 
+test('V1 docs record Android request UI gating through ContactBook', async () => {
+  const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
+  const gaps = await readText('../docs/v1.07-architecture-gaps.md')
+
+  assert.match(
+    audit,
+    /Android incoming message requests are appended to Direct only after ContactBook/
+  )
+  assert.match(gaps, /Android appends incoming message requests to Direct only after ContactBook/)
+  assert.match(`${audit}\n${gaps}`, /revoked senders do not leak into/)
+})
+
 test('V1 UX docs include composer payload trimming on desktop and mobile', async () => {
   const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
   const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
