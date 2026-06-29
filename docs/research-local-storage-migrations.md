@@ -27,8 +27,8 @@ Current and future owner files/modules:
 
 - `src/local-profile.js`: owns desktop/localStorage-shaped V1 identity and home envelopes plus legacy import.
 - `src/mobile-profile.js`: owns the Expo FileSystem adapter for V1 identity/home JSON envelopes and legacy text-file import.
-- `src/contact-book.ts` and `src/contact-book-storage.js`: own shared ContactBook domain rules, validation, serialization, and platform adapters.
-- `src/dm-thread.ts`, `src/dm-thread-storage.js`, and `src/dm-message-storage.ts`: own durable DM metadata/message state.
+- `src/contact-book.ts` and `src/contact-book-storage.ts`: own shared ContactBook domain rules, validation, serialization, and platform adapters.
+- `src/dm-thread.ts`, `src/dm-thread-storage.ts`, and `src/dm-message-storage.ts`: own durable DM metadata/message state.
 - Later `src/local-store.js` or `src/persistence.js`: can centralize the envelope/migration dispatcher when a second schema version appears.
 - Later `desktop/electron/main.cjs` or a desktop preload/main adapter: can move desktop V1 envelopes from Chromium localStorage to `app.getPath('userData')/kepos/v1`.
 
@@ -126,9 +126,9 @@ Corrupt data behavior:
 - Local: `src/mobile-profile.js` — current Android file-based V1 profile, identity, and home envelope persistence.
 - Local: `mobile/App.jsx` — current `expo-file-system/legacy` usage and Bare backend storage base handoff.
 - Local: `backend/backend.mjs` — current Bare backend treehole storage path usage.
-- Local: `src/treehole-storage.js` — current normalized treehole Corestore path helper.
+- Local: `src/treehole-storage.ts` — current normalized treehole Corestore path helper.
 - Local: `src/treehole-base.js` — current Corestore/Autobase storage requirement.
-- Local: `src/contact-book-storage.js`, `src/dm-thread-storage.js`, and `src/dm-message-storage.ts` — current local trust and DM persistence adapters.
+- Local: `src/contact-book-storage.ts`, `src/dm-thread-storage.ts`, and `src/dm-message-storage.ts` — current local trust and DM persistence adapters.
 - Local: `docs/v1.04-tradeoffs.md` — ContactBook adapter direction.
 - Local: `docs/v1.07-architecture-gaps.md` — current schema version, migration, and remaining live-smoke evidence.
 - Expo FileSystem legacy docs: https://docs.expo.dev/versions/v56.0.0/sdk/filesystem-legacy/ — app-scoped document/cache directories, document persistence, read/write APIs.
