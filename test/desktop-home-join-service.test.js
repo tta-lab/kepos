@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { createContactBook, trustContact } from '../src/contact-book.ts'
-import { createDesktopHomeJoinDetails } from '../src/desktop-home-join-service.js'
+import { createDesktopHomeJoinDetails } from '../src/desktop-home-join-service.ts'
 import { createProfile } from '../src/profile.ts'
 
 const identity = {

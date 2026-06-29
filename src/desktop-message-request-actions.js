@@ -1,7 +1,7 @@
 import {
   createDesktopMessageRequestAcceptance,
   createDesktopMessageRequestIgnore
-} from './desktop-message-request-service.js'
+} from './desktop-message-request-service.ts'
 
 export function createDesktopMessageRequestActions({
   acceptMessageRequest = createDesktopMessageRequestAcceptance,

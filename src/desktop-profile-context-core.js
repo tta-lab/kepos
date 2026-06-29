@@ -2,7 +2,7 @@ import {
   getDesktopLocalProfile,
   loadDesktopContactBook,
   saveDesktopContactBook
-} from './desktop-local-adapters.js'
+} from './desktop-local-adapters.ts'
 
 export function createDesktopProfileContext({
   displayName = 'Desktop',

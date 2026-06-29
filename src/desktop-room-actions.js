@@ -1,4 +1,4 @@
-import { createDesktopHomeJoinDetails } from './desktop-home-join-service.js'
+import { createDesktopHomeJoinDetails } from './desktop-home-join-service.ts'
 import { applyDesktopHomeQr } from './desktop-qr-service.js'
 import { createDesktopState, setDesktopRoom, setDesktopTreehole } from './desktop-state.ts'
 

@@ -5,7 +5,7 @@ import {
   getDesktopLocalProfile,
   loadDesktopContactBook,
   saveDesktopContactBook
-} from '../src/desktop-local-adapters.js'
+} from '../src/desktop-local-adapters.ts'
 import { upsertContact } from '../src/contact-book.ts'
 
 function createMemoryStorage() {

@@ -1,4 +1,16 @@
 import { ignoreMessageRequest } from './contact-book.ts'
+import type { ContactBook } from './contact-book.ts'
+
+type DesktopMessageRequestMessage = {
+  fromProfileId?: string
+  id?: string
+  profileId?: string
+}
+
+type DesktopMessageRequestAcceptanceResult = {
+  book: ContactBook
+  invite: unknown
+}
 
 export async function createDesktopMessageRequestAcceptance({
   acceptMessageRequest,
@@ -6,7 +18,21 @@ export async function createDesktopMessageRequestAcceptance({
   book,
   message,
   threadId
-}) {
+}: {
+  acceptMessageRequest: (payload: {
+    acceptedAt?: number
+    book: ContactBook
+    remoteProfileId: string
+    threadId: string
+  }) =>
+    | DesktopMessageRequestAcceptanceResult
+    | null
+    | Promise<DesktopMessageRequestAcceptanceResult | null>
+  acceptedAt?: number
+  book: ContactBook
+  message?: DesktopMessageRequestMessage | null
+  threadId: string
+}): Promise<DesktopMessageRequestAcceptanceResult | null> {
   const remoteProfileId = message?.fromProfileId
   if (!remoteProfileId) return null
 
@@ -30,7 +56,15 @@ export function createDesktopMessageRequestIgnore({
   hasDmSession = false,
   message = null,
   profileId = ''
-}) {
+}: {
+  book: ContactBook
+  hasDmSession?: boolean
+  message?: DesktopMessageRequestMessage | null
+  profileId?: string
+}): {
+  book: ContactBook
+  dismissedMessageId: string
+} | null {
   const requestProfileId = profileId || message?.fromProfileId || message?.profileId
   if (!requestProfileId) return null
 

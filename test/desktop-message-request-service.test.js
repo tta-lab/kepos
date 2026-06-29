@@ -4,7 +4,7 @@ import { createContactBook, recordMessageRequest } from '../src/contact-book.ts'
 import {
   createDesktopMessageRequestAcceptance,
   createDesktopMessageRequestIgnore
-} from '../src/desktop-message-request-service.js'
+} from '../src/desktop-message-request-service.ts'
 
 test('desktop message request acceptance delegates to the DM runtime contract', async () => {
   const book = createContactBook({ ownerProfileId: 'owner-a' })
