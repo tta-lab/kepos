@@ -1,4 +1,4 @@
-import { isHomePolicy } from './home-room.js'
+import { isHomePolicy } from './home-room.ts'
 
 const TRUST_INVITE = 'kepos.trust.invite.v1'
 const HOME_ADDRESS = 'kepos.home.address.v1'

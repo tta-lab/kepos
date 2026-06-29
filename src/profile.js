@@ -1,4 +1,4 @@
-import { createHomeRoom } from './home-room.js'
+import { createHomeRoom } from './home-room.ts'
 import { createIdentityKeyPair } from './identity.js'
 
 export function createProfile({

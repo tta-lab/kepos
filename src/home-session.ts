@@ -1,8 +1,33 @@
-import { createChatSession } from './chat-session.js'
+import { createChatSession } from './chat-session.ts'
+import type { ChatSession } from './chat-session.ts'
+import type { HomePolicy, HomeRoom } from './home-room.ts'
+import type { SigningIdentity } from './signed-record.ts'
 
 const ROOM_KEY_PATTERN = /^[0-9a-f]{64}$/
 
-export function createHomeJoinSession({ profile, nick }) {
+type HomeJoinProfile = {
+  homeRoom?: HomeRoom
+  id?: string
+  identity?: SigningIdentity | null
+}
+
+export type HomeJoinSession = {
+  address: string
+  identity: SigningIdentity | null | undefined
+  ownerProfileId: string | null
+  policy: HomePolicy
+  profileId: string | null
+  roomKey: string
+  session: ChatSession
+}
+
+export function createHomeJoinSession({
+  profile,
+  nick
+}: {
+  nick?: string
+  profile: HomeJoinProfile
+}): HomeJoinSession {
   const homeRoom = profile?.homeRoom
 
   if (!homeRoom?.ownerProfileId) {
@@ -31,7 +56,14 @@ export function createManualHomeJoinSession({
   policy = 'trusted_only',
   profileId = null,
   roomKey
-}) {
+}: {
+  identity?: SigningIdentity | null
+  nick?: string
+  ownerProfileId?: string | null
+  policy?: HomePolicy
+  profileId?: string | null
+  roomKey: string
+}): HomeJoinSession {
   if (!isRoomKey(roomKey)) {
     throw new Error('Invalid room key')
   }
@@ -55,7 +87,15 @@ export function createHomeJoinSessionFromAddress({
   policy = 'trusted_only',
   profileId = null,
   roomKey
-}) {
+}: {
+  address: string
+  identity?: SigningIdentity | null
+  nick?: string
+  ownerProfileId: string
+  policy?: HomePolicy
+  profileId?: string | null
+  roomKey: string
+}): HomeJoinSession {
   if (!isRoomKey(roomKey)) {
     throw new Error('Invalid room key')
   }
@@ -79,7 +119,15 @@ function createJoinSession({
   policy,
   profileId,
   roomKey
-}) {
+}: {
+  address: string
+  identity?: SigningIdentity | null
+  nick?: string
+  ownerProfileId: string | null
+  policy: HomePolicy
+  profileId?: string | null
+  roomKey: string
+}): HomeJoinSession {
   return {
     address,
     identity,
@@ -95,6 +143,6 @@ function createJoinSession({
   }
 }
 
-function isRoomKey(value) {
+function isRoomKey(value: unknown): value is string {
   return typeof value === 'string' && ROOM_KEY_PATTERN.test(value)
 }

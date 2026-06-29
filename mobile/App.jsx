@@ -32,7 +32,7 @@ import {
   X
 } from 'lucide-react-native'
 import QRCode from 'react-native-qrcode-svg'
-import { appendLocalMessage, appendRemoteMessage } from '../src/chat-session.js'
+import { appendLocalMessage, appendRemoteMessage } from '../src/chat-session.ts'
 import {
   appendLocalSignedDirectMessage,
   appendLocalMessageRequest,
@@ -62,7 +62,7 @@ import {
   createHomeJoinSession,
   createHomeJoinSessionFromAddress,
   createManualHomeJoinSession
-} from '../src/home-session.js'
+} from '../src/home-session.ts'
 import { parseDirectRoomEndpoint } from '../src/direct-room-endpoint.js'
 import { createIdentityKeyPairFromSeed } from '../src/identity.js'
 import { getOrCreateLocalProfile } from '../src/local-profile.js'

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
-import { createHomeRoom, isHomePolicy } from '../src/home-room.js'
+import { createHomeRoom, isHomePolicy } from '../src/home-room.ts'
 import { createProfile } from '../src/profile.js'
 import {
   canEnterHome,

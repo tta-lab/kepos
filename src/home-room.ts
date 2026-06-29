@@ -1,12 +1,26 @@
 const HOME_POLICIES = new Set(['trusted_only', 'public'])
 const ROOM_KEY_PATTERN = /^[0-9a-f]{64}$/
 
+export type HomePolicy = 'trusted_only' | 'public'
+
+export type HomeRoom = {
+  address: string
+  ownerProfileId: string
+  policy: HomePolicy
+  roomKey: string
+}
+
 export function createHomeRoom({
   ownerProfileId,
   address = null,
   roomKey = address || createRoomKey(),
   policy = 'trusted_only'
-}) {
+}: {
+  address?: string | null
+  ownerProfileId: string
+  policy?: unknown
+  roomKey?: string | null
+}): HomeRoom {
   const cleanOwnerProfileId = cleanRequiredString(
     ownerProfileId,
     'Home owner profile id is required'
@@ -27,15 +41,15 @@ export function createHomeRoom({
     ownerProfileId: cleanOwnerProfileId,
     address: cleanAddress,
     roomKey: cleanRoomKey,
-    policy
+    policy: policy as HomePolicy
   }
 }
 
-export function isHomePolicy(policy) {
-  return HOME_POLICIES.has(policy)
+export function isHomePolicy(policy: unknown): policy is HomePolicy {
+  return typeof policy === 'string' && HOME_POLICIES.has(policy)
 }
 
-function createRoomKey() {
+function createRoomKey(): string {
   const bytes = new Uint8Array(32)
 
   if (globalThis.crypto?.getRandomValues) {
@@ -49,12 +63,12 @@ function createRoomKey() {
   return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('')
 }
 
-function isRoomKey(value) {
+function isRoomKey(value: unknown): value is string {
   return typeof value === 'string' && ROOM_KEY_PATTERN.test(value)
 }
 
-function cleanRequiredString(value, message) {
-  const cleaned = value?.trim()
+function cleanRequiredString(value: unknown, message: string): string {
+  const cleaned = typeof value === 'string' ? value.trim() : ''
 
   if (!cleaned) {
     throw new Error(message)

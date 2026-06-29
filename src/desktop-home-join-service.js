@@ -3,7 +3,7 @@ import {
   createHomeJoinSession,
   createHomeJoinSessionFromAddress,
   createManualHomeJoinSession
-} from './home-session.js'
+} from './home-session.ts'
 
 export function createDesktopHomeJoinDetails({
   contactBook,

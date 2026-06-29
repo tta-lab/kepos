@@ -4,7 +4,7 @@ import {
   createHomeJoinSession,
   createHomeJoinSessionFromAddress,
   createManualHomeJoinSession
-} from '../src/home-session.js'
+} from '../src/home-session.ts'
 import { createProfile } from '../src/profile.js'
 
 describe('home session binding', () => {

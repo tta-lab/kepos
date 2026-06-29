@@ -1,5 +1,5 @@
 import compact from 'compact-encoding'
-import { isHomePolicy } from './home-room.js'
+import { isHomePolicy } from './home-room.ts'
 import type { MessageRequest } from './message-request.ts'
 import { createSignedRecord, verifySignedRecord } from './signed-record.ts'
 import type { PayloadEncoding, SignedRecord, SigningIdentity } from './signed-record.ts'

@@ -1,4 +1,4 @@
-import { isHomePolicy } from './home-room.js'
+import { isHomePolicy } from './home-room.ts'
 
 export function createTrustState() {
   return {

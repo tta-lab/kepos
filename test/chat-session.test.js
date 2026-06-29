@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
-import { appendLocalMessage, appendRemoteMessage, createChatSession } from '../src/chat-session.js'
+import { appendLocalMessage, appendRemoteMessage, createChatSession } from '../src/chat-session.ts'
 
 describe('chat session state', () => {
   test('createChatSession starts a room session with no messages', () => {

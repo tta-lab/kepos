@@ -1,4 +1,4 @@
-import { appendLocalMessage, appendRemoteMessage } from './chat-session.js'
+import { appendLocalMessage, appendRemoteMessage } from './chat-session.ts'
 import { createHomeHello, verifyHomeHello } from './home-presence.ts'
 import { createP2PRoom } from './p2p-room.js'
 
