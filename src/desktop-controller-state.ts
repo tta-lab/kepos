@@ -1,61 +1,65 @@
-import { createDesktopState } from './desktop-state.js'
+import type { DesktopState } from './desktop-state.ts'
+import { createDesktopState } from './desktop-state.ts'
 
 export function createDesktopControllerState({
   defaultDisplayName = 'Desktop',
   initialState = createDesktopState()
+}: {
+  defaultDisplayName?: string
+  initialState?: DesktopState
 } = {}) {
   let currentDisplayName = defaultDisplayName
   let directComposerRecipientProfileId = ''
-  let dmSession = null
-  let homeJoinDetails = null
-  let session = null
+  let dmSession: unknown = null
+  let homeJoinDetails: unknown = null
+  let session: unknown = null
   let state = initialState
 
   return {
-    getCurrentDisplayName() {
+    getCurrentDisplayName(): string {
       return currentDisplayName
     },
-    getDirectComposerRecipientProfileId() {
+    getDirectComposerRecipientProfileId(): string {
       return directComposerRecipientProfileId
     },
-    getDmSession() {
+    getDmSession(): unknown {
       return dmSession
     },
-    getHomeJoinDetails() {
+    getHomeJoinDetails(): unknown {
       return homeJoinDetails
     },
-    getSession() {
+    getSession(): unknown {
       return session
     },
-    getState() {
+    getState(): DesktopState {
       return state
     },
-    selectDirectContact(profileId = '') {
+    selectDirectContact(profileId = ''): boolean {
       if (!profileId) return false
       directComposerRecipientProfileId = profileId
       return true
     },
-    setCurrentDisplayName(displayName = defaultDisplayName) {
+    setCurrentDisplayName(displayName = defaultDisplayName): string {
       currentDisplayName = displayName.trim() || defaultDisplayName
       return currentDisplayName
     },
-    setDirectComposerRecipient(profileId = '') {
+    setDirectComposerRecipient(profileId = ''): string {
       directComposerRecipientProfileId = profileId.trim()
       return directComposerRecipientProfileId
     },
-    setDmSession(nextSession) {
+    setDmSession(nextSession: unknown): void {
       dmSession = nextSession
     },
-    setHomeJoinDetails(nextDetails) {
+    setHomeJoinDetails(nextDetails: unknown): void {
       homeJoinDetails = nextDetails
     },
-    setSession(nextSession) {
+    setSession(nextSession: unknown): void {
       session = nextSession
     },
-    setState(nextState) {
+    setState(nextState: DesktopState): void {
       state = nextState
     },
-    updateState(updater) {
+    updateState(updater: (state: DesktopState) => DesktopState): void {
       state = updater(state)
     }
   }

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { createDesktopBackendSubscriptions } from '../src/desktop-backend-subscriptions.js'
-import { createDesktopState } from '../src/desktop-state.js'
+import { createDesktopState } from '../src/desktop-state.ts'
 
 function createBackendClient() {
   const handlers = new Map()

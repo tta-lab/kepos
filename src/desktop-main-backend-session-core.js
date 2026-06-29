@@ -1,5 +1,5 @@
 import { createDesktopBackendSession } from './desktop-backend-session.js'
-import { createDesktopControllerState } from './desktop-controller-state.js'
+import { createDesktopControllerState } from './desktop-controller-state.ts'
 import { createDesktopShareQrOutputs } from './desktop-qr-service.js'
 
 export function createDesktopMainBackendSessionCore({

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createDesktopState, setDesktopRoom, setDesktopTreehole } from '../src/desktop-state.js'
+import { createDesktopState, setDesktopRoom, setDesktopTreehole } from '../src/desktop-state.ts'
 import { createDesktopStatusViewModel } from '../src/desktop-status-view-model.ts'
 
 test('desktop status view model formats the default lobby status', () => {

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createDesktopControllerState } from '../src/desktop-controller-state.js'
-import { setDesktopRoom, setDesktopTab } from '../src/desktop-state.js'
+import { createDesktopControllerState } from '../src/desktop-controller-state.ts'
+import { setDesktopRoom, setDesktopTab } from '../src/desktop-state.ts'
 
 test('desktop controller state owns display name with product default', () => {
   const state = createDesktopControllerState()

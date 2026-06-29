@@ -1,4 +1,4 @@
-import { createDesktopDirectContactPickerViewModel } from './desktop-direct-contact-picker-view-model.js'
+import { createDesktopDirectContactPickerViewModel } from './desktop-direct-contact-picker-view-model.ts'
 import { createDesktopDirectMessageListViewModel } from './desktop-direct-view-model.ts'
 import { createDesktopHomeChatViewModel } from './desktop-home-chat-view-model.ts'
 import { createDesktopPeopleViewModel } from './desktop-people-view-model.ts'

@@ -1,4 +1,5 @@
 import { listTrustedContacts } from './contact-book.ts'
+import type { ContactBook } from './contact-book.ts'
 
 const EMPTY_DIRECT_CONTACT_PICKER = {
   actionLabel: 'Add trusted friend',
@@ -9,9 +10,12 @@ const EMPTY_DIRECT_CONTACT_PICKER = {
 export function createDesktopDirectContactPickerViewModel({
   contactBook = null,
   selectedProfileId = ''
+}: {
+  contactBook?: ContactBook | null
+  selectedProfileId?: string
 } = {}) {
   return {
-    contacts: listTrustedContacts(contactBook).map((contact) => ({
+    contacts: (contactBook ? listTrustedContacts(contactBook) : []).map((contact) => ({
       alias: contact.alias,
       isSelected: contact.profileId === selectedProfileId,
       profileId: contact.profileId

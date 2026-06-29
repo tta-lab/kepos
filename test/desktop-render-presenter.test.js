@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { createContactBook, trustContact } from '../src/contact-book.ts'
 import { createDesktopRenderPresenter } from '../src/desktop-render-presenter.js'
-import { createDesktopState, setDesktopRoom, setDesktopTreehole } from '../src/desktop-state.js'
+import { createDesktopState, setDesktopRoom, setDesktopTreehole } from '../src/desktop-state.ts'
 
 function createUiRecorder() {
   const calls = []

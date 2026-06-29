@@ -6002,7 +6002,7 @@ var init_desktop_qr_service = __esm({
   }
 });
 
-// src/desktop-state.js
+// src/desktop-state.ts
 function createDesktopState() {
   return {
     activeTab: "chat",
@@ -6023,10 +6023,10 @@ function createDesktopState() {
 function setDesktopRoom(state, room) {
   return {
     ...state,
-    mode: room.mode,
+    mode: room.mode ?? state.mode,
     nick: room.nick?.trim() || "Desktop",
     peers: room.peers || 0,
-    roomKey: room.roomKey,
+    roomKey: room.roomKey || state.roomKey,
     view: "room"
   };
 }
@@ -6039,7 +6039,7 @@ function setDesktopTreehole(state, treehole) {
   };
 }
 var init_desktop_state = __esm({
-  "src/desktop-state.js"() {
+  "src/desktop-state.ts"() {
     "use strict";
   }
 });
@@ -6602,7 +6602,7 @@ var init_desktop_backend_session = __esm({
   }
 });
 
-// src/desktop-controller-state.js
+// src/desktop-controller-state.ts
 function createDesktopControllerState({
   defaultDisplayName = "Desktop",
   initialState = createDesktopState()
@@ -6663,7 +6663,7 @@ function createDesktopControllerState({
   };
 }
 var init_desktop_controller_state = __esm({
-  "src/desktop-controller-state.js"() {
+  "src/desktop-controller-state.ts"() {
     "use strict";
     init_desktop_state();
   }

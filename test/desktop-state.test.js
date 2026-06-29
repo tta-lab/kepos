@@ -7,7 +7,7 @@ import {
   setDesktopRoom,
   setDesktopTab,
   setDesktopTreehole
-} from '../src/desktop-state.js'
+} from '../src/desktop-state.ts'
 
 describe('desktop state', () => {
   test('starts in the lobby with chat selected', () => {

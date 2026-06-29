@@ -7,7 +7,7 @@ import { createDesktopMessageRequestActions } from './desktop-message-request-ac
 import { createDesktopRoomActions } from './desktop-room-actions.js'
 import { createDesktopTrustActions } from './desktop-trust-actions.js'
 import { createDirectRoomTransport } from './direct-room-transport.js'
-import { setDesktopTreehole } from './desktop-state.js'
+import { setDesktopTreehole } from './desktop-state.ts'
 
 export function createDesktopBackendSession({
   controllerState,

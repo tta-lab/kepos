@@ -3,9 +3,9 @@
 import { createDesktopBackendSubscriptions } from '../src/desktop-backend-subscriptions.js'
 import { createDesktopCommandDispatcher } from '../src/desktop-command-dispatcher.js'
 import { createDesktopRenderPresenter } from '../src/desktop-render-presenter.js'
-import { setDesktopTab } from '../src/desktop-state.js'
+import { setDesktopTab } from '../src/desktop-state.ts'
 import { createDesktopRendererBackendClient } from '../src/desktop-renderer-backend-client.js'
-import { createDesktopControllerState } from '../src/desktop-controller-state.js'
+import { createDesktopControllerState } from '../src/desktop-controller-state.ts'
 import { createDesktopUiActionBindings } from '../src/desktop-ui-action-bindings.js'
 
 const BLOCKING_COMMANDS = new Set(['joinHome', 'joinHomeUri', 'leaveHome', 'trustProfileUri'])

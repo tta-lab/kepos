@@ -1,4 +1,4 @@
-import { setDesktopTreehole } from './desktop-state.js'
+import { setDesktopTreehole } from './desktop-state.ts'
 
 export function createDesktopBackendSubscriptions({
   backendClient,

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { createContactBook, trustContact } from '../src/contact-book.ts'
-import { createDesktopDirectContactPickerViewModel } from '../src/desktop-direct-contact-picker-view-model.js'
+import { createDesktopDirectContactPickerViewModel } from '../src/desktop-direct-contact-picker-view-model.ts'
 
 test('desktop direct contact picker view model marks the selected trusted contact', () => {
   const book = trustContact(createContactBook({ ownerProfileId: 'owner-a' }), {

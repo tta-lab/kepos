@@ -1,6 +1,6 @@
 import { createDesktopHomeJoinDetails } from './desktop-home-join-service.js'
 import { applyDesktopHomeQr } from './desktop-qr-service.js'
-import { createDesktopState, setDesktopRoom, setDesktopTreehole } from './desktop-state.js'
+import { createDesktopState, setDesktopRoom, setDesktopTreehole } from './desktop-state.ts'
 
 export function createDesktopRoomActions({
   applyHomeQr = applyDesktopHomeQr,

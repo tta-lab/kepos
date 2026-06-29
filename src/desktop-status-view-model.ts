@@ -2,7 +2,7 @@ import {
   createDesktopState,
   getDesktopHomeStatus,
   getDesktopTreeholeStatus
-} from './desktop-state.js'
+} from './desktop-state.ts'
 
 type ShortenProfileId = (value: string) => string
 
