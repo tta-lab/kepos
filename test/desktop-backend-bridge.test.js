@@ -112,7 +112,7 @@ test('desktop controller routes treehole runtime updates through backend bridge 
 test('desktop controller routes Home and Direct sessions through backend bridge events', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const runtime = await readFile(
-    new URL('../src/desktop-backend-runtime.js', import.meta.url),
+    new URL('../src/desktop-backend-runtime.ts', import.meta.url),
     'utf8'
   )
   const subscriptions = await readFile(

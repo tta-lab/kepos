@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { Duplex } from 'node:stream'
 import test from 'node:test'
-import { startDesktopBackendWorker } from '../src/desktop-backend-worker-entry.js'
+import { startDesktopBackendWorker } from '../src/desktop-backend-worker-entry.ts'
 import { createDesktopBackendWorkerIpcClient } from '../src/desktop-backend-worker-ipc.js'
 
 test('desktop backend worker entry attaches a backend session to worker ipc', async () => {

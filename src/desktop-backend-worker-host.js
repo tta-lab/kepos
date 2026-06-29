@@ -1,6 +1,6 @@
 import { Duplex } from 'node:stream'
 import { createDesktopBackendWorkerIpcClient } from './desktop-backend-worker-ipc.js'
-import { startDesktopBackendWorker } from './desktop-backend-worker-entry.js'
+import { startDesktopBackendWorker } from './desktop-backend-worker-entry.ts'
 
 export function createDesktopBackendWorkerHost({
   createBackendWorkerStream,

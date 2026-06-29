@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createDesktopMainBackendSession } from '../src/desktop-main-backend-session.js'
+import { createDesktopMainBackendSession } from '../src/desktop-main-backend-session.ts'
 
 test('desktop main backend session uses file profile context and local backend bridge', async () => {
   const calls = []

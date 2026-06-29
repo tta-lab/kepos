@@ -122,8 +122,8 @@ test('desktop backend worker host delegates session creation to worker entry', a
     'utf8'
   )
 
-  assert.match(source, /desktop-backend-worker-entry\.js/)
-  assert.doesNotMatch(source, /desktop-main-backend-session\.js/)
+  assert.match(source, /desktop-backend-worker-entry\.ts/)
+  assert.doesNotMatch(source, /desktop-main-backend-session\.ts/)
 })
 
 function createIpcStreamPair() {

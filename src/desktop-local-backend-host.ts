@@ -1,5 +1,5 @@
 import { createDesktopBackendBridge } from './desktop-backend-bridge.ts'
-import { createDesktopBackendRuntime } from './desktop-backend-runtime.js'
+import { createDesktopBackendRuntime } from './desktop-backend-runtime.ts'
 import { createDesktopCommandHost } from './desktop-command-host.ts'
 import type { DesktopBackendBridge } from './desktop-backend-bridge.ts'
 import type { DesktopCommandRegistry } from './desktop-command-registry.ts'

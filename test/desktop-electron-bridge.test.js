@@ -39,7 +39,7 @@ test('desktop main connects Electron IPC to the backend worker host', async () =
   )
   assert.match(source, /function getWorkerEnv\(\)/)
   assert.doesNotMatch(source, /createDesktopMainBackendSession/)
-  assert.doesNotMatch(source, /desktop-main-backend-session\.js/)
+  assert.doesNotMatch(source, /desktop-main-backend-session\.ts/)
   assert.match(source, /connectMainBackend/)
   assert.match(source, /const backendBridge = await mainBackendWorker\.start\(\)/)
   assert.match(source, /backendIpc\.connectBackend\(backendBridge\)/)

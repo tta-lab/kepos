@@ -73,7 +73,7 @@ async function startDefaultDesktopBackendBareWorker() {
   const [{ createDesktopBareProfileContext }, { createDesktopMainBackendSessionCore }] =
     await Promise.all([
       import('./desktop-bare-profile-context.js'),
-      import('./desktop-main-backend-session-core.js')
+      import('./desktop-main-backend-session-core.ts')
     ])
 
   return startDesktopBackendBareWorker({

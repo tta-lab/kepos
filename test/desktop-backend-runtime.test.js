@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createDesktopBackendRuntime } from '../src/desktop-backend-runtime.js'
+import { createDesktopBackendRuntime } from '../src/desktop-backend-runtime.ts'
 
 function createFakeRuntime(name) {
   return function (options = {}) {
