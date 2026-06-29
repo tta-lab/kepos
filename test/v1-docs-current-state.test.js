@@ -418,8 +418,11 @@ test('V1 audit records Direct security hardening evidence', async () => {
   assert.match(audit, /before persistence or UI\s+display/)
   assert.match(audit, /`test\/dm-invite-acceptance\.test\.js`/)
   assert.match(audit, /`test\/dm-thread-runtime\.test\.js`/)
-  assert.match(audit, /`npm test` passed with 655 Node\s+tests/)
-  assert.match(audit, /Device smoke was intentionally not rerun/)
+  assert.match(audit, /current `npm run v1:gate` passed/)
+  assert.match(audit, /655 Node\s+tests/)
+  assert.match(audit, /Expo Android export/)
+  assert.match(audit, /Android APK native-library checks/)
+  assert.match(audit, /Device smoke was\s+intentionally not rerun/)
 })
 
 test('V1 UX docs include composer payload trimming on desktop and mobile', async () => {
