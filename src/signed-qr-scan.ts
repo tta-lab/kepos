@@ -1,10 +1,12 @@
 import { isContactTrusted, trustContact } from './contact-book.ts'
+import type { ContactBook } from './contact-book.ts'
 import {
   decodeQrUri,
   verifySignedHomeAddressPayload,
   verifySignedTrustInvitePayload
 } from './signed-qr-payload.ts'
 import { applyTrustGrantToContactBook, createTrustGrant } from './trust-grant.ts'
+import type { SigningIdentity } from './signed-record.ts'
 
 export function applySignedQrUriToContactBook({
   alias,
@@ -14,7 +16,29 @@ export function applySignedQrUriToContactBook({
   now = Date.now(),
   source = 'profile_qr',
   uri
-}) {
+}: {
+  alias?: string
+  book: ContactBook
+  localIdentity?: SigningIdentity | null
+  localProfileId?: string
+  now?: number
+  source?: string
+  uri: string
+}):
+  | {
+      book: ContactBook
+      kind: 'trust'
+      profileId: string
+    }
+  | {
+      address: string
+      book: ContactBook
+      canEnter: boolean
+      kind: 'home'
+      ownerProfileId: string
+      policy: 'public' | 'trusted_only'
+      roomKey: string
+    } {
   const payload = decodeQrUri(uri)
 
   if (payload.type === 'kepos.trust.invite.v1') {
@@ -81,7 +105,17 @@ export function applySignedQrUriToContactBook({
   throw new Error('Unsupported signed QR payload')
 }
 
-function canEnterHomeFromLocalContactBook({ book, localProfileId, ownerProfileId, policy }) {
+function canEnterHomeFromLocalContactBook({
+  book,
+  localProfileId,
+  ownerProfileId,
+  policy
+}: {
+  book: ContactBook
+  localProfileId?: string
+  ownerProfileId: string
+  policy: 'public' | 'trusted_only'
+}): boolean {
   if (policy === 'public' || localProfileId === ownerProfileId) {
     return true
   }

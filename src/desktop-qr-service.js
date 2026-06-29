@@ -5,7 +5,7 @@ import {
   createSignedTrustInvitePayload,
   encodeQrUri
 } from './signed-qr-payload.ts'
-import { applySignedQrUriToContactBook } from './signed-qr-scan.js'
+import { applySignedQrUriToContactBook } from './signed-qr-scan.ts'
 
 const SHARE_QR_OPTIONS = {
   errorCorrectionLevel: 'M',

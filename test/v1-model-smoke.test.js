@@ -22,7 +22,7 @@ import {
 } from '../src/message-request-acceptance.js'
 import { applyMessageRequestToContactBook, createMessageRequest } from '../src/message-request.ts'
 import { createSigningKeyPair } from '../src/signed-record.ts'
-import { applySignedQrUriToContactBook } from '../src/signed-qr-scan.js'
+import { applySignedQrUriToContactBook } from '../src/signed-qr-scan.ts'
 import {
   createSignedHomeAddressPayload,
   createSignedTrustInvitePayload,

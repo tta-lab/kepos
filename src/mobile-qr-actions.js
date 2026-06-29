@@ -1,4 +1,4 @@
-import { applySignedQrUriToContactBook } from './signed-qr-scan.js'
+import { applySignedQrUriToContactBook } from './signed-qr-scan.ts'
 
 export function applyMobileProfileQrScan({
   alias,

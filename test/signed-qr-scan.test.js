@@ -8,7 +8,7 @@ import {
   trustContact
 } from '../src/contact-book.ts'
 import { createSigningKeyPair } from '../src/signed-record.ts'
-import { applySignedQrUriToContactBook } from '../src/signed-qr-scan.js'
+import { applySignedQrUriToContactBook } from '../src/signed-qr-scan.ts'
 import {
   createSignedHomeAddressPayload,
   createSignedTrustInvitePayload,

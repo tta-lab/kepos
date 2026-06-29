@@ -1,7 +1,36 @@
 import { canEnterHome, trustProfilesBidirectional } from './trust.js'
+import type { QrPayload } from './qr-payload.ts'
 
-export function applyDecodedQrPayload({ payload, scannerProfileId, trust }) {
-  if (payload?.type === 'kepos.trust.invite.v1') {
+type TrustState = {
+  trustedProfilesByOwner: Map<string, Set<string>>
+}
+
+export type QrScanResult =
+  | {
+      kind: 'trust'
+      profileId: string
+      trust: TrustState
+    }
+  | {
+      address: string
+      canEnter: boolean
+      kind: 'home'
+      ownerProfileId: string
+      policy: 'public' | 'trusted_only'
+      roomKey: string
+      trust: TrustState
+    }
+
+export function applyDecodedQrPayload({
+  payload,
+  scannerProfileId,
+  trust
+}: {
+  payload: QrPayload
+  scannerProfileId: string
+  trust: TrustState
+}): QrScanResult {
+  if (payload.type === 'kepos.trust.invite.v1') {
     return {
       kind: 'trust',
       profileId: payload.profileId,
@@ -9,7 +38,7 @@ export function applyDecodedQrPayload({ payload, scannerProfileId, trust }) {
     }
   }
 
-  if (payload?.type === 'kepos.home.address.v1') {
+  if (payload.type === 'kepos.home.address.v1') {
     const policy = payload.policy || 'trusted_only'
 
     return {

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
-import { decodeQrPayload, encodeQrPayload } from '../src/qr-payload.js'
+import { decodeQrPayload, encodeQrPayload } from '../src/qr-payload.ts'
 
 const PUBLIC_KEY_A = 'a'.repeat(64)
 
