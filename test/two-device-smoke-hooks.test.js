@@ -89,12 +89,11 @@ test('Android lobby uses product action words for QR and trust flows', async () 
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 
   for (const text of [
-    'My Home QR',
-    'Join a home',
-    'My Profile QR',
+    'Home invite',
+    'Enter a home',
     'Friend profile',
     'Friend name',
-    'Paste Home QR',
+    'Paste invite',
     'Paste Profile QR',
     'Add trusted friend'
   ]) {
@@ -102,7 +101,6 @@ test('Android lobby uses product action words for QR and trust flows', async () 
   }
 
   assert.equal(source.includes('Home URI'), false)
-  assert.equal(source.includes('Profile trust'), false)
   assert.equal(source.includes('Join Home URI'), false)
   assert.equal(source.includes('Trust Profile'), false)
   assert.equal(source.includes("label='Alias'"), false)
@@ -116,12 +114,12 @@ test('Android lobby starts with compact product choices', async () => {
   assert.match(source, /function QuickStartPanel\(/)
   assert.match(source, /Start here/)
   assert.match(source, /<Field label='Name' onChangeText={onNickChange} value={nick} \/>/)
-  assert.match(source, /Create my home/)
-  assert.match(source, /label='Invite a friend'[\s\S]*testID='quick-show-home-qr-button'/)
+  assert.match(source, /Open my home/)
+  assert.match(source, /label='Show invite'[\s\S]*testID='quick-show-home-qr-button'/)
   assert.match(source, /showQuickHomeQr \? <QrCard value={myHomeQrUri} \/> : null/)
-  assert.match(source, /label='Join a home'[\s\S]*testID='quick-scan-home-qr-button'/)
-  assert.match(source, /label='Trust a friend'[\s\S]*testID='quick-scan-profile-qr-button'/)
-  assert.equal(source.indexOf('Scan Home QR') > source.indexOf('function PeopleActions'), true)
+  assert.match(source, /label='Enter a home'[\s\S]*testID='quick-scan-home-qr-button'/)
+  assert.doesNotMatch(source, /testID='quick-scan-profile-qr-button'/)
+  assert.equal(source.indexOf('Scan invite') > source.indexOf('function PeopleActions'), true)
   assert.equal(source.indexOf('Scan Profile QR') > source.indexOf('function PeopleActions'), true)
   assert.match(source, /const \[showPeopleSetup, setShowPeopleSetup\] = useState\(false\)/)
   assert.match(source, /testID='people-setup-toggle'/)
@@ -210,10 +208,10 @@ test('Android lobby uses shared task headers for setup panels', async () => {
   assert.match(quickStart, /<TaskHeader[\s\S]*eyebrow='Start'[\s\S]*title='Start here'/)
   assert.match(
     quickStart,
-    /description=\{[\s\S]*profileReady[\s\S]*\? 'Start a private space for trusted friends\. Create, join, or trust someone nearby\.'[\s\S]*: 'Setting up your profile\.\.\.'[\s\S]*\}/
+    /description=\{[\s\S]*profileReady[\s\S]*\? 'Open your home, share one invite, or enter a trusted home\.'[\s\S]*: 'Setting up your profile\.\.\.'[\s\S]*\}/
   )
-  assert.match(peopleActions, /<TaskHeader[\s\S]*eyebrow='Invite'[\s\S]*title='My Home QR'/)
-  assert.match(peopleActions, /<TaskHeader[\s\S]*eyebrow='Trust'[\s\S]*title='My Profile QR'/)
+  assert.match(peopleActions, /<TaskHeader[\s\S]*eyebrow='Invite'[\s\S]*title='Home invite'/)
+  assert.match(peopleActions, /<TaskHeader[\s\S]*eyebrow='Advanced'[\s\S]*title='Profile trust'/)
   assert.match(source, /taskHeader: \{/)
   assert.match(source, /taskEyebrow: \{/)
   assert.match(source, /taskTitle: \{/)
@@ -243,9 +241,9 @@ test('Android normal UI copy avoids backend and address language', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
 
   for (const text of [
-    'Create your home or join a friend',
-    'Create my home',
-    'Start a private space for trusted friends.',
+    'Open your home or enter a trusted home.',
+    'Open my home',
+    'Open your home, share one invite, or enter a trusted home.',
     'Starting home...',
     'Home connection error.'
   ]) {
@@ -291,12 +289,12 @@ test('Android own QR cards are reveal actions, not default dashboard blocks', as
 
   assert.match(source, /const \[showHomeQr, setShowHomeQr\] = useState\(false\)/)
   assert.match(source, /const \[showProfileQr, setShowProfileQr\] = useState\(false\)/)
-  assert.match(source, /Show My Home QR/)
+  assert.match(source, /Show invite/)
   assert.match(source, /Show My Profile QR/)
   assert.match(source, /showHomeQr \? <QrCard value={myHomeQrUri} \/> : null/)
   assert.match(source, /showProfileQr \? <QrCard value={profileQrUri} \/> : null/)
   assert.equal(
-    source.includes('<Text style={styles.panelTitle}>My Home QR</Text>\\n        <QrCard'),
+    source.includes('<Text style={styles.panelTitle}>Home invite</Text>\\n        <QrCard'),
     false
   )
   assert.equal(
@@ -421,7 +419,7 @@ test('normal error notices avoid raw exception text', async () => {
   assert.equal(/setNotice\(payload\.message/.test(mobile), false)
   assert.equal(/notice: error\.message/.test(desktop), false)
   assert.match(mobile, /Could not join this home\./)
-  assert.match(mobile, /Could not read this Home QR\./)
+  assert.match(mobile, /Could not read this invite\./)
   assert.match(desktop, /Could not join this home\. Trust this friend on this device first\./)
   assert.match(desktop, /Could not read this Home QR\./)
   assert.match(desktop, /Could not read this Profile QR\./)
@@ -804,8 +802,8 @@ test('Android room has a People tab for QR and trusted contacts', async () => {
   assert.match(source, /label='Home'/)
   assert.match(source, /activeTab === 'people'/)
   assert.match(source, /<PeoplePane/)
-  assert.match(source, /My Home QR/)
-  assert.match(source, /My Profile QR/)
+  assert.match(source, /Home invite/)
+  assert.match(source, /Profile trust/)
   assert.match(source, /ContactManager/)
 })
 

@@ -171,7 +171,7 @@ export default function App() {
   const [treeholeStatus, setTreeholeStatus] = useState('idle')
   const [activeTab, setActiveTab] = useState('chat')
   const [session, setSession] = useState(null)
-  const [notice, setNotice] = useState('Create your home or join a friend.')
+  const [notice, setNotice] = useState('Open your home or enter a trusted home.')
   const [lastError, setLastError] = useState('')
   const [peerCount, setPeerCount] = useState(0)
   const [transportDebug, setTransportDebug] = useState(null)
@@ -383,9 +383,9 @@ export default function App() {
         treeholePolicy
       })
     } catch (error) {
-      console.error('Could not read Home QR', error)
+      console.error('Could not read home invite', error)
       setLastError(error.message)
-      setNotice('Could not read this Home QR.')
+      setNotice('Could not read this invite.')
     }
   }
 
@@ -1128,7 +1128,6 @@ function Lobby({
         onCreateRoom={onCreateRoom}
         onNickChange={onNickChange}
         onScanHomeQr={onScanHomeQr}
-        onScanProfileQr={onScanProfileQr}
         profileReady={profileReady}
       />
 
@@ -1653,7 +1652,6 @@ function QuickStartPanel({
   onCreateRoom,
   onNickChange,
   onScanHomeQr,
-  onScanProfileQr,
   profileReady
 }) {
   const { styles } = useMobileTheme()
@@ -1664,7 +1662,7 @@ function QuickStartPanel({
       <TaskHeader
         description={
           profileReady
-            ? 'Start a private space for trusted friends. Create, join, or trust someone nearby.'
+            ? 'Open your home, share one invite, or enter a trusted home.'
             : 'Setting up your profile...'
         }
         eyebrow='Start'
@@ -1675,7 +1673,7 @@ function QuickStartPanel({
         <MobileActionButton
           disabled={!profileReady}
           icon={Plus}
-          label='Create my home'
+          label='Open my home'
           onPress={onCreateRoom}
           testID='create-home-button'
           variant='primary'
@@ -1684,7 +1682,7 @@ function QuickStartPanel({
           accessibilityState={{ expanded: showQuickHomeQr }}
           disabled={!profileReady}
           icon={QrCode}
-          label='Invite a friend'
+          label='Show invite'
           onPress={() => setShowQuickHomeQr((value) => !value)}
           testID='quick-show-home-qr-button'
         />
@@ -1692,16 +1690,9 @@ function QuickStartPanel({
         <MobileActionButton
           disabled={!profileReady}
           icon={ArrowRight}
-          label='Join a home'
+          label='Enter a home'
           onPress={onScanHomeQr}
           testID='quick-scan-home-qr-button'
-        />
-        <MobileActionButton
-          disabled={!profileReady}
-          icon={Plus}
-          label='Trust a friend'
-          onPress={onScanProfileQr}
-          testID='quick-scan-profile-qr-button'
         />
       </View>
     </View>
@@ -1862,15 +1853,15 @@ function PeopleActions({
     <>
       <View style={styles.panel}>
         <TaskHeader
-          description='Share your home with trusted friends nearby.'
+          description='Trust means this friend can enter your home.'
           eyebrow='Invite'
-          title='My Home QR'
+          title='Home invite'
         />
         <MobileActionButton
           accessibilityState={{ expanded: showHomeQr }}
           disabled={!profileReady}
           icon={QrCode}
-          label='Show My Home QR'
+          label='Show invite'
           onPress={() => setShowHomeQr((value) => !value)}
           testID='show-home-qr-button'
         />
@@ -1878,7 +1869,7 @@ function PeopleActions({
         <MobileActionButton
           disabled={!canUseHomeJoin}
           icon={ArrowRight}
-          label='Scan Home QR'
+          label='Scan invite'
           onPress={onScanHomeQr}
           testID='scan-home-qr-button'
         />
@@ -1889,9 +1880,9 @@ function PeopleActions({
 
       <View style={styles.panel}>
         <TaskHeader
-          description='Trust a friend before private messages and home access.'
-          eyebrow='Trust'
-          title='My Profile QR'
+          description='Debug profile QR flow for trust-only setup.'
+          eyebrow='Advanced'
+          title='Profile trust'
         />
         <MobileActionButton
           accessibilityState={{ expanded: showProfileQr }}
@@ -1925,13 +1916,13 @@ function PeopleActions({
             eyebrow='Advanced'
             title='QR details'
           />
-          <Text style={styles.panelCopy}>Join a home</Text>
+          <Text style={styles.panelCopy}>Enter a home</Text>
           <TextInput
             autoCapitalize='none'
             autoCorrect={false}
             multiline
             onChangeText={onHomeQrChange}
-            placeholder='Paste Home QR'
+            placeholder='Paste invite'
             placeholderTextColor={theme.placeholder}
             style={styles.keyInput}
             testID='join-home-uri-input'
@@ -1940,7 +1931,7 @@ function PeopleActions({
           <MobileActionButton
             disabled={!canUseHomeJoin || !homeQrUri.trim()}
             icon={ArrowRight}
-            label='Join a home'
+            label='Enter a home'
             onPress={onJoinHomeQr}
             testID='join-home-uri-button'
           />
