@@ -157,7 +157,7 @@ function getDesktopErrorNotice(error) {
   }
 
   if (message.includes('Home QR is required') || message.includes('Invalid signed home QR')) {
-    return 'Could not read this Home QR.'
+    return 'Could not read this invite.'
   }
 
   if (message.includes('Profile QR is required') || message.includes('Invalid signed profile QR')) {

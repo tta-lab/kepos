@@ -421,7 +421,7 @@ test('normal error notices avoid raw exception text', async () => {
   assert.match(mobile, /Could not join this home\./)
   assert.match(mobile, /Could not read this invite\./)
   assert.match(desktop, /Could not join this home\. Trust this friend on this device first\./)
-  assert.match(desktop, /Could not read this Home QR\./)
+  assert.match(desktop, /Could not read this invite\./)
   assert.match(desktop, /Could not read this Profile QR\./)
   assert.match(desktop, /Something went wrong\./)
 })
