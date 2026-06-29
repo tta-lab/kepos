@@ -341,9 +341,12 @@ test('V1 UX docs use Direct as the product surface name', async () => {
 
 test('V1 DM bootstrap docs no longer claim contact polish remains pending', async () => {
   const dmBootstrap = await readText('../docs/v1.08-dm-bootstrap-security.md')
+  const dependencyOrder = await readText('../docs/v1.01-dependency-order.md')
 
   assert.doesNotMatch(dmBootstrap, /Remaining work is contacts polish revealed by later smoke/)
+  assert.doesNotMatch(dependencyOrder, /refine full contacts view after V1 smoke if needed/)
   assert.match(dmBootstrap, /Later contact polish has also landed/)
+  assert.match(dependencyOrder, /People\/Direct contact polish has landed/)
   assert.match(dmBootstrap, /guide zero-contact Direct users toward People/)
 })
 
