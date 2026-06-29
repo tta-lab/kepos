@@ -23,7 +23,8 @@ function createFakeTreehole() {
     }),
     like: (payload) => calls.push(['like', payload]),
     post: (payload) => calls.push(['post', payload]),
-    replicate: (socket) => calls.push(['replicate', socket])
+    replicate: (socket) => calls.push(['replicate', socket]),
+    updateTreeholePolicy: (policy) => calls.push(['updateTreeholePolicy', policy])
   }
 }
 
@@ -158,6 +159,42 @@ test('desktop treehole runtime gates bootstrap and writer controls by policy', a
     key: 'writer-key',
     profileId: ownerProfileId,
     type: 'treehole.writer'
+  })
+})
+
+test('desktop treehole runtime updates active treehole policy when configured', async () => {
+  const { emitted, runtime, treehole } = createRuntime()
+
+  await runtime.open()
+  await runtime.configure({
+    homeJoinDetails: {
+      identity: { publicKey: ownerProfileId, secretKey: 'secret' },
+      ownerProfileId,
+      treeholePolicy: {
+        ownerProfileId,
+        revokedProfileIds: [trustedProfileId],
+        trustedProfileIds: []
+      }
+    },
+    session: {
+      nick: 'Owner',
+      profileId: ownerProfileId,
+      roomKey: 'd'.repeat(64)
+    }
+  })
+
+  assert.deepEqual(treehole.calls.at(-1), [
+    'updateTreeholePolicy',
+    {
+      ownerProfileId,
+      revokedProfileIds: [trustedProfileId],
+      trustedProfileIds: []
+    }
+  ])
+  assert.deepEqual(emitted.at(-1), {
+    canPost: true,
+    posts: [{ comments: [], id: 'post-1', text: 'hello' }],
+    status: 'ready'
   })
 })
 

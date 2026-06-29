@@ -67,9 +67,10 @@ test('android backend trims outgoing text at the RPC boundary', () => {
 
   assert.match(source, /let allowHomeDmBodyFallback = false/)
   assert.match(source, /RPC_TREEHOLE_POLICY/)
-  assert.match(rpcTreeholePolicy, /updateTreeholePolicy\(payload\)/)
-  assert.match(source, /function updateTreeholePolicy\(payload\)/)
+  assert.match(rpcTreeholePolicy, /await updateTreeholePolicy\(payload\)/)
+  assert.match(source, /async function updateTreeholePolicy\(payload\)/)
   assert.match(source, /treeholePolicy = payload\.treeholePolicy \|\| null/)
+  assert.match(source, /treehole\?\.updateTreeholePolicy\?\.\(treeholePolicy\)/)
   assert.match(source, /allowHomeDmBodyFallback = payload\.allowHomeDmBodyFallback === true/)
   assert.match(source, /allowHomeDmBodyFallback = false/)
   assert.match(source, /function cleanRequiredText\(text\)/)

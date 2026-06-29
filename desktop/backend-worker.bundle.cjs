@@ -4204,7 +4204,7 @@ async function createTreeholeBase({
     throw new Error("Signed treehole mode requires an identity");
   }
   const ownerProfileId = treeholeOwnerProfileId || profileId || identity?.publicKey || null;
-  const signedPolicy = signedMode ? createSignedTreeholePolicy({ ownerProfileId, treeholePolicy }) : null;
+  let signedPolicy = signedMode ? createSignedTreeholePolicy({ ownerProfileId, treeholePolicy }) : null;
   const store = new import_corestore.default(storage || randomAccessMemory());
   await store.ready();
   const base = new import_autobase.default(store, bootstrapKey ? import_b4a8.default.from(bootstrapKey, "hex") : null, {
@@ -4354,6 +4354,15 @@ async function createTreeholeBase({
     }
     return applyTreeholeEvents(await getEvents());
   }
+  function updateTreeholePolicy(nextTreeholePolicy = null) {
+    if (!signedMode) {
+      return;
+    }
+    signedPolicy = createSignedTreeholePolicy({
+      ownerProfileId,
+      treeholePolicy: nextTreeholePolicy
+    });
+  }
   async function close() {
     await base.close();
     await store.close();
@@ -4371,7 +4380,8 @@ async function createTreeholeBase({
     like,
     localWriterKey: import_b4a8.default.toString(base.local.key, "hex"),
     post,
-    replicate: (...args) => base.replicate(...args)
+    replicate: (...args) => base.replicate(...args),
+    updateTreeholePolicy
   };
   function assertSignedMode(method) {
     if (!signedMode) {
@@ -4529,6 +4539,12 @@ function createDesktopTreeholeRuntime({
   function configure(nextContext) {
     session = nextContext?.session || null;
     homeJoinDetails = nextContext?.homeJoinDetails || null;
+    treehole?.updateTreeholePolicy?.(homeJoinDetails?.treeholePolicy);
+    if (treehole) {
+      return publishSnapshot().catch((error) => {
+        onError(new Error(`Treehole state unavailable: ${error.message}`));
+      });
+    }
   }
   function open2({ bootstrapKey = null, initialPosts = [], initialStatus = "ready" } = {}) {
     if (treehole) return;

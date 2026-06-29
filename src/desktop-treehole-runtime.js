@@ -30,6 +30,13 @@ export function createDesktopTreeholeRuntime({
   function configure(nextContext) {
     session = nextContext?.session || null
     homeJoinDetails = nextContext?.homeJoinDetails || null
+    treehole?.updateTreeholePolicy?.(homeJoinDetails?.treeholePolicy)
+
+    if (treehole) {
+      return publishSnapshot().catch((error) => {
+        onError(new Error(`Treehole state unavailable: ${error.message}`))
+      })
+    }
   }
 
   function open({ bootstrapKey = null, initialPosts = [], initialStatus = 'ready' } = {}) {

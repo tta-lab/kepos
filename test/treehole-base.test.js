@@ -211,6 +211,77 @@ describe('treehole autobase', () => {
     }
   })
 
+  test('signed mode applies updated policy to an open treehole', async () => {
+    const firstStorage = await mkdtemp(join(tmpdir(), 'kepos-treehole-policy-a-'))
+    const secondStorage = await mkdtemp(join(tmpdir(), 'kepos-treehole-policy-b-'))
+    const owner = createSigningKeyPair()
+    const trusted = createSigningKeyPair()
+    const trustedPolicy = {
+      ownerProfileId: owner.publicKey,
+      revokedProfileIds: [],
+      trustedProfileIds: [trusted.publicKey]
+    }
+
+    try {
+      const first = await createTreeholeBase({
+        identity: owner,
+        mode: 'signed',
+        nick: 'Neil',
+        storage: firstStorage,
+        treeholeOwnerProfileId: owner.publicKey,
+        treeholePolicy: trustedPolicy
+      })
+      const second = await createTreeholeBase({
+        bootstrapKey: first.key,
+        identity: trusted,
+        mode: 'signed',
+        nick: 'Ada',
+        storage: secondStorage,
+        treeholeOwnerProfileId: owner.publicKey,
+        treeholePolicy: trustedPolicy
+      })
+
+      await first.post({
+        id: 'post-1',
+        text: 'owner post',
+        createdAt: 1000
+      })
+      await first.addWriter(second.localWriterKey, { profileId: trusted.publicKey })
+      await replicateOnce(first, second)
+      await second.comment({
+        id: 'comment-1',
+        postId: 'post-1',
+        text: 'trusted reply',
+        createdAt: 1100
+      })
+      await second.like({
+        postId: 'post-1',
+        createdAt: 1200
+      })
+      await replicateOnce(first, second)
+
+      assert.equal((await first.getState()).posts[0].commentCount, 1)
+      assert.equal((await first.getState()).posts[0].likeCount, 1)
+
+      first.updateTreeholePolicy({
+        ownerProfileId: owner.publicKey,
+        revokedProfileIds: [trusted.publicKey],
+        trustedProfileIds: []
+      })
+
+      const state = await first.getState()
+
+      assert.equal(state.posts[0].commentCount, 0)
+      assert.equal(state.posts[0].likeCount, 0)
+
+      await first.close()
+      await second.close()
+    } finally {
+      await rm(firstStorage, { recursive: true, force: true })
+      await rm(secondStorage, { recursive: true, force: true })
+    }
+  })
+
   test('signed mode lets the owner delete comments through tombstones', async () => {
     const firstStorage = await mkdtemp(join(tmpdir(), 'kepos-treehole-delete-a-'))
     const secondStorage = await mkdtemp(join(tmpdir(), 'kepos-treehole-delete-b-'))

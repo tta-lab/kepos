@@ -147,7 +147,7 @@ async function handleRequest(req) {
   }
 
   if (req.command === RPC_TREEHOLE_POLICY) {
-    updateTreeholePolicy(payload)
+    await updateTreeholePolicy(payload)
     req.reply?.(b4a.from(JSON.stringify({ ok: true })))
     return
   }
@@ -718,8 +718,10 @@ async function revokeDmByProfile(payload) {
   })
 }
 
-function updateTreeholePolicy(payload) {
+async function updateTreeholePolicy(payload) {
   treeholePolicy = payload.treeholePolicy || null
+  treehole?.updateTreeholePolicy?.(treeholePolicy)
+  await sendTreeholeState()
 }
 
 function sendDmInvite(payload) {

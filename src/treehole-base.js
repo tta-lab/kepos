@@ -38,7 +38,7 @@ export async function createTreeholeBase({
   }
 
   const ownerProfileId = treeholeOwnerProfileId || profileId || identity?.publicKey || null
-  const signedPolicy = signedMode
+  let signedPolicy = signedMode
     ? createSignedTreeholePolicy({ ownerProfileId, treeholePolicy })
     : null
   const store = new Corestore(storage || randomAccessMemory())
@@ -211,6 +211,17 @@ export async function createTreeholeBase({
     return applyTreeholeEvents(await getEvents())
   }
 
+  function updateTreeholePolicy(nextTreeholePolicy = null) {
+    if (!signedMode) {
+      return
+    }
+
+    signedPolicy = createSignedTreeholePolicy({
+      ownerProfileId,
+      treeholePolicy: nextTreeholePolicy
+    })
+  }
+
   async function close() {
     await base.close()
     await store.close()
@@ -229,7 +240,8 @@ export async function createTreeholeBase({
     like,
     localWriterKey: b4a.toString(base.local.key, 'hex'),
     post,
-    replicate: (...args) => base.replicate(...args)
+    replicate: (...args) => base.replicate(...args),
+    updateTreeholePolicy
   }
 
   function assertSignedMode(method) {
