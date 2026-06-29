@@ -649,24 +649,10 @@ export default function App() {
         }
 
         if (req.command === RPC_DM_MESSAGE) {
-          persistIncomingMessageRequest(payload).catch((error) => {
+          handleIncomingMessageRequest(payload).catch((error) => {
             console.error('Message request unavailable', error)
             setLastError(error.message)
             setNotice('Could not save this message request.')
-          })
-          setDmSession((current) => {
-            if (!current) {
-              return current
-            }
-
-            const next = appendRemoteMessageRequest(current, payload)
-            setDmMessages(next.messages)
-            saveMobileDmSessionMessages(next.messages).catch((error) => {
-              console.error('DM session storage unavailable', error)
-              setLastError(error.message)
-              setNotice('Could not save this message request.')
-            })
-            return next
           })
           return
         }
@@ -751,9 +737,31 @@ export default function App() {
     }
   }
 
+  async function handleIncomingMessageRequest(request) {
+    const stored = await persistIncomingMessageRequest(request)
+    if (!stored) {
+      return
+    }
+
+    setDmSession((current) => {
+      if (!current) {
+        return current
+      }
+
+      const next = appendRemoteMessageRequest(current, request)
+      setDmMessages(next.messages)
+      saveMobileDmSessionMessages(next.messages).catch((error) => {
+        console.error('DM session storage unavailable', error)
+        setLastError(error.message)
+        setNotice('Could not save this message request.')
+      })
+      return next
+    })
+  }
+
   async function persistIncomingMessageRequest(request) {
     if (!contactBook || request.toProfileId !== profileId) {
-      return
+      return false
     }
 
     const nextBook = recordMessageRequest(contactBook, {
@@ -772,6 +780,7 @@ export default function App() {
       fileSystem: FileSystem
     })
     setContactBook(nextBook)
+    return true
   }
 
   async function acceptIncomingMessageRequest(request) {

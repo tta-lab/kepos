@@ -829,11 +829,31 @@ test('Android people UI uses trusted friends copy', async () => {
 
 test('Android people pane surfaces pending message requests', async () => {
   const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const rpcDmMessageHandler = source.slice(
+    source.indexOf('if (req.command === RPC_DM_MESSAGE)'),
+    source.indexOf('if (req.command === RPC_DM_BODY_MESSAGE)')
+  )
+  const incomingMessageRequestHandler = source.slice(
+    source.indexOf('async function handleIncomingMessageRequest('),
+    source.indexOf('async function persistIncomingMessageRequest(')
+  )
+  const persistIncomingMessageRequest = source.slice(
+    source.indexOf('async function persistIncomingMessageRequest('),
+    source.indexOf('async function acceptIncomingMessageRequest(')
+  )
   const messageRequestManager = source.slice(
     source.indexOf('function MessageRequestManager('),
     source.indexOf('function PeopleActions(')
   )
 
+  assert.match(rpcDmMessageHandler, /handleIncomingMessageRequest\(payload\)/)
+  assert.doesNotMatch(rpcDmMessageHandler, /appendRemoteMessageRequest/)
+  assert.match(incomingMessageRequestHandler, /const stored = await persistIncomingMessageRequest/)
+  assert.match(incomingMessageRequestHandler, /if \(!stored\)/)
+  assert.match(incomingMessageRequestHandler, /appendRemoteMessageRequest\(current, request\)/)
+  assert.match(persistIncomingMessageRequest, /return false/)
+  assert.match(persistIncomingMessageRequest, /recordMessageRequest\(contactBook/)
+  assert.match(persistIncomingMessageRequest, /return true/)
   assert.match(source, /pendingRequestsByProfileId\.values\(\)/)
   assert.match(source, /pendingRequests={pendingMessageRequests}/)
   assert.match(messageRequestManager, /Message requests/)
