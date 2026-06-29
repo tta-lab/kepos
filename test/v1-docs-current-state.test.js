@@ -346,3 +346,22 @@ test('V1 DM bootstrap docs no longer claim contact polish remains pending', asyn
   assert.match(dmBootstrap, /Later contact polish has also landed/)
   assert.match(dmBootstrap, /guide zero-contact Direct users toward People/)
 })
+
+test('V1 UX docs include composer payload trimming on desktop and mobile', async () => {
+  const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
+  const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
+
+  assert.match(audit, /desktop Home, Direct, Treehole post, and Treehole comment payloads trim/)
+  assert.match(audit, /Treehole runtime\s+post\/comment writes defensive/)
+  assert.match(ux, /Desktop Home, Direct, Treehole post, and Treehole comment payloads trim/)
+  assert.match(ux, /Desktop Treehole runtime also trims post\/comment text/)
+  assert.match(audit, /mobile Home, Direct, Treehole post, and Treehole comment payloads trim/)
+  assert.match(ux, /Mobile Home, Direct, Treehole post, and Treehole comment payloads trim/)
+})
+
+test('V1 audit records warning-free low-cost lint gate', async () => {
+  const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
+
+  assert.match(audit, /npm run lint` warning-free/)
+  assert.match(audit, /Prettier, lunte, TypeScript, and platform-boundary checks passing/)
+})
