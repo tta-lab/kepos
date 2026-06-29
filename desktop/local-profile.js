@@ -3,7 +3,7 @@ import {
   createDesktopProfileContext
 } from '../src/desktop-profile-context.js'
 import { createDesktopShareQrOutputs, renderDesktopQrSvg } from '../src/desktop-qr-service.js'
-import { getDesktopStorageBasePath } from '../src/desktop-storage-base.js'
+import { getDesktopStorageBasePath } from '../src/desktop-storage-base.ts'
 
 export function createProfileContext({ displayName = 'Desktop' } = {}) {
   const storageBasePath = getDesktopStorageBasePath()

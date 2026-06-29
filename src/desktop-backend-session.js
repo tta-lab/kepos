@@ -1,6 +1,6 @@
 import { createDesktopBackendActions } from './desktop-backend-actions.ts'
 import { createDesktopControlActions } from './desktop-control-actions.js'
-import { getDesktopDirectTransportConfig } from './desktop-direct-transport-config.js'
+import { getDesktopDirectTransportConfig } from './desktop-direct-transport-config.ts'
 import { createDesktopLocalBackendHost } from './desktop-local-backend-host.js'
 import { createDesktopMessageActions } from './desktop-message-actions.js'
 import { createDesktopMessageRequestActions } from './desktop-message-request-actions.js'

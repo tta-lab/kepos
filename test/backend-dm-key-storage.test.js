@@ -3,7 +3,7 @@ import { describe, test } from 'node:test'
 import {
   getOrCreateBackendDmEncryptionKeyPair,
   isDmEncryptionKeyPair
-} from '../src/backend-dm-key-storage.js'
+} from '../src/backend-dm-key-storage.ts'
 
 describe('backend DM encryption key storage', () => {
   test('creates and persists a DM encryption key pair on first run', async () => {

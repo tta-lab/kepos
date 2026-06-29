@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { getDesktopDirectTransportConfig } from '../src/desktop-direct-transport-config.js'
+import { getDesktopDirectTransportConfig } from '../src/desktop-direct-transport-config.ts'
 
 test('desktop direct transport config enables host listener from env', () => {
   assert.deepEqual(

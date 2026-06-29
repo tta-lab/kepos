@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import test from 'node:test'
-import { getDesktopStorageBasePath } from '../src/desktop-storage-base.js'
+import { getDesktopStorageBasePath } from '../src/desktop-storage-base.ts'
 
 test('desktop storage base prefers preload config over environment', () => {
   const storageBasePath = getDesktopStorageBasePath({

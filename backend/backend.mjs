@@ -8,7 +8,7 @@ import crypto from 'hypercore-crypto'
 import Hyperswarm from 'hyperswarm'
 import { createDmInvite, createDmEncryptionKeyPair } from '../src/dm-invite.ts'
 import { acceptDmInviteAsRecipient } from '../src/dm-invite-acceptance.ts'
-import { getOrCreateBackendDmEncryptionKeyPair } from '../src/backend-dm-key-storage.js'
+import { getOrCreateBackendDmEncryptionKeyPair } from '../src/backend-dm-key-storage.ts'
 import {
   loadDmMessagesFromFileSystem,
   saveDmMessagesToFileSystem
