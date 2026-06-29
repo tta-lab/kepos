@@ -30,6 +30,7 @@ export function createDesktopBackendSession({
   let dmRuntime = null
   let homeRuntime = null
   let treeholeRuntime = null
+  const allowHomeDmBodyFallback = env.KEPOS_ALLOW_HOME_DM_BODY_FALLBACK === '1'
 
   const displayNameActions = {
     updateDisplayName({ displayName } = {}) {
@@ -38,6 +39,7 @@ export function createDesktopBackendSession({
     }
   }
   const messageActions = createDesktopMessageActions({
+    allowHomeDmBodyFallback,
     createId,
     getDmRuntime: () => dmRuntime,
     getDmSession: () => controllerState.getDmSession(),
@@ -51,6 +53,7 @@ export function createDesktopBackendSession({
     }
   })
   const controlActions = createDesktopControlActions({
+    allowHomeDmBodyFallback,
     configureTreeholeRuntime,
     getDmRuntime: () => dmRuntime,
     getHomeJoinDetails: () => controllerState.getHomeJoinDetails(),

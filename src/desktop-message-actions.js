@@ -1,4 +1,5 @@
 export function createDesktopMessageActions({
+  allowHomeDmBodyFallback = false,
   createId = () => globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`,
   getDmRuntime = () => null,
   getDmSession = () => null,
@@ -55,7 +56,7 @@ export function createDesktopMessageActions({
       })
 
       if (!result) return
-      if (result.kind === 'message') {
+      if (allowHomeDmBodyFallback && result.kind === 'message') {
         homeRuntime.broadcastControl({
           message: result.message,
           type: 'kepos.dm.body.v1'

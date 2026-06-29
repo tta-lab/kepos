@@ -65,7 +65,7 @@ test('desktop message actions send direct messages through the dm runtime', () =
   assert.deepEqual(renders, ['render'])
 })
 
-test('desktop message actions broadcast signed DM body fallback after thread sends', () => {
+test('desktop message actions do not broadcast signed DM bodies over Home by default', () => {
   const broadcasts = []
   const signedMessage = {
     fromProfileId: 'local',
@@ -74,6 +74,35 @@ test('desktop message actions broadcast signed DM body fallback after thread sen
     type: 'kepos.dm.message.v1'
   }
   const actions = createDesktopMessageActions({
+    createId: () => 'id',
+    getDmRuntime: () => ({
+      sendMessageOrRequest() {
+        return { kind: 'message', message: signedMessage }
+      }
+    }),
+    getDmSession: () => ({ messages: [] }),
+    getHomeRuntime: () => ({
+      broadcastControl: (message) => broadcasts.push(message),
+      isJoined: () => true
+    }),
+    now: () => 456
+  })
+
+  actions.sendDmMessage({ text: 'dm', toProfileId: 'friend' })
+
+  assert.deepEqual(broadcasts, [])
+})
+
+test('desktop message actions can enable debug Home DM body fallback explicitly', () => {
+  const broadcasts = []
+  const signedMessage = {
+    fromProfileId: 'local',
+    messageId: 'message-1',
+    threadId: 'thread-1',
+    type: 'kepos.dm.message.v1'
+  }
+  const actions = createDesktopMessageActions({
+    allowHomeDmBodyFallback: true,
     createId: () => 'id',
     getDmRuntime: () => ({
       sendMessageOrRequest() {

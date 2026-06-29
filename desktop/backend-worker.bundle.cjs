@@ -1491,6 +1491,7 @@ var init_desktop_control_service = __esm({
 
 // src/desktop-control-actions.js
 function createDesktopControlActions({
+  allowHomeDmBodyFallback = false,
   configureTreeholeRuntime,
   createControlMessageResult = createDesktopControlMessageResult,
   createTreeholeControlSendResult = createDesktopTreeholeControlSendResult,
@@ -1538,6 +1539,7 @@ function createDesktopControlActions({
       return;
     }
     if (message.type === "kepos.dm.body.v1") {
+      if (!allowHomeDmBodyFallback) return;
       if (getDmRuntime().receiveMessage?.(message.message)) {
         onChanged();
       }
@@ -4894,6 +4896,7 @@ var init_desktop_local_backend_host = __esm({
 
 // src/desktop-message-actions.js
 function createDesktopMessageActions({
+  allowHomeDmBodyFallback = false,
   createId = () => globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`,
   getDmRuntime = () => null,
   getDmSession = () => null,
@@ -4947,7 +4950,7 @@ function createDesktopMessageActions({
         toProfileId
       });
       if (!result) return;
-      if (result.kind === "message") {
+      if (allowHomeDmBodyFallback && result.kind === "message") {
         homeRuntime.broadcastControl({
           message: result.message,
           type: "kepos.dm.body.v1"
@@ -6314,6 +6317,7 @@ function createDesktopBackendSession({
   let dmRuntime = null;
   let homeRuntime = null;
   let treeholeRuntime = null;
+  const allowHomeDmBodyFallback = env.KEPOS_ALLOW_HOME_DM_BODY_FALLBACK === "1";
   const displayNameActions = {
     updateDisplayName({ displayName } = {}) {
       controllerState.setCurrentDisplayName(displayName);
@@ -6321,6 +6325,7 @@ function createDesktopBackendSession({
     }
   };
   const messageActions = createDesktopMessageActions({
+    allowHomeDmBodyFallback,
     createId,
     getDmRuntime: () => dmRuntime,
     getDmSession: () => controllerState.getDmSession(),
@@ -6334,6 +6339,7 @@ function createDesktopBackendSession({
     }
   });
   const controlActions = createDesktopControlActions({
+    allowHomeDmBodyFallback,
     configureTreeholeRuntime,
     getDmRuntime: () => dmRuntime,
     getHomeJoinDetails: () => controllerState.getHomeJoinDetails(),

@@ -133,7 +133,7 @@ test('V1 docs describe current debug two-device proof without physical QR overcl
   assert.doesNotMatch(docs, /because it proves live transport/)
   assert.match(docs, /debug two-device now proves/)
   assert.match(docs, /smoke:two-device:debug:pear/)
-  assert.match(docs, /Manual physical desktop-to-Android QR trust\/home join also passed/)
+  assert.match(docs, /Manual physical\s+desktop-to-Android QR trust\/home join also passed/)
 })
 
 test('V1 UX docs include desktop icon-led trust and QR actions', async () => {
@@ -347,7 +347,7 @@ test('V1 DM bootstrap docs no longer claim contact polish remains pending', asyn
   assert.doesNotMatch(dependencyOrder, /refine full contacts view after V1 smoke if needed/)
   assert.match(dmBootstrap, /Later contact polish has also landed/)
   assert.match(dependencyOrder, /People\/Direct contact polish has landed/)
-  assert.match(dmBootstrap, /guide zero-contact Direct users toward People/)
+  assert.match(dmBootstrap, /guide zero-contact Direct users\s+toward People/)
 })
 
 test('V1 docs record revoke clearing pending message requests', async () => {
@@ -372,6 +372,18 @@ test('V1 docs record Android request UI gating through ContactBook', async () =>
   )
   assert.match(gaps, /Android appends incoming message requests to Direct only after ContactBook/)
   assert.match(`${audit}\n${gaps}`, /revoked senders do not leak into/)
+})
+
+test('V1 docs record DM body Home fallback as debug-only', async () => {
+  const dmBootstrap = await readText('../docs/v1.08-dm-bootstrap-security.md')
+  const gaps = await readText('../docs/v1.07-architecture-gaps.md')
+  const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
+  const docs = `${dmBootstrap}\n${gaps}\n${audit}`
+
+  assert.match(docs, /Home-carried `kepos\.dm\.body\.v1` frames are gated/)
+  assert.match(docs, /disabled by default/)
+  assert.match(docs, /signed DM body exchange over the accepted Direct thread/)
+  assert.doesNotMatch(docs, /signed DM body fallback,\s+Android/)
 })
 
 test('V1 UX docs include composer payload trimming on desktop and mobile', async () => {

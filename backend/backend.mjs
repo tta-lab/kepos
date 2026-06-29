@@ -78,6 +78,7 @@ let identity = null
 let dmEncryptionKeyPair = null
 let dmRuntime = null
 let treeholePolicy = null
+let allowHomeDmBodyFallback = false
 const addedWriters = new Set()
 
 async function handleRequest(req) {
@@ -162,6 +163,7 @@ async function joinRoom(payload) {
   nick = payload.nick?.trim() || 'anon'
   profileId = payload.profileId?.trim() || null
   identity = payload.identity || null
+  allowHomeDmBodyFallback = payload.allowHomeDmBodyFallback === true
   dmEncryptionKeyPair = await getOrCreateBackendDmEncryptionKeyPair({
     basePath: treeholeStorageBasePath,
     createKeyPair: createDmEncryptionKeyPair,
@@ -249,6 +251,7 @@ async function leaveRoom() {
   identity = null
   dmEncryptionKeyPair = null
   treeholePolicy = null
+  allowHomeDmBodyFallback = false
   addedWriters.clear()
 }
 
@@ -358,6 +361,10 @@ async function handleControl(message, peer) {
   }
 
   if (message.type === 'kepos.dm.body.v1') {
+    if (!allowHomeDmBodyFallback) {
+      return
+    }
+
     dmRuntime?.receiveMessage(message.message)
     return
   }
@@ -656,10 +663,13 @@ function sendDmBody(payload) {
     text,
     threadId: payload.threadId
   })
-  room?.broadcastControl({
-    message,
-    type: 'kepos.dm.body.v1'
-  })
+
+  if (allowHomeDmBodyFallback) {
+    room?.broadcastControl({
+      message,
+      type: 'kepos.dm.body.v1'
+    })
+  }
 }
 
 async function revokeDmByProfile(payload) {

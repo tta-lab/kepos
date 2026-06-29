@@ -48,8 +48,16 @@ test('android backend trims outgoing text at the RPC boundary', () => {
     'function sendMessageRequest',
     'async function acceptMessageRequest'
   )
+  const handleControlDmBody = sliceBetween(
+    source,
+    "if (message.type === 'kepos.dm.body.v1')",
+    "if (message.type === 'treehole.bootstrap')"
+  )
   const sendDmBody = sliceBetween(source, 'function sendDmBody', 'async function revokeDmByProfile')
 
+  assert.match(source, /let allowHomeDmBodyFallback = false/)
+  assert.match(source, /allowHomeDmBodyFallback = payload\.allowHomeDmBodyFallback === true/)
+  assert.match(source, /allowHomeDmBodyFallback = false/)
   assert.match(source, /function cleanRequiredText\(text\)/)
   assert.match(source, /throw new Error\('Text is required'\)/)
   assert.match(rpcSend, /sendHomeMessage\(payload\)/)
@@ -61,6 +69,8 @@ test('android backend trims outgoing text at the RPC boundary', () => {
   assert.match(commentTreehole, /const text = cleanRequiredText\(payload\.text\)/)
   assert.match(sendMessageRequest, /const text = cleanRequiredText\(payload\.text\)/)
   assert.match(sendDmBody, /const text = cleanRequiredText\(payload\.text\)/)
+  assert.match(handleControlDmBody, /if \(!allowHomeDmBodyFallback\)/)
+  assert.match(sendDmBody, /if \(allowHomeDmBodyFallback\)/)
   assert.doesNotMatch(postTreehole, /text: payload\.text/)
   assert.doesNotMatch(commentTreehole, /text: payload\.text/)
   assert.doesNotMatch(sendMessageRequest, /text: payload\.text/)

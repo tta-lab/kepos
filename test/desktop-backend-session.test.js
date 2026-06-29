@@ -288,6 +288,17 @@ test('desktop controller delegates backend session composition to a boundary', a
   assert.doesNotMatch(source, /createDesktopLocalBackendHost/)
 })
 
+test('desktop backend session keeps Home DM body fallback debug-only', async () => {
+  const source = await readFile(
+    new URL('../src/desktop-backend-session.js', import.meta.url),
+    'utf8'
+  )
+
+  assert.match(source, /KEPOS_ALLOW_HOME_DM_BODY_FALLBACK/)
+  assert.match(source, /allowHomeDmBodyFallback,\s*\n\s*createId/)
+  assert.match(source, /allowHomeDmBodyFallback,\s*\n\s*configureTreeholeRuntime/)
+})
+
 function createControllerState() {
   let state = {
     treeholeCanPost: false,

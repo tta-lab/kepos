@@ -133,8 +133,20 @@ test('desktop control actions accept incoming DM invites', async () => {
   assert.deepEqual(calls, [['notice', 'Direct message ready.'], ['render']])
 })
 
-test('desktop control actions receive signed DM body fallback frames', async () => {
+test('desktop control actions ignore signed DM body Home fallback frames by default', async () => {
   const { actions, calls } = createHarness()
+  const message = {
+    messageId: 'message-1',
+    threadId: 'thread-1'
+  }
+
+  await actions.handleControl({ message, type: 'kepos.dm.body.v1' }, 'peer-1')
+
+  assert.deepEqual(calls, [])
+})
+
+test('desktop control actions can receive debug signed DM body fallback frames explicitly', async () => {
+  const { actions, calls } = createHarness({ allowHomeDmBodyFallback: true })
   const message = {
     messageId: 'message-1',
     threadId: 'thread-1'

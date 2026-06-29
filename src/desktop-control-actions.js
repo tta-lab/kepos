@@ -4,6 +4,7 @@ import {
 } from './desktop-control-service.js'
 
 export function createDesktopControlActions({
+  allowHomeDmBodyFallback = false,
   configureTreeholeRuntime,
   createControlMessageResult = createDesktopControlMessageResult,
   createTreeholeControlSendResult = createDesktopTreeholeControlSendResult,
@@ -54,6 +55,8 @@ export function createDesktopControlActions({
     }
 
     if (message.type === 'kepos.dm.body.v1') {
+      if (!allowHomeDmBodyFallback) return
+
       if (getDmRuntime().receiveMessage?.(message.message)) {
         onChanged()
       }

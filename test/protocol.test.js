@@ -94,7 +94,7 @@ describe('wire frames', () => {
     assert.deepEqual(decodeFrame(encodeFrame(invite).trimEnd()), invite)
   })
 
-  test('decodeFrame accepts signed DM body fallback control frames', () => {
+  test('decodeFrame accepts debug signed DM body fallback control frames', () => {
     const frame = {
       type: 'kepos.dm.body.v1',
       message: {

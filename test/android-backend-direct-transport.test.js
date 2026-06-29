@@ -18,7 +18,7 @@ test('Android backend preserves remote treehole snapshots across local empty ref
 
   assert.match(
     source,
-    /import \{ mergeTreeholeSnapshots \} from '\.\.\/src\/treehole-snapshot-merge\.js'/
+    /import \{ mergeTreeholeSnapshots \} from '\.\.\/src\/treehole-snapshot-merge\.ts'/
   )
   assert.match(
     source,
@@ -34,16 +34,17 @@ test('Android backend preserves remote treehole snapshots across local empty ref
   )
 })
 
-test('Android backend broadcasts and receives signed DM body fallback frames', async () => {
+test('Android backend gates debug signed DM body Home fallback frames', async () => {
   const source = await readFile(new URL('../backend/backend.mjs', import.meta.url), 'utf8')
 
+  assert.match(source, /let allowHomeDmBodyFallback = false/)
   assert.match(source, /type: 'kepos\.dm\.body\.v1'/)
   assert.match(
     source,
-    /room\?\.broadcastControl\(\{[\s\S]*message,[\s\S]*type: 'kepos\.dm\.body\.v1'/
+    /if \(allowHomeDmBodyFallback\) \{[\s\S]*room\?\.broadcastControl\(\{[\s\S]*message,[\s\S]*type: 'kepos\.dm\.body\.v1'/
   )
   assert.match(
     source,
-    /if \(message\.type === 'kepos\.dm\.body\.v1'\) \{[\s\S]*dmRuntime\?\.receiveMessage\(message\.message\)/
+    /if \(message\.type === 'kepos\.dm\.body\.v1'\) \{[\s\S]*if \(!allowHomeDmBodyFallback\)/
   )
 })
