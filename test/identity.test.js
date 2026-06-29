@@ -5,8 +5,8 @@ import {
   createIdentityKeyPair,
   createIdentityKeyPairFromSeed,
   isIdentityKeyPair
-} from '../src/identity.js'
-import { createProfile } from '../src/profile.js'
+} from '../src/identity.ts'
+import { createProfile } from '../src/profile.ts'
 import { createSignedRecord, verifySignedRecord } from '../src/signed-record.ts'
 
 const identityProbeEncoding = {

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
 import { applyDecodedQrPayload } from '../src/qr-scan.ts'
-import { createTrustState, isTrusted } from '../src/trust.js'
+import { createTrustState, isTrusted } from '../src/trust.ts'
 
 const PUBLIC_KEY_A = 'a'.repeat(64)
 const PUBLIC_KEY_B = 'b'.repeat(64)

@@ -5,7 +5,7 @@ import {
   createHomeJoinSessionFromAddress,
   createManualHomeJoinSession
 } from '../src/home-session.ts'
-import { createProfile } from '../src/profile.js'
+import { createProfile } from '../src/profile.ts'
 
 describe('home session binding', () => {
   test('owned home join session uses the profile home room transport key', () => {

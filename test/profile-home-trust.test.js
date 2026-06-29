@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
 import { createHomeRoom, isHomePolicy } from '../src/home-room.ts'
-import { createProfile } from '../src/profile.js'
+import { createProfile } from '../src/profile.ts'
 import {
   canEnterHome,
   createTrustState,
   isTrusted,
   trustProfilesBidirectional
-} from '../src/trust.js'
+} from '../src/trust.ts'
 
 const PUBLIC_KEY_A = 'a'.repeat(64)
 const PUBLIC_KEY_B = 'b'.repeat(64)

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { createContactBook, trustContact } from '../src/contact-book.ts'
 import { createDesktopHomeJoinDetails } from '../src/desktop-home-join-service.js'
-import { createProfile } from '../src/profile.js'
+import { createProfile } from '../src/profile.ts'
 
 const identity = {
   publicKey: 'a'.repeat(64),

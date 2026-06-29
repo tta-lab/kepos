@@ -1,4 +1,4 @@
-import { isIdentityKey, isIdentityKeyPair } from './identity.js'
+import { isIdentityKey, isIdentityKeyPair } from './identity.ts'
 import type { SigningIdentity } from './signed-record.ts'
 
 const PROFILE_ID_FILE = 'profile-id.txt'

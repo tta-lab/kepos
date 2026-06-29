@@ -1,5 +1,7 @@
-import { createProfile } from './profile.js'
-import { createIdentityKeyPair, isIdentityKey, isIdentityKeyPair } from './identity.js'
+import type { DmEncryptionKeyPair, LocalProfile } from './profile.ts'
+import { createProfile } from './profile.ts'
+import type { SigningIdentity } from './signed-record.ts'
+import { createIdentityKeyPair, isIdentityKey, isIdentityKeyPair } from './identity.ts'
 
 const PROFILE_ID_KEY = 'kepos.profile.id'
 const IDENTITY_PUBLIC_KEY = 'kepos.identity.publicKey'
@@ -11,13 +13,40 @@ const DM_ENCRYPTION_PUBLIC_KEY = 'kepos.dmEncryption.publicKey'
 const DM_ENCRYPTION_SECRET_KEY = 'kepos.dmEncryption.secretKey'
 const HEX_32_PATTERN = /^[0-9a-f]{64}$/
 
+type LocalStorageLike = {
+  getItem?: (key: string) => string | null
+  setItem?: (key: string, value: string) => unknown
+}
+
+type LocalDocument<TData> = {
+  data: TData
+  schemaVersion: 1
+  type: string
+}
+
+type StoredIdentity = {
+  publicKey: string | null
+  secretKey: string | null
+}
+
+type StoredHome = {
+  ownerProfileId: string | null
+  roomKey: string | null
+}
+
 export function getOrCreateLocalProfile({
   createDmEncryptionKeyPair = null,
   createIdentity = createIdentityKeyPair,
   displayName = 'Kepos',
   homeRoomKey = null,
   storage = getDefaultStorage()
-} = {}) {
+}: {
+  createDmEncryptionKeyPair?: (() => DmEncryptionKeyPair) | null
+  createIdentity?: () => SigningIdentity
+  displayName?: string
+  homeRoomKey?: string | null
+  storage?: LocalStorageLike | null
+} = {}): LocalProfile {
   const existingId = storage?.getItem?.(PROFILE_ID_KEY)?.trim()
   const storedIdentity = readLocalIdentity(storage)
   const identity = getLocalIdentity({
@@ -74,8 +103,8 @@ export function getOrCreateLocalProfile({
   return profile
 }
 
-function readLocalIdentity(storage) {
-  const document = readLocalDocument(storage, V1_IDENTITY_KEY, 'kepos.identity')
+function readLocalIdentity(storage: LocalStorageLike | null): StoredIdentity {
+  const document = readLocalDocument<SigningIdentity>(storage, V1_IDENTITY_KEY, 'kepos.identity')
 
   if (document) {
     return document.data
@@ -87,8 +116,8 @@ function readLocalIdentity(storage) {
   }
 }
 
-function readLocalHome(storage) {
-  const document = readLocalDocument(storage, V1_HOME_KEY, 'kepos.home')
+function readLocalHome(storage: LocalStorageLike | null): StoredHome {
+  const document = readLocalDocument<StoredHome>(storage, V1_HOME_KEY, 'kepos.home')
 
   if (document) {
     return document.data
@@ -100,7 +129,11 @@ function readLocalHome(storage) {
   }
 }
 
-function readLocalDocument(storage, key, type) {
+function readLocalDocument<TData>(
+  storage: LocalStorageLike | null,
+  key: string,
+  type: string
+): LocalDocument<TData> | null {
   const raw = storage?.getItem?.(key)
 
   if (!raw) {
@@ -108,19 +141,24 @@ function readLocalDocument(storage, key, type) {
   }
 
   try {
-    const document = JSON.parse(raw)
+    const document = JSON.parse(raw) as Partial<LocalDocument<TData>>
 
     if (document?.type !== type || document?.schemaVersion !== 1 || !document?.data) {
       throw new Error(`Unsupported ${type} storage document`)
     }
 
-    return document
-  } catch (error) {
-    throw new Error(`Corrupt local ${type} storage: ${error.message}`)
+    return {
+      data: document.data,
+      schemaVersion: document.schemaVersion,
+      type: document.type
+    }
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error)
+    throw new Error(`Corrupt local ${type} storage: ${message}`)
   }
 }
 
-function writeLocalIdentity(storage, identity) {
+function writeLocalIdentity(storage: LocalStorageLike | null, identity: SigningIdentity): void {
   storage?.setItem?.(
     V1_IDENTITY_KEY,
     JSON.stringify({
@@ -134,7 +172,7 @@ function writeLocalIdentity(storage, identity) {
   )
 }
 
-function writeLocalHome(storage, home) {
+function writeLocalHome(storage: LocalStorageLike | null, home: StoredHome): void {
   storage?.setItem?.(
     V1_HOME_KEY,
     JSON.stringify({
@@ -148,7 +186,15 @@ function writeLocalHome(storage, home) {
   )
 }
 
-function getLocalIdentity({ createIdentity, storedPublicKey, storedSecretKey }) {
+function getLocalIdentity({
+  createIdentity,
+  storedPublicKey,
+  storedSecretKey
+}: {
+  createIdentity: () => SigningIdentity
+  storedPublicKey: string | null
+  storedSecretKey: string | null
+}): SigningIdentity {
   if (!storedPublicKey && !storedSecretKey) {
     const identity = createIdentity()
     if (!isIdentityKeyPair(identity)) {
@@ -174,7 +220,11 @@ function getLocalDmEncryptionKeyPair({
   createDmEncryptionKeyPair,
   storedPublicKey,
   storedSecretKey
-}) {
+}: {
+  createDmEncryptionKeyPair: (() => DmEncryptionKeyPair) | null
+  storedPublicKey: string | null
+  storedSecretKey: string | null
+}): DmEncryptionKeyPair | null {
   if (!storedPublicKey && !storedSecretKey) {
     const keyPair = createDmEncryptionKeyPair?.() || null
     if (keyPair && !isDmEncryptionKeyPair(keyPair)) {
@@ -196,11 +246,12 @@ function getLocalDmEncryptionKeyPair({
   return keyPair
 }
 
-function isDmEncryptionKeyPair(keyPair) {
-  return isIdentityKey(keyPair?.publicKey) && isIdentityKey(keyPair?.secretKey)
+function isDmEncryptionKeyPair(keyPair: unknown): keyPair is DmEncryptionKeyPair {
+  const value = keyPair as Partial<DmEncryptionKeyPair> | null | undefined
+  return isIdentityKey(value?.publicKey) && isIdentityKey(value?.secretKey)
 }
 
-function getDefaultStorage() {
+function getDefaultStorage(): LocalStorageLike | null {
   try {
     return globalThis.localStorage || null
   } catch {

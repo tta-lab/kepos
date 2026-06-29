@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
-import { getOrCreateLocalProfile } from '../src/local-profile.js'
+import { getOrCreateLocalProfile } from '../src/local-profile.ts'
 
 describe('local profile identity', () => {
   test('creates and persists one local identity key pair', () => {

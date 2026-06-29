@@ -1,6 +1,6 @@
 import { loadContactBookFromStorage, saveContactBookToStorage } from './contact-book-storage.ts'
 import { createDmEncryptionKeyPair } from './dm-invite.ts'
-import { getOrCreateLocalProfile } from './local-profile.js'
+import { getOrCreateLocalProfile } from './local-profile.ts'
 
 export function getDesktopLocalProfile({
   displayName = 'Desktop',

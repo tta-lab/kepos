@@ -8,14 +8,14 @@ What local persistence and migration approach should Kepos use for V1 identity, 
 
 Use simple versioned JSON documents plus existing Corestore/Autobase directories for replicated logs. Do not add SQLite, MMKV, or AsyncStorage for V1 product state unless a later feature needs indexed queries, large lists, or secure native storage.
 
-- Verified: Desktop currently persists profile identity and home room state as V1 JSON envelopes through a `localStorage`-shaped adapter in `src/local-profile.js`, with legacy key import for earlier prototype state.
+- Verified: Desktop currently persists profile identity and home room state as V1 JSON envelopes through a `localStorage`-shaped adapter in `src/local-profile.ts`, with legacy key import for earlier prototype state.
 - Verified: Android already depends on `expo-file-system`, writes profile/home identity envelopes under `FileSystem.documentDirectory`, imports earlier text files, and passes a `kepos` base URI into the Bare backend for treehole Corestore paths.
 - Interpretation: JSON files are enough for V1 because the state shape is one device, one profile, one ContactBook, one owned home, and a small number of local DM thread metadata/message files. V1 does not need cross-record joins, full text search, or high-write indexed queries.
 - Recommendation: Prefer app-private file storage on both platforms. On Electron, a later hardening step can move the same V1 envelopes from Chromium localStorage into a Node adapter rooted under `app.getPath('userData')/kepos/v1`. On Android, keep `expo-file-system/legacy` document storage and normalize `file://` URIs before passing paths to Bare. Current Android profile startup fails if `documentDirectory` is unavailable instead of silently falling back to `cacheDirectory` for identity/home/contact/DM state.
 
 ## Current Repo State
 
-- Verified: `src/local-profile.js` reads/writes `kepos.v1.identity` and `kepos.v1.home` JSON envelopes using `globalThis.localStorage` by default, and imports the legacy keys `kepos.profile.id`, `kepos.identity.publicKey`, `kepos.identity.secretKey`, and `kepos.home.roomKey`.
+- Verified: `src/local-profile.ts` reads/writes `kepos.v1.identity` and `kepos.v1.home` JSON envelopes using `globalThis.localStorage` by default, and imports the legacy keys `kepos.profile.id`, `kepos.identity.publicKey`, `kepos.identity.secretKey`, and `kepos.home.roomKey`.
 - Verified: `src/mobile-profile.ts` reads/writes `identity.json` and `home.json` V1 JSON envelopes under `<baseUri>/kepos/v1`, and imports the earlier text files `profile-id.txt`, `home-room-key.txt`, `identity-public-key.txt`, and `identity-secret-key.txt`.
 - Verified: `mobile/App.jsx` imports `expo-file-system/legacy`, builds a backend storage base at `<documentDirectory>/kepos`, creates it, and passes it as `storageBasePath` to Bare.
 - Verified: Android first-run identity/home generation uses `expo-crypto` secure random bytes. The React Native UI must not call `hypercore-crypto.keyPair()` or `hypercore-crypto.randomBytes()` without a native-safe seed/source, because that path can throw `No secure random number generator available`.
@@ -25,7 +25,7 @@ Use simple versioned JSON documents plus existing Corestore/Autobase directories
 
 Current and future owner files/modules:
 
-- `src/local-profile.js`: owns desktop/localStorage-shaped V1 identity and home envelopes plus legacy import.
+- `src/local-profile.ts`: owns desktop/localStorage-shaped V1 identity and home envelopes plus legacy import.
 - `src/mobile-profile.ts`: owns the Expo FileSystem adapter for V1 identity/home JSON envelopes and legacy text-file import.
 - `src/contact-book.ts` and `src/contact-book-storage.ts`: own shared ContactBook domain rules, validation, serialization, and platform adapters.
 - `src/dm-thread.ts`, `src/dm-thread-storage.ts`, and `src/dm-message-storage.ts`: own durable DM metadata/message state.
@@ -122,7 +122,7 @@ Corrupt data behavior:
 
 ## Sources
 
-- Local: `src/local-profile.js` — current desktop/localStorage-shaped V1 identity and home envelope persistence.
+- Local: `src/local-profile.ts` — current desktop/localStorage-shaped V1 identity and home envelope persistence.
 - Local: `src/mobile-profile.ts` — current Android file-based V1 profile, identity, and home envelope persistence.
 - Local: `mobile/App.jsx` — current `expo-file-system/legacy` usage and Bare backend storage base handoff.
 - Local: `backend/backend.mjs` — current Bare backend treehole storage path usage.

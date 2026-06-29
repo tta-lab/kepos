@@ -4,7 +4,7 @@ import { describe, test } from 'node:test'
 
 describe('mobile platform imports', () => {
   test('profile modules used by React Native do not import Node built-ins', async () => {
-    const files = ['src/profile.js', 'src/local-profile.js']
+    const files = ['src/profile.ts', 'src/local-profile.ts']
     const sources = await Promise.all(files.map((file) => readFile(file, 'utf8')))
 
     for (const source of sources) {

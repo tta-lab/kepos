@@ -1,4 +1,4 @@
-import { canEnterHome, trustProfilesBidirectional } from './trust.js'
+import { canEnterHome, trustProfilesBidirectional } from './trust.ts'
 import type { QrPayload } from './qr-payload.ts'
 
 type TrustState = {

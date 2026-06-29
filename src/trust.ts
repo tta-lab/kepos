@@ -1,12 +1,21 @@
+import type { HomePolicy } from './home-room.ts'
 import { isHomePolicy } from './home-room.ts'
 
-export function createTrustState() {
+export type TrustState = {
+  trustedProfilesByOwner: Map<string, Set<string>>
+}
+
+export function createTrustState(): TrustState {
   return {
     trustedProfilesByOwner: new Map()
   }
 }
 
-export function trustProfilesBidirectional(trust, firstProfileId, secondProfileId) {
+export function trustProfilesBidirectional(
+  trust: TrustState,
+  firstProfileId: string,
+  secondProfileId: string
+): TrustState {
   const nextTrust = cloneTrustState(trust)
 
   addTrust(nextTrust, firstProfileId, secondProfileId)
@@ -15,14 +24,28 @@ export function trustProfilesBidirectional(trust, firstProfileId, secondProfileI
   return nextTrust
 }
 
-export function isTrusted(trust, ownerProfileId, viewerProfileId) {
+export function isTrusted(
+  trust: TrustState | null | undefined,
+  ownerProfileId: string,
+  viewerProfileId: string
+): boolean {
   const owner = cleanProfileId(ownerProfileId)
   const viewer = cleanProfileId(viewerProfileId)
 
   return trust?.trustedProfilesByOwner?.get(owner)?.has(viewer) || false
 }
 
-export function canEnterHome({ ownerProfileId, viewerProfileId, policy = 'trusted_only', trust }) {
+export function canEnterHome({
+  ownerProfileId,
+  viewerProfileId,
+  policy = 'trusted_only',
+  trust
+}: {
+  ownerProfileId: string
+  policy?: HomePolicy
+  trust: TrustState
+  viewerProfileId: string
+}): boolean {
   if (!isHomePolicy(policy)) {
     throw new Error('Invalid home policy')
   }
@@ -37,7 +60,7 @@ export function canEnterHome({ ownerProfileId, viewerProfileId, policy = 'truste
   return isTrusted(trust, owner, viewer)
 }
 
-function addTrust(trust, ownerProfileId, viewerProfileId) {
+function addTrust(trust: TrustState, ownerProfileId: string, viewerProfileId: string): void {
   const owner = cleanProfileId(ownerProfileId)
   const viewer = cleanProfileId(viewerProfileId)
   const trusted = trust.trustedProfilesByOwner.get(owner) || new Set()
@@ -46,7 +69,7 @@ function addTrust(trust, ownerProfileId, viewerProfileId) {
   trust.trustedProfilesByOwner.set(owner, trusted)
 }
 
-function cloneTrustState(trust = createTrustState()) {
+function cloneTrustState(trust: TrustState = createTrustState()): TrustState {
   return {
     trustedProfilesByOwner: new Map(
       Array.from(trust.trustedProfilesByOwner || []).map(([owner, trusted]) => [
@@ -57,7 +80,11 @@ function cloneTrustState(trust = createTrustState()) {
   }
 }
 
-function cleanProfileId(profileId) {
+function cleanProfileId(profileId: unknown): string {
+  if (typeof profileId !== 'string') {
+    throw new Error('Profile id is required')
+  }
+
   const cleaned = profileId?.trim()
 
   if (!cleaned) {
