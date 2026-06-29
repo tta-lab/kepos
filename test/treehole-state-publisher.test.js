@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
-import { createTreeholeStatePublisher } from '../src/treehole-state-publisher.js'
+import { createTreeholeStatePublisher } from '../src/treehole-state-publisher.ts'
 
 test('treehole state publisher starts without waiting for a slow snapshot', () => {
   let intervalCallback = null

@@ -5,7 +5,7 @@ import {
   createCommentEvent,
   createLikeEvent,
   createPostEvent
-} from '../src/treehole-state.js'
+} from '../src/treehole-state.ts'
 
 describe('treehole state', () => {
   test('post events become newest-first feed items with author visible', () => {

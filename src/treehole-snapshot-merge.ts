@@ -1,5 +1,24 @@
-export function mergeTreeholeSnapshots(...snapshots) {
-  const postsById = new Map()
+export type TreeholeSnapshotPost = {
+  comments?: TreeholeSnapshotComment[]
+  createdAt?: number
+  id: string
+  [key: string]: unknown
+}
+
+export type TreeholeSnapshotComment = {
+  createdAt?: number
+  id: string
+  [key: string]: unknown
+}
+
+export type TreeholeSnapshot = {
+  posts?: TreeholeSnapshotPost[]
+}
+
+export function mergeTreeholeSnapshots(...snapshots: TreeholeSnapshot[]): {
+  posts: TreeholeSnapshotPost[]
+} {
+  const postsById = new Map<string, TreeholeSnapshotPost>()
 
   for (const snapshot of snapshots) {
     for (const post of snapshot?.posts || []) {
@@ -17,7 +36,10 @@ export function mergeTreeholeSnapshots(...snapshots) {
   }
 }
 
-function mergePost(existing, next) {
+function mergePost(
+  existing: TreeholeSnapshotPost | undefined,
+  next: TreeholeSnapshotPost
+): TreeholeSnapshotPost {
   if (!existing) {
     return { ...next, comments: mergeComments(next.comments) }
   }
@@ -29,8 +51,10 @@ function mergePost(existing, next) {
   }
 }
 
-function mergeComments(...commentLists) {
-  const commentsById = new Map()
+function mergeComments(
+  ...commentLists: Array<TreeholeSnapshotComment[] | undefined>
+): TreeholeSnapshotComment[] {
+  const commentsById = new Map<string, TreeholeSnapshotComment>()
 
   for (const comments of commentLists) {
     for (const comment of comments || []) {
@@ -48,6 +72,6 @@ function mergeComments(...commentLists) {
   return Array.from(commentsById.values()).sort(comparePosts)
 }
 
-function comparePosts(a, b) {
+function comparePosts(a: { createdAt?: number }, b: { createdAt?: number }): number {
   return (b.createdAt || 0) - (a.createdAt || 0)
 }

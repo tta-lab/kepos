@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
-import { serializeTreeholeState } from '../src/treehole-view.js'
+import { serializeTreeholeState } from '../src/treehole-view.ts'
 
 describe('treehole view serialization', () => {
   test('embeds comments in posts for UI and RPC payloads', () => {

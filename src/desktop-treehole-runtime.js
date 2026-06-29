@@ -5,9 +5,9 @@ import {
   canShareTreeholeBootstrap,
   createTreeholeSessionOptions
 } from './treehole-policy.ts'
-import { createTreeholeStoragePath } from './treehole-storage.js'
-import { createTreeholeStatePublisher } from './treehole-state-publisher.js'
-import { serializeTreeholeState } from './treehole-view.js'
+import { createTreeholeStoragePath } from './treehole-storage.ts'
+import { createTreeholeStatePublisher } from './treehole-state-publisher.ts'
+import { serializeTreeholeState } from './treehole-view.ts'
 
 export function createDesktopTreeholeRuntime({
   createPublisher = createTreeholeStatePublisher,

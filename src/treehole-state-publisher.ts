@@ -1,3 +1,5 @@
+type TimerId = ReturnType<typeof setInterval>
+
 export function createTreeholeStatePublisher({
   clearIntervalFn = clearInterval,
   getSnapshot,
@@ -5,11 +7,18 @@ export function createTreeholeStatePublisher({
   onError = () => {},
   publish,
   setIntervalFn = setInterval
-}) {
+}: {
+  clearIntervalFn?: (id: TimerId) => void
+  getSnapshot: () => Promise<unknown> | unknown
+  intervalMs?: number
+  onError?: (error: unknown) => void
+  publish: (snapshot: unknown) => void
+  setIntervalFn?: (callback: () => void, intervalMs: number) => TimerId
+}): { stop(): void } {
   let running = false
   let stopped = false
 
-  async function refresh() {
+  async function refresh(): Promise<void> {
     if (stopped || running) {
       return
     }

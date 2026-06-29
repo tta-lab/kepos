@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
-import { mergeTreeholeSnapshots } from '../src/treehole-snapshot-merge.js'
+import { mergeTreeholeSnapshots } from '../src/treehole-snapshot-merge.ts'
 
 describe('treehole snapshot merge', () => {
   test('keeps remote posts when a local empty snapshot arrives later', () => {

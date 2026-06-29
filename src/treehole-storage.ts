@@ -1,4 +1,12 @@
-export function createTreeholeStoragePath({ basePath, bootstrapKey = null, roomKey }) {
+export function createTreeholeStoragePath({
+  basePath,
+  bootstrapKey = null,
+  roomKey
+}: {
+  basePath: string
+  bootstrapKey?: string | null
+  roomKey: string
+}): string {
   if (!basePath) {
     throw new Error('Treehole storage base path is required')
   }
@@ -11,7 +19,7 @@ export function createTreeholeStoragePath({ basePath, bootstrapKey = null, roomK
   return `${normalizeBasePath(basePath)}/kepos-treehole-${roomKey.slice(0, 16)}-${suffix}`
 }
 
-function normalizeBasePath(basePath) {
+function normalizeBasePath(basePath: string): string {
   const path = basePath.startsWith('file://')
     ? decodeURI(basePath.slice('file://'.length))
     : basePath

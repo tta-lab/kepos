@@ -26,10 +26,10 @@ import {
   canShareTreeholeBootstrap,
   createTreeholeSessionOptions
 } from '../src/treehole-policy.ts'
-import { createTreeholeStoragePath } from '../src/treehole-storage.js'
-import { createTreeholeStatePublisher } from '../src/treehole-state-publisher.js'
-import { mergeTreeholeSnapshots } from '../src/treehole-snapshot-merge.js'
-import { serializeTreeholeState } from '../src/treehole-view.js'
+import { createTreeholeStoragePath } from '../src/treehole-storage.ts'
+import { createTreeholeStatePublisher } from '../src/treehole-state-publisher.ts'
+import { mergeTreeholeSnapshots } from '../src/treehole-snapshot-merge.ts'
+import { serializeTreeholeState } from '../src/treehole-view.ts'
 import {
   RPC_ERROR,
   RPC_DM_ACCEPT,

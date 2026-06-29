@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
-import { createTreeholeStoragePath } from '../src/treehole-storage.js'
+import { createTreeholeStoragePath } from '../src/treehole-storage.ts'
 
 describe('treehole storage path', () => {
   test('uses the mobile storage base instead of os homedir', () => {

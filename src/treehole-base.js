@@ -6,7 +6,7 @@ import {
   createCommentEvent,
   createLikeEvent,
   createPostEvent
-} from './treehole-state.js'
+} from './treehole-state.ts'
 import {
   applySignedTreeholeEvents,
   createSignedTreeholeComment,
