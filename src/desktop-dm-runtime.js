@@ -113,14 +113,15 @@ export function createDesktopDmRuntime({
     text,
     toProfileId
   }) {
-    if (!dmSession || !localProfile || !toProfileId || !text?.trim()) return null
+    const cleanText = text?.trim()
+    if (!dmSession || !localProfile || !toProfileId || !cleanText) return null
 
     const thread = findThread(toProfileId)
     if (thread && dmRuntime) {
       const message = dmRuntime.sendMessage({
         createdAt,
         messageId,
-        text,
+        text: cleanText,
         threadId: thread.threadId
       })
 
@@ -132,7 +133,7 @@ export function createDesktopDmRuntime({
       fromIdentity: localProfile.identity,
       requestId,
       senderEncryptionPublicKey: localProfile.dmEncryptionKeyPair.publicKey,
-      text,
+      text: cleanText,
       toProfileId
     })
 

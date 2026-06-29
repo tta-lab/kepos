@@ -79,10 +79,12 @@ export function createDesktopHomeRuntime({
   }
 
   function sendMessage(message) {
-    if (!room || !session || !message?.text?.trim()) return null
+    const cleanText = message?.text?.trim()
+    if (!room || !session || !cleanText) return null
 
-    session = appendLocalMessage(session, message.text, message)
-    room.send(message)
+    const cleanMessage = { ...message, text: cleanText }
+    session = appendLocalMessage(session, cleanText, cleanMessage)
+    room.send(cleanMessage)
     onSessionChanged(session)
     return session
   }

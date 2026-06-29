@@ -177,7 +177,7 @@ test('desktop DM runtime sends over an accepted local thread', async () => {
     createdAt: 2,
     messageId: 'message-1',
     requestId: 'request-2',
-    text: 'hello',
+    text: '  hello  ',
     toProfileId: remoteProfileId
   })
 
@@ -198,14 +198,36 @@ test('desktop DM runtime creates and appends a message request without a thread'
     createdAt: 2,
     messageId: 'message-1',
     requestId: 'request-2',
-    text: 'hello',
+    text: '  hello  ',
     toProfileId: remoteProfileId
   })
 
   assert.equal(result.kind, 'request')
   assert.equal(broadcasts[0].type, 'kepos.message.request.v1')
+  assert.equal(broadcasts[0].text, 'hello')
   assert.equal(sessions.at(-1).messages[0].direction, 'out')
+  assert.equal(sessions.at(-1).messages[0].text, 'hello')
   assert.deepEqual(calls.at(-1), ['saveSessionMessages', sessions.at(-1).messages])
+})
+
+test('desktop DM runtime ignores blank outgoing text', async () => {
+  const { calls, runtime } = createRuntime({ threads: [thread] })
+
+  await runtime.start({ nick: 'Owner', profile, storage: {} })
+  const result = runtime.sendMessageOrRequest({
+    createdAt: 2,
+    messageId: 'message-1',
+    requestId: 'request-2',
+    text: '   ',
+    toProfileId: remoteProfileId
+  })
+
+  assert.equal(result, null)
+  assert.equal(
+    calls.some(([name]) => name === 'sendMessage'),
+    false
+  )
+  assert.equal(runtime.getSession().messages.length, 0)
 })
 
 test('desktop DM runtime accepts requests and invites into saved open threads', async () => {

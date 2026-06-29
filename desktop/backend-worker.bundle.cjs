@@ -2732,13 +2732,14 @@ function createDesktopDmRuntime({
     text,
     toProfileId
   }) {
-    if (!dmSession || !localProfile || !toProfileId || !text?.trim()) return null;
+    const cleanText5 = text?.trim();
+    if (!dmSession || !localProfile || !toProfileId || !cleanText5) return null;
     const thread = findThread(toProfileId);
     if (thread && dmRuntime) {
       const message = dmRuntime.sendMessage({
         createdAt,
         messageId,
-        text,
+        text: cleanText5,
         threadId: thread.threadId
       });
       return { kind: "message", message, thread };
@@ -2748,7 +2749,7 @@ function createDesktopDmRuntime({
       fromIdentity: localProfile.identity,
       requestId,
       senderEncryptionPublicKey: localProfile.dmEncryptionKeyPair.publicKey,
-      text,
+      text: cleanText5,
       toProfileId
     });
     dmSession = appendLocalMessageRequest(dmSession, request);
@@ -3404,9 +3405,11 @@ function createDesktopHomeRuntime({
     session = nextContext?.session || session;
   }
   function sendMessage(message) {
-    if (!room || !session || !message?.text?.trim()) return null;
-    session = appendLocalMessage(session, message.text, message);
-    room.send(message);
+    const cleanText5 = message?.text?.trim();
+    if (!room || !session || !cleanText5) return null;
+    const cleanMessage = { ...message, text: cleanText5 };
+    session = appendLocalMessage(session, cleanText5, cleanMessage);
+    room.send(cleanMessage);
     onSessionChanged(session);
     return session;
   }

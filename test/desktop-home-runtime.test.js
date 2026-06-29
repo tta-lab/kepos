@@ -158,12 +158,27 @@ test('desktop home runtime updates chat session for local and remote messages', 
   const { calls, room, runtime, sessions } = createRuntime()
 
   await runtime.join({ homeJoinDetails })
-  const local = runtime.sendMessage({ at: 1, id: 'message-1', text: 'hello' })
+  const local = runtime.sendMessage({ at: 1, id: 'message-1', text: '  hello  ' })
   room.options.onMessage({ at: 2, id: 'message-2', nick: 'Peer', text: 'hi' })
 
   assert.equal(local.messages.length, 1)
+  assert.equal(local.messages[0].text, 'hello')
   assert.equal(sessions.at(-1).messages.length, 2)
   assert.deepEqual(calls.at(-1), ['send', { at: 1, id: 'message-1', text: 'hello' }])
+})
+
+test('desktop home runtime ignores blank local messages', async () => {
+  const { calls, runtime, sessions } = createRuntime()
+
+  await runtime.join({ homeJoinDetails })
+  const result = runtime.sendMessage({ at: 1, id: 'message-1', text: '   ' })
+
+  assert.equal(result, null)
+  assert.equal(sessions.length, 0)
+  assert.equal(
+    calls.some(([name]) => name === 'send'),
+    false
+  )
 })
 
 test('desktop home runtime forwards non-home control frames and peer counts', async () => {
