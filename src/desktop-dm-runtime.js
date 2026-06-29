@@ -7,7 +7,7 @@ import {
   hasOutgoingMessageRequest,
   restoreDirectMessageSession
 } from './dm-session.ts'
-import { acceptDmInviteAsRecipient } from './dm-invite-acceptance.js'
+import { acceptDmInviteAsRecipient } from './dm-invite-acceptance.ts'
 import { loadDmMessagesFromStorage, saveDmMessagesToStorage } from './dm-message-storage.ts'
 import {
   loadDmSessionMessagesFromStorage,
@@ -16,7 +16,7 @@ import {
 import { createDmThreadRuntime } from './dm-thread-runtime.js'
 import { loadDmThreadsFromStorage, saveDmThreadsToStorage } from './dm-thread-storage.ts'
 import { createMessageRequest } from './message-request.ts'
-import { acceptMessageRequestWithInvite } from './message-request-acceptance.js'
+import { acceptMessageRequestWithInvite } from './message-request-acceptance.ts'
 
 export function createDesktopDmRuntime({
   acceptInvite = acceptDmInviteAsRecipient,

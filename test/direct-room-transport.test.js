@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { once } from 'node:events'
 import net from 'node:net'
 import test from 'node:test'
-import { createDirectRoomTransport } from '../src/direct-room-transport.js'
+import { createDirectRoomTransport } from '../src/direct-room-transport.ts'
 
 test('direct room transport connects a guest socket to a host listener', async () => {
   const hostPeers = []

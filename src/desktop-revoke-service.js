@@ -1,4 +1,4 @@
-import { applyLocalContactRevoke } from './revoke-state.js'
+import { applyLocalContactRevoke } from './revoke-state.ts'
 
 export function createDesktopContactRevoke({
   book,

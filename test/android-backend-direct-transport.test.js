@@ -7,7 +7,7 @@ test('Android backend wires optional direct transport into p2p room', async () =
 
   assert.match(
     source,
-    /import \{ createDirectRoomTransport \} from '\.\.\/src\/direct-room-transport\.js'/
+    /import \{ createDirectRoomTransport \} from '\.\.\/src\/direct-room-transport\.ts'/
   )
   assert.match(source, /createDirectTransport:\s*payload\.directTransport/)
   assert.match(source, /createDirectRoomTransport\(\{[\s\S]*\.\.\.payload\.directTransport/)

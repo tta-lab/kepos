@@ -1,8 +1,12 @@
 import b4a from 'b4a'
 import crypto from 'hypercore-crypto'
 import { acceptMessageRequest, getContact } from './contact-book.ts'
+import type { ContactBook } from './contact-book.ts'
 import { createDmInvite, openDmInvite } from './dm-invite.ts'
+import type { DmEncryptionKeyPair, DmInvite, DmInvitePayload } from './dm-invite.ts'
 import { acceptDmThread, createDmThread } from './dm-thread.ts'
+import type { DmThread } from './dm-thread.ts'
+import type { SigningIdentity } from './signed-record.ts'
 
 export function acceptMessageRequestWithInvite({
   acceptedAt = Date.now(),
@@ -10,7 +14,17 @@ export function acceptMessageRequestWithInvite({
   book,
   remoteProfileId,
   threadId
-}) {
+}: {
+  acceptedAt?: number
+  acceptorIdentity: SigningIdentity
+  book: ContactBook
+  remoteProfileId: string
+  threadId: string
+}): {
+  book: ContactBook
+  invite: DmInvite
+  thread: DmThread
+} {
   const contact = getContact(book, remoteProfileId)
   if (contact?.revokedAt !== undefined && contact.revokedAt !== null) {
     throw new Error('Revoked contact cannot be accepted')
@@ -45,7 +59,10 @@ export function acceptMessageRequestWithInvite({
       channelPublicKey,
       threadId
     },
-    recipientEncryptionPublicKey: request.senderEncryptionPublicKey,
+    recipientEncryptionPublicKey: requireString(
+      request.senderEncryptionPublicKey,
+      'Sender encryption public key is required'
+    ),
     requestId: request.requestId,
     toProfileId: remoteProfileId
   })
@@ -66,10 +83,24 @@ export function openAcceptedMessageRequestInvite({
   invite,
   now = Date.now(),
   recipientEncryptionKeyPair
-}) {
+}: {
+  invite: DmInvite
+  now?: number
+  recipientEncryptionKeyPair: DmEncryptionKeyPair
+}): DmInvitePayload {
   return openDmInvite({ invite, now, recipientEncryptionKeyPair })
 }
 
-function createKey() {
+function createKey(): string {
   return b4a.toString(crypto.randomBytes(32), 'hex')
+}
+
+function requireString(value: unknown, message: string): string {
+  const cleaned = typeof value === 'string' ? value.trim() : ''
+
+  if (!cleaned) {
+    throw new Error(message)
+  }
+
+  return cleaned
 }

@@ -7,7 +7,7 @@ import tcp from 'bare-tcp'
 import crypto from 'hypercore-crypto'
 import Hyperswarm from 'hyperswarm'
 import { createDmInvite, createDmEncryptionKeyPair } from '../src/dm-invite.ts'
-import { acceptDmInviteAsRecipient } from '../src/dm-invite-acceptance.js'
+import { acceptDmInviteAsRecipient } from '../src/dm-invite-acceptance.ts'
 import { getOrCreateBackendDmEncryptionKeyPair } from '../src/backend-dm-key-storage.js'
 import {
   loadDmMessagesFromFileSystem,
@@ -17,7 +17,7 @@ import { acceptDmThread, createDmThread, revokeDmThread } from '../src/dm-thread
 import { createDmThreadRuntime } from '../src/dm-thread-runtime.js'
 import { loadDmThreadsFromFileSystem, saveDmThreadsToFileSystem } from '../src/dm-thread-storage.ts'
 import { createMessageRequest, verifyMessageRequest } from '../src/message-request.ts'
-import { createDirectRoomTransport } from '../src/direct-room-transport.js'
+import { createDirectRoomTransport } from '../src/direct-room-transport.ts'
 import { createP2PRoom } from '../src/p2p-room.js'
 import { createHomeHello, verifyHomeHello } from '../src/home-presence.ts'
 import { createTreeholeBase } from '../src/treehole-base.js'

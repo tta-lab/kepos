@@ -11,7 +11,7 @@ import { applyMessageRequestToContactBook, createMessageRequest } from '../src/m
 import {
   acceptMessageRequestWithInvite,
   openAcceptedMessageRequestInvite
-} from '../src/message-request-acceptance.js'
+} from '../src/message-request-acceptance.ts'
 import { createDmEncryptionKeyPair, verifyDmInvite } from '../src/dm-invite.ts'
 import { isDmThreadActive } from '../src/dm-thread.ts'
 import { createSigningKeyPair } from '../src/signed-record.ts'

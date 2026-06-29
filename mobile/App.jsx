@@ -95,7 +95,7 @@ import {
   getMobileTreeholeStatus,
   shortenProfileId
 } from '../src/mobile-product-copy.ts'
-import { applyLocalContactRevoke } from '../src/revoke-state.js'
+import { applyLocalContactRevoke } from '../src/revoke-state.ts'
 import {
   createSignedHomeAddressPayload,
   createSignedTrustInvitePayload,

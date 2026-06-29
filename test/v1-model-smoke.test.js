@@ -19,7 +19,7 @@ import { isDmThreadActive } from '../src/dm-thread.ts'
 import {
   acceptMessageRequestWithInvite,
   openAcceptedMessageRequestInvite
-} from '../src/message-request-acceptance.js'
+} from '../src/message-request-acceptance.ts'
 import { applyMessageRequestToContactBook, createMessageRequest } from '../src/message-request.ts'
 import { createSigningKeyPair } from '../src/signed-record.ts'
 import { applySignedQrUriToContactBook } from '../src/signed-qr-scan.ts'

@@ -7,7 +7,7 @@ import {
   trustContact
 } from '../src/contact-book.ts'
 import { acceptDmThread, createDmThread } from '../src/dm-thread.ts'
-import { applyLocalContactRevoke } from '../src/revoke-state.js'
+import { applyLocalContactRevoke } from '../src/revoke-state.ts'
 
 test('local contact revoke updates trust, treehole policy, and matching DM threads', () => {
   const ownerProfileId = 'a'.repeat(64)

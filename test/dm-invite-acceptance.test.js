@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
 import { createContactBook, revokeContact, trustContact } from '../src/contact-book.ts'
 import { createDmEncryptionKeyPair, createDmInvite } from '../src/dm-invite.ts'
-import { acceptDmInviteAsRecipient } from '../src/dm-invite-acceptance.js'
+import { acceptDmInviteAsRecipient } from '../src/dm-invite-acceptance.ts'
 import { isDmThreadActive } from '../src/dm-thread.ts'
 import { createSigningKeyPair } from '../src/signed-record.ts'
 

@@ -1,6 +1,9 @@
 import { openDmInvite } from './dm-invite.ts'
+import type { DmEncryptionKeyPair, DmInvite } from './dm-invite.ts'
 import { acceptDmThread, createDmThread } from './dm-thread.ts'
+import type { DmThread } from './dm-thread.ts'
 import { canAcceptDmInviteFromContactBook, isContactRevoked } from './contact-book.ts'
+import type { ContactBook } from './contact-book.ts'
 
 export function acceptDmInviteAsRecipient({
   acceptedAt = Date.now(),
@@ -9,7 +12,14 @@ export function acceptDmInviteAsRecipient({
   invite,
   localProfileId,
   recipientEncryptionKeyPair
-}) {
+}: {
+  acceptedAt?: number
+  canAcceptInvite?: (invite: DmInvite) => boolean
+  contactBook?: ContactBook | null
+  invite: DmInvite
+  localProfileId: string
+  recipientEncryptionKeyPair: DmEncryptionKeyPair
+}): DmThread {
   if (!localProfileId || invite?.toProfileId !== localProfileId) {
     throw new Error('DM invite is not addressed to this profile')
   }
@@ -27,24 +37,40 @@ export function acceptDmInviteAsRecipient({
   }
 
   const payload = openDmInvite({ invite, now: acceptedAt, recipientEncryptionKeyPair })
+  const channelDiscoveryKey = requireString(
+    payload.channelDiscoveryKey,
+    'Channel discovery key is required'
+  )
+  const channelPublicKey = requireString(payload.channelPublicKey, 'Channel public key is required')
+  const threadId = requireString(payload.threadId, 'Thread id is required')
 
   if (
-    payload.channelDiscoveryKey !== invite.channelDiscoveryKey ||
-    payload.channelPublicKey !== invite.channelPublicKey
+    channelDiscoveryKey !== invite.channelDiscoveryKey ||
+    channelPublicKey !== invite.channelPublicKey
   ) {
     throw new Error('DM invite payload mismatch')
   }
 
   return acceptDmThread(
     createDmThread({
-      channelDiscoveryKey: payload.channelDiscoveryKey,
-      channelPublicKey: payload.channelPublicKey,
+      channelDiscoveryKey,
+      channelPublicKey,
       createdAt: invite.createdAt,
       localProfileId,
       remoteProfileId: invite.fromProfileId,
       requestId: invite.requestId,
-      threadId: payload.threadId
+      threadId
     }),
     { acceptedAt }
   )
+}
+
+function requireString(value: unknown, message: string): string {
+  const cleaned = typeof value === 'string' ? value.trim() : ''
+
+  if (!cleaned) {
+    throw new Error(message)
+  }
+
+  return cleaned
 }
