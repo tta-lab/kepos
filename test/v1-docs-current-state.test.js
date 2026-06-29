@@ -350,6 +350,18 @@ test('V1 DM bootstrap docs no longer claim contact polish remains pending', asyn
   assert.match(dmBootstrap, /guide zero-contact Direct users toward People/)
 })
 
+test('V1 docs record revoke clearing pending message requests', async () => {
+  const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
+  const gaps = await readText('../docs/v1.07-architecture-gaps.md')
+  const dmBootstrap = await readText('../docs/v1.08-dm-bootstrap-security.md')
+  const dependencyOrder = await readText('../docs/v1.01-dependency-order.md')
+
+  assert.match(audit, /revoke updates trust, clears pending requests from the revoked profile/)
+  assert.match(gaps, /ContactBook clears existing pending message requests from a revoked contact/)
+  assert.match(dmBootstrap, /ContactBook clears an existing pending message request/)
+  assert.match(dependencyOrder, /clear pending message requests from the revoked profile/)
+})
+
 test('V1 UX docs include composer payload trimming on desktop and mobile', async () => {
   const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
   const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
