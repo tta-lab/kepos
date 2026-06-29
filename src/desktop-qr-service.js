@@ -1,5 +1,5 @@
 import QRCode from 'qrcode/lib/browser.js'
-import { createTreeholePolicyFromContactBook } from './contact-book-storage.js'
+import { createTreeholePolicyFromContactBook } from './contact-book-storage.ts'
 import {
   createSignedHomeAddressPayload,
   createSignedTrustInvitePayload,

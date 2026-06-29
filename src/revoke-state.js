@@ -1,4 +1,4 @@
-import { createTreeholePolicyFromContactBook } from './contact-book-storage.js'
+import { createTreeholePolicyFromContactBook } from './contact-book-storage.ts'
 import { revokeContact } from './contact-book.ts'
 import { revokeDmThread } from './dm-thread.ts'
 

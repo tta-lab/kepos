@@ -8,7 +8,7 @@ import {
   saveContactBookToFileSystem,
   saveContactBookToStorage,
   trustContact
-} from '../src/contact-book-storage.js'
+} from '../src/contact-book-storage.ts'
 
 describe('contact book storage', () => {
   test('saves and loads contact books from sync key-value storage', () => {

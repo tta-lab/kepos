@@ -1,4 +1,4 @@
-import { loadContactBookFromStorage, saveContactBookToStorage } from './contact-book-storage.js'
+import { loadContactBookFromStorage, saveContactBookToStorage } from './contact-book-storage.ts'
 import { createDmEncryptionKeyPair } from './dm-invite.ts'
 import { getOrCreateLocalProfile } from './local-profile.js'
 

@@ -57,7 +57,7 @@ import {
   createTreeholePolicyFromContactBook,
   loadContactBookFromFileSystem,
   saveContactBookToFileSystem
-} from '../src/contact-book-storage.js'
+} from '../src/contact-book-storage.ts'
 import {
   createHomeJoinSession,
   createHomeJoinSessionFromAddress,

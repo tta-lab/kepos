@@ -5,11 +5,29 @@ export {
   trustContact
 } from './contact-book.ts'
 import { createContactBook, deserializeContactBook, serializeContactBook } from './contact-book.ts'
+import type { ContactBook } from './contact-book.ts'
 
 const CONTACT_BOOK_KEY = 'kepos.contactBook.v1'
 const CONTACT_BOOK_FILE = 'contact-book.json'
 
-export function loadContactBookFromStorage({ ownerProfileId, storage }) {
+type SyncStorage = {
+  getItem?: (key: string) => string | null | undefined
+  setItem?: (key: string, value: string) => unknown
+}
+
+type AsyncFileSystem = {
+  makeDirectoryAsync(path: string, options: { intermediates: boolean }): Promise<unknown> | unknown
+  readAsStringAsync(path: string): Promise<string> | string
+  writeAsStringAsync(path: string, value: string): Promise<unknown> | unknown
+}
+
+export function loadContactBookFromStorage({
+  ownerProfileId,
+  storage
+}: {
+  ownerProfileId: string
+  storage?: SyncStorage | null
+}): ContactBook {
   const stored = storage?.getItem?.(CONTACT_BOOK_KEY)
 
   if (!stored) {
@@ -19,11 +37,25 @@ export function loadContactBookFromStorage({ ownerProfileId, storage }) {
   return deserializeContactBook(stored)
 }
 
-export function saveContactBookToStorage({ book, storage }) {
+export function saveContactBookToStorage({
+  book,
+  storage
+}: {
+  book: ContactBook
+  storage?: SyncStorage | null
+}): void {
   storage?.setItem?.(CONTACT_BOOK_KEY, JSON.stringify(serializeContactBook(book)))
 }
 
-export async function loadContactBookFromFileSystem({ baseUri, fileSystem, ownerProfileId }) {
+export async function loadContactBookFromFileSystem({
+  baseUri,
+  fileSystem,
+  ownerProfileId
+}: {
+  baseUri: string
+  fileSystem: AsyncFileSystem
+  ownerProfileId: string
+}): Promise<ContactBook> {
   const path = contactBookPath(baseUri)
 
   try {
@@ -37,7 +69,15 @@ export async function loadContactBookFromFileSystem({ baseUri, fileSystem, owner
   }
 }
 
-export async function saveContactBookToFileSystem({ baseUri, book, fileSystem }) {
+export async function saveContactBookToFileSystem({
+  baseUri,
+  book,
+  fileSystem
+}: {
+  baseUri: string
+  book: ContactBook
+  fileSystem: AsyncFileSystem
+}): Promise<void> {
   const dir = contactBookDir(baseUri)
 
   await fileSystem.makeDirectoryAsync(dir, { intermediates: true })
@@ -47,11 +87,11 @@ export async function saveContactBookToFileSystem({ baseUri, book, fileSystem })
   )
 }
 
-function contactBookPath(baseUri) {
+function contactBookPath(baseUri: string): string {
   return `${contactBookDir(baseUri)}/${CONTACT_BOOK_FILE}`
 }
 
-function contactBookDir(baseUri) {
+function contactBookDir(baseUri: string): string {
   if (!baseUri) {
     throw new Error('App storage directory is unavailable')
   }
@@ -59,6 +99,6 @@ function contactBookDir(baseUri) {
   return `${baseUri.replace(/\/+$/, '')}/kepos`
 }
 
-function isMissingFileError(error) {
+function isMissingFileError(error: unknown): boolean {
   return error instanceof Error && /not found|no such file|enoent/i.test(error.message)
 }
