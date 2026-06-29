@@ -355,9 +355,9 @@ test('V1 UX docs include composer payload trimming on desktop and mobile', async
   const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
 
   assert.match(audit, /desktop Home, Direct, Treehole post, and Treehole comment payloads trim/)
-  assert.match(audit, /Treehole runtime\s+post\/comment writes defensive/)
+  assert.match(audit, /Home, Direct, and\s+Treehole runtime writes defensive/)
   assert.match(ux, /Desktop Home, Direct, Treehole post, and Treehole comment payloads trim/)
-  assert.match(ux, /Desktop Treehole runtime also trims post\/comment text/)
+  assert.match(ux, /Desktop Home, Direct, and Treehole runtime calls also trim outgoing text/)
   assert.match(audit, /mobile Home, Direct, Treehole post, and Treehole comment payloads trim/)
   assert.match(ux, /Mobile Home, Direct, Treehole post, and Treehole comment payloads trim/)
 })
