@@ -118,6 +118,38 @@ describe('DM invite acceptance', () => {
     )
   })
 
+  test('rejects invites addressed to a different local profile', () => {
+    const sender = createSigningKeyPair()
+    const recipient = createSigningKeyPair()
+    const otherRecipient = createSigningKeyPair()
+    const recipientEncryption = createDmEncryptionKeyPair()
+    const invite = createDmInvite({
+      channelDiscoveryKey: '1'.repeat(64),
+      channelPublicKey: '2'.repeat(64),
+      createdAt: 1000,
+      fromIdentity: sender,
+      inviteId: 'invite-1',
+      payload: {
+        channelDiscoveryKey: '1'.repeat(64),
+        channelPublicKey: '2'.repeat(64),
+        threadId: 'thread-1'
+      },
+      recipientEncryptionPublicKey: recipientEncryption.publicKey,
+      requestId: 'request-1',
+      toProfileId: recipient.publicKey
+    })
+
+    assert.throws(
+      () =>
+        acceptDmInviteAsRecipient({
+          invite,
+          localProfileId: otherRecipient.publicKey,
+          recipientEncryptionKeyPair: recipientEncryption
+        }),
+      /not addressed to this profile/
+    )
+  })
+
   test('rejects request-bound invites from revoked senders', () => {
     const sender = createSigningKeyPair()
     const recipient = createSigningKeyPair()

@@ -2004,6 +2004,9 @@ function acceptDmInviteAsRecipient({
   localProfileId,
   recipientEncryptionKeyPair
 }) {
+  if (!localProfileId || invite?.toProfileId !== localProfileId) {
+    throw new Error("DM invite is not addressed to this profile");
+  }
   if (contactBook && !canAcceptDmInviteFromContactBook(contactBook, invite)) {
     throw new Error("DM invite is not authorized");
   }
