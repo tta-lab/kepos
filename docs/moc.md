@@ -88,12 +88,16 @@ This is the map of content for Kepos architecture docs.
    - Use this before discussing V2 scope or ordering.
 
 2. `docs/v2.02-listening-room.md`
-   - V2 listening room as one host live audio stream.
-   - Use this when discussing local file audio, PCM socket input, and shared room listening.
+   - V2 shared music room over NAS-backed or self-hosted music services.
+   - Use this when discussing Navidrome, Subsonic-compatible music, shared queues, and synchronized room playback.
 
 3. `docs/v2.03-watch-room.md`
-   - V2 watch room as one host OBS-compatible live A/V stream to one trusted viewer.
-   - Use this when discussing one-to-one watch rooms or OBS-compatible ingest.
+   - V2 watch room over self-hosted video or one host OBS-compatible live A/V stream to one trusted viewer.
+   - Use this when discussing one-to-one watch rooms, self-hosted video, or OBS-compatible ingest.
+
+4. `docs/v2.04-shared-self-hosted-media-rooms.md`
+   - V2 shared rooms over mature self-hosted media services.
+   - Use this when discussing music rooms, watch rooms, reading rooms, NAS-backed media, and adapter-led local app sharing.
 
 ## V3 Architecture
 
