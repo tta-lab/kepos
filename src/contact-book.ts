@@ -124,8 +124,11 @@ export function upsertContact(book: ContactBook, contact: ContactPatch): Contact
   const cleanContact = cleanContactPatch(contact)
   const nextBook = cloneContactBook(book)
   const existing = nextBook.contactsByProfileId.get(cleanContact.profileId)
-  const alias = cleanContact.alias || cleanContact.displayNameSnapshot
-  const aliases = mergeAliases(existing?.aliases, alias)
+  const alias = cleanContact.alias || existing?.alias || cleanContact.displayNameSnapshot
+  const aliases = mergeAliases(
+    existing?.aliases,
+    cleanContact.alias || (existing?.alias ? undefined : cleanContact.displayNameSnapshot)
+  )
   const nextContact = dropEmpty({
     ...existing,
     ...cleanContact,

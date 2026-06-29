@@ -40,6 +40,7 @@ export function applySignedQrUriToContactBook({
       roomKey: string
     } {
   const payload = decodeQrUri(uri)
+  const localAlias = alias?.trim() || undefined
 
   if (payload.type === 'kepos.trust.invite.v1') {
     if (!verifySignedTrustInvitePayload(payload, { now })) {
@@ -53,7 +54,7 @@ export function applySignedQrUriToContactBook({
         trustedProfileId: payload.profileId
       })
       const nextBook = applyTrustGrantToContactBook(book, {
-        alias: alias?.trim() || payload.displayName,
+        alias: localAlias,
         displayNameSnapshot: payload.displayName,
         grant,
         source
@@ -67,7 +68,7 @@ export function applySignedQrUriToContactBook({
     }
 
     const nextBook = trustContact(book, {
-      alias: alias?.trim() || payload.displayName,
+      alias: localAlias,
       displayNameSnapshot: payload.displayName,
       profileId: payload.profileId,
       source,

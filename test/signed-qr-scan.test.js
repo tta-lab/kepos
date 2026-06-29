@@ -96,6 +96,34 @@ describe('signed QR scan to ContactBook', () => {
     assert.equal(getContact(result.book, remote.publicKey).alias, 'Ada Lovelace')
   })
 
+  test('profile QR display name refresh does not overwrite an existing local alias', () => {
+    const scanner = createSigningKeyPair()
+    const remote = createSigningKeyPair()
+    const book = trustContact(createContactBook({ ownerProfileId: scanner.publicKey }), {
+      alias: 'Ada local',
+      displayNameSnapshot: 'Ada Lovelace',
+      profileId: remote.publicKey,
+      trustedAt: 900
+    })
+    const uri = encodeQrUri(
+      createSignedTrustInvitePayload({
+        createdAt: 1000,
+        displayName: 'Ada Remote',
+        identity: remote
+      })
+    )
+
+    const result = applySignedQrUriToContactBook({
+      book,
+      uri
+    })
+
+    assert.equal(result.kind, 'trust')
+    assert.equal(getContact(result.book, remote.publicKey).alias, 'Ada local')
+    assert.equal(getContact(result.book, remote.publicKey).displayNameSnapshot, 'Ada Remote')
+    assert.deepEqual(getContact(result.book, remote.publicKey).aliases, ['Ada local'])
+  })
+
   test('tampered profile QR is rejected before writing contacts', () => {
     const scanner = createSigningKeyPair()
     const remote = createSigningKeyPair()

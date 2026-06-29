@@ -83,6 +83,41 @@ describe('contact book', () => {
     assert.equal(getContact(next, 'profile-b').alias, 'A.')
   })
 
+  test('remote display name updates do not overwrite local alias', () => {
+    const book = upsertContact(createContactBook({ ownerProfileId: 'owner-a' }), {
+      profileId: 'profile-b',
+      alias: 'Ada local',
+      displayNameSnapshot: 'Ada Lovelace'
+    })
+
+    const next = upsertContact(book, {
+      profileId: 'profile-b',
+      displayNameSnapshot: 'Ada Remote'
+    })
+
+    assert.equal(getContact(next, 'profile-b').alias, 'Ada local')
+    assert.equal(getContact(next, 'profile-b').displayNameSnapshot, 'Ada Remote')
+    assert.deepEqual(getContact(next, 'profile-b').aliases, ['Ada local'])
+  })
+
+  test('explicit local alias updates still replace the active alias', () => {
+    const book = upsertContact(createContactBook({ ownerProfileId: 'owner-a' }), {
+      profileId: 'profile-b',
+      alias: 'Ada local',
+      displayNameSnapshot: 'Ada Lovelace'
+    })
+
+    const next = upsertContact(book, {
+      profileId: 'profile-b',
+      alias: 'Ada chosen',
+      displayNameSnapshot: 'Ada Remote'
+    })
+
+    assert.equal(getContact(next, 'profile-b').alias, 'Ada chosen')
+    assert.equal(getContact(next, 'profile-b').displayNameSnapshot, 'Ada Remote')
+    assert.deepEqual(getContact(next, 'profile-b').aliases, ['Ada local', 'Ada chosen'])
+  })
+
   test('trusting a contact records V1 home trust and access', () => {
     const book = createContactBook({ ownerProfileId: 'owner-a' })
 
