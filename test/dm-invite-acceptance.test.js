@@ -218,6 +218,7 @@ describe('DM invite acceptance', () => {
     assert.throws(
       () =>
         acceptDmInviteAsRecipient({
+          canAcceptInvite: (candidate) => candidate.requestId === 'request-1',
           contactBook: book,
           invite,
           localProfileId: recipient.publicKey,
@@ -231,6 +232,11 @@ describe('DM invite acceptance', () => {
     const sender = createSigningKeyPair()
     const recipient = createSigningKeyPair()
     const recipientEncryption = createDmEncryptionKeyPair()
+    const book = trustContact(createContactBook({ ownerProfileId: recipient.publicKey }), {
+      alias: 'Sender',
+      profileId: sender.publicKey,
+      trustedAt: 1500
+    })
     const invite = createDmInvite({
       channelDiscoveryKey: '1'.repeat(64),
       channelPublicKey: '2'.repeat(64),
@@ -251,6 +257,7 @@ describe('DM invite acceptance', () => {
         acceptDmInviteAsRecipient({
           acceptedAt: 2000,
           canAcceptInvite: () => true,
+          contactBook: book,
           invite,
           localProfileId: recipient.publicKey,
           recipientEncryptionKeyPair: recipientEncryption

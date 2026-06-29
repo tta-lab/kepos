@@ -391,7 +391,7 @@ export function ignoreMessageRequest(
   return nextBook
 }
 
-function isContactRevoked(book: ContactBook, profileId: string): boolean {
+export function isContactRevoked(book: ContactBook, profileId: string): boolean {
   const contact = getContact(book, profileId)
 
   return contact?.revokedAt !== undefined && contact.revokedAt !== null

@@ -1,6 +1,6 @@
 import { openDmInvite } from './dm-invite.ts'
 import { acceptDmThread, createDmThread } from './dm-thread.ts'
-import { canAcceptDmInviteFromContactBook } from './contact-book.ts'
+import { canAcceptDmInviteFromContactBook, isContactRevoked } from './contact-book.ts'
 
 export function acceptDmInviteAsRecipient({
   acceptedAt = Date.now(),
@@ -12,6 +12,10 @@ export function acceptDmInviteAsRecipient({
 }) {
   if (!localProfileId || invite?.toProfileId !== localProfileId) {
     throw new Error('DM invite is not addressed to this profile')
+  }
+
+  if (contactBook && isContactRevoked(contactBook, invite.fromProfileId)) {
+    throw new Error('DM invite is not authorized')
   }
 
   const isContactBookAuthorized =
