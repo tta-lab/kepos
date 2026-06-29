@@ -40,13 +40,13 @@ import {
   appendRemoteMessageRequest,
   dismissDirectMessage,
   restoreDirectMessageSession
-} from '../src/dm-session.js'
+} from '../src/dm-session.ts'
 import {
   loadDmSessionMessagesFromFileSystem,
   saveDmSessionMessagesToFileSystem
-} from '../src/dm-session-storage.js'
-import { loadDmThreadsFromFileSystem, saveDmThreadsToFileSystem } from '../src/dm-thread-storage.js'
-import { upsertDmThread } from '../src/dm-thread-list.js'
+} from '../src/dm-session-storage.ts'
+import { loadDmThreadsFromFileSystem, saveDmThreadsToFileSystem } from '../src/dm-thread-storage.ts'
+import { upsertDmThread } from '../src/dm-thread-list.ts'
 import {
   acceptMessageRequest,
   ignoreMessageRequest,

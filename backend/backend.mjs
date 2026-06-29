@@ -15,7 +15,7 @@ import {
 } from '../src/dm-message-storage.ts'
 import { acceptDmThread, createDmThread, revokeDmThread } from '../src/dm-thread.ts'
 import { createDmThreadRuntime } from '../src/dm-thread-runtime.js'
-import { loadDmThreadsFromFileSystem, saveDmThreadsToFileSystem } from '../src/dm-thread-storage.js'
+import { loadDmThreadsFromFileSystem, saveDmThreadsToFileSystem } from '../src/dm-thread-storage.ts'
 import { createMessageRequest, verifyMessageRequest } from '../src/message-request.ts'
 import { createDirectRoomTransport } from '../src/direct-room-transport.js'
 import { createP2PRoom } from '../src/p2p-room.js'

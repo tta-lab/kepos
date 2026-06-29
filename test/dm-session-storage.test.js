@@ -5,7 +5,7 @@ import {
   loadDmSessionMessagesFromStorage,
   saveDmSessionMessagesToFileSystem,
   saveDmSessionMessagesToStorage
-} from '../src/dm-session-storage.js'
+} from '../src/dm-session-storage.ts'
 
 const ownerProfileId = 'a'.repeat(64)
 

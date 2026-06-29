@@ -9,7 +9,7 @@ import {
   appendRemoteMessageRequest,
   createDirectMessageSession,
   dismissDirectMessage
-} from '../src/dm-session.js'
+} from '../src/dm-session.ts'
 import { createSignedDmMessage } from '../src/dm-message.ts'
 import { createSigningKeyPair } from '../src/signed-record.ts'
 

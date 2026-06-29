@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { upsertDmThread } from '../src/dm-thread-list.js'
+import { upsertDmThread } from '../src/dm-thread-list.ts'
 
 test('upsert DM thread replaces by thread id and preserves other threads', () => {
   assert.deepEqual(

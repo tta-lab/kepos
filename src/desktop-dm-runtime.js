@@ -5,15 +5,15 @@ import {
   appendRemoteSignedDirectMessage,
   dismissDirectMessage,
   restoreDirectMessageSession
-} from './dm-session.js'
+} from './dm-session.ts'
 import { acceptDmInviteAsRecipient } from './dm-invite-acceptance.js'
 import { loadDmMessagesFromStorage, saveDmMessagesToStorage } from './dm-message-storage.ts'
 import {
   loadDmSessionMessagesFromStorage,
   saveDmSessionMessagesToStorage
-} from './dm-session-storage.js'
+} from './dm-session-storage.ts'
 import { createDmThreadRuntime } from './dm-thread-runtime.js'
-import { loadDmThreadsFromStorage, saveDmThreadsToStorage } from './dm-thread-storage.js'
+import { loadDmThreadsFromStorage, saveDmThreadsToStorage } from './dm-thread-storage.ts'
 import { createMessageRequest } from './message-request.ts'
 import { acceptMessageRequestWithInvite } from './message-request-acceptance.js'
 

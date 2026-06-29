@@ -6,7 +6,7 @@ import {
   loadDmThreadsFromStorage,
   saveDmThreadsToFileSystem,
   saveDmThreadsToStorage
-} from '../src/dm-thread-storage.js'
+} from '../src/dm-thread-storage.ts'
 
 const LOCAL_PROFILE_ID = '1'.repeat(64)
 const REMOTE_PROFILE_ID = '2'.repeat(64)
