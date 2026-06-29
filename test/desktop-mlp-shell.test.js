@@ -320,7 +320,7 @@ test('desktop people pane surfaces pending message requests', async () => {
     'utf8'
   )
   const actions = await readFile(
-    new URL('../src/desktop-message-request-actions.js', import.meta.url),
+    new URL('../src/desktop-message-request-actions.ts', import.meta.url),
     'utf8'
   )
   const bindings = await readFile(
@@ -467,7 +467,7 @@ test('desktop normal UI copy avoids raw home address language', async () => {
   const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const roomActions = await readFile(
-    new URL('../src/desktop-room-actions.js', import.meta.url),
+    new URL('../src/desktop-room-actions.ts', import.meta.url),
     'utf8'
   )
   const state = await readFile(new URL('../src/desktop-state.ts', import.meta.url), 'utf8')

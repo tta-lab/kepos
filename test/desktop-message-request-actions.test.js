@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createDesktopMessageRequestActions } from '../src/desktop-message-request-actions.js'
+import { createDesktopMessageRequestActions } from '../src/desktop-message-request-actions.ts'
 
 function createHarness(overrides = {}) {
   const calls = []

@@ -468,11 +468,11 @@ test('mobile success notices avoid profile id snippets', async () => {
 test('desktop success notices avoid profile id snippets', async () => {
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const messageRequestActions = await readFile(
-    new URL('../src/desktop-message-request-actions.js', import.meta.url),
+    new URL('../src/desktop-message-request-actions.ts', import.meta.url),
     'utf8'
   )
   const controlActions = await readFile(
-    new URL('../src/desktop-control-actions.js', import.meta.url),
+    new URL('../src/desktop-control-actions.ts', import.meta.url),
     'utf8'
   )
   const trustActions = await readFile(

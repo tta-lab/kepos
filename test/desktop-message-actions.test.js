@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createDesktopMessageActions } from '../src/desktop-message-actions.js'
+import { createDesktopMessageActions } from '../src/desktop-message-actions.ts'
 
 test('desktop message actions send home chat through the home runtime', () => {
   const renders = []

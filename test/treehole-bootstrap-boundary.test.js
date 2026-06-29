@@ -9,7 +9,7 @@ test('desktop shares treehole capabilities only after signed home hello', async 
     'utf8'
   )
   const actions = await readFile(
-    new URL('../src/desktop-control-actions.js', import.meta.url),
+    new URL('../src/desktop-control-actions.ts', import.meta.url),
     'utf8'
   )
   const runtime = await readFile(new URL('../src/desktop-home-runtime.js', import.meta.url), 'utf8')
@@ -18,7 +18,7 @@ test('desktop shares treehole capabilities only after signed home hello', async 
   assert.match(runtime, /verifyHomeHello/)
   assert.match(session, /onVerifiedHello: \(message, peer\) =>/)
   assert.match(session, /controlActions\.sendTreeholeBootstrap\(peer, message\.profileId\)/)
-  assert.match(actions, /function sendTreeholeBootstrap\(peer, remoteProfileId\)/)
+  assert.match(actions, /function sendTreeholeBootstrap\(peer: unknown, remoteProfileId = ''\)/)
   assert.doesNotMatch(controller, /broadcastControl\(\{\s*key: treehole\.key/s)
   assert.doesNotMatch(controller, /broadcastControl\(\{\s*key: treehole\.localWriterKey/s)
 })
@@ -46,7 +46,7 @@ test('android backend reports whether the local profile can post to treehole', a
 })
 
 test('desktop room actions report whether the local profile can post to treehole', async () => {
-  const source = await readFile(new URL('../src/desktop-room-actions.js', import.meta.url), 'utf8')
+  const source = await readFile(new URL('../src/desktop-room-actions.ts', import.meta.url), 'utf8')
 
   assert.match(source, /canPost: getTreeholeRuntime\(\)\.canPost\(\)/)
   assert.doesNotMatch(source, /canPostToCurrentTreehole/)

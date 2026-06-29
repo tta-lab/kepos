@@ -2,12 +2,70 @@ import {
   createDesktopControlMessageResult,
   createDesktopTreeholeControlSendResult
 } from './desktop-control-service.js'
+import type { DesktopProfileContext } from './desktop-profile-context-core.ts'
+
+type ControlMessage = Record<string, unknown> & {
+  fromProfileId?: string
+  key?: string
+  message?: unknown
+  ownerProfileId?: string
+  type?: string
+}
+
+type DmRuntime = {
+  acceptInviteAsRecipient(payload: unknown): unknown | Promise<unknown>
+  appendIncomingRequest(request: unknown): unknown
+  getSession(): unknown
+  receiveMessage?: (message: unknown) => boolean
+}
+
+type HomeRuntime = {
+  isJoined(): boolean
+  sendControl(peer: unknown, payload: unknown): unknown
+}
+
+type TreeholeRuntime = {
+  addWriter(writer: unknown): unknown | Promise<unknown>
+  createBootstrapControl(profileId?: string): unknown
+  createWriterControl(): unknown
+}
+
+type HomeJoinDetails = Record<string, unknown>
+
+type ControlMessageResult = {
+  appendIncomingRequest?: unknown
+  book?: DesktopProfileContext['contactBook']
+  bootstrapKey?: unknown
+  kind: string
+  ownerProfileId?: string
+  sendWriterPeer?: unknown
+  writer?: unknown
+} | null
+
+type TreeholeControlSendResult = {
+  payload: unknown
+  peer: unknown
+} | null
+
+type ControlMessageResultFactory = (
+  options: Record<string, unknown>
+) => ControlMessageResult | Promise<ControlMessageResult>
+
+type TreeholeControlSendResultFactory = (
+  options: Record<string, unknown>
+) => TreeholeControlSendResult
+
+export type DesktopControlActions = {
+  handleControl(message: ControlMessage, peer?: unknown): Promise<void>
+  sendTreeholeBootstrap(peer: unknown, remoteProfileId?: string): void
+  sendTreeholeWriter(peer: unknown): void
+}
 
 export function createDesktopControlActions({
   allowHomeDmBodyFallback = false,
   configureTreeholeRuntime,
-  createControlMessageResult = createDesktopControlMessageResult,
-  createTreeholeControlSendResult = createDesktopTreeholeControlSendResult,
+  createControlMessageResult = createDesktopControlMessageResult as unknown as ControlMessageResultFactory,
+  createTreeholeControlSendResult = createDesktopTreeholeControlSendResult as unknown as TreeholeControlSendResultFactory,
   getDmRuntime,
   getHomeJoinDetails,
   getHomeRuntime,
@@ -18,8 +76,26 @@ export function createDesktopControlActions({
   setHomeJoinDetails,
   setNotice,
   shortenProfileId
-}) {
-  async function handleControl(message, peer) {
+}: {
+  allowHomeDmBodyFallback?: boolean
+  configureTreeholeRuntime: () => void
+  createControlMessageResult?: ControlMessageResultFactory
+  createTreeholeControlSendResult?: TreeholeControlSendResultFactory
+  getDmRuntime: () => DmRuntime
+  getHomeJoinDetails: () => HomeJoinDetails | null
+  getHomeRuntime: () => HomeRuntime
+  getProfileContext: () => Pick<
+    DesktopProfileContext,
+    'contactBook' | 'profile' | 'saveContactBook'
+  >
+  getTreeholeRuntime: () => TreeholeRuntime
+  onChanged?: () => void
+  openTreehole: (bootstrapKey?: unknown) => unknown | Promise<unknown>
+  setHomeJoinDetails: (details: HomeJoinDetails) => void
+  setNotice: (notice: string) => void
+  shortenProfileId: (profileId?: string) => string
+}): DesktopControlActions {
+  async function handleControl(message: ControlMessage, peer?: unknown): Promise<void> {
     if (message.type === 'kepos.message.request.v1') {
       const context = getProfileContext()
       const dmRuntime = getDmRuntime()
@@ -31,7 +107,9 @@ export function createDesktopControlActions({
       })
       if (!result) return
 
-      context.saveContactBook(result.book)
+      if (result.book) {
+        context.saveContactBook(result.book)
+      }
       dmRuntime.appendIncomingRequest(result.appendIncomingRequest)
       setNotice('Message request received.')
       onChanged()
@@ -41,7 +119,8 @@ export function createDesktopControlActions({
     if (message.type === 'kepos.dm.invite.v1') {
       const { contactBook, profile } = getProfileContext()
       const result = await createControlMessageResult({
-        acceptInviteAsRecipient: (payload) => getDmRuntime().acceptInviteAsRecipient(payload),
+        acceptInviteAsRecipient: (payload: unknown) =>
+          getDmRuntime().acceptInviteAsRecipient(payload),
         contactBook,
         currentDmSession: getDmRuntime().getSession(),
         message,
@@ -87,10 +166,11 @@ export function createDesktopControlActions({
     }
   }
 
-  function sendTreeholeBootstrap(peer, remoteProfileId) {
+  function sendTreeholeBootstrap(peer: unknown, remoteProfileId = ''): void {
     const treeholeRuntime = getTreeholeRuntime()
     const result = createTreeholeControlSendResult({
-      createBootstrapControl: (profileId) => treeholeRuntime.createBootstrapControl(profileId),
+      createBootstrapControl: (profileId?: string) =>
+        treeholeRuntime.createBootstrapControl(profileId),
       isHomeJoined: getHomeRuntime().isJoined(),
       peer,
       remoteProfileId,
@@ -101,7 +181,7 @@ export function createDesktopControlActions({
     getHomeRuntime().sendControl(result.peer, result.payload)
   }
 
-  function sendTreeholeWriter(peer) {
+  function sendTreeholeWriter(peer: unknown): void {
     const treeholeRuntime = getTreeholeRuntime()
     const result = createTreeholeControlSendResult({
       createWriterControl: () => treeholeRuntime.createWriterControl(),

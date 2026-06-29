@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createDesktopRoomActions } from '../src/desktop-room-actions.js'
+import { createDesktopRoomActions } from '../src/desktop-room-actions.ts'
 
 function createHarness(overrides = {}) {
   const calls = []

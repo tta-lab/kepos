@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createDesktopControlActions } from '../src/desktop-control-actions.js'
+import { createDesktopControlActions } from '../src/desktop-control-actions.ts'
 
 function createHarness(overrides = {}) {
   const calls = []

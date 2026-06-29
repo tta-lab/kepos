@@ -162,15 +162,15 @@ test('desktop controller delegates home transport to a runtime boundary', async 
     'utf8'
   )
   const actions = await readFile(
-    new URL('../src/desktop-message-actions.js', import.meta.url),
+    new URL('../src/desktop-message-actions.ts', import.meta.url),
     'utf8'
   )
   const roomActions = await readFile(
-    new URL('../src/desktop-room-actions.js', import.meta.url),
+    new URL('../src/desktop-room-actions.ts', import.meta.url),
     'utf8'
   )
   const controlActions = await readFile(
-    new URL('../src/desktop-control-actions.js', import.meta.url),
+    new URL('../src/desktop-control-actions.ts', import.meta.url),
     'utf8'
   )
   const backendActions = await readFile(
@@ -185,7 +185,10 @@ test('desktop controller delegates home transport to a runtime boundary', async 
   assert.match(host, /createDesktopBackendRuntime/)
   assert.match(session, /homeRuntime = backendHost\.homeRuntime/)
   assert.match(session, /onHomeControl: \(message, peer\) => controlActions\.handleControl/)
-  assert.match(controlActions, /async function handleControl\(message, peer\)/)
+  assert.match(
+    controlActions,
+    /async function handleControl\(message: ControlMessage, peer\?: unknown\)/
+  )
   assert.match(session, /createDesktopBackendActions/)
   assert.match(backendActions, /joinHome: roomActions\?\.joinHome/)
   assert.match(roomActions, /getHomeRuntime\(\)\.join/)
@@ -202,7 +205,7 @@ test('desktop controller delegates direct message runtime and storage to a bound
     'utf8'
   )
   const actions = await readFile(
-    new URL('../src/desktop-message-actions.js', import.meta.url),
+    new URL('../src/desktop-message-actions.ts', import.meta.url),
     'utf8'
   )
   const host = await readFile(

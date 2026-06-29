@@ -97,7 +97,7 @@ test('desktop home message command carries composer text as payload', async () =
     'utf8'
   )
   const actions = await readFile(
-    new URL('../src/desktop-message-actions.js', import.meta.url),
+    new URL('../src/desktop-message-actions.ts', import.meta.url),
     'utf8'
   )
 
@@ -131,7 +131,7 @@ test('desktop direct message command carries composer fields as payload', async 
     'utf8'
   )
   const actions = await readFile(
-    new URL('../src/desktop-message-actions.js', import.meta.url),
+    new URL('../src/desktop-message-actions.ts', import.meta.url),
     'utf8'
   )
 
@@ -168,7 +168,7 @@ test('desktop treehole post command carries composer text as payload', async () 
     'utf8'
   )
   const actions = await readFile(
-    new URL('../src/desktop-message-actions.js', import.meta.url),
+    new URL('../src/desktop-message-actions.ts', import.meta.url),
     'utf8'
   )
 
@@ -200,7 +200,7 @@ test('desktop Home QR join command carries QR text and display name as payload',
     new URL('../src/desktop-backend-actions.ts', import.meta.url),
     'utf8'
   )
-  const actions = await readFile(new URL('../src/desktop-room-actions.js', import.meta.url), 'utf8')
+  const actions = await readFile(new URL('../src/desktop-room-actions.ts', import.meta.url), 'utf8')
 
   assert.match(
     bindings,
@@ -212,7 +212,10 @@ test('desktop Home QR join command carries QR text and display name as payload',
     /joinHomeUri: \(payload\) => actions\.joinHomeUri\(readCommandPayload\(payload\)\)/
   )
   assert.match(backendActions, /joinHomeUri: roomActions\?\.joinHomeUri/)
-  assert.match(actions, /async function joinHomeUri\(\{ displayName = 'Desktop', uri \} = \{\}\)/)
+  assert.match(
+    actions,
+    /async function joinHomeUri\(\{[\s\S]*displayName = 'Desktop',[\s\S]*uri[\s\S]*\}: RoomActionPayload = \{\}\)/
+  )
   assert.doesNotMatch(source, /homeQrForm: document\.querySelector/)
   assert.doesNotMatch(source, /homeQrInput: document\.querySelector/)
   assert.doesNotMatch(source, /nickInput: document\.querySelector/)

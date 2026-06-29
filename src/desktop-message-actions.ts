@@ -1,3 +1,48 @@
+type MessageActionPayload = {
+  postId?: string
+  text?: string
+  toProfileId?: string
+}
+
+type HomeRuntime = {
+  broadcastControl(message: unknown): unknown
+  isJoined(): boolean
+  sendMessage(message: { at: number; id: string; text: string }): unknown
+}
+
+type DmSendResult =
+  | {
+      kind?: string
+      message?: unknown
+    }
+  | null
+  | undefined
+
+type DmRuntime = {
+  sendMessageOrRequest(payload: {
+    broadcastControl(request: unknown): unknown
+    createdAt: number
+    messageId: string
+    requestId: string
+    text: string
+    toProfileId: string
+  }): DmSendResult
+}
+
+type TreeholeRuntime = {
+  comment(payload: { createdAt: number; id: string; postId?: string; text: string }): unknown
+  like(payload: { createdAt: number; postId?: string }): unknown
+  post(payload: { createdAt: number; id: string; text: string }): unknown
+}
+
+export type DesktopMessageActions = {
+  commentTreehole(payload?: MessageActionPayload): Promise<void>
+  likeTreehole(postId?: string): Promise<void>
+  postTreehole(payload?: MessageActionPayload): Promise<void>
+  sendDmMessage(payload?: MessageActionPayload): void
+  sendHomeMessage(payload?: MessageActionPayload): void
+}
+
 export function createDesktopMessageActions({
   allowHomeDmBodyFallback = false,
   createId = () => globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`,
@@ -10,7 +55,19 @@ export function createDesktopMessageActions({
   now = () => Date.now(),
   onChanged = () => {},
   setSession = () => {}
-} = {}) {
+}: {
+  allowHomeDmBodyFallback?: boolean
+  createId?: () => string
+  getDmRuntime?: () => DmRuntime | null
+  getDmSession?: () => unknown
+  getHomeRuntime?: () => HomeRuntime | null
+  getSession?: () => unknown
+  getTreeholeCanPost?: () => boolean
+  getTreeholeRuntime?: () => TreeholeRuntime | null
+  now?: () => number
+  onChanged?: () => void
+  setSession?: (session: unknown) => void
+} = {}): DesktopMessageActions {
   return {
     async commentTreehole({ postId, text } = {}) {
       const cleanText = cleanMessageText(text)
@@ -84,6 +141,6 @@ export function createDesktopMessageActions({
   }
 }
 
-function cleanMessageText(text) {
+function cleanMessageText(text: unknown): string {
   return typeof text === 'string' ? text.trim() : ''
 }
