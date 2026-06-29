@@ -374,6 +374,13 @@ test('V1 docs record Android request UI gating through ContactBook', async () =>
   assert.match(`${audit}\n${gaps}`, /revoked senders do not leak into/)
 })
 
+test('V1 docs record Android backend request acceptance validation', async () => {
+  const gaps = await readText('../docs/v1.07-architecture-gaps.md')
+
+  assert.match(gaps, /Android Bare backend verifies signed message requests again/)
+  assert.match(gaps, /rejects request acceptance from revoked senders/)
+})
+
 test('V1 docs record DM body Home fallback as debug-only', async () => {
   const dmBootstrap = await readText('../docs/v1.08-dm-bootstrap-security.md')
   const gaps = await readText('../docs/v1.07-architecture-gaps.md')

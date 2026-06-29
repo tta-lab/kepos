@@ -575,8 +575,8 @@ async function acceptMessageRequest(payload) {
   }
 
   const request = payload.request || {}
-  if (request.toProfileId !== profileId) {
-    throw new Error('Message request is not addressed to this profile')
+  if (!canAcceptIncomingMessageRequest(request)) {
+    throw new Error('Message request cannot be accepted')
   }
 
   const acceptedAt = payload.acceptedAt || Date.now()
@@ -615,6 +615,14 @@ async function acceptMessageRequest(payload) {
   await saveBackendDmThread(thread)
   await dmRuntime?.openThread(thread)
   sendToUI(RPC_DM_THREAD, thread)
+}
+
+function canAcceptIncomingMessageRequest(request) {
+  if (!verifyMessageRequest(request) || request.toProfileId !== profileId) {
+    return false
+  }
+
+  return !treeholePolicy?.revokedProfileIds?.includes(request.fromProfileId)
 }
 
 async function acceptDmInvite(invite) {

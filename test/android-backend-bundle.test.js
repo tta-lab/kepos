@@ -48,6 +48,11 @@ test('android backend trims outgoing text at the RPC boundary', () => {
     'function sendMessageRequest',
     'async function acceptMessageRequest'
   )
+  const acceptMessageRequest = sliceBetween(
+    source,
+    'async function acceptMessageRequest',
+    'async function acceptDmInvite'
+  )
   const handleControlDmBody = sliceBetween(
     source,
     "if (message.type === 'kepos.dm.body.v1')",
@@ -68,6 +73,10 @@ test('android backend trims outgoing text at the RPC boundary', () => {
   assert.match(postTreehole, /const text = cleanRequiredText\(payload\.text\)/)
   assert.match(commentTreehole, /const text = cleanRequiredText\(payload\.text\)/)
   assert.match(sendMessageRequest, /const text = cleanRequiredText\(payload\.text\)/)
+  assert.match(acceptMessageRequest, /canAcceptIncomingMessageRequest\(request\)/)
+  assert.match(acceptMessageRequest, /verifyMessageRequest\(request\)/)
+  assert.match(acceptMessageRequest, /request\.toProfileId !== profileId/)
+  assert.match(acceptMessageRequest, /revokedProfileIds\?\.includes\(request\.fromProfileId\)/)
   assert.match(sendDmBody, /const text = cleanRequiredText\(payload\.text\)/)
   assert.match(handleControlDmBody, /if \(!allowHomeDmBodyFallback\)/)
   assert.match(sendDmBody, /if \(allowHomeDmBodyFallback\)/)
