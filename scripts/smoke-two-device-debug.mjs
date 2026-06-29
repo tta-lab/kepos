@@ -637,11 +637,12 @@ async function createAndroidDiagnostics(label) {
   const prefix = path.join(os.tmpdir(), `kepos-two-device-${label}`)
   const screenshotPath = `${prefix}-android.png`
   const xmlPath = `${prefix}-android.xml`
+  const foreground = readAndroidForeground()
 
   await captureAndroidScreenshot(screenshotPath).catch(() => {})
   await writeFile(xmlPath, dumpAndroidUi()).catch(() => {})
 
-  return `Android screenshot: ${screenshotPath}\nAndroid UI XML: ${xmlPath}`
+  return `Android foreground: ${foreground}\nAndroid screenshot: ${screenshotPath}\nAndroid UI XML: ${xmlPath}`
 }
 
 async function captureAndroidScreenshot(filePath) {

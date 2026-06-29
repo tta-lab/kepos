@@ -1153,6 +1153,7 @@ test('debug two-device smoke covers live DM exchange and restart persistence', a
     'mFocusedApp',
     '/dev/tty',
     'runMaestroWithAndroidDiagnostics',
+    'Android foreground:',
     'Android screenshot:',
     'Android UI XML:',
     "exec-out', 'screencap', '-p",
