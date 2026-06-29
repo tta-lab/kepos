@@ -84,6 +84,51 @@ describe('DM thread runtime', () => {
     assert.deepEqual(displayed, [{ direction: 'out', message, thread }])
   })
 
+  test('rejects invalid channel messages before persistence or display', async () => {
+    const local = createSigningKeyPair()
+    const remote = createSigningKeyPair()
+    const other = createSigningKeyPair()
+    const saved = []
+    const displayed = []
+    const channels = []
+    const runtime = createDmThreadRuntime({
+      createChannel: (options) => new FakeDmChannel(options, channels),
+      identity: local,
+      loadMessages: () => [],
+      localProfileId: local.publicKey,
+      onMessage: (thread, message, direction) => displayed.push({ direction, message, thread }),
+      saveMessages: (_thread, messages) => saved.push(messages)
+    })
+    const thread = createThread({
+      localProfileId: local.publicKey,
+      remoteProfileId: remote.publicKey
+    })
+    const wrongSender = createSignedDmMessage({
+      createdAt: 1300,
+      identity: other,
+      messageId: 'wrong-sender',
+      text: 'wrong',
+      threadId: thread.threadId
+    })
+    const tampered = {
+      ...createSignedDmMessage({
+        createdAt: 1400,
+        identity: remote,
+        messageId: 'tampered',
+        text: 'original',
+        threadId: thread.threadId
+      }),
+      text: 'changed'
+    }
+
+    await runtime.openThread(thread)
+    channels[0].emitIncoming(wrongSender)
+    channels[0].emitIncoming(tampered)
+
+    assert.deepEqual(saved, [])
+    assert.deepEqual(displayed, [])
+  })
+
   test('receives signed fallback messages for open threads and skips duplicates', async () => {
     const local = createSigningKeyPair()
     const remote = createSigningKeyPair()

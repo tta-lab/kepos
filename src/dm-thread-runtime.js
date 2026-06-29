@@ -96,7 +96,11 @@ export function createDmThreadRuntime({
   function handleIncomingMessage(threadId, message) {
     const record = threads.get(threadId)
 
-    if (!record || hasMessage(record, message?.messageId)) {
+    if (
+      !record ||
+      !shouldAcceptRemoteMessage(record, message) ||
+      hasMessage(record, message.messageId)
+    ) {
       return
     }
 
