@@ -4,7 +4,7 @@ import { createContactBook } from '../src/contact-book.ts'
 import {
   createDesktopControlMessageResult,
   createDesktopTreeholeControlSendResult
-} from '../src/desktop-control-service.js'
+} from '../src/desktop-control-service.ts'
 import { createDmEncryptionKeyPair } from '../src/dm-invite.ts'
 import { createMessageRequest } from '../src/message-request.ts'
 import { createSigningKeyPair } from '../src/signed-record.ts'

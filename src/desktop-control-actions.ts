@@ -1,7 +1,7 @@
 import {
   createDesktopControlMessageResult,
   createDesktopTreeholeControlSendResult
-} from './desktop-control-service.js'
+} from './desktop-control-service.ts'
 import type { DesktopProfileContext } from './desktop-profile-context-core.ts'
 
 type ControlMessage = Record<string, unknown> & {

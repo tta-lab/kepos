@@ -18,7 +18,7 @@ test('desktop exposes contact revoke controls that update trust and DM threads',
     'utf8'
   )
   const actions = await readFile(
-    new URL('../src/desktop-trust-actions.js', import.meta.url),
+    new URL('../src/desktop-trust-actions.ts', import.meta.url),
     'utf8'
   )
 

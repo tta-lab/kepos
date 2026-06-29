@@ -141,7 +141,7 @@ test('desktop people UI uses trusted friends copy', async () => {
     'utf8'
   )
   const actions = await readFile(
-    new URL('../src/desktop-trust-actions.js', import.meta.url),
+    new URL('../src/desktop-trust-actions.ts', import.meta.url),
     'utf8'
   )
   const bindings = await readFile(

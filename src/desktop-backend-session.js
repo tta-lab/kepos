@@ -5,7 +5,7 @@ import { createDesktopLocalBackendHost } from './desktop-local-backend-host.ts'
 import { createDesktopMessageActions } from './desktop-message-actions.ts'
 import { createDesktopMessageRequestActions } from './desktop-message-request-actions.ts'
 import { createDesktopRoomActions } from './desktop-room-actions.ts'
-import { createDesktopTrustActions } from './desktop-trust-actions.js'
+import { createDesktopTrustActions } from './desktop-trust-actions.ts'
 import { createDirectRoomTransport } from './direct-room-transport.ts'
 import { setDesktopTreehole } from './desktop-state.ts'
 

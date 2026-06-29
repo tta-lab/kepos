@@ -476,7 +476,7 @@ test('desktop success notices avoid profile id snippets', async () => {
     'utf8'
   )
   const trustActions = await readFile(
-    new URL('../src/desktop-trust-actions.js', import.meta.url),
+    new URL('../src/desktop-trust-actions.ts', import.meta.url),
     'utf8'
   )
   const source = `${controller}\n${messageRequestActions}\n${controlActions}\n${trustActions}`
@@ -1076,7 +1076,7 @@ test('desktop UI exposes stable hooks for two-device smoke', async () => {
 test('desktop large QR dialog renders scan-sized QR codes', async () => {
   const app = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
-  const actions = await readFile(new URL('../src/desktop-qr-actions.js', import.meta.url), 'utf8')
+  const actions = await readFile(new URL('../src/desktop-qr-actions.ts', import.meta.url), 'utf8')
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
 
   for (const marker of [
@@ -1104,10 +1104,10 @@ test('desktop large QR dialog is keyboard reachable', async () => {
     new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
     'utf8'
   )
-  const actions = await readFile(new URL('../src/desktop-qr-actions.js', import.meta.url), 'utf8')
+  const actions = await readFile(new URL('../src/desktop-qr-actions.ts', import.meta.url), 'utf8')
 
   assert.match(app, /aria-labelledby='largeQrTitle'/)
-  assert.match(actions, /let largeQrReturnFocus = null/)
+  assert.match(actions, /let largeQrReturnFocus: FocusTarget \| null = null/)
   assert.match(app, /actions\.showLargeHomeQr\(\{ returnFocus: event\.currentTarget \}\)/)
   assert.match(app, /actions\.showLargeProfileQr\(\{ returnFocus: event\.currentTarget \}\)/)
   assert.match(

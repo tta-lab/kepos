@@ -238,7 +238,7 @@ test('desktop Profile QR trust command carries QR text alias and display name as
     'utf8'
   )
   const actions = await readFile(
-    new URL('../src/desktop-trust-actions.js', import.meta.url),
+    new URL('../src/desktop-trust-actions.ts', import.meta.url),
     'utf8'
   )
 
@@ -254,7 +254,7 @@ test('desktop Profile QR trust command carries QR text alias and display name as
   assert.match(backendActions, /trustProfileUri: trustActions\?\.trustProfileUri/)
   assert.match(
     actions,
-    /function trustProfileUri\(\{ alias = '', displayName = 'Desktop', uri \} = \{\}\)/
+    /function trustProfileUri\(\{[\s\S]*alias = '',[\s\S]*displayName = 'Desktop',[\s\S]*uri[\s\S]*\}: TrustProfileUriPayload = \{\}\)/
   )
   assert.doesNotMatch(source, /trustForm: document\.querySelector/)
   assert.doesNotMatch(source, /trustQrInput: document\.querySelector/)

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createDesktopTrustActions } from '../src/desktop-trust-actions.js'
+import { createDesktopTrustActions } from '../src/desktop-trust-actions.ts'
 
 function createHarness(overrides = {}) {
   const calls = []

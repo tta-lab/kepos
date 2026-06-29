@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createDesktopQrActions } from '../src/desktop-qr-actions.js'
+import { createDesktopQrActions } from '../src/desktop-qr-actions.ts'
 
 function createHarness(overrides = {}) {
   const calls = []
