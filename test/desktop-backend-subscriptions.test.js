@@ -127,3 +127,33 @@ test('desktop backend subscriptions update renderer snapshots from backend event
     ['unsubscribe', 'errorReceived']
   ])
 })
+
+test('desktop backend subscriptions preserve selected tab across backend state snapshots', () => {
+  const { backendClient, emit } = createBackendClient()
+  let state = { ...createDesktopState(), activeTab: 'treehole' }
+
+  createDesktopBackendSubscriptions({
+    backendClient,
+    getState: () => state,
+    onError: () => {},
+    onRender: () => {},
+    setContactBook: () => {},
+    setDmSession: () => {},
+    setHomeSession: () => {},
+    setState: (nextState) => {
+      state = nextState
+    }
+  })
+
+  emit('desktopStateChanged', {
+    ...createDesktopState(),
+    mode: 'host',
+    notice: 'Home joined.',
+    view: 'room'
+  })
+
+  assert.equal(state.activeTab, 'treehole')
+  assert.equal(state.mode, 'host')
+  assert.equal(state.notice, 'Home joined.')
+  assert.equal(state.view, 'room')
+})

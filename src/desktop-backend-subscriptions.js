@@ -27,7 +27,10 @@ export function createDesktopBackendSubscriptions({
       onRender()
     }),
     backendClient.subscribe('desktopStateChanged', (nextState) => {
-      setState(nextState)
+      setState({
+        ...nextState,
+        activeTab: getState().activeTab || nextState.activeTab
+      })
       onRender()
     }),
     backendClient.subscribe('directComposerRecipientChanged', (profileId) => {
