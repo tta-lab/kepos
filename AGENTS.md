@@ -39,6 +39,9 @@ Use these docs as the current architecture map for Kepos.
 - Use npm and Node for this project.
 - Prefer TypeScript for all new code. Keep JS/JSX/MJS only for existing runtime glue, loader constraints, or narrowly scoped compatibility work.
 - Prefer TailwindCSS and daisyUI for new frontend UI and UI refactors. Use local CSS only when the existing surface has not migrated yet, when a platform wrapper requires it, or when Tailwind/daisyUI cannot express the needed behavior cleanly.
+- Do not run high-cost smoke tests by default. Unless the user explicitly asks
+  for smoke, the work is release proof, or the change cannot be verified any
+  other way, prefer focused tests, typecheck, lint, and bundle gates.
 - Use conventional commit syntax such as `feat(scope): message`, `fix(scope): message`, `refactor(scope): message`, or `chore(scope): message`.
 - Do not add claude.ai links to commit messages.
 - Do not push directly to `main` or `master`.
