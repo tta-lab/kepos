@@ -103,21 +103,21 @@ test('V1 UX docs include desktop direct recipient selected state', async () => {
   assert.match(ux, /matching the mobile recipient\s+selection semantics/)
 })
 
-test('V1 docs do not overclaim current physical QR proof', async () => {
+test('V1 docs record completed physical QR proof', async () => {
   const audit = await readText('../docs/v1.15-mlp-implementation-audit.md')
   const gaps = await readText('../docs/v1.07-architecture-gaps.md')
   const smoke = await readText('../docs/v1.20-smoke-guide.md')
   const dependencyOrder = await readText('../docs/v1.01-dependency-order.md')
   const docs = `${audit}\n${gaps}\n${smoke}\n${dependencyOrder}`
 
-  assert.doesNotMatch(docs, /manual physical QR smoke (has also )?proven/)
-  assert.doesNotMatch(docs, /manual physical QR smoke proves/)
-  assert.doesNotMatch(docs, /Physical QR smoke now covers/)
-  assert.doesNotMatch(docs, /Completed implementation priorities:\s+10\. Run manual physical QR/)
-  assert.doesNotMatch(docs, /Physical QR evidence:\s+- Desktop Large Profile QR scanned/)
-  assert.match(docs, /physical QR remains release proof/)
-  assert.match(docs, /screen-to-camera QR proof remains open/)
-  assert.match(docs, /Physical QR evidence still needed/)
+  assert.doesNotMatch(docs, /physical QR remains release proof/)
+  assert.doesNotMatch(docs, /screen-to-camera QR proof remains open/)
+  assert.doesNotMatch(docs, /Physical QR evidence still needed/)
+  assert.doesNotMatch(docs, /must be rerun before declaring V1 complete/)
+  assert.match(docs, /Physical QR release proof passed/)
+  assert.match(docs, /Manual physical QR smoke passed/)
+  assert.match(docs, /screen-to-camera QR proof has passed/)
+  assert.match(docs, /screen-to-camera QR proof passed/)
 })
 
 test('V1 docs describe current debug two-device proof without physical QR overclaim', async () => {
@@ -133,7 +133,7 @@ test('V1 docs describe current debug two-device proof without physical QR overcl
   assert.doesNotMatch(docs, /because it proves live transport/)
   assert.match(docs, /debug two-device now proves/)
   assert.match(docs, /smoke:two-device:debug:pear/)
-  assert.match(docs, /Manual physical desktop-to-Android QR trust\/home join remains release proof/)
+  assert.match(docs, /Manual physical desktop-to-Android QR trust\/home join also passed/)
 })
 
 test('V1 UX docs include desktop icon-led trust and QR actions', async () => {

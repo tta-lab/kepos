@@ -592,7 +592,7 @@ test('desktop panes label live and durable surfaces', async () => {
   assert.match(source, /label='Direct'/)
   assert.doesNotMatch(source, /<span className='railLabel'>/)
   assert.equal(source.includes("<span className='railLabel'>DM</span>"), false)
-  assert.match(source, /icon=\{<DoorOpen size=\{20\} \/>\}/)
+  assert.match(source, /icon=\{<House size=\{20\} \/>\}/)
   assert.match(source, /Send message/)
   assert.equal(source.includes('Send DM'), false)
   assert.match(

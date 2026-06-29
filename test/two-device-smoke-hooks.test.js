@@ -58,8 +58,8 @@ test('Android lucide icons used in JSX are imported', async () => {
 
   for (const icon of [
     'ArrowRight',
-    'DoorOpen',
     'Heart',
+    'House',
     'LogOut',
     'MessageCircle',
     'Plus',
@@ -74,7 +74,7 @@ test('Android lucide icons used in JSX are imported', async () => {
     assert.match(source, new RegExp(`(<${icon}\\b|icon=\\{${icon}\\})`), `${icon} is not rendered`)
   }
 
-  assert.equal(importedIcons.has('House'), false, 'House should not be imported for Home tabs')
+  assert.equal(importedIcons.has('DoorOpen'), false, 'DoorOpen should not be used for Home tabs')
 })
 
 test('Android lobby is scrollable so QR and trust controls are reachable', async () => {
@@ -623,8 +623,8 @@ test('Android room tabs use icons for main navigation', async () => {
     source.indexOf('function ChatPane(')
   )
 
-  assert.match(tabs, /icon={DoorOpen}[\s\S]*label='Home'[\s\S]*testID='chat-tab'/)
-  assert.doesNotMatch(tabs, /icon={House}[\s\S]*label='Home'[\s\S]*testID='chat-tab'/)
+  assert.match(tabs, /icon={House}[\s\S]*label='Home'[\s\S]*testID='chat-tab'/)
+  assert.doesNotMatch(tabs, /icon={DoorOpen}[\s\S]*label='Home'[\s\S]*testID='chat-tab'/)
   assert.match(tabs, /icon={Send}[\s\S]*label='Direct'[\s\S]*testID='dm-tab'/)
   assert.match(tabs, /icon={Sprout}[\s\S]*label='Treehole'[\s\S]*testID='treehole-tab'/)
   assert.match(tabs, /icon={Users}[\s\S]*label='People'[\s\S]*testID='people-tab'/)
@@ -1063,7 +1063,9 @@ test('desktop large QR dialog renders scan-sized QR codes', async () => {
     'largeQrCode',
     'setLargeQr',
     'dangerouslySetInnerHTML',
-    'width: 760',
+    'width: 640',
+    '62vmin',
+    '100vh - 150px',
     'largeQrDialog.hidden'
   ]) {
     assert.match(

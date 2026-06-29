@@ -99,7 +99,7 @@ test('desktop QR actions open and hide large QR with focus restoration', async (
       'largeQr',
       {
         isOpen: true,
-        svg: '<svg>kepos://home/local:760:4</svg>',
+        svg: '<svg>kepos://home/local:640:4</svg>',
         title: 'Home QR'
       }
     ],

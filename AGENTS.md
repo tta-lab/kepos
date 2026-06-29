@@ -37,7 +37,8 @@ Use these docs as the current architecture map for Kepos.
 ## Local Conventions
 
 - Use npm and Node for this project.
-- Use TypeScript first for new shared protocol/domain modules; keep JS/JSX/MJS for platform runtime glue until the loader path is proven.
+- Prefer TypeScript for all new code. Keep JS/JSX/MJS only for existing runtime glue, loader constraints, or narrowly scoped compatibility work.
+- Prefer TailwindCSS and daisyUI for new frontend UI and UI refactors. Use local CSS only when the existing surface has not migrated yet, when a platform wrapper requires it, or when Tailwind/daisyUI cannot express the needed behavior cleanly.
 - Use conventional commit syntax such as `feat(scope): message`, `fix(scope): message`, `refactor(scope): message`, or `chore(scope): message`.
 - Do not add claude.ai links to commit messages.
 - Do not push directly to `main` or `master`.

@@ -183,7 +183,7 @@ textarea {
   display: flex;
   inset: 0;
   justify-content: center;
-  padding: 28px;
+  padding: clamp(12px, 3vmin, 24px);
   position: fixed;
   z-index: 20;
 }
@@ -197,9 +197,10 @@ textarea {
   border: 1px solid var(--border-strong);
   border-radius: 8px;
   display: grid;
-  gap: 16px;
-  max-width: min(880px, 100%);
-  padding: 18px;
+  gap: 14px;
+  max-height: calc(100vh - 24px);
+  max-width: min(720px, calc(100vw - 24px));
+  padding: clamp(12px, 2vmin, 16px);
 }
 
 .largeQrHeader {
@@ -215,13 +216,15 @@ textarea {
   border-radius: 6px;
   display: flex;
   justify-content: center;
-  padding: 18px;
+  padding: clamp(10px, 2vmin, 16px);
 }
 
 .largeQrCode svg {
   display: block;
-  height: min(760px, calc(100vw - 112px), calc(100vh - 170px));
-  width: min(760px, calc(100vw - 112px), calc(100vh - 170px));
+  height: clamp(320px, 62vmin, 560px);
+  max-height: calc(100vh - 150px);
+  max-width: calc(100vw - 96px);
+  width: clamp(320px, 62vmin, 560px);
 }
 
 .shell {

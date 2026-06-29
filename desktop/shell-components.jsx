@@ -1,5 +1,5 @@
 import React from 'react'
-import { DoorOpen, LogOut, Moon, Send, Sprout, Sun, Users } from 'lucide-react'
+import { House, LogOut, Moon, Send, Sprout, Sun, Users } from 'lucide-react'
 import { ActionButton } from './ui-components.jsx'
 
 export function AppRail({ activeTab, navBadges, shellActions }) {
@@ -9,7 +9,7 @@ export function AppRail({ activeTab, navBadges, shellActions }) {
       <nav className='railNav' aria-label='Main views' role='tablist'>
         <RailButton
           id='chatTab'
-          icon={<DoorOpen size={20} />}
+          icon={<House size={20} />}
           isActive={activeTab === 'chat'}
           label='Home'
           onSelect={() => shellActions.setTab('chat')}

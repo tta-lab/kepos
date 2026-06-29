@@ -39,7 +39,7 @@ export function createDesktopQrActions({
     largeQrReturnFocus = returnFocus
     const svg = await renderQrSvg(uri, {
       margin: 4,
-      width: 760
+      width: 640
     })
     setLargeQr({
       isOpen: true,
