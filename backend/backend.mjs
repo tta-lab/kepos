@@ -486,9 +486,10 @@ async function postTreehole(payload) {
     throw new Error('Treehole is not ready')
   }
 
+  const text = cleanRequiredText(payload.text)
   await treehole.post({
     id: payload.id,
-    text: payload.text,
+    text,
     createdAt: payload.createdAt
   })
   await sendTreeholeState()
@@ -499,10 +500,11 @@ async function commentTreehole(payload) {
     throw new Error('Treehole is not ready')
   }
 
+  const text = cleanRequiredText(payload.text)
   await treehole.comment({
     id: payload.id,
     postId: payload.postId,
-    text: payload.text,
+    text,
     createdAt: payload.createdAt
   })
   await sendTreeholeState()
@@ -530,6 +532,7 @@ function sendMessageRequest(payload) {
     throw new Error('Profile is not ready')
   }
 
+  const text = cleanRequiredText(payload.text)
   room.broadcastControl(
     createMessageRequest({
       createdAt: payload.at || Date.now(),
@@ -537,7 +540,7 @@ function sendMessageRequest(payload) {
       requestId: payload.id,
       senderEncryptionPublicKey:
         dmEncryptionKeyPair?.publicKey || payload.senderEncryptionPublicKey,
-      text: payload.text,
+      text,
       toProfileId: payload.toProfileId
     })
   )
@@ -634,10 +637,11 @@ function sendDmBody(payload) {
     throw new Error('DM runtime is not ready')
   }
 
+  const text = cleanRequiredText(payload.text)
   const message = dmRuntime.sendMessage({
     createdAt: payload.createdAt || Date.now(),
     messageId: payload.messageId || createId(),
-    text: payload.text,
+    text,
     threadId: payload.threadId
   })
   room?.broadcastControl({
@@ -687,6 +691,15 @@ function sendDmInvite(payload) {
   }
 
   room.broadcastControl(payload)
+}
+
+function cleanRequiredText(text) {
+  const cleanText = text?.trim()
+  if (!cleanText) {
+    throw new Error('Text is required')
+  }
+
+  return cleanText
 }
 
 async function openBackendDmThreads() {
