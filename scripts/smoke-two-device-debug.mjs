@@ -210,6 +210,8 @@ async function readAndroidProfileUri() {
 }
 
 async function revealAndroidAdvancedShare() {
+  bringAndroidDevClientToForeground()
+  await waitForAndroidAppSurface()
   const flow = path.join(workDir, 'android-reveal-advanced-share.yaml')
   await writeFile(
     flow,
@@ -334,6 +336,10 @@ async function runAndroidJoinFlow(roomKey, directEndpoint) {
 function launchAndroidDevClient() {
   runAdb(['reverse', 'tcp:8081', 'tcp:8081'])
   runAdb(['shell', 'am', 'force-stop', 'io.guion.kepos'])
+  bringAndroidDevClientToForeground()
+}
+
+function bringAndroidDevClientToForeground() {
   runAdb([
     'shell',
     'am',
@@ -420,6 +426,8 @@ async function waitForAndroidAppSurface() {
 }
 
 async function sendAndroidChat() {
+  bringAndroidDevClientToForeground()
+  await waitForAndroidAppSurface()
   const flow = path.join(workDir, 'android-debug-chat.yaml')
   await writeFile(
     flow,
@@ -466,6 +474,8 @@ async function sendAndroidDmBody(text) {
 }
 
 async function sendAndroidDirectMessage({ fileName, text }) {
+  bringAndroidDevClientToForeground()
+  await waitForAndroidAppSurface()
   const flow = path.join(workDir, fileName)
   await writeFile(
     flow,
@@ -582,6 +592,8 @@ function readAndroidDmThreads() {
 }
 
 async function tapAndroidByTestId(testId) {
+  bringAndroidDevClientToForeground()
+  await waitForAndroidAppSurface()
   const flow = path.join(workDir, `${testId}.yaml`)
   await writeFile(
     flow,
@@ -595,10 +607,10 @@ async function tapAndroidByTestId(testId) {
 }
 
 async function waitForAndroidText(text) {
-  await waitFor(
-    async () => textIncludes(decodeXml(await dumpAndroidUi()), text),
-    `Android text ${text}`
-  )
+  await waitFor(async () => {
+    assertKeposAndroidForeground(`Android text ${text}`)
+    return textIncludes(decodeXml(await dumpAndroidUi()), text)
+  }, `Android text ${text}`)
 }
 
 async function waitForAndroidTextWithSnapshot(page, text) {
@@ -854,6 +866,7 @@ async function createTwoDeviceDebugSnapshot(page) {
   }
   const androidSnapshot = {
     errorDetail: androidXml ? textByResourceId(androidXml, 'room-error-detail') : null,
+    foreground: readAndroidForeground(),
     notice: androidXml ? textByResourceId(androidXml, 'app-notice') : null,
     transportDebug: androidXml ? textByResourceId(androidXml, 'room-transport-debug') : null
   }
@@ -872,6 +885,21 @@ function tapAndroidResourceId(resourceId) {
   if (!bounds) throw new Error(`Android resource ${resourceId} is missing`)
 
   runAdb(['shell', 'input', 'tap', String(bounds.x), String(bounds.y)])
+}
+
+function assertKeposAndroidForeground(label) {
+  const foreground = readAndroidForeground()
+  if (!foreground.includes('io.guion.kepos')) {
+    throw new Error(`${label} requires Kepos in foreground: ${foreground}`)
+  }
+}
+
+function readAndroidForeground() {
+  return runAdb(['shell', 'dumpsys', 'window'])
+    .split(/\r?\n/)
+    .filter((line) => line.includes('mCurrentFocus') || line.includes('mFocusedApp'))
+    .map((line) => line.trim())
+    .join(' | ')
 }
 
 function waitForAndroidResourceId(resourceId) {
