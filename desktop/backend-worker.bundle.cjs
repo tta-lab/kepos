@@ -434,20 +434,26 @@ var init_contact_book = __esm({
   }
 });
 
-// src/contact-book-storage.js
-function loadContactBookFromStorage({ ownerProfileId, storage }) {
+// src/contact-book-storage.ts
+function loadContactBookFromStorage({
+  ownerProfileId,
+  storage
+}) {
   const stored = storage?.getItem?.(CONTACT_BOOK_KEY);
   if (!stored) {
     return createContactBook({ ownerProfileId });
   }
   return deserializeContactBook(stored);
 }
-function saveContactBookToStorage({ book, storage }) {
+function saveContactBookToStorage({
+  book,
+  storage
+}) {
   storage?.setItem?.(CONTACT_BOOK_KEY, JSON.stringify(serializeContactBook(book)));
 }
 var CONTACT_BOOK_KEY;
 var init_contact_book_storage = __esm({
-  "src/contact-book-storage.js"() {
+  "src/contact-book-storage.ts"() {
     "use strict";
     init_contact_book();
     init_contact_book();
@@ -813,7 +819,7 @@ var init_dm_invite = __esm({
   }
 });
 
-// src/home-room.js
+// src/home-room.ts
 function createHomeRoom({
   ownerProfileId,
   address = null,
@@ -840,7 +846,7 @@ function createHomeRoom({
   };
 }
 function isHomePolicy(policy) {
-  return HOME_POLICIES.has(policy);
+  return typeof policy === "string" && HOME_POLICIES.has(policy);
 }
 function createRoomKey() {
   const bytes = new Uint8Array(32);
@@ -857,7 +863,7 @@ function isRoomKey(value) {
   return typeof value === "string" && ROOM_KEY_PATTERN.test(value);
 }
 function cleanRequiredString2(value, message) {
-  const cleaned = value?.trim();
+  const cleaned = typeof value === "string" ? value.trim() : "";
   if (!cleaned) {
     throw new Error(message);
   }
@@ -865,7 +871,7 @@ function cleanRequiredString2(value, message) {
 }
 var HOME_POLICIES, ROOM_KEY_PATTERN;
 var init_home_room = __esm({
-  "src/home-room.js"() {
+  "src/home-room.ts"() {
     "use strict";
     HOME_POLICIES = /* @__PURE__ */ new Set(["trusted_only", "public"]);
     ROOM_KEY_PATTERN = /^[0-9a-f]{64}$/;
@@ -1655,8 +1661,11 @@ var init_desktop_backend_bridge = __esm({
   }
 });
 
-// src/dm-session.js
-function createDirectMessageSession({ localProfileId, nick }) {
+// src/dm-session.ts
+function createDirectMessageSession({
+  localProfileId,
+  nick
+}) {
   return {
     localProfileId: cleanRequiredString4(localProfileId, "Local profile id is required"),
     nick: nick?.trim() || "anon",
@@ -1664,7 +1673,11 @@ function createDirectMessageSession({ localProfileId, nick }) {
     seenMessageIds: /* @__PURE__ */ new Set()
   };
 }
-function restoreDirectMessageSession({ localProfileId, messages = [], nick }) {
+function restoreDirectMessageSession({
+  localProfileId,
+  messages = [],
+  nick
+}) {
   let session = createDirectMessageSession({ localProfileId, nick });
   for (const message of messages) {
     session = appendDirectMessage(session, normalizeStoredDirectMessage(message));
@@ -1723,7 +1736,7 @@ function appendDirectMessage(session, message) {
 }
 function normalizeMessageRequest(request, direction) {
   const id = cleanRequiredString4(request?.requestId, "Request id is required");
-  const createdAt = request.createdAt || Date.now();
+  const createdAt = cleanOptionalNumber(request.createdAt) || Date.now();
   return {
     ...request,
     id,
@@ -1735,7 +1748,7 @@ function normalizeMessageRequest(request, direction) {
 }
 function normalizeSignedDirectMessage(message, direction, { toProfileId }) {
   const id = cleanRequiredString4(message?.messageId, "Message id is required");
-  const createdAt = message.createdAt || Date.now();
+  const createdAt = cleanOptionalNumber(message.createdAt) || Date.now();
   return {
     ...message,
     at: createdAt,
@@ -1751,7 +1764,7 @@ function normalizeStoredDirectMessage(message) {
     message?.id || message?.requestId || message?.messageId,
     "Direct message id is required"
   );
-  const at = Number.isFinite(message?.at) ? message.at : message?.createdAt || Date.now();
+  const at = cleanOptionalNumber(message?.at) || cleanOptionalNumber(message?.createdAt) || Date.now();
   return {
     ...message,
     id,
@@ -1766,17 +1779,20 @@ function cleanDirection(direction) {
   throw new Error("Direct message direction is required");
 }
 function cleanRequiredString4(value, message) {
-  const cleaned = value?.trim();
+  const cleaned = typeof value === "string" ? value.trim() : "";
   if (!cleaned) {
     throw new Error(message);
   }
   return cleaned;
 }
 function cleanText(text) {
-  return text?.trim() || "";
+  return typeof text === "string" ? text.trim() : "";
+}
+function cleanOptionalNumber(value) {
+  return Number.isFinite(value) ? value : null;
 }
 var init_dm_session = __esm({
-  "src/dm-session.js"() {
+  "src/dm-session.ts"() {
     "use strict";
   }
 });
@@ -2175,13 +2191,20 @@ var init_dm_message_storage = __esm({
   }
 });
 
-// src/dm-session-storage.js
-function loadDmSessionMessagesFromStorage({ ownerProfileId, storage }) {
+// src/dm-session-storage.ts
+function loadDmSessionMessagesFromStorage({
+  ownerProfileId,
+  storage
+}) {
   const stored = storage?.getItem?.(dmSessionMessagesKey(ownerProfileId));
   if (!stored) return [];
   return deserializeDmSessionMessages(stored);
 }
-function saveDmSessionMessagesToStorage({ messages, ownerProfileId, storage }) {
+function saveDmSessionMessagesToStorage({
+  messages,
+  ownerProfileId,
+  storage
+}) {
   storage?.setItem?.(
     dmSessionMessagesKey(ownerProfileId),
     JSON.stringify(serializeDmSessionMessages(messages))
@@ -2213,7 +2236,7 @@ function serializeSessionMessage(message) {
     proof: message?.proof,
     requestId: cleanRequiredString7(message?.requestId || message?.id, "Request id is required"),
     senderEncryptionPublicKey: message?.senderEncryptionPublicKey,
-    text: message?.text?.trim() || "",
+    text: cleanText2(message?.text),
     toProfileId: cleanRequiredString7(message?.toProfileId, "Request recipient is required"),
     type: MESSAGE_REQUEST_TYPE2
   };
@@ -2236,13 +2259,16 @@ function cleanNumber(value, message) {
   throw new Error(message);
 }
 function cleanRequiredString7(value, message) {
-  const cleaned = value?.trim();
+  const cleaned = typeof value === "string" ? value.trim() : "";
   if (!cleaned) throw new Error(message);
   return cleaned;
 }
+function cleanText2(text) {
+  return typeof text === "string" ? text.trim() : "";
+}
 var DM_SESSION_MESSAGES_KEY_PREFIX, DM_SESSION_MESSAGES_VERSION, MESSAGE_REQUEST_TYPE2;
 var init_dm_session_storage = __esm({
-  "src/dm-session-storage.js"() {
+  "src/dm-session-storage.ts"() {
     "use strict";
     DM_SESSION_MESSAGES_KEY_PREFIX = "kepos.dmSessionMessages.v1";
     DM_SESSION_MESSAGES_VERSION = 1;
@@ -2510,8 +2536,11 @@ var init_dm_thread_runtime = __esm({
   }
 });
 
-// src/dm-thread-storage.js
-function loadDmThreadsFromStorage({ ownerProfileId, storage }) {
+// src/dm-thread-storage.ts
+function loadDmThreadsFromStorage({
+  ownerProfileId,
+  storage
+}) {
   void ownerProfileId;
   const stored = storage?.getItem?.(DM_THREADS_KEY);
   if (!stored) {
@@ -2519,7 +2548,11 @@ function loadDmThreadsFromStorage({ ownerProfileId, storage }) {
   }
   return deserializeDmThreadCollection(stored);
 }
-function saveDmThreadsToStorage({ ownerProfileId, storage, threads }) {
+function saveDmThreadsToStorage({
+  ownerProfileId,
+  storage,
+  threads
+}) {
   void ownerProfileId;
   storage?.setItem?.(DM_THREADS_KEY, JSON.stringify(serializeDmThreadCollection(threads)));
 }
@@ -2541,7 +2574,7 @@ function deserializeDmThreadCollection(stored) {
 }
 var DM_THREADS_COLLECTION_VERSION, DM_THREADS_KEY;
 var init_dm_thread_storage = __esm({
-  "src/dm-thread-storage.js"() {
+  "src/dm-thread-storage.ts"() {
     "use strict";
     init_dm_thread();
     DM_THREADS_COLLECTION_VERSION = 1;
@@ -2850,8 +2883,12 @@ var init_desktop_dm_runtime = __esm({
   }
 });
 
-// src/chat-session.js
-function createChatSession({ roomKey, nick, profileId = null }) {
+// src/chat-session.ts
+function createChatSession({
+  roomKey,
+  nick,
+  profileId = null
+}) {
   if (!isRoomKey2(roomKey)) {
     throw new Error("Invalid room key");
   }
@@ -2897,7 +2934,7 @@ function appendMessage(session, message) {
 }
 var ROOM_KEY_PATTERN2;
 var init_chat_session = __esm({
-  "src/chat-session.js"() {
+  "src/chat-session.ts"() {
     "use strict";
     ROOM_KEY_PATTERN2 = /^[0-9a-f]{64}$/;
   }
@@ -2996,7 +3033,7 @@ var init_home_presence = __esm({
   }
 });
 
-// src/protocol.js
+// src/protocol.ts
 function isRoomKey3(value) {
   return typeof value === "string" && ROOM_KEY_PATTERN3.test(value);
 }
@@ -3012,20 +3049,23 @@ function encodeFrame(message) {
 }
 function decodeFrame(line) {
   const frame = JSON.parse(line);
-  if (!SUPPORTED_FRAME_TYPES.has(frame?.type)) {
+  if (!isProtocolFrame(frame)) {
     throw new Error("Unsupported frame");
   }
   return frame;
 }
-var import_hypercore_crypto5, import_b4a6, ROOM_KEY_PATTERN3, TOPIC_PREFIX, SUPPORTED_FRAME_TYPES;
+function isProtocolFrame(value) {
+  return typeof value === "object" && value !== null && typeof value.type === "string" && SUPPORTED_FRAME_TYPE_SET.has(value.type);
+}
+var import_hypercore_crypto5, import_b4a6, ROOM_KEY_PATTERN3, TOPIC_PREFIX, SUPPORTED_FRAME_TYPES, SUPPORTED_FRAME_TYPE_SET;
 var init_protocol = __esm({
-  "src/protocol.js"() {
+  "src/protocol.ts"() {
     "use strict";
     import_hypercore_crypto5 = __toESM(require("hypercore-crypto"), 1);
     import_b4a6 = __toESM(require("b4a"), 1);
     ROOM_KEY_PATTERN3 = /^[0-9a-f]{64}$/;
     TOPIC_PREFIX = "kepos-room:v1:";
-    SUPPORTED_FRAME_TYPES = /* @__PURE__ */ new Set([
+    SUPPORTED_FRAME_TYPES = [
       "chat",
       "kepos.dm.body.v1",
       "kepos.dm.invite.v1",
@@ -3035,7 +3075,8 @@ var init_protocol = __esm({
       "treehole.bootstrap",
       "treehole.state.v1",
       "treehole.writer"
-    ]);
+    ];
+    SUPPORTED_FRAME_TYPE_SET = new Set(SUPPORTED_FRAME_TYPES);
   }
 });
 
@@ -3433,13 +3474,19 @@ var init_desktop_home_runtime = __esm({
   }
 });
 
-// src/treehole-state.js
-function createPostEvent({ id, author, authorProfileId, text, createdAt }) {
+// src/treehole-state.ts
+function createPostEvent({
+  id,
+  author,
+  authorProfileId,
+  text,
+  createdAt
+}) {
   const event = {
     type: POST_CREATE,
     id,
     author: cleanAuthor(author),
-    text: cleanText2(text),
+    text: cleanText3(text),
     createdAt
   };
   const cleanAuthorProfileId = cleanProfileId3(authorProfileId);
@@ -3448,17 +3495,27 @@ function createPostEvent({ id, author, authorProfileId, text, createdAt }) {
   }
   return event;
 }
-function createCommentEvent({ id, postId, author, text, createdAt }) {
+function createCommentEvent({
+  id,
+  postId,
+  author,
+  text,
+  createdAt
+}) {
   return {
     type: COMMENT_CREATE,
     id,
     postId,
     author: cleanAuthor(author),
-    text: cleanText2(text),
+    text: cleanText3(text),
     createdAt
   };
 }
-function createLikeEvent({ postId, author, createdAt }) {
+function createLikeEvent({
+  postId,
+  author,
+  createdAt
+}) {
   return {
     type: LIKE_ADD,
     postId,
@@ -3479,7 +3536,9 @@ function applyTreeholeEvents(events) {
         id: event.id,
         author: event.author,
         text: event.text,
-        createdAt: event.createdAt
+        createdAt: event.createdAt,
+        commentCount: 0,
+        likeCount: 0
       };
       const cleanAuthorProfileId = cleanProfileId3(event.authorProfileId);
       if (cleanAuthorProfileId) {
@@ -3526,17 +3585,17 @@ function applyTreeholeEvents(events) {
   };
 }
 function cleanAuthor(author) {
-  return author?.trim() || "anon";
+  return typeof author === "string" && author.trim() ? author.trim() : "anon";
 }
-function cleanText2(text) {
-  return text?.trim() || "";
+function cleanText3(text) {
+  return typeof text === "string" ? text.trim() : "";
 }
 function cleanProfileId3(profileId) {
-  return profileId?.trim() || null;
+  return typeof profileId === "string" && profileId.trim() ? profileId.trim() : null;
 }
 var POST_CREATE, COMMENT_CREATE, LIKE_ADD;
 var init_treehole_state = __esm({
-  "src/treehole-state.js"() {
+  "src/treehole-state.ts"() {
     "use strict";
     POST_CREATE = "treehole.post.create";
     COMMENT_CREATE = "treehole.comment.create";
@@ -4350,8 +4409,12 @@ var init_treehole_base = __esm({
   }
 });
 
-// src/treehole-storage.js
-function createTreeholeStoragePath({ basePath, bootstrapKey = null, roomKey }) {
+// src/treehole-storage.ts
+function createTreeholeStoragePath({
+  basePath,
+  bootstrapKey = null,
+  roomKey
+}) {
   if (!basePath) {
     throw new Error("Treehole storage base path is required");
   }
@@ -4366,12 +4429,12 @@ function normalizeBasePath(basePath) {
   return path2.replace(/\/+$/, "");
 }
 var init_treehole_storage = __esm({
-  "src/treehole-storage.js"() {
+  "src/treehole-storage.ts"() {
     "use strict";
   }
 });
 
-// src/treehole-state-publisher.js
+// src/treehole-state-publisher.ts
 function createTreeholeStatePublisher({
   clearIntervalFn = clearInterval,
   getSnapshot,
@@ -4411,12 +4474,12 @@ function createTreeholeStatePublisher({
   };
 }
 var init_treehole_state_publisher = __esm({
-  "src/treehole-state-publisher.js"() {
+  "src/treehole-state-publisher.ts"() {
     "use strict";
   }
 });
 
-// src/treehole-view.js
+// src/treehole-view.ts
 function serializeTreeholeState(state) {
   return {
     posts: (state.posts || []).map((post) => ({
@@ -4426,7 +4489,7 @@ function serializeTreeholeState(state) {
   };
 }
 var init_treehole_view = __esm({
-  "src/treehole-view.js"() {
+  "src/treehole-view.ts"() {
     "use strict";
   }
 });
@@ -4996,8 +5059,11 @@ var init_desktop_message_request_actions = __esm({
   }
 });
 
-// src/home-session.js
-function createHomeJoinSession({ profile, nick }) {
+// src/home-session.ts
+function createHomeJoinSession({
+  profile,
+  nick
+}) {
   const homeRoom = profile?.homeRoom;
   if (!homeRoom?.ownerProfileId) {
     throw new Error("Home owner profile id is required");
@@ -5086,7 +5152,7 @@ function isRoomKey4(value) {
 }
 var ROOM_KEY_PATTERN4;
 var init_home_session = __esm({
-  "src/home-session.js"() {
+  "src/home-session.ts"() {
     "use strict";
     init_chat_session();
     ROOM_KEY_PATTERN4 = /^[0-9a-f]{64}$/;
@@ -5626,7 +5692,7 @@ var init_trust_grant = __esm({
   }
 });
 
-// src/signed-qr-scan.js
+// src/signed-qr-scan.ts
 function applySignedQrUriToContactBook({
   alias,
   book,
@@ -5693,14 +5759,19 @@ function applySignedQrUriToContactBook({
   }
   throw new Error("Unsupported signed QR payload");
 }
-function canEnterHomeFromLocalContactBook({ book, localProfileId, ownerProfileId, policy }) {
+function canEnterHomeFromLocalContactBook({
+  book,
+  localProfileId,
+  ownerProfileId,
+  policy
+}) {
   if (policy === "public" || localProfileId === ownerProfileId) {
     return true;
   }
   return isContactTrusted(book, ownerProfileId);
 }
 var init_signed_qr_scan = __esm({
-  "src/signed-qr-scan.js"() {
+  "src/signed-qr-scan.ts"() {
     "use strict";
     init_contact_book();
     init_signed_qr_payload();

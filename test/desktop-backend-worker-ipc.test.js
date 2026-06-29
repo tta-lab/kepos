@@ -97,6 +97,32 @@ test('desktop backend worker ipc replays latest snapshot events to late subscrib
   assert.deepEqual(events, [{ profileUri: 'kepos://profile' }])
 })
 
+test('desktop backend worker ipc replays latest transport debug event to late subscribers', async () => {
+  const backendHandlers = new Map()
+  const { clientStream, serverStream } = createDuplexPair()
+  createDesktopBackendWorkerIpcServer({
+    bridge: {
+      dispatch: () => undefined,
+      subscribe: (event, handler) => {
+        backendHandlers.set(event, handler)
+        return () => backendHandlers.delete(event)
+      }
+    },
+    stream: serverStream
+  })
+  const client = createDesktopBackendWorkerIpcClient({ stream: clientStream })
+
+  backendHandlers.get('transportDebugChanged')({ stage: 'flushed' })
+  await new Promise((resolve) => setTimeout(resolve, 0))
+
+  const events = []
+  client.bridge.subscribe('transportDebugChanged', (payload) => {
+    events.push(payload)
+  })
+
+  assert.deepEqual(events, [{ stage: 'flushed' }])
+})
+
 test('desktop backend worker ipc preserves map payloads across the json stream', async () => {
   const backendHandlers = new Map()
   const { clientStream, serverStream } = createDuplexPair()
