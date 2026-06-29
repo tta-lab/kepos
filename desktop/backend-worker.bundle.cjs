@@ -220,8 +220,11 @@ function upsertContact(book, contact) {
   const cleanContact = cleanContactPatch(contact);
   const nextBook = cloneContactBook(book);
   const existing = nextBook.contactsByProfileId.get(cleanContact.profileId);
-  const alias = cleanContact.alias || cleanContact.displayNameSnapshot;
-  const aliases = mergeAliases(existing?.aliases, alias);
+  const alias = cleanContact.alias || existing?.alias || cleanContact.displayNameSnapshot;
+  const aliases = mergeAliases(
+    existing?.aliases,
+    cleanContact.alias || (existing?.alias ? void 0 : cleanContact.displayNameSnapshot)
+  );
   const nextContact = dropEmpty({
     ...existing,
     ...cleanContact,
@@ -230,6 +233,7 @@ function upsertContact(book, contact) {
   });
   if (cleanContact.trustedAt !== void 0) {
     delete nextContact.revokedAt;
+    delete nextContact.requestIgnoredAt;
   }
   nextBook.contactsByProfileId.set(cleanContact.profileId, nextContact);
   return nextBook;
@@ -309,6 +313,12 @@ function recordMessageRequest(book, {
   if (isContactRevoked(book, cleanProfileId4)) {
     throw new Error("Revoked contact cannot create message request");
   }
+  if (isContactTrusted(book, cleanProfileId4)) {
+    return book;
+  }
+  if (isMessageRequestIgnored(book, cleanProfileId4)) {
+    return book;
+  }
   if (book?.pendingRequestsByProfileId?.has(cleanProfileId4)) {
     return book;
   }
@@ -343,6 +353,9 @@ function acceptMessageRequest(book, { profileId, alias, acceptedAt }) {
     throw new Error("Revoked contact cannot be accepted");
   }
   const request = book?.pendingRequestsByProfileId?.get(cleanProfileId4);
+  if (!request) {
+    throw new Error("Pending message request is required");
+  }
   const trusted = trustContact(book, {
     profileId: cleanProfileId4,
     alias,
@@ -357,15 +370,30 @@ function acceptMessageRequest(book, { profileId, alias, acceptedAt }) {
     pendingRequestsByProfileId
   };
 }
-function ignoreMessageRequest(book, { profileId }) {
+function ignoreMessageRequest(book, { ignoredAt = Date.now(), profileId }) {
   const cleanProfileId4 = cleanRequiredString(profileId, "Contact profile id is required");
-  const nextBook = cloneContactBook(book);
+  const existing = getContact(book, cleanProfileId4);
+  const request = book?.pendingRequestsByProfileId?.get(cleanProfileId4);
+  if (!existing && !request) {
+    return cloneContactBook(book);
+  }
+  const nextBook = upsertContact(book, {
+    profileId: cleanProfileId4,
+    alias: existing?.alias || request?.alias,
+    displayNameSnapshot: existing?.displayNameSnapshot || request?.displayNameSnapshot,
+    requestIgnoredAt: ignoredAt,
+    source: existing?.source || request?.source
+  });
   nextBook.pendingRequestsByProfileId.delete(cleanProfileId4);
   return nextBook;
 }
 function isContactRevoked(book, profileId) {
   const contact = getContact(book, profileId);
   return contact?.revokedAt !== void 0 && contact.revokedAt !== null;
+}
+function isMessageRequestIgnored(book, profileId) {
+  const contact = getContact(book, profileId);
+  return contact?.requestIgnoredAt !== void 0 && contact.requestIgnoredAt !== null;
 }
 function cloneContactBook(book) {
   return {
@@ -403,6 +431,7 @@ function cleanContactPatch(contact = {}) {
     trustedAt: contact.trustedAt,
     trustScope: contact.trustScope,
     revokedAt: contact.revokedAt,
+    requestIgnoredAt: contact.requestIgnoredAt,
     source: cleanOptionalString(contact.source),
     proof: contact.proof
   });
@@ -2024,6 +2053,9 @@ function acceptDmInviteAsRecipient({
   if (!localProfileId || invite?.toProfileId !== localProfileId) {
     throw new Error("DM invite is not addressed to this profile");
   }
+  if (contactBook && isContactRevoked(contactBook, invite.fromProfileId)) {
+    throw new Error("DM invite is not authorized");
+  }
   const isContactBookAuthorized = contactBook && canAcceptDmInviteFromContactBook(contactBook, invite);
   const isExplicitlyAuthorized = canAcceptInvite && canAcceptInvite(invite);
   if (!isContactBookAuthorized && !isExplicitlyAuthorized) {
@@ -2562,7 +2594,7 @@ function createDmThreadRuntime({
   }
   function handleIncomingMessage(threadId, message) {
     const record = threads.get(threadId);
-    if (!record || hasMessage(record, message?.messageId)) {
+    if (!record || !shouldAcceptRemoteMessage(record, message) || hasMessage(record, message.messageId)) {
       return;
     }
     persistMessage(record, message);
@@ -5803,6 +5835,7 @@ function applySignedQrUriToContactBook({
   uri
 }) {
   const payload = decodeQrUri(uri);
+  const localAlias = alias?.trim() || void 0;
   if (payload.type === "kepos.trust.invite.v1") {
     if (!verifySignedTrustInvitePayload(payload, { now })) {
       throw new Error("Invalid signed profile QR");
@@ -5814,7 +5847,7 @@ function applySignedQrUriToContactBook({
         trustedProfileId: payload.profileId
       });
       const nextBook2 = applyTrustGrantToContactBook(book, {
-        alias: alias?.trim() || payload.displayName,
+        alias: localAlias,
         displayNameSnapshot: payload.displayName,
         grant,
         source
@@ -5826,7 +5859,7 @@ function applySignedQrUriToContactBook({
       };
     }
     const nextBook = trustContact(book, {
-      alias: alias?.trim() || payload.displayName,
+      alias: localAlias,
       displayNameSnapshot: payload.displayName,
       profileId: payload.profileId,
       source,
