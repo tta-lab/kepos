@@ -8,7 +8,7 @@ async function readDesktopAppSource() {
 
 async function readDesktopUiSource() {
   const app = await readDesktopAppSource()
-  const appState = await readFile(new URL('../desktop/app-state.jsx', import.meta.url), 'utf8')
+  const appState = await readFile(new URL('../desktop/app-state.ts', import.meta.url), 'utf8')
   const panes = await readFile(new URL('../desktop/pane-components.jsx', import.meta.url), 'utf8')
   const shell = await readFile(new URL('../desktop/shell-components.jsx', import.meta.url), 'utf8')
   const context = await readFile(
@@ -290,12 +290,17 @@ test('desktop panes share product headers with short guidance', async () => {
 
 test('desktop app state and bridge live behind a dedicated hook boundary', async () => {
   const source = await readDesktopAppSource()
-  const appState = await readFile(new URL('../desktop/app-state.jsx', import.meta.url), 'utf8')
+  const appState = await readFile(new URL('../desktop/app-state.ts', import.meta.url), 'utf8')
 
-  assert.match(source, /import \{ useDesktopAppModel \} from '\.\/app-state\.jsx'/)
+  assert.match(source, /import \{ useDesktopAppModel \} from '\.\/app-state\.ts'/)
   assert.match(source, /const model = useDesktopAppModel\(\)/)
   assert.match(appState, /export function useDesktopAppModel\(\)/)
-  assert.match(appState, /globalThis\.keposDesktopUi = \{/)
+  assert.match(appState, /type DesktopUiBridge = \{/)
+  assert.match(
+    appState,
+    /type DesktopGlobal = typeof globalThis & \{ keposDesktopUi: DesktopUiApi \}/
+  )
+  assert.match(appState, /\(globalThis as DesktopGlobal\)\.keposDesktopUi = \{/)
   assert.match(appState, /desktopUiBridge\.setContextFormDraft = \(draft = \{\}\) =>/)
   assert.doesNotMatch(source, /const desktopUiBridge = \{/)
   assert.doesNotMatch(source, /globalThis\.keposDesktopUi = \{/)
@@ -894,6 +899,42 @@ test('desktop context actions expose a pending lock during blocking commands', a
   assert.match(presenter, /canUseManualHomeJoin: !isActionPending && !inRoom/)
   assert.match(presenter, /canUseHomeQrJoin: !isActionPending && !inRoom/)
   assert.match(presenter, /canUseTrustProfile: !isActionPending/)
+})
+
+test('desktop UI uses Tailwind and daisyUI through Kepos component boundaries', async () => {
+  const context = await readFile(
+    new URL('../desktop/context-components.jsx', import.meta.url),
+    'utf8'
+  )
+  const panes = await readFile(new URL('../desktop/pane-components.jsx', import.meta.url), 'utf8')
+  const people = await readFile(
+    new URL('../desktop/people-components.jsx', import.meta.url),
+    'utf8'
+  )
+  const shared = await readFile(new URL('../desktop/ui-components.tsx', import.meta.url), 'utf8')
+  const tailwind = await readFile(
+    new URL('../desktop/tailwind.source.css', import.meta.url),
+    'utf8'
+  )
+  const index = await readFile(new URL('../desktop/index.html', import.meta.url), 'utf8')
+
+  assert.match(index, /<link rel="stylesheet" href="\.\/tailwind\.css" \/>/)
+  assert.match(tailwind, /@import 'tailwindcss';/)
+  assert.match(tailwind, /@plugin 'daisyui'/)
+  assert.match(tailwind, /@plugin 'daisyui\/theme'/)
+  assert.match(tailwind, /name: 'light'/)
+  assert.match(tailwind, /name: 'dark'/)
+  assert.match(shared, /className=\{cx\('btn btn-primary min-h-9 rounded-md', className\)\}/)
+  assert.match(shared, /badge badge-sm badge-outline/)
+  assert.match(context, /className='panel compactPanel card border border-base-300/)
+  assert.match(context, /className='input input-bordered input-sm/)
+  assert.match(context, /className='textarea textarea-bordered compactArea/)
+  assert.match(context, /className='advanced collapse collapse-arrow/)
+  assert.match(panes, /className='composer border-base-300 bg-base-100\/80'/)
+  assert.match(panes, /className=\{cx\('item card border border-base-300 shadow-sm'/)
+  assert.match(panes, /className='listEmpty rounded-lg border border-dashed border-base-300/)
+  assert.match(people, /className='panel contactsPanel card border border-base-300/)
+  assert.match(people, /className='badge badge-success badge-sm/)
 })
 
 test('desktop shell exposes Neo Cozy light and Indie Console dark themes', async () => {

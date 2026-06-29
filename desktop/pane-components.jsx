@@ -3,6 +3,7 @@ import { Heart, MessageCircle, Send, Sprout, UserPlus } from 'lucide-react'
 import {
   ActionButton,
   ComposerSubmitButton,
+  cx,
   PaneHeader,
   RequestActionButton
 } from './ui-components.tsx'
@@ -82,9 +83,10 @@ function HomeChatComposer({ controls, onSend }) {
   }
 
   return (
-    <form id='chatForm' className='composer' onSubmit={handleSubmit}>
+    <form id='chatForm' className='composer border-base-300 bg-base-100/80' onSubmit={handleSubmit}>
       <input
         id='chatInput'
+        className='input input-bordered w-full bg-base-100 text-base-content'
         placeholder='Write to the home'
         autoComplete='off'
         value={draft}
@@ -135,7 +137,11 @@ function DirectComposer({
   }
 
   return (
-    <form id='dmForm' className='composer tall' onSubmit={handleSubmit}>
+    <form
+      id='dmForm'
+      className='composer tall border-base-300 bg-base-100/80'
+      onSubmit={handleSubmit}
+    >
       <DirectContactPicker
         actions={{
           openPeople: contactPickerActions.openPeople,
@@ -145,12 +151,16 @@ function DirectComposer({
         empty={contactPicker.empty}
         selectedProfileId={composer.toProfileId.trim()}
       />
-      <details id='advancedDmRecipient' className='advanced advancedComposer'>
+      <details
+        id='advancedDmRecipient'
+        className='advanced advancedComposer collapse collapse-arrow rounded-lg border border-base-300 bg-base-200/60'
+      >
         <summary>Advanced</summary>
-        <label>
+        <label className='form-control grid gap-2 px-3 pb-3 text-xs font-black uppercase text-base-content/70'>
           Recipient profile id
           <input
             id='dmRecipientInput'
+            className='input input-bordered input-sm w-full bg-base-100 text-sm normal-case text-base-content'
             placeholder='Recipient profile id'
             autoComplete='off'
             spellCheck='false'
@@ -161,6 +171,7 @@ function DirectComposer({
       </details>
       <textarea
         id='dmInput'
+        className='textarea textarea-bordered min-h-24 w-full resize-y bg-base-100 text-base-content'
         placeholder='Write a direct message'
         value={composer.text}
         onChange={(event) => setComposer((current) => ({ ...current, text: event.target.value }))}
@@ -192,11 +203,16 @@ function TreeholeComposer({ controls, onPost }) {
       className={controls.canPostTreehole ? 'composer tall' : 'composer tall disabledComposer'}
       onSubmit={handleSubmit}
     >
-      <p id='treeholePostPolicy' className='composerHint' hidden={controls.canPostTreehole}>
+      <p
+        id='treeholePostPolicy'
+        className='composerHint alert alert-warning py-2 text-xs font-black'
+        hidden={controls.canPostTreehole}
+      >
         Only the owner can post here.
       </p>
       <textarea
         id='treeholeInput'
+        className='textarea textarea-bordered min-h-24 w-full resize-y bg-base-100 text-base-content disabled:bg-base-200'
         placeholder='Post to the treehole'
         disabled={!controls.canPostTreehole}
         value={draft}
@@ -214,7 +230,7 @@ function TreeholeComposer({ controls, onPost }) {
 
 function HomeChatList({ messages }) {
   return (
-    <ol id='messageList' className='list' aria-label='Home chat messages'>
+    <ol id='messageList' className='list bg-base-100' aria-label='Home chat messages'>
       {messages.length === 0 ? (
         <ListEmptyState
           icon={<MessageCircle size={18} />}
@@ -223,7 +239,10 @@ function HomeChatList({ messages }) {
         />
       ) : (
         messages.map((message, index) => (
-          <li key={`${message.meta}-${index}-${message.text}`} className={message.className}>
+          <li
+            key={`${message.meta}-${index}-${message.text}`}
+            className={cx('item card border border-base-300 shadow-sm', message.className)}
+          >
             <div className='messageMetaRow'>
               <p className='meta'>{message.meta}</p>
             </div>
@@ -237,7 +256,7 @@ function HomeChatList({ messages }) {
 
 function DirectMessageList({ messages, onAccept, onIgnore }) {
   return (
-    <ol id='dmList' className='list' aria-label='Direct messages'>
+    <ol id='dmList' className='list bg-base-100' aria-label='Direct messages'>
       {messages.length === 0 ? (
         <ListEmptyState
           icon={<Send size={18} />}
@@ -246,7 +265,10 @@ function DirectMessageList({ messages, onAccept, onIgnore }) {
         />
       ) : (
         messages.map((message, index) => (
-          <li key={`${message.meta}-${index}-${message.text}`} className={message.className}>
+          <li
+            key={`${message.meta}-${index}-${message.text}`}
+            className={cx('item card border border-base-300 shadow-sm', message.className)}
+          >
             <div className='messageMetaRow'>
               <p className='meta'>{message.meta}</p>
             </div>
@@ -274,7 +296,7 @@ function DirectMessageList({ messages, onAccept, onIgnore }) {
 
 function DirectContactPicker({ actions, contacts, empty, selectedProfileId }) {
   return (
-    <div id='dmContactList' className='contactList'>
+    <div id='dmContactList' className='contactList flex flex-wrap gap-2'>
       {contacts.length === 0 ? (
         <div className='contactEmpty'>
           <span className='contactEmptyIcon' aria-hidden='true'>
@@ -316,7 +338,7 @@ function DirectContactPicker({ actions, contacts, empty, selectedProfileId }) {
 
 function TreeholeList({ actions, posts }) {
   return (
-    <ol id='treeholeList' className='list posts' aria-label='Treehole posts'>
+    <ol id='treeholeList' className='list posts bg-base-100' aria-label='Treehole posts'>
       {posts.length === 0 ? (
         <ListEmptyState
           icon={<Sprout size={18} />}
@@ -325,7 +347,13 @@ function TreeholeList({ actions, posts }) {
         />
       ) : (
         posts.map((post, index) => (
-          <li key={`${post.timeLabel}-${index}-${post.text}`} className={post.className}>
+          <li
+            key={`${post.timeLabel}-${index}-${post.text}`}
+            className={cx(
+              'item post card border border-base-300 bg-base-100 shadow-sm',
+              post.className
+            )}
+          >
             <div className='postHead'>
               <p className='meta'>{post.authorLabel}</p>
               <p className='time'>{post.timeLabel}</p>
@@ -336,7 +364,10 @@ function TreeholeList({ actions, posts }) {
               {(post.comments || []).map((comment, commentIndex) => (
                 <div
                   key={`${comment.authorLabel}-${commentIndex}-${comment.text}`}
-                  className={comment.className}
+                  className={cx(
+                    'comment rounded-r-md bg-base-200 text-base-content',
+                    comment.className
+                  )}
                 >
                   <p className='meta'>{comment.authorLabel}</p>
                   <p>{comment.text}</p>
@@ -353,13 +384,16 @@ function TreeholeList({ actions, posts }) {
 
 function ListEmptyState({ copy, icon, title }) {
   return (
-    <li className='listEmpty'>
-      <span className='listEmptyIcon' aria-hidden='true'>
+    <li className='listEmpty rounded-lg border border-dashed border-base-300 bg-base-200/70 p-3'>
+      <span
+        className='listEmptyIcon rounded-lg border border-base-300 bg-success/15 text-success'
+        aria-hidden='true'
+      >
         {icon}
       </span>
       <div>
-        <p className='listEmptyTitle'>{title}</p>
-        <p className='listEmptyCopy'>{copy}</p>
+        <p className='listEmptyTitle text-sm font-black text-base-content'>{title}</p>
+        <p className='listEmptyCopy text-xs font-semibold text-base-content/65'>{copy}</p>
       </div>
     </li>
   )
@@ -386,7 +420,7 @@ function TreeholePostActions({ actions, post }) {
       />
       <form className='commentForm' onSubmit={submitComment}>
         <input
-          className='commentInput'
+          className='input input-bordered input-sm commentInput bg-base-100 text-base-content'
           placeholder='Write a comment'
           value={draft}
           onChange={(event) => setDraft(event.target.value)}

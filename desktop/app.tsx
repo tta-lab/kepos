@@ -4,7 +4,7 @@ import type { KeyboardEvent, MouseEvent } from 'react'
 import { createRoot } from 'react-dom/client'
 import { flushSync } from 'react-dom'
 import { X } from 'lucide-react'
-import { useDesktopAppModel } from './app-state.jsx'
+import { useDesktopAppModel } from './app-state.ts'
 import { ContextPanel } from './context-components.jsx'
 import { DirectPane, HomePane, TreeholePane } from './pane-components.jsx'
 import { PeoplePane } from './people-components.jsx'
@@ -17,40 +17,8 @@ type LargeQrState = {
   title?: string
 }
 
-type DesktopAppModel = {
-  activeTab: string
-  contextForm: unknown
-  contextFormActions: unknown
-  controls: unknown
-  directComposer: unknown
-  directComposerActions: unknown
-  directContactPicker: unknown
-  directContactPickerActions: unknown
-  directMessageActions: unknown
-  directMessages: Array<{ actions?: unknown }>
-  homeComposerActions: { sendHomeMessage: () => void }
-  homeMessages: unknown[]
-  largeQr: LargeQrState
-  people: { messageRequests: unknown[]; trustedContacts: unknown[] }
-  peopleActions: unknown
-  setContextForm: unknown
-  setDirectComposer: unknown
-  setTheme: (theme: string) => void
-  shareQrOutputs: unknown
-  shellActions: {
-    hideLargeQr: () => void
-    leaveHome: () => void
-    setTab: (tab: string) => void
-  }
-  status: unknown
-  theme: string
-  treeholeActions: unknown
-  treeholeComposerActions: { postTreehole: () => void }
-  treeholePosts: unknown[]
-}
-
 function DesktopApp() {
-  const model = useDesktopAppModel() as DesktopAppModel
+  const model = useDesktopAppModel()
   const navBadges = {
     direct: model.directMessages.filter((message) => message.actions).length,
     people: model.people.messageRequests.length

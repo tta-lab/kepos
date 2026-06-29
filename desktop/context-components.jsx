@@ -53,12 +53,17 @@ export function ContextPanel({ actions, controls, form, setForm, shareQrOutputs 
           <p className='contextHint'>Start your home, invite a friend, or join theirs.</p>
         </summary>
 
-        <form id='lobbyForm' className='panel compactPanel' onSubmit={handleManualJoin}>
+        <form
+          id='lobbyForm'
+          className='panel compactPanel card border border-base-300 bg-base-100/75 shadow-sm'
+          onSubmit={handleManualJoin}
+        >
           <PanelHeader eyebrow='Start' title='My home' description='Create a local home.' />
           <label>
             Name
             <input
               id='nickInput'
+              className='input input-bordered input-sm w-full bg-base-100 text-sm normal-case text-base-content'
               autoComplete='off'
               value={form.displayName}
               onChange={(event) => handleDisplayNameChange(event.target.value)}
@@ -73,12 +78,16 @@ export function ContextPanel({ actions, controls, form, setForm, shareQrOutputs 
               onClick={() => actions.createHome({ displayName })}
             />
           </div>
-          <details id='advancedJoin' className='advanced'>
+          <details
+            id='advancedJoin'
+            className='advanced collapse collapse-arrow rounded-lg border border-base-300 bg-base-100/60'
+          >
             <summary>Advanced</summary>
             <label>
               Manual home key
               <textarea
                 id='roomKeyInput'
+                className='textarea textarea-bordered min-h-20 w-full resize-y bg-base-100 text-sm normal-case text-base-content'
                 placeholder='64-character manual key'
                 spellCheck='false'
                 value={form.roomKey}
@@ -95,7 +104,11 @@ export function ContextPanel({ actions, controls, form, setForm, shareQrOutputs 
           </details>
         </form>
 
-        <form id='homeQrForm' className='panel qrPanel' onSubmit={handleHomeQrJoin}>
+        <form
+          id='homeQrForm'
+          className='panel qrPanel card border border-base-300 bg-base-100/75 shadow-sm'
+          onSubmit={handleHomeQrJoin}
+        >
           <PanelHeader
             eyebrow='Share'
             title='Invite or join'
@@ -128,7 +141,7 @@ export function ContextPanel({ actions, controls, form, setForm, shareQrOutputs 
             Join a friend&apos;s home
             <textarea
               id='homeQrInput'
-              className='compactArea'
+              className='textarea textarea-bordered compactArea min-h-16 w-full resize-y bg-base-100 text-sm normal-case text-base-content'
               placeholder='Paste Home QR'
               spellCheck='false'
               value={form.homeQrUri}
@@ -151,7 +164,11 @@ export function ContextPanel({ actions, controls, form, setForm, shareQrOutputs 
           <p className='contextHint'>Trust a friend before home access or direct messages.</p>
         </summary>
 
-        <form id='trustForm' className='panel qrPanel' onSubmit={handleTrustProfile}>
+        <form
+          id='trustForm'
+          className='panel qrPanel card border border-base-300 bg-base-100/75 shadow-sm'
+          onSubmit={handleTrustProfile}
+        >
           <PanelHeader
             eyebrow='Trust'
             title='Trusted friend'
@@ -184,7 +201,7 @@ export function ContextPanel({ actions, controls, form, setForm, shareQrOutputs 
             Friend profile
             <textarea
               id='trustQrInput'
-              className='compactArea'
+              className='textarea textarea-bordered compactArea min-h-16 w-full resize-y bg-base-100 text-sm normal-case text-base-content'
               placeholder='Paste Profile QR'
               spellCheck='false'
               value={form.trustQrUri}
@@ -195,6 +212,7 @@ export function ContextPanel({ actions, controls, form, setForm, shareQrOutputs 
             Friend name
             <input
               id='trustAliasInput'
+              className='input input-bordered input-sm w-full bg-base-100 text-sm normal-case text-base-content'
               autoComplete='off'
               placeholder='Ada'
               value={form.trustAlias}
@@ -216,17 +234,26 @@ export function ContextPanel({ actions, controls, form, setForm, shareQrOutputs 
 
 function QrShareOutput({ detailsId, label, outputId, qrId, qrLabel, svg, uri }) {
   return (
-    <details id={detailsId} className='advanced'>
+    <details
+      id={detailsId}
+      className='advanced collapse collapse-arrow rounded-lg border border-base-300 bg-base-100/60'
+    >
       <summary>Advanced</summary>
       <div
         id={qrId}
-        className='qrCode'
+        className='qrCode rounded-lg border border-base-300 bg-base-100 p-2'
         aria-label={qrLabel}
         dangerouslySetInnerHTML={{ __html: svg }}
       />
       <label>
         {label}
-        <textarea id={outputId} className='compactArea' readOnly spellCheck='false' value={uri} />
+        <textarea
+          id={outputId}
+          className='textarea textarea-bordered compactArea min-h-16 w-full resize-y bg-base-100 text-sm normal-case text-base-content'
+          readOnly
+          spellCheck='false'
+          value={uri}
+        />
       </label>
     </details>
   )

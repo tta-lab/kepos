@@ -4,7 +4,7 @@ import test from 'node:test'
 
 async function readDesktopUiSource() {
   const app = await readFile(new URL('../desktop/app.tsx', import.meta.url), 'utf8')
-  const appState = await readFile(new URL('../desktop/app-state.jsx', import.meta.url), 'utf8')
+  const appState = await readFile(new URL('../desktop/app-state.ts', import.meta.url), 'utf8')
   const panes = await readFile(new URL('../desktop/pane-components.jsx', import.meta.url), 'utf8')
   const shell = await readFile(new URL('../desktop/shell-components.jsx', import.meta.url), 'utf8')
   const context = await readFile(
@@ -1190,14 +1190,15 @@ test('Android records accepted DM threads in UI state before async storage compl
   )
 })
 
-test('debug two-device smoke resets Android DM data before exercising current threads', async () => {
+test('debug two-device smoke resets Android throwaway storage before exercising current threads', async () => {
   const source = await readFile(
     new URL('../scripts/smoke-two-device-debug.mjs', import.meta.url),
     'utf8'
   )
 
-  assert.match(source, /resetAndroidDmData\(\)/)
+  assert.match(source, /resetAndroidSmokeData\(\)/)
   assert.match(source, /rm -rf files\/kepos\/dm files\/kepos\/kepos\/dm/)
+  assert.match(source, /files\/kepos\/kepos-treehole-\*/)
 })
 
 test('debug two-device smoke passes desktop direct endpoint into Android manual join', async () => {

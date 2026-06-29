@@ -22,9 +22,9 @@ export function PeoplePane({ activeTab, actions, messageRequests, trustedContact
 export function PeopleLists({ actions, messageRequests, trustedContacts }) {
   return (
     <>
-      <section className='panel contactsPanel'>
+      <section className='panel contactsPanel card border border-base-300 bg-base-200/70 shadow-sm'>
         <SectionTitle icon={<MessageCircle size={15} />} text='Message requests' />
-        <div id='requestList' className='managedContacts'>
+        <div id='requestList' className='managedContacts grid gap-2'>
           {messageRequests.length === 0 ? (
             <PeopleEmptyState
               icon={<MessageCircle size={18} />}
@@ -33,13 +33,18 @@ export function PeopleLists({ actions, messageRequests, trustedContacts }) {
             />
           ) : (
             messageRequests.map((request) => (
-              <div key={request.profileId} className='managedContact'>
+              <div
+                key={request.profileId}
+                className='managedContact card grid grid-cols-[1fr_auto] items-center gap-3 rounded-lg border border-base-300 bg-base-100/80 p-3'
+              >
                 <div>
-                  <p>{request.title}</p>
-                  <p className='mono muted smallText'>{request.profileLabel}</p>
-                  <p className='muted smallText'>{request.preview}</p>
+                  <p className='font-black text-base-content'>{request.title}</p>
+                  <p className='mono muted smallText text-xs text-base-content/60'>
+                    {request.profileLabel}
+                  </p>
+                  <p className='muted smallText text-xs text-base-content/65'>{request.preview}</p>
                 </div>
-                <div className='inlineActions'>
+                <div className='inlineActions flex flex-wrap justify-end gap-2'>
                   <RequestActionButton
                     ariaLabel={`Ignore message request from ${request.title}`}
                     onClick={() => actions.ignoreMessageRequest(request.profileId)}
@@ -56,9 +61,9 @@ export function PeopleLists({ actions, messageRequests, trustedContacts }) {
           )}
         </div>
       </section>
-      <section className='panel contactsPanel'>
+      <section className='panel contactsPanel card border border-base-300 bg-base-200/70 shadow-sm'>
         <SectionTitle icon={<Users size={15} />} text='Trusted friends' />
-        <div id='contactList' className='managedContacts'>
+        <div id='contactList' className='managedContacts grid gap-2'>
           {trustedContacts.length === 0 ? (
             <PeopleEmptyState
               icon={<Users size={18} />}
@@ -67,12 +72,19 @@ export function PeopleLists({ actions, messageRequests, trustedContacts }) {
             />
           ) : (
             trustedContacts.map((contact) => (
-              <div key={contact.profileId} className='managedContact'>
+              <div
+                key={contact.profileId}
+                className='managedContact card grid grid-cols-[1fr_auto] items-center gap-3 rounded-lg border border-base-300 bg-base-100/80 p-3'
+              >
                 <div>
-                  <p>{contact.alias}</p>
-                  <p className='mono muted smallText'>{contact.shortProfileId}</p>
-                  <div className='trustMeta'>
-                    <span>{contact.statusLabel}</span>
+                  <p className='font-black text-base-content'>{contact.alias}</p>
+                  <p className='mono muted smallText text-xs text-base-content/60'>
+                    {contact.shortProfileId}
+                  </p>
+                  <div className='trustMeta flex flex-wrap gap-1 text-xs text-base-content/65'>
+                    <span className='badge badge-success badge-sm font-black'>
+                      {contact.statusLabel}
+                    </span>
                     <span>{contact.sourceLabel}</span>
                     <span>{contact.trustedAtLabel}</span>
                   </div>
@@ -95,13 +107,16 @@ export function PeopleLists({ actions, messageRequests, trustedContacts }) {
 
 function PeopleEmptyState({ copy, icon, title }) {
   return (
-    <div className='peopleEmpty'>
-      <span className='peopleEmptyIcon' aria-hidden='true'>
+    <div className='peopleEmpty rounded-lg border border-dashed border-base-300 bg-base-100/70 p-3'>
+      <span
+        className='peopleEmptyIcon rounded-lg border border-base-300 bg-success/15 text-success'
+        aria-hidden='true'
+      >
         {icon}
       </span>
       <div>
-        <p className='peopleEmptyTitle'>{title}</p>
-        <p className='peopleEmptyCopy'>{copy}</p>
+        <p className='peopleEmptyTitle text-sm font-black text-base-content'>{title}</p>
+        <p className='peopleEmptyCopy text-xs font-semibold text-base-content/65'>{copy}</p>
       </div>
     </div>
   )

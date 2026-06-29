@@ -53,7 +53,7 @@ try {
 
   const androidProfileUri = await readAndroidProfileUri()
   const androidProfile = decodeKeposUri(androidProfileUri)
-  resetAndroidDmData()
+  resetAndroidSmokeData()
 
   await openDesktopPeopleActions(page)
   await page.fill('#trustQrInput', androidProfileUri)
@@ -380,10 +380,10 @@ function grantAndroidCameraPermission() {
   runAdb(['shell', 'pm', 'grant', 'io.guion.kepos', 'android.permission.CAMERA'])
 }
 
-function resetAndroidDmData() {
+function resetAndroidSmokeData() {
   runAdb([
     'shell',
-    "run-as io.guion.kepos sh -c 'rm -rf files/kepos/dm files/kepos/kepos/dm && mkdir -p files/kepos/dm files/kepos/kepos/dm'"
+    "run-as io.guion.kepos sh -c 'rm -rf files/kepos/dm files/kepos/kepos/dm files/kepos/kepos-treehole-* && mkdir -p files/kepos/dm files/kepos/kepos/dm'"
   ])
 }
 

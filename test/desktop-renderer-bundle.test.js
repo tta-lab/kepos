@@ -4,7 +4,7 @@ import test from 'node:test'
 
 async function readDesktopUiSource() {
   const app = await readFile(new URL('../desktop/app.tsx', import.meta.url), 'utf8')
-  const appState = await readFile(new URL('../desktop/app-state.jsx', import.meta.url), 'utf8')
+  const appState = await readFile(new URL('../desktop/app-state.ts', import.meta.url), 'utf8')
   const panes = await readFile(new URL('../desktop/pane-components.jsx', import.meta.url), 'utf8')
   const shell = await readFile(new URL('../desktop/shell-components.jsx', import.meta.url), 'utf8')
   const context = await readFile(
@@ -97,7 +97,7 @@ test('desktop React owns the home chat list surface', async () => {
   )
 
   assert.match(source, /function HomeChatList\(\{ messages \}\)/)
-  assert.match(source, /globalThis\.keposDesktopUi/)
+  assert.match(source, /\(globalThis as DesktopGlobal\)\.keposDesktopUi/)
   assert.match(source, /setHomeMessages\(messages = \[\]\)/)
   assert.match(source, /<HomePane[\s\S]*messages=\{model\.homeMessages\}/)
   assert.match(source, /<HomeChatList messages=\{messages\} \/>/)
@@ -120,7 +120,7 @@ test('desktop React owns the home chat composer draft', async () => {
   assert.match(source, /value=\{draft\}/)
   assert.match(source, /onChange=\{\(event\) => setDraft\(event\.target\.value\)\}/)
   assert.match(source, /disabled=\{!canSend\}/)
-  assert.match(source, /setHomeComposerActions\(actions = \{\}\)/)
+  assert.match(source, /setHomeComposerActions\(actions = DEFAULT_HOME_COMPOSER_ACTIONS\)/)
   assert.match(controller, /createDesktopUiActionBindings/)
   assert.doesNotMatch(controller, /chatForm: document\.querySelector/)
   assert.doesNotMatch(controller, /chatInput: document\.querySelector/)
@@ -139,7 +139,7 @@ test('desktop React owns the direct message list surface', async () => {
 
   assert.match(source, /function DirectMessageList\(\{ messages, onAccept, onIgnore \}\)/)
   assert.match(source, /setDirectMessages\(messages = \[\]\)/)
-  assert.match(source, /setDirectMessageActions\(actions = \{\}\)/)
+  assert.match(source, /setDirectMessageActions\(actions = DEFAULT_DIRECT_MESSAGE_ACTIONS\)/)
   assert.match(source, /<DirectPane[\s\S]*messages=\{model\.directMessages\}/)
   assert.match(source, /<DirectMessageList[\s\S]*messages=\{messages\}/)
   assert.match(source, /onClick=\{\(\) => onIgnore\(message\.actions\.ignoreMessage\)\}/)
@@ -162,7 +162,10 @@ test('desktop React owns the direct contact picker surface', async () => {
     /function DirectContactPicker\(\{ actions, contacts, empty, selectedProfileId \}\)/
   )
   assert.match(source, /setDirectContactPicker\([\s\S]*picker = \{[\s\S]*contacts: \[\]/)
-  assert.match(source, /setDirectContactPickerActions\(actions = \{\}\)/)
+  assert.match(
+    source,
+    /setDirectContactPickerActions\(actions = DEFAULT_DIRECT_CONTACT_PICKER_ACTIONS\)/
+  )
   assert.match(source, /<DirectPane[\s\S]*contactPicker=\{model\.directContactPicker\}/)
   assert.match(source, /<DirectComposer[\s\S]*contactPicker=\{contactPicker\}/)
   assert.match(source, /<DirectContactPicker[\s\S]*contacts=\{contactPicker\.contacts\}/)
@@ -209,9 +212,12 @@ test('desktop React owns tab and pane active state', async () => {
   )
 
   assert.match(source, /setActiveTab\(tab = 'chat'\)/)
-  assert.match(source, /setShellActions\(actions = \{\}\)/)
-  assert.match(source, /const \[activeTab, setActiveTab\] = useState\('chat'\)/)
-  assert.match(source, /const \[shellActions, setShellActions\] = useState\(\{/)
+  assert.match(source, /setShellActions\(actions = DEFAULT_SHELL_ACTIONS\)/)
+  assert.match(source, /const \[activeTab, setActiveTab\] = useState<ActiveTab>\('chat'\)/)
+  assert.match(
+    source,
+    /const \[shellActions, setShellActions\] = useState<ShellActions>\(DEFAULT_SHELL_ACTIONS\)/
+  )
   assert.match(source, /isActive=\{activeTab === 'chat'\}/)
   assert.match(source, /onSelect=\{\(\) => shellActions\.setTab\('chat'\)\}/)
   assert.match(source, /onClick=\{onSelect\}/)
@@ -394,7 +400,7 @@ test('desktop React owns context form drafts and QR actions', async () => {
   assert.match(source, /roomKey: ''/)
   assert.match(source, /trustAlias: ''/)
   assert.match(source, /trustQrUri: ''/)
-  assert.match(source, /setContextFormActions\(actions = \{\}\)/)
+  assert.match(source, /setContextFormActions\(actions = DEFAULT_CONTEXT_FORM_ACTIONS\)/)
   assert.match(source, /setContextFormDraft\(draft = \{\}\)/)
   assert.match(source, /form=\{model\.contextForm\}/)
   assert.match(source, /value=\{form\.displayName\}/)
@@ -433,7 +439,7 @@ test('desktop React owns the people list surfaces', async () => {
 
   assert.match(source, /function PeopleLists\(\{ actions, messageRequests, trustedContacts \}\)/)
   assert.match(source, /setPeople\(people = \{ messageRequests: \[\], trustedContacts: \[\] \}\)/)
-  assert.match(source, /setPeopleActions\(actions = \{\}\)/)
+  assert.match(source, /setPeopleActions\(actions = DEFAULT_PEOPLE_ACTIONS\)/)
   assert.match(source, /<PeoplePane[\s\S]*messageRequests=\{model\.people\.messageRequests\}/)
   assert.match(source, /<PeopleLists[\s\S]*messageRequests=\{messageRequests\}/)
   assert.match(source, /onClick=\{\(\) => actions\.revokeContact\(contact\.profileId\)\}/)
@@ -458,7 +464,7 @@ test('desktop React owns the treehole post list surface', async () => {
 
   assert.match(source, /function TreeholeList\(\{ actions, posts \}\)/)
   assert.match(source, /setTreeholePosts\(posts = \[\]\)/)
-  assert.match(source, /setTreeholeActions\(actions = \{\}\)/)
+  assert.match(source, /setTreeholeActions\(actions = DEFAULT_TREEHOLE_ACTIONS\)/)
   assert.match(source, /<TreeholePane[\s\S]*posts=\{model\.treeholePosts\}/)
   assert.match(source, /<TreeholeList[\s\S]*posts=\{posts\}/)
   assert.match(source, /onClick=\{\(\) => actions\.likePost\(post\.actions\.likePostId\)\}/)
@@ -484,7 +490,7 @@ test('desktop React owns the treehole main post composer draft', async () => {
   assert.match(source, /onChange=\{\(event\) => setDraft\(event\.target\.value\)\}/)
   assert.match(source, /disabled=\{!controls\.canPostTreehole\}/)
   assert.match(source, /disabled=\{!canPost\}/)
-  assert.match(source, /setTreeholeComposerActions\(actions = \{\}\)/)
+  assert.match(source, /setTreeholeComposerActions\(actions = DEFAULT_TREEHOLE_COMPOSER_ACTIONS\)/)
   assert.match(controller, /createDesktopUiActionBindings/)
   assert.doesNotMatch(controller, /treeholeForm: document\.querySelector/)
   assert.doesNotMatch(controller, /treeholeInput: document\.querySelector/)
@@ -501,9 +507,12 @@ test('desktop React owns the direct message composer draft and recipient', async
     source,
     /function DirectComposer\(\{[\s\S]*actions,[\s\S]*composer,[\s\S]*contactPicker/
   )
-  assert.match(source, /const \[directComposer, setDirectComposer\] = useState\(\{/)
+  assert.match(
+    source,
+    /const \[directComposer, setDirectComposer\] = useState<DirectComposerState>\(\{/
+  )
   assert.match(source, /text: '',\s*toProfileId: ''/)
-  assert.match(source, /setDirectComposerActions\(actions = \{\}\)/)
+  assert.match(source, /setDirectComposerActions\(actions = DEFAULT_DIRECT_COMPOSER_ACTIONS\)/)
   assert.match(source, /setDirectComposerRecipient\(toProfileId = ''\)/)
   assert.match(
     source,
