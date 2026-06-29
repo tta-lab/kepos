@@ -14,7 +14,7 @@ test('desktop exposes contact revoke controls that update trust and DM threads',
     'utf8'
   )
   const backendActions = await readFile(
-    new URL('../src/desktop-backend-actions.js', import.meta.url),
+    new URL('../src/desktop-backend-actions.ts', import.meta.url),
     'utf8'
   )
   const actions = await readFile(

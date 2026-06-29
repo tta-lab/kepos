@@ -1,4 +1,9 @@
 import { DESKTOP_COMMANDS } from './desktop-command-vocabulary.ts'
+import type { DesktopCommand } from './desktop-command-vocabulary.ts'
+
+type DesktopBackendAction = (payload?: unknown) => unknown | Promise<unknown>
+type DesktopBackendActionGroup = Record<string, DesktopBackendAction | undefined>
+type DesktopBackendActions = Record<DesktopCommand, DesktopBackendAction>
 
 export function createDesktopBackendActions({
   displayNameActions,
@@ -6,7 +11,13 @@ export function createDesktopBackendActions({
   messageRequestActions,
   roomActions,
   trustActions
-}) {
+}: {
+  displayNameActions?: DesktopBackendActionGroup
+  messageActions?: DesktopBackendActionGroup
+  messageRequestActions?: DesktopBackendActionGroup
+  roomActions?: DesktopBackendActionGroup
+  trustActions?: DesktopBackendActionGroup
+}): DesktopBackendActions {
   const actions = {
     acceptMessageRequest: messageRequestActions?.acceptMessageRequest,
     commentTreehole: messageActions?.commentTreehole,
@@ -30,5 +41,5 @@ export function createDesktopBackendActions({
     }
   }
 
-  return actions
+  return actions as DesktopBackendActions
 }

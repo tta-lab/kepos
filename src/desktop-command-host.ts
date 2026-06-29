@@ -1,12 +1,24 @@
 import { DESKTOP_COMMANDS } from './desktop-command-vocabulary.ts'
 import { createDesktopCommandRegistry } from './desktop-command-registry.ts'
+import type { DesktopCommand } from './desktop-command-vocabulary.ts'
+import type { DesktopCommandRegistry } from './desktop-command-registry.ts'
 
-export function createDesktopCommandHost({ actions }) {
+type DesktopCommandAction = (payload?: unknown) => unknown | Promise<unknown>
+type DesktopCommandActions = Record<DesktopCommand, DesktopCommandAction>
+type CommandPayload = Record<string, unknown>
+
+export function createDesktopCommandHost({
+  actions: rawActions
+}: {
+  actions: Partial<DesktopCommandActions>
+}): DesktopCommandRegistry {
   for (const command of DESKTOP_COMMANDS) {
-    if (typeof actions?.[command] !== 'function') {
+    if (typeof rawActions?.[command] !== 'function') {
       throw new Error(`Missing desktop command action: ${command}`)
     }
   }
+
+  const actions = rawActions as DesktopCommandActions
 
   return createDesktopCommandRegistry({
     handlers: {
@@ -40,6 +52,6 @@ export function createDesktopCommandHost({ actions }) {
   })
 }
 
-function readCommandPayload(payload) {
-  return payload && typeof payload === 'object' ? payload : {}
+function readCommandPayload(payload: unknown): CommandPayload {
+  return payload && typeof payload === 'object' ? (payload as CommandPayload) : {}
 }

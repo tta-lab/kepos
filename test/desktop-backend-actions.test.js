@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { DESKTOP_COMMANDS } from '../src/desktop-command-vocabulary.ts'
-import { createDesktopBackendActions } from '../src/desktop-backend-actions.js'
+import { createDesktopBackendActions } from '../src/desktop-backend-actions.ts'
 
 function createActionGroup(name, actionNames, calls) {
   return Object.fromEntries(

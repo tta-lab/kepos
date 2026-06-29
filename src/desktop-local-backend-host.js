@@ -1,6 +1,6 @@
 import { createDesktopBackendBridge } from './desktop-backend-bridge.ts'
 import { createDesktopBackendRuntime } from './desktop-backend-runtime.js'
-import { createDesktopCommandHost } from './desktop-command-host.js'
+import { createDesktopCommandHost } from './desktop-command-host.ts'
 
 export function createDesktopLocalBackendHost({
   actions,

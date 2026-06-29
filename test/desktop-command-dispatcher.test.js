@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createDesktopCommandDispatcher } from '../src/desktop-command-dispatcher.js'
+import { createDesktopCommandDispatcher } from '../src/desktop-command-dispatcher.ts'
 
 function deferred() {
   let resolve

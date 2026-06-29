@@ -56,7 +56,7 @@ test('desktop controller routes commands through the backend bridge', async () =
     'utf8'
   )
   const dispatcher = await readFile(
-    new URL('../src/desktop-command-dispatcher.js', import.meta.url),
+    new URL('../src/desktop-command-dispatcher.ts', import.meta.url),
     'utf8'
   )
   const localBackend = await readFile(
@@ -174,7 +174,7 @@ test('desktop controller delegates home transport to a runtime boundary', async 
     'utf8'
   )
   const backendActions = await readFile(
-    new URL('../src/desktop-backend-actions.js', import.meta.url),
+    new URL('../src/desktop-backend-actions.ts', import.meta.url),
     'utf8'
   )
   const host = await readFile(

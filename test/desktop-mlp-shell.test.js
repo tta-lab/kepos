@@ -312,7 +312,7 @@ test('desktop people pane surfaces pending message requests', async () => {
   const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const backendActions = await readFile(
-    new URL('../src/desktop-backend-actions.js', import.meta.url),
+    new URL('../src/desktop-backend-actions.ts', import.meta.url),
     'utf8'
   )
   const presenter = await readFile(
@@ -870,7 +870,7 @@ test('desktop context actions expose a pending lock during blocking commands', a
   const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const dispatcher = await readFile(
-    new URL('../src/desktop-command-dispatcher.js', import.meta.url),
+    new URL('../src/desktop-command-dispatcher.ts', import.meta.url),
     'utf8'
   )
   const presenter = await readFile(

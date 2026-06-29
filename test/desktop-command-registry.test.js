@@ -91,9 +91,9 @@ test('desktop home message command carries composer text as payload', async () =
     new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
     'utf8'
   )
-  const host = await readFile(new URL('../src/desktop-command-host.js', import.meta.url), 'utf8')
+  const host = await readFile(new URL('../src/desktop-command-host.ts', import.meta.url), 'utf8')
   const backendActions = await readFile(
-    new URL('../src/desktop-backend-actions.js', import.meta.url),
+    new URL('../src/desktop-backend-actions.ts', import.meta.url),
     'utf8'
   )
   const actions = await readFile(
@@ -125,9 +125,9 @@ test('desktop direct message command carries composer fields as payload', async 
     new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
     'utf8'
   )
-  const host = await readFile(new URL('../src/desktop-command-host.js', import.meta.url), 'utf8')
+  const host = await readFile(new URL('../src/desktop-command-host.ts', import.meta.url), 'utf8')
   const backendActions = await readFile(
-    new URL('../src/desktop-backend-actions.js', import.meta.url),
+    new URL('../src/desktop-backend-actions.ts', import.meta.url),
     'utf8'
   )
   const actions = await readFile(
@@ -162,9 +162,9 @@ test('desktop treehole post command carries composer text as payload', async () 
     new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
     'utf8'
   )
-  const host = await readFile(new URL('../src/desktop-command-host.js', import.meta.url), 'utf8')
+  const host = await readFile(new URL('../src/desktop-command-host.ts', import.meta.url), 'utf8')
   const backendActions = await readFile(
-    new URL('../src/desktop-backend-actions.js', import.meta.url),
+    new URL('../src/desktop-backend-actions.ts', import.meta.url),
     'utf8'
   )
   const actions = await readFile(
@@ -195,9 +195,9 @@ test('desktop Home QR join command carries QR text and display name as payload',
     new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
     'utf8'
   )
-  const host = await readFile(new URL('../src/desktop-command-host.js', import.meta.url), 'utf8')
+  const host = await readFile(new URL('../src/desktop-command-host.ts', import.meta.url), 'utf8')
   const backendActions = await readFile(
-    new URL('../src/desktop-backend-actions.js', import.meta.url),
+    new URL('../src/desktop-backend-actions.ts', import.meta.url),
     'utf8'
   )
   const actions = await readFile(new URL('../src/desktop-room-actions.js', import.meta.url), 'utf8')
@@ -229,9 +229,9 @@ test('desktop Profile QR trust command carries QR text alias and display name as
     new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
     'utf8'
   )
-  const host = await readFile(new URL('../src/desktop-command-host.js', import.meta.url), 'utf8')
+  const host = await readFile(new URL('../src/desktop-command-host.ts', import.meta.url), 'utf8')
   const backendActions = await readFile(
-    new URL('../src/desktop-backend-actions.js', import.meta.url),
+    new URL('../src/desktop-backend-actions.ts', import.meta.url),
     'utf8'
   )
   const actions = await readFile(
@@ -268,9 +268,9 @@ test('desktop display name updates are mirrored to the backend command bridge', 
     new URL('../src/desktop-ui-action-bindings.js', import.meta.url),
     'utf8'
   )
-  const host = await readFile(new URL('../src/desktop-command-host.js', import.meta.url), 'utf8')
+  const host = await readFile(new URL('../src/desktop-command-host.ts', import.meta.url), 'utf8')
   const backendActions = await readFile(
-    new URL('../src/desktop-backend-actions.js', import.meta.url),
+    new URL('../src/desktop-backend-actions.ts', import.meta.url),
     'utf8'
   )
   const session = await readFile(

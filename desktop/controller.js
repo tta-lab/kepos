@@ -1,7 +1,7 @@
 /* global navigator */
 
 import { createDesktopBackendSubscriptions } from '../src/desktop-backend-subscriptions.js'
-import { createDesktopCommandDispatcher } from '../src/desktop-command-dispatcher.js'
+import { createDesktopCommandDispatcher } from '../src/desktop-command-dispatcher.ts'
 import { createDesktopRenderPresenter } from '../src/desktop-render-presenter.js'
 import { setDesktopTab } from '../src/desktop-state.ts'
 import { createDesktopRendererBackendClient } from '../src/desktop-renderer-backend-client.js'

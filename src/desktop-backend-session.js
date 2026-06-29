@@ -1,4 +1,4 @@
-import { createDesktopBackendActions } from './desktop-backend-actions.js'
+import { createDesktopBackendActions } from './desktop-backend-actions.ts'
 import { createDesktopControlActions } from './desktop-control-actions.js'
 import { getDesktopDirectTransportConfig } from './desktop-direct-transport-config.js'
 import { createDesktopLocalBackendHost } from './desktop-local-backend-host.js'
