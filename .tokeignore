@@ -1,0 +1,21 @@
+# Generated artifacts
+*.bundle.*
+desktop/tailwind.css
+tmp/
+
+# Dependencies and platform build output
+node_modules/
+android/
+ios/
+.expo/
+
+# Non-product-code surfaces for source migration ratio
+docs/
+scripts/
+test/
+
+# Root launch/config glue outside the V1 source migration denominator
+babel.config.cjs
+index.js
+metro.config.cjs
+rpc-commands.mjs
