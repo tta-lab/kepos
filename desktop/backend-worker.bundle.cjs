@@ -4894,12 +4894,13 @@ function createDesktopMessageActions({
 } = {}) {
   return {
     async commentTreehole({ postId, text } = {}) {
-      if (!text?.trim()) return;
+      const cleanText4 = cleanMessageText(text);
+      if (!cleanText4) return;
       await getTreeholeRuntime()?.comment({
         createdAt: now(),
         id: createId(),
         postId,
-        text
+        text: cleanText4
       });
     },
     async likeTreehole(postId) {
@@ -4909,23 +4910,25 @@ function createDesktopMessageActions({
       });
     },
     async postTreehole({ text } = {}) {
-      if (!text || !getTreeholeCanPost()) return;
+      const cleanText4 = cleanMessageText(text);
+      if (!cleanText4 || !getTreeholeCanPost()) return;
       await getTreeholeRuntime()?.post({
         createdAt: now(),
         id: createId(),
-        text
+        text: cleanText4
       });
     },
     sendDmMessage({ text, toProfileId } = {}) {
+      const cleanText4 = cleanMessageText(text);
       const homeRuntime = getHomeRuntime();
       const dmRuntime = getDmRuntime();
-      if (!homeRuntime?.isJoined() || !getDmSession() || !toProfileId || !text) return;
+      if (!homeRuntime?.isJoined() || !getDmSession() || !toProfileId || !cleanText4) return;
       const result = dmRuntime?.sendMessageOrRequest({
         broadcastControl: (request) => homeRuntime.broadcastControl(request),
         createdAt: now(),
         messageId: createId(),
         requestId: createId(),
-        text,
+        text: cleanText4,
         toProfileId
       });
       if (!result) return;
@@ -4938,18 +4941,22 @@ function createDesktopMessageActions({
       onChanged();
     },
     sendHomeMessage({ text } = {}) {
+      const cleanText4 = cleanMessageText(text);
       const homeRuntime = getHomeRuntime();
       const session = getSession();
-      if (!homeRuntime?.isJoined() || !session || !text) return;
+      if (!homeRuntime?.isJoined() || !session || !cleanText4) return;
       const nextSession = homeRuntime.sendMessage({
         at: now(),
         id: createId(),
-        text
+        text: cleanText4
       });
       setSession(nextSession);
       onChanged();
     }
   };
+}
+function cleanMessageText(text) {
+  return typeof text === "string" ? text.trim() : "";
 }
 var init_desktop_message_actions = __esm({
   "src/desktop-message-actions.js"() {

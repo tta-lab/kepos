@@ -23,7 +23,7 @@ test('desktop message actions send home chat through the home runtime', () => {
     }
   })
 
-  actions.sendHomeMessage({ text: 'hello' })
+  actions.sendHomeMessage({ text: '  hello  ' })
 
   assert.deepEqual(sent, [{ at: 123, id: 'message-1', text: 'hello' }])
   assert.deepEqual(session.messages, [{ at: 123, id: 'message-1', text: 'hello' }])
@@ -53,7 +53,7 @@ test('desktop message actions send direct messages through the dm runtime', () =
     onChanged: () => renders.push('render')
   })
 
-  actions.sendDmMessage({ text: 'dm', toProfileId: 'friend' })
+  actions.sendDmMessage({ text: '  dm  ', toProfileId: 'friend' })
 
   assert.equal(calls.length, 1)
   assert.equal(calls[0].createdAt, 456)
@@ -122,6 +122,32 @@ test('desktop message actions gate unavailable sends', async () => {
   assert.deepEqual(calls, [])
 })
 
+test('desktop message actions ignore blank composer text', async () => {
+  const calls = []
+  const actions = createDesktopMessageActions({
+    getDmRuntime: () => ({ sendMessageOrRequest: () => calls.push('dm') }),
+    getDmSession: () => ({ messages: [] }),
+    getHomeRuntime: () => ({
+      isJoined: () => true,
+      sendMessage: () => calls.push('home')
+    }),
+    getSession: () => ({ messages: [] }),
+    getTreeholeCanPost: () => true,
+    getTreeholeRuntime: () => ({
+      comment: () => calls.push('comment'),
+      post: () => calls.push('post')
+    }),
+    onChanged: () => calls.push('render')
+  })
+
+  actions.sendHomeMessage({ text: '   ' })
+  actions.sendDmMessage({ text: '   ', toProfileId: 'friend' })
+  await actions.postTreehole({ text: '   ' })
+  await actions.commentTreehole({ postId: 'post-1', text: '   ' })
+
+  assert.deepEqual(calls, [])
+})
+
 test('desktop message actions write treehole posts comments and likes', async () => {
   const calls = []
   const actions = createDesktopMessageActions({
@@ -135,8 +161,8 @@ test('desktop message actions write treehole posts comments and likes', async ()
     now: () => 789
   })
 
-  await actions.postTreehole({ text: 'post' })
-  await actions.commentTreehole({ postId: 'post-1', text: 'comment' })
+  await actions.postTreehole({ text: '  post  ' })
+  await actions.commentTreehole({ postId: 'post-1', text: '  comment  ' })
   await actions.commentTreehole({ postId: 'post-1', text: '   ' })
   await actions.likeTreehole('post-1')
 

@@ -12,13 +12,14 @@ export function createDesktopMessageActions({
 } = {}) {
   return {
     async commentTreehole({ postId, text } = {}) {
-      if (!text?.trim()) return
+      const cleanText = cleanMessageText(text)
+      if (!cleanText) return
 
       await getTreeholeRuntime()?.comment({
         createdAt: now(),
         id: createId(),
         postId,
-        text
+        text: cleanText
       })
     },
     async likeTreehole(postId) {
@@ -28,26 +29,28 @@ export function createDesktopMessageActions({
       })
     },
     async postTreehole({ text } = {}) {
-      if (!text || !getTreeholeCanPost()) return
+      const cleanText = cleanMessageText(text)
+      if (!cleanText || !getTreeholeCanPost()) return
 
       await getTreeholeRuntime()?.post({
         createdAt: now(),
         id: createId(),
-        text
+        text: cleanText
       })
     },
     sendDmMessage({ text, toProfileId } = {}) {
+      const cleanText = cleanMessageText(text)
       const homeRuntime = getHomeRuntime()
       const dmRuntime = getDmRuntime()
 
-      if (!homeRuntime?.isJoined() || !getDmSession() || !toProfileId || !text) return
+      if (!homeRuntime?.isJoined() || !getDmSession() || !toProfileId || !cleanText) return
 
       const result = dmRuntime?.sendMessageOrRequest({
         broadcastControl: (request) => homeRuntime.broadcastControl(request),
         createdAt: now(),
         messageId: createId(),
         requestId: createId(),
-        text,
+        text: cleanText,
         toProfileId
       })
 
@@ -62,19 +65,24 @@ export function createDesktopMessageActions({
       onChanged()
     },
     sendHomeMessage({ text } = {}) {
+      const cleanText = cleanMessageText(text)
       const homeRuntime = getHomeRuntime()
       const session = getSession()
 
-      if (!homeRuntime?.isJoined() || !session || !text) return
+      if (!homeRuntime?.isJoined() || !session || !cleanText) return
 
       const nextSession = homeRuntime.sendMessage({
         at: now(),
         id: createId(),
-        text
+        text: cleanText
       })
 
       setSession(nextSession)
       onChanged()
     }
   }
+}
+
+function cleanMessageText(text) {
+  return typeof text === 'string' ? text.trim() : ''
 }
