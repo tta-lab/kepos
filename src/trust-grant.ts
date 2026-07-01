@@ -1,6 +1,7 @@
 import compact from 'compact-encoding'
 import { trustContact } from './contact-book.ts'
 import type { ContactBook } from './contact-book.ts'
+import type { AvatarMediaReference } from './avatar-media.ts'
 import { createSignedRecord, verifySignedRecord } from './signed-record.ts'
 import type { PayloadEncoding, SigningIdentity } from './signed-record.ts'
 
@@ -142,6 +143,8 @@ export function applyTrustGrantToContactBook(
   book: ContactBook,
   {
     alias,
+    avatarMediaSnapshot,
+    avatarUriSnapshot,
     displayNameSnapshot,
     grant,
     homeAddress,
@@ -149,6 +152,8 @@ export function applyTrustGrantToContactBook(
     source
   }: {
     alias?: string
+    avatarMediaSnapshot?: AvatarMediaReference
+    avatarUriSnapshot?: string
     displayNameSnapshot?: string
     grant: TrustGrant
     homeAddress?: string
@@ -162,6 +167,8 @@ export function applyTrustGrantToContactBook(
 
   return trustContact(book, {
     alias,
+    avatarMediaSnapshot,
+    avatarUriSnapshot,
     displayNameSnapshot,
     homeAddress,
     homePolicy,

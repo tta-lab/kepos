@@ -3,6 +3,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { _electron as electron } from 'playwright'
+import { markSmokeStorage } from './smoke-storage.mjs'
 
 const repoDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const desktopDir = path.join(repoDir, 'desktop')
@@ -14,12 +15,64 @@ const electronExecutable = path.join(
 )
 
 const userDataDir = await mkdtemp(path.join(os.tmpdir(), 'kepos-desktop-smoke-'))
+await markSmokeStorage(userDataDir)
 const usePearRuntime = process.argv.includes('--pear')
 const homeMessageText = 'smoke home message'
 const treeholePostText = 'smoke treehole post'
 let app = null
 
 try {
+  const page = await launchDesktopApp()
+  await page.waitForSelector('#profileQrOutput', { state: 'attached' })
+  await waitForInputPrefix(page, '#profileQrOutput', 'kepos://profile')
+  await waitForInputPrefix(page, '#homeQrOutput', 'kepos://home')
+  const profileUri = await page.locator('#profileQrOutput').inputValue()
+  const homeUri = await page.locator('#homeQrOutput').inputValue()
+
+  await page.click('#createButton')
+  await waitForText(page, '#noticeLabel', 'Home joined.')
+  await page.locator('#leaveButton').waitFor({ state: 'visible' })
+
+  await page.fill('#chatInput', homeMessageText)
+  await page.click('#chatSendButton')
+  await waitForTextIncludes(page, '#messageList', homeMessageText)
+
+  await page.click('#treeholeTab')
+  await page.fill('#treeholeInput', treeholePostText)
+  await page.click('#treeholeSendButton')
+  await waitForTextIncludes(page, '#treeholeList', treeholePostText)
+
+  const restartedPage = await restartDesktopApp()
+  await waitForInputValue(restartedPage, '#profileQrOutput', profileUri)
+  await waitForInputValue(restartedPage, '#homeQrOutput', homeUri)
+  await restartedPage.click('#createButton')
+  await waitForText(restartedPage, '#noticeLabel', 'Home joined.')
+  await restartedPage.click('#treeholeTab')
+  await waitForTextIncludes(restartedPage, '#treeholeList', treeholePostText)
+
+  const result = {
+    homeMessage: homeMessageText,
+    homeUri,
+    notice: await restartedPage.locator('#noticeLabel').textContent(),
+    peerCount: await restartedPage.locator('#peerLabel').textContent(),
+    profileUri,
+    roomLabel: await restartedPage.locator('#roomKeyLabel').textContent(),
+    treeholePost: treeholePostText,
+    treeholeStatus: await restartedPage.locator('#treeholeStatusLabel').textContent(),
+    verified: [
+      'profile QR remains stable after desktop restart',
+      'home QR remains stable after desktop restart',
+      'treehole post remains after desktop restart'
+    ]
+  }
+
+  console.log(JSON.stringify(result, null, 2))
+} finally {
+  await app?.close().catch(() => {})
+  await rm(userDataDir, { force: true, recursive: true }).catch(() => {})
+}
+
+async function launchDesktopApp() {
   app = await electron.launch({
     args: ['.', `--user-data-dir=${userDataDir}`],
     cwd: desktopDir,
@@ -59,44 +112,26 @@ try {
     throw new Error(`Expected isolated preload bridge APIs, got ${JSON.stringify(bridgeShape)}`)
   }
 
-  await page.waitForSelector('#profileQrOutput', { state: 'attached' })
-  await waitForInputPrefix(page, '#profileQrOutput', 'kepos://profile')
-  await waitForInputPrefix(page, '#homeQrOutput', 'kepos://home')
+  return page
+}
 
-  await page.click('#createButton')
-  await waitForText(page, '#noticeLabel', 'Home joined.')
-  await page.locator('#leaveButton').waitFor({ state: 'visible' })
+async function restartDesktopApp() {
+  await app?.close()
+  app = null
 
-  await page.fill('#chatInput', homeMessageText)
-  await page.click('#chatSendButton')
-  await waitForTextIncludes(page, '#messageList', homeMessageText)
-
-  await page.click('#treeholeTab')
-  await page.fill('#treeholeInput', treeholePostText)
-  await page.click('#treeholeSendButton')
-  await waitForTextIncludes(page, '#treeholeList', treeholePostText)
-
-  const result = {
-    homeMessage: homeMessageText,
-    homeUri: await page.locator('#homeQrOutput').inputValue(),
-    notice: await page.locator('#noticeLabel').textContent(),
-    peerCount: await page.locator('#peerLabel').textContent(),
-    profileUri: await page.locator('#profileQrOutput').inputValue(),
-    roomLabel: await page.locator('#roomKeyLabel').textContent(),
-    treeholePost: treeholePostText,
-    treeholeStatus: await page.locator('#treeholeStatusLabel').textContent()
-  }
-
-  console.log(JSON.stringify(result, null, 2))
-} finally {
-  await app?.close().catch(() => {})
-  await rm(userDataDir, { force: true, recursive: true }).catch(() => {})
+  return launchDesktopApp()
 }
 
 async function waitForInputPrefix(page, selector, prefix) {
   const locator = page.locator(selector)
   await locator.waitFor({ state: 'attached' })
   await waitFor(async () => (await locator.inputValue()).startsWith(prefix), `${selector} prefix`)
+}
+
+async function waitForInputValue(page, selector, expected) {
+  const locator = page.locator(selector)
+  await locator.waitFor({ state: 'attached' })
+  await waitFor(async () => (await locator.inputValue()) === expected, `${selector} value`)
 }
 
 async function waitForText(page, selector, expected) {

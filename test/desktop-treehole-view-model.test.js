@@ -8,9 +8,11 @@ test('desktop treehole view model formats posts and comments', () => {
     posts: [
       {
         authorDisplayName: 'Ada',
+        authorProfileId: 'b'.repeat(64),
         comments: [
           {
             author: 'Grace',
+            authorProfileId: 'c'.repeat(64),
             text: 'reply'
           }
         ],
@@ -30,10 +32,20 @@ test('desktop treehole view model formats posts and comments', () => {
         commentPostId: 'post-1',
         likePostId: 'post-1'
       },
+      authorAvatar: {
+        initials: 'A',
+        label: 'Ada avatar',
+        tone: 'avatarTone3'
+      },
       authorLabel: 'Ada',
       className: 'item post',
       comments: [
         {
+          authorAvatar: {
+            initials: 'G',
+            label: 'Grace avatar',
+            tone: 'avatarTone1'
+          },
           authorLabel: 'Grace',
           className: 'comment',
           text: 'reply'
@@ -65,9 +77,23 @@ test('desktop treehole view model falls back to compact profile labels', () => {
     shortenProfileId: (profileId) => profileId.slice(0, 4)
   })
 
-  assert.equal(post.authorLabel, 'bbbb')
-  assert.equal(post.comments[0].authorLabel, 'cccc')
+  assert.equal(post.authorLabel, 'Profile bbbb')
+  assert.equal(post.comments[0].authorLabel, 'Profile cccc')
   assert.equal(post.statsLabel, '0 comments · 0 likes')
+})
+
+test('desktop treehole view model uses product copy when author identity is missing', () => {
+  const [post] = createDesktopTreeholeViewModel({
+    posts: [
+      {
+        createdAt: 123,
+        id: 'post-1',
+        text: 'hello'
+      }
+    ]
+  })
+
+  assert.equal(post.authorLabel, 'Someone')
 })
 
 test('desktop treehole view model defaults to an empty list', () => {

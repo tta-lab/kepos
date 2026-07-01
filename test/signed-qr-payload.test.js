@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
+import { createAvatarMediaReference } from '../src/avatar-media.ts'
 import { createDmEncryptionKeyPair } from '../src/dm-invite.ts'
 import { createMessageRequest, verifyMessageRequest } from '../src/message-request.ts'
 import { createSigningKeyPair } from '../src/signed-record.ts'
@@ -26,6 +27,70 @@ test('signed trust invite payloads round trip through profile QR URI', () => {
   assert.equal(uri.startsWith('kepos://profile?v=1&payload='), true)
   assert.deepEqual(decoded, payload)
   assert.equal(verifySignedTrustInvitePayload(decoded), true)
+})
+
+test('signed profile QR can carry an independently signed Home descriptor', () => {
+  const identity = createSigningKeyPair()
+  const homeDescriptor = createSignedHomeAddressPayload({
+    address: 'c'.repeat(64),
+    createdAt: 1001,
+    identity,
+    policy: 'trusted_only',
+    roomKey: 'd'.repeat(64)
+  })
+  const payload = createSignedTrustInvitePayload({
+    createdAt: 1000,
+    displayName: 'Ada',
+    homeDescriptor,
+    identity
+  })
+  const uri = encodeQrUri(payload)
+  const decoded = decodeQrUri(uri)
+
+  assert.deepEqual(decoded.homeDescriptor, homeDescriptor)
+  assert.equal(verifySignedTrustInvitePayload(decoded), true)
+})
+
+test('signed profile QR can carry a content-addressed avatar media reference', () => {
+  const identity = createSigningKeyPair()
+  const avatarMedia = createAvatarMediaReference({
+    bytes: Uint8Array.from([1, 2, 3]),
+    createdAt: 1002,
+    mimeType: 'image/png',
+    sha256Hex: () => 'a'.repeat(64)
+  })
+  const payload = createSignedTrustInvitePayload({
+    avatarMedia,
+    avatarUri: avatarMedia.uri,
+    createdAt: 1000,
+    displayName: 'Ada',
+    identity
+  })
+  const uri = encodeQrUri(payload)
+  const decoded = decodeQrUri(uri)
+
+  assert.deepEqual(decoded.avatarMedia, avatarMedia)
+  assert.equal(decoded.avatarUri, avatarMedia.uri)
+  assert.equal(verifySignedTrustInvitePayload(decoded), true)
+})
+
+test('signed profile QR rejects Home descriptors signed by another profile', () => {
+  const identity = createSigningKeyPair()
+  const other = createSigningKeyPair()
+  const payload = createSignedTrustInvitePayload({
+    createdAt: 1000,
+    displayName: 'Ada',
+    homeDescriptor: createSignedHomeAddressPayload({
+      address: 'c'.repeat(64),
+      createdAt: 1001,
+      identity: other,
+      policy: 'trusted_only',
+      roomKey: 'd'.repeat(64)
+    }),
+    identity
+  })
+
+  assert.equal(verifySignedTrustInvitePayload(payload), false)
 })
 
 test('signed home address payloads round trip through home QR URI', () => {

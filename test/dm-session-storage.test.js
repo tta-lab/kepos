@@ -64,6 +64,16 @@ test('DM session storage starts empty when no messages were saved', () => {
   )
 })
 
+test('DM session storage drops corrupt sync display cache instead of blocking startup', () => {
+  assert.deepEqual(
+    loadDmSessionMessagesFromStorage({
+      ownerProfileId,
+      storage: createMemoryStorage(new Map([[`kepos.dmSessionMessages.v1.${ownerProfileId}`, '{']]))
+    }),
+    []
+  )
+})
+
 test('DM session storage persists request messages for app file storage', async () => {
   const files = new Map()
   const fileSystem = createFileSystem(files)
@@ -106,6 +116,19 @@ test('DM session storage persists request messages for app file storage', async 
     [request]
   )
   assert.equal(files.has(`file:///app/kepos/dm/session/${ownerProfileId}.json`), true)
+})
+
+test('DM session storage drops corrupt app file display cache instead of blocking startup', async () => {
+  const files = new Map([[`file:///app/kepos/dm/session/${ownerProfileId}.json`, '{']])
+
+  assert.deepEqual(
+    await loadDmSessionMessagesFromFileSystem({
+      baseUri: 'file:///app/',
+      fileSystem: createFileSystem(files),
+      ownerProfileId
+    }),
+    []
+  )
 })
 
 function createMemoryStorage(writes = new Map()) {

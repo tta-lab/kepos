@@ -1,17 +1,22 @@
 export const DESKTOP_COMMANDS = [
   'acceptMessageRequest',
+  'allowContactRequests',
   'commentTreehole',
+  'enterContactHome',
   'ignoreMessageRequest',
   'joinHome',
   'joinHomeUri',
   'leaveHome',
   'likeTreehole',
+  'markDmThreadRead',
   'postTreehole',
   'revokeContact',
   'sendDmMessage',
   'sendHomeMessage',
   'sendMessageRequest',
-  'trustProfileUri',
+  'prepareProfileRequestTarget',
+  'updateAvatarMedia',
+  'updateAvatarUri',
   'updateDisplayName'
 ] as const
 
@@ -25,6 +30,7 @@ export const DESKTOP_EVENTS = [
   'errorReceived',
   'homeMessageReceived',
   'peerCountChanged',
+  'profileRequestTargetChanged',
   'shareQrOutputsChanged',
   'statusChanged',
   'transportDebugChanged',

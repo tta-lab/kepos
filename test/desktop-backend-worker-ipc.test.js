@@ -4,7 +4,7 @@ import test from 'node:test'
 import {
   createDesktopBackendWorkerIpcClient,
   createDesktopBackendWorkerIpcServer
-} from '../src/desktop-backend-worker-ipc.js'
+} from '../src/desktop-backend-worker-ipc.ts'
 
 test('desktop backend worker ipc dispatches commands over a stream', async () => {
   const calls = []
@@ -95,6 +95,32 @@ test('desktop backend worker ipc replays latest snapshot events to late subscrib
   })
 
   assert.deepEqual(events, [{ profileUri: 'kepos://profile' }])
+})
+
+test('desktop backend worker ipc replays latest DM thread snapshots to late subscribers', async () => {
+  const backendHandlers = new Map()
+  const { clientStream, serverStream } = createDuplexPair()
+  createDesktopBackendWorkerIpcServer({
+    bridge: {
+      dispatch: () => undefined,
+      subscribe: (event, handler) => {
+        backendHandlers.set(event, handler)
+        return () => backendHandlers.delete(event)
+      }
+    },
+    stream: serverStream
+  })
+  const client = createDesktopBackendWorkerIpcClient({ stream: clientStream })
+
+  backendHandlers.get('dmThreadChanged')([{ threadId: 'thread-1' }])
+  await new Promise((resolve) => setTimeout(resolve, 0))
+
+  const events = []
+  client.bridge.subscribe('dmThreadChanged', (payload) => {
+    events.push(payload)
+  })
+
+  assert.deepEqual(events, [[{ threadId: 'thread-1' }]])
 })
 
 test('desktop backend worker ipc replays latest transport debug event to late subscribers', async () => {

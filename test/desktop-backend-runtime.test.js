@@ -36,6 +36,7 @@ test('desktop backend runtime wires Home DM and Treehole runtimes to backend eve
   })
 
   runtime.dm.options.onSessionChanged({ messages: ['dm'] })
+  runtime.dm.options.onThreadsChanged([{ threadId: 'thread-1' }])
   runtime.home.options.onPeerCount(2)
   runtime.home.options.onSessionChanged({ messages: ['home'] })
   runtime.home.options.onControl({ type: 'treehole.bootstrap' }, 'peer-1')
@@ -46,6 +47,7 @@ test('desktop backend runtime wires Home DM and Treehole runtimes to backend eve
 
   assert.deepEqual(events, [
     ['dmMessageReceived', { messages: ['dm'] }],
+    ['dmThreadChanged', [{ threadId: 'thread-1' }]],
     ['peerCountChanged', { peers: 2 }],
     ['homeMessageReceived', { messages: ['home'] }],
     ['control', { type: 'treehole.bootstrap' }, 'peer-1'],

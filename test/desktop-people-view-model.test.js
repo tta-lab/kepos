@@ -1,6 +1,13 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createContactBook, recordMessageRequest, trustContact } from '../src/contact-book.ts'
+import {
+  createContactBook,
+  ignoreMessageRequest,
+  recordMessageRequest,
+  recordOutgoingFriendRequest,
+  revokeContact,
+  trustContact
+} from '../src/contact-book.ts'
 import { createDesktopPeopleViewModel } from '../src/desktop-people-view-model.ts'
 
 test('desktop people view model formats trusted contacts for rendering', () => {
@@ -21,7 +28,16 @@ test('desktop people view model formats trusted contacts for rendering', () => {
   assert.deepEqual(viewModel.trustedContacts, [
     {
       alias: 'Ada',
+      avatar: {
+        initials: 'A',
+        label: 'Ada avatar',
+        tone: 'avatarTone3'
+      },
+      homeActionEnabled: false,
+      homeActionLabel: 'Enter Home',
+      messageActionLabel: 'Message',
       profileId,
+      recentTitle: 'Recent posts',
       shortProfileId: `short:${profileId}`,
       sourceLabel: 'From Profile QR',
       statusLabel: 'Trusted',
@@ -45,6 +61,46 @@ test('desktop people view model uses product copy for home-sourced trust', () =>
   })
 
   assert.equal(viewModel.trustedContacts[0].sourceLabel, 'From Home')
+})
+
+test('desktop people view model enables home entry when a descriptor is saved', () => {
+  const profileId = 'b'.repeat(64)
+  const book = trustContact(createContactBook({ ownerProfileId: 'owner-a' }), {
+    alias: 'Ada',
+    homeAddress: 'c'.repeat(64),
+    homeExpiresAt: 9999999999999,
+    homePolicy: 'trusted_only',
+    homeRoomKey: 'd'.repeat(64),
+    proof: { signature: 'owner-proof' },
+    profileId,
+    source: 'profile_qr',
+    trustedAt: 2000
+  })
+
+  const viewModel = createDesktopPeopleViewModel({
+    contactBook: book,
+    formatDate: () => 'Jan 1, 1970'
+  })
+
+  assert.equal(viewModel.trustedContacts[0].homeActionEnabled, true)
+})
+
+test('desktop people view model keeps home entry disabled without a descriptor room key', () => {
+  const profileId = 'b'.repeat(64)
+  const book = trustContact(createContactBook({ ownerProfileId: 'owner-a' }), {
+    alias: 'Ada',
+    homeAddress: 'c'.repeat(64),
+    profileId,
+    source: 'profile_qr',
+    trustedAt: 2000
+  })
+
+  const viewModel = createDesktopPeopleViewModel({
+    contactBook: book,
+    formatDate: () => 'Jan 1, 1970'
+  })
+
+  assert.equal(viewModel.trustedContacts[0].homeActionEnabled, false)
 })
 
 test('desktop people view model formats pending message requests for rendering', () => {
@@ -73,7 +129,84 @@ test('desktop people view model formats pending message requests for rendering',
       profileId,
       profileLabel: 'Ada',
       preview: 'hello',
-      title: 'Ada wants to start a direct chat.'
+      title: 'Ada sent a friend request.'
+    }
+  ])
+})
+
+test('desktop people view model formats outgoing friend requests for rendering', () => {
+  const profileId = 'b'.repeat(64)
+  const book = recordOutgoingFriendRequest(createContactBook({ ownerProfileId: 'owner-a' }), {
+    alias: 'Ada',
+    profileId,
+    requestedAt: 1000,
+    requestId: 'request-1',
+    source: 'profile_qr',
+    text: ' hello '
+  })
+
+  const viewModel = createDesktopPeopleViewModel({
+    contactBook: book,
+    formatDate: () => 'Jan 1, 1970',
+    shortenProfileId: (profileId) => `short:${profileId}`
+  })
+
+  assert.deepEqual(viewModel.outgoingRequests, [
+    {
+      profileId,
+      profileLabel: 'Ada',
+      requestedAtLabel: 'Sent Jan 1, 1970',
+      statusLabel: 'Request sent',
+      textPreview: 'hello',
+      title: 'Ada has not accepted yet.'
+    }
+  ])
+})
+
+test('desktop people view model formats removed and ignored contacts for rendering', () => {
+  const revokedProfileId = 'b'.repeat(64)
+  const ignoredProfileId = 'c'.repeat(64)
+  let book = trustContact(createContactBook({ ownerProfileId: 'owner-a' }), {
+    alias: 'Ada',
+    profileId: revokedProfileId,
+    source: 'profile_qr',
+    trustedAt: 1000
+  })
+
+  book = revokeContact(book, { profileId: revokedProfileId, revokedAt: 2000 })
+  book = recordMessageRequest(book, {
+    alias: 'Grace',
+    profileId: ignoredProfileId,
+    requestedAt: 3000,
+    source: 'home_room',
+    text: 'hello'
+  })
+  book = ignoreMessageRequest(book, { profileId: ignoredProfileId, ignoredAt: 4000 })
+
+  const viewModel = createDesktopPeopleViewModel({
+    contactBook: book,
+    formatDate: (value) => `date:${value}`,
+    shortenProfileId: (profileId) => `short:${profileId}`
+  })
+
+  assert.deepEqual(viewModel.trustedContacts, [])
+  assert.deepEqual(viewModel.messageRequests, [])
+  assert.deepEqual(viewModel.blockedContacts, [
+    {
+      blockedAtLabel: 'Removed date:2000',
+      copy: 'Future access is stopped. Data already copied to them is not erased.',
+      profileId: revokedProfileId,
+      profileLabel: 'Ada',
+      shortProfileId: `short:${revokedProfileId}`,
+      statusLabel: 'Removed'
+    },
+    {
+      blockedAtLabel: 'Ignored date:4000',
+      copy: 'This request is hidden. Allow requests before a new friend request.',
+      profileId: ignoredProfileId,
+      profileLabel: 'Grace',
+      shortProfileId: `short:${ignoredProfileId}`,
+      statusLabel: 'Ignored'
     }
   ])
 })
@@ -103,9 +236,9 @@ test('desktop people view model uses stable fallbacks', () => {
         type: 'kepos.message.request.v1'
       },
       profileId,
-      profileLabel: `short:${profileId}`,
+      profileLabel: `Profile short:${profileId}`,
       preview: 'No message yet',
-      title: 'Someone wants to start a direct chat.'
+      title: `Profile short:${profileId} sent a friend request.`
     }
   ])
 })
@@ -116,7 +249,9 @@ test('desktop people view model can render before a contact book snapshot arrive
   })
 
   assert.deepEqual(viewModel, {
+    blockedContacts: [],
     messageRequests: [],
+    outgoingRequests: [],
     trustedContacts: []
   })
 })

@@ -3,6 +3,7 @@ import {
   loadDesktopContactBook,
   saveDesktopContactBook
 } from './desktop-local-adapters.ts'
+import type { AvatarMediaReference } from './avatar-media.ts'
 import type { ContactBook } from './contact-book.ts'
 import type { LocalProfile } from './profile.ts'
 
@@ -20,6 +21,8 @@ export type DesktopProfileContext = {
 }
 
 type DesktopProfileProvider = (options: {
+  avatarMedia?: AvatarMediaReference | null
+  avatarUri?: string | null
   displayName?: string
   storage?: DesktopProfileStorage | null
 }) => LocalProfile
@@ -39,6 +42,8 @@ export type DesktopFileStorageFactory = (
 ) => DesktopProfileStorage
 
 type DesktopProfileContextOptions = {
+  avatarMedia?: AvatarMediaReference | null
+  avatarUri?: string | null
   displayName?: string
   getProfile?: DesktopProfileProvider
   loadContactBook?: DesktopContactBookLoader
@@ -47,13 +52,15 @@ type DesktopProfileContextOptions = {
 }
 
 export function createDesktopProfileContext({
+  avatarMedia = null,
+  avatarUri = null,
   displayName = 'Desktop',
   getProfile = getDesktopLocalProfile,
   loadContactBook = loadDesktopContactBook,
   saveContactBook = saveDesktopContactBook,
   storage = getDefaultStorage()
 }: DesktopProfileContextOptions = {}): DesktopProfileContext {
-  const profile = getProfile({ displayName, storage })
+  const profile = getProfile({ avatarMedia, avatarUri, displayName, storage })
   const contactBook = loadContactBook({
     ownerProfileId: profile.id,
     storage
@@ -70,17 +77,23 @@ export function createDesktopProfileContext({
 }
 
 export function createDesktopProfileContextFromStorage({
+  avatarMedia = null,
+  avatarUri = null,
   createFileStorage,
   displayName = 'Desktop',
   storageBasePath,
   storageOptions = {}
 }: {
+  avatarMedia?: AvatarMediaReference | null
+  avatarUri?: string | null
   createFileStorage: DesktopFileStorageFactory
   displayName?: string
   storageBasePath?: string
   storageOptions?: Record<string, unknown>
 }): DesktopProfileContext {
   return createDesktopProfileContext({
+    avatarMedia,
+    avatarUri,
     displayName,
     storage: createFileStorage({
       basePath: storageBasePath,

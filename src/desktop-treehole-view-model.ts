@@ -1,3 +1,8 @@
+import {
+  createProfileAvatarViewModel,
+  type ProfileAvatarViewModel
+} from './profile-avatar-view-model.ts'
+
 type ShortenProfileId = (profileId: string) => string
 type FormatTime = (value: number | string | undefined) => string
 
@@ -21,9 +26,11 @@ export type DesktopTreeholePostViewModel = {
     commentPostId: string
     likePostId: string
   }
+  authorAvatar: ProfileAvatarViewModel
   authorLabel: string
   className: string
   comments: {
+    authorAvatar: ProfileAvatarViewModel
     authorLabel: string
     className: string
     text?: string
@@ -47,9 +54,11 @@ export function createDesktopTreeholeViewModel({
       commentPostId: post.id,
       likePostId: post.id
     },
+    authorAvatar: createTreeholeAuthorAvatar(post),
     authorLabel: displayPostAuthor(post, { shortenProfileId }),
     className: 'item post',
     comments: (post.comments || []).map((comment) => ({
+      authorAvatar: createTreeholeAuthorAvatar(comment),
       authorLabel: displayPostAuthor(comment, { shortenProfileId }),
       className: 'comment',
       text: comment.text
@@ -60,15 +69,25 @@ export function createDesktopTreeholeViewModel({
   }))
 }
 
+function createTreeholeAuthorAvatar(author: DesktopTreeholeComment): ProfileAvatarViewModel {
+  const displayName = author.authorDisplayName || author.author || ''
+
+  return createProfileAvatarViewModel({
+    displayName,
+    profileId: author.authorProfileId || displayName
+  })
+}
+
 function displayPostAuthor(
   post: DesktopTreeholeComment,
   { shortenProfileId }: { shortenProfileId: ShortenProfileId }
 ): string {
+  const shortProfileId = shortenPostProfileId(post.authorProfileId, shortenProfileId)
+
   return (
     post.authorDisplayName ||
     post.author ||
-    shortenPostProfileId(post.authorProfileId, shortenProfileId) ||
-    'anon'
+    (shortProfileId ? `Profile ${shortProfileId}` : 'Someone')
   )
 }
 

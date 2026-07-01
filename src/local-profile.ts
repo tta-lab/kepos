@@ -2,11 +2,13 @@ import type { DmEncryptionKeyPair, LocalProfile } from './profile.ts'
 import { createProfile } from './profile.ts'
 import type { SigningIdentity } from './signed-record.ts'
 import { createIdentityKeyPair, isIdentityKey, isIdentityKeyPair } from './identity.ts'
+import { isAvatarMediaReference, type AvatarMediaReference } from './avatar-media.ts'
 
 const PROFILE_ID_KEY = 'kepos.profile.id'
 const IDENTITY_PUBLIC_KEY = 'kepos.identity.publicKey'
 const IDENTITY_SECRET_KEY = 'kepos.identity.secretKey'
 const HOME_ROOM_KEY = 'kepos.home.roomKey'
+const V1_PROFILE_KEY = 'kepos.v1.profile'
 const V1_IDENTITY_KEY = 'kepos.v1.identity'
 const V1_HOME_KEY = 'kepos.v1.home'
 const DM_ENCRYPTION_PUBLIC_KEY = 'kepos.dmEncryption.publicKey'
@@ -34,13 +36,22 @@ type StoredHome = {
   roomKey: string | null
 }
 
+type StoredProfile = {
+  avatarMedia?: AvatarMediaReference
+  avatarUri?: string
+}
+
 export function getOrCreateLocalProfile({
+  avatarMedia = null,
+  avatarUri = null,
   createDmEncryptionKeyPair = null,
   createIdentity = createIdentityKeyPair,
   displayName = 'Kepos',
   homeRoomKey = null,
   storage = getDefaultStorage()
 }: {
+  avatarMedia?: AvatarMediaReference | null
+  avatarUri?: string | null
   createDmEncryptionKeyPair?: (() => DmEncryptionKeyPair) | null
   createIdentity?: () => SigningIdentity
   displayName?: string
@@ -55,6 +66,7 @@ export function getOrCreateLocalProfile({
     storedSecretKey: storedIdentity?.secretKey || null
   })
   const storedHome = readLocalHome(storage)
+  const storedProfile = readLocalProfile(storage)
   const storedHomeRoomKey = storedHome?.roomKey || null
   if (storedHomeRoomKey && !HEX_32_PATTERN.test(storedHomeRoomKey)) {
     throw new Error('Corrupt local home room key')
@@ -70,6 +82,8 @@ export function getOrCreateLocalProfile({
   })
 
   const profile = createProfile({
+    avatarMedia: avatarMedia || storedProfile.avatarMedia || null,
+    avatarUri: cleanOptionalString(avatarUri) || storedProfile.avatarUri || null,
     dmEncryptionKeyPair,
     homeRoomKey: existingHomeRoomKey,
     identity,
@@ -93,6 +107,10 @@ export function getOrCreateLocalProfile({
     ownerProfileId: profile.id,
     roomKey: profile.homeRoom.roomKey
   })
+  writeLocalProfile(storage, {
+    avatarMedia: profile.avatarMedia,
+    avatarUri: profile.avatarUri
+  })
   if (profile.dmEncryptionKeyPair && !storedDmEncryptionPublicKey) {
     storage?.setItem?.(DM_ENCRYPTION_PUBLIC_KEY, profile.dmEncryptionKeyPair.publicKey)
   }
@@ -113,6 +131,15 @@ function readLocalIdentity(storage: LocalStorageLike | null): StoredIdentity {
   return {
     publicKey: storage?.getItem?.(IDENTITY_PUBLIC_KEY)?.trim() || null,
     secretKey: storage?.getItem?.(IDENTITY_SECRET_KEY)?.trim() || null
+  }
+}
+
+function readLocalProfile(storage: LocalStorageLike | null): StoredProfile {
+  const document = readLocalDocument<StoredProfile>(storage, V1_PROFILE_KEY, 'kepos.profile')
+
+  return {
+    avatarMedia: cleanOptionalAvatarMediaReference(document?.data?.avatarMedia),
+    avatarUri: cleanOptionalString(document?.data?.avatarUri)
   }
 }
 
@@ -186,6 +213,32 @@ function writeLocalHome(storage: LocalStorageLike | null, home: StoredHome): voi
   )
 }
 
+function writeLocalProfile(storage: LocalStorageLike | null, profile: StoredProfile): void {
+  storage?.setItem?.(
+    V1_PROFILE_KEY,
+    JSON.stringify({
+      data: {
+        ...(profile.avatarMedia ? { avatarMedia: profile.avatarMedia } : {}),
+        ...(profile.avatarUri ? { avatarUri: profile.avatarUri } : {})
+      },
+      schemaVersion: 1,
+      type: 'kepos.profile'
+    })
+  )
+}
+
+function cleanOptionalAvatarMediaReference(value: unknown): AvatarMediaReference | undefined {
+  if (value === undefined || value === null) {
+    return undefined
+  }
+
+  if (!isAvatarMediaReference(value)) {
+    throw new Error('Invalid avatar media reference')
+  }
+
+  return value
+}
+
 function getLocalIdentity({
   createIdentity,
   storedPublicKey,
@@ -249,6 +302,10 @@ function getLocalDmEncryptionKeyPair({
 function isDmEncryptionKeyPair(keyPair: unknown): keyPair is DmEncryptionKeyPair {
   const value = keyPair as Partial<DmEncryptionKeyPair> | null | undefined
   return isIdentityKey(value?.publicKey) && isIdentityKey(value?.secretKey)
+}
+
+function cleanOptionalString(value: string | undefined | null): string | undefined {
+  return value?.trim() || undefined
 }
 
 function getDefaultStorage(): LocalStorageLike | null {

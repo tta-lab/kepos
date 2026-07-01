@@ -2,6 +2,7 @@ export {
   createContactBook,
   createTreeholePolicyFromContactBook,
   getContact,
+  recordOutgoingFriendRequest,
   trustContact
 } from './contact-book.ts'
 import { createContactBook, deserializeContactBook, serializeContactBook } from './contact-book.ts'

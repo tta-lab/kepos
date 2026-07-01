@@ -80,6 +80,7 @@ describe('identity key material', () => {
 
   test('profile can be constructed from an existing identity key pair', () => {
     const profile = createProfile({
+      avatarUri: ' kepos://avatar/local ',
       identity: {
         publicKey: 'c'.repeat(64),
         secretKey: 'd'.repeat(128)
@@ -87,6 +88,7 @@ describe('identity key material', () => {
     })
 
     assert.equal(profile.id, 'c'.repeat(64))
+    assert.equal(profile.avatarUri, 'kepos://avatar/local')
     assert.equal(profile.identity.publicKey, 'c'.repeat(64))
     assert.equal(profile.identity.secretKey, 'd'.repeat(128))
   })

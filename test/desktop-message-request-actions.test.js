@@ -60,7 +60,7 @@ test('desktop message request actions accept requests and broadcast invites', as
     ],
     ['saveContactBook', { accepted: 'friend' }],
     ['home.broadcastControl', { type: 'kepos.dm.invite.v1' }],
-    ['notice', 'Message request accepted.'],
+    ['notice', 'Friend request accepted.'],
     ['render']
   ])
 })
@@ -80,7 +80,7 @@ test('desktop message request actions ignore requests and dismiss visible messag
   assert.deepEqual(calls, [
     ['saveContactBook', { ownerProfileId: 'local', ignored: 'friend' }],
     ['dm.dismissMessage', { id: 'request-1' }],
-    ['notice', 'Message request ignored.'],
+    ['notice', 'Friend request ignored.'],
     ['render']
   ])
 })

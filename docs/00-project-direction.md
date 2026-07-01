@@ -10,11 +10,11 @@ Kepos is not only a chat app. It is a private garden for a small circle.
 The product model is:
 
 - one device is one profile
-- one profile owns one home room
-- one profile owns one treehole
-- room chat is live and ephemeral
-- treehole is durable profile text
-- DM is durable, pairwise, and separate from room traffic
+- one profile owns one Home
+- one profile owns one My treehole surface
+- Home chat is live and ephemeral
+- My treehole is durable profile text
+- Messages are durable, pairwise, and separate from Home chat
 - trust is the product permission boundary
 - raw keys are transport capabilities and debug handles, not normal user-facing permission
 
@@ -33,8 +33,8 @@ The current stack is a local-first P2P stack:
 - `hypercore-crypto` for identity signing
 - fixed `compact-encoding` schemas for signed bytes
 - `sodium-universal` sealed boxes for encrypted DM invite payloads
-- TypeScript-first shared protocol and domain modules, with JS/JSX/MJS kept for
-  platform runtime glue where the loader path is not yet worth changing
+- TypeScript-first shared protocol and domain modules, TSX for React UI source,
+  and JS/MJS kept for platform runtime glue where the loader path is not yet worth changing
 
 The important architecture boundary is that identity, trust, signed QR payloads,
 treehole policy, DM bootstrap, and durable local state live in shared domain
@@ -43,20 +43,27 @@ redefine them.
 
 ## Current Evidence
 
-This read is based on the repository docs, source, and tests as of 2026-06-26.
+This read is based on the repository docs, source, and tests as of 2026-07-01.
 
 Verified locally:
 
-- `npm test` passes with 230 tests.
-- V1 model smoke ties signed QR trust, trusted home access, treehole writer
-  rights, accepted message requests, durable signed DM messages, and revoke
-  policy together.
+- `npm run v1:gate` has passed for the current V1 source shape, including
+  lint, typecheck, 897 Node tests, TypeScript compatibility probes, desktop
+  bundle generation, Bare Android bundle checks, Expo Android export, and APK
+  native-library alignment.
+- V1 model smoke ties signed Profile QR friend requests, trusted Home access,
+  treehole writer policy, accepted message requests, durable signed DM messages,
+  and revoke policy together.
 - Signed records use real keypairs and deterministic signed bytes.
 - ContactBook is the shared local trust and request state model.
-- Signed QR payloads cover profile, home, and message request routes.
+- Signed QR payloads cover Profile QR friend-request targets, signed Home
+  descriptors, and message request routes.
 - DM message bodies have a dedicated replication channel and are not accepted as
   home room body frames.
 - Treehole signed mode enforces owner-only main posts and trusted comments/likes.
+- Desktop Pear/Bare smoke covers the bundled worker bridge for the current app
+  path, including Profile/Home QR publication, Home creation, owner My treehole
+  posting, contact persistence, message request display, and revoke persistence.
 
 This is stronger than a prototype that only has UI and transport. The project
 already has a coherent domain model and tests for the parts that would be
@@ -98,12 +105,13 @@ The thesis is good, but the first user loop must become simpler:
 
 1. create a profile
 2. scan a friend's profile QR
-3. trust them
-4. enter their home
-5. exchange room chat
-6. read or write treehole interaction
-7. send a DM
-8. restart both apps and see the right durable state
+3. send a friend request
+4. accept or ignore the friend request
+5. open the durable Messages thread
+6. enter the trusted contact's Home explicitly
+7. read recent posts or write to My treehole
+8. restart both apps and see contacts, messages, and posts persist
+9. remove a friend and see future access stop
 
 If this loop works in minutes without explaining raw keys or protocol terms,
 Kepos becomes much easier to believe in.

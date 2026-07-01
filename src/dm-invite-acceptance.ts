@@ -2,7 +2,11 @@ import { openDmInvite } from './dm-invite.ts'
 import type { DmEncryptionKeyPair, DmInvite } from './dm-invite.ts'
 import { acceptDmThread, createDmThread } from './dm-thread.ts'
 import type { DmThread } from './dm-thread.ts'
-import { canAcceptDmInviteFromContactBook, isContactRevoked } from './contact-book.ts'
+import {
+  acceptOutgoingFriendRequest,
+  canAcceptDmInviteFromContactBook,
+  isContactRevoked
+} from './contact-book.ts'
 import type { ContactBook } from './contact-book.ts'
 
 export function acceptDmInviteAsRecipient({
@@ -63,6 +67,47 @@ export function acceptDmInviteAsRecipient({
     }),
     { acceptedAt }
   )
+}
+
+export function acceptDmInviteAsRecipientWithContactBook({
+  acceptedAt = Date.now(),
+  canAcceptInvite,
+  contactBook,
+  invite,
+  localProfileId,
+  recipientEncryptionKeyPair
+}: {
+  acceptedAt?: number
+  canAcceptInvite?: (invite: DmInvite) => boolean
+  contactBook: ContactBook
+  invite: DmInvite
+  localProfileId: string
+  recipientEncryptionKeyPair: DmEncryptionKeyPair
+}): {
+  book: ContactBook
+  thread: DmThread
+} {
+  const outgoingRequest = contactBook?.outgoingRequestsByProfileId?.get(invite?.fromProfileId)
+  const canAcceptFromOutgoingRequest =
+    Boolean(invite?.requestId) && outgoingRequest?.requestId === invite.requestId
+
+  const thread = acceptDmInviteAsRecipient({
+    acceptedAt,
+    canAcceptInvite: (candidate) =>
+      canAcceptFromOutgoingRequest || Boolean(canAcceptInvite?.(candidate)),
+    contactBook,
+    invite,
+    localProfileId,
+    recipientEncryptionKeyPair
+  })
+  const book = canAcceptFromOutgoingRequest
+    ? acceptOutgoingFriendRequest(contactBook, {
+        acceptedAt,
+        profileId: invite.fromProfileId
+      })
+    : contactBook
+
+  return { book, thread }
 }
 
 function requireString(value: unknown, message: string): string {

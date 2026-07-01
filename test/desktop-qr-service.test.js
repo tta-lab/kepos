@@ -7,12 +7,13 @@ import {
   isContactTrusted,
   trustContact
 } from '../src/contact-book.ts'
+import { createAvatarMediaReference } from '../src/avatar-media.ts'
 import {
   applyDesktopHomeQr,
   applyDesktopProfileTrustQr,
   createDesktopShareQrOutputs,
   renderDesktopQrSvg
-} from '../src/desktop-qr-service.js'
+} from '../src/desktop-qr-service.ts'
 import { createSigningKeyPair } from '../src/signed-record.ts'
 import {
   createSignedHomeAddressPayload,
@@ -104,13 +105,20 @@ test('desktop QR service applies trusted home QR into join details', () => {
 
   assert.deepEqual(homeAddress, {
     address: 'c'.repeat(64),
-    book: trustedBook,
+    book: homeAddress.book,
     canEnter: true,
     kind: 'home',
     ownerProfileId: ownerIdentity.publicKey,
     policy: 'trusted_only',
     roomKey: 'd'.repeat(64)
   })
+  assert.equal(getContact(homeAddress.book, ownerIdentity.publicKey)?.homeAddress, 'c'.repeat(64))
+  assert.equal(getContact(homeAddress.book, ownerIdentity.publicKey)?.homeRoomKey, 'd'.repeat(64))
+  assert.equal(getContact(homeAddress.book, ownerIdentity.publicKey)?.homePolicy, 'trusted_only')
+  assert.equal(
+    getContact(homeAddress.book, ownerIdentity.publicKey)?.proof?.type,
+    'kepos.home.address.v1'
+  )
 })
 
 test('desktop QR service rejects untrusted home QR before join', () => {
@@ -143,6 +151,7 @@ test('desktop QR service creates signed profile and home share QR outputs', asyn
 
   const result = await createDesktopShareQrOutputs({
     profile: {
+      avatarUri: 'kepos://avatar/ada',
       displayName: 'Ada',
       homeRoom: {
         address: 'a'.repeat(64),
@@ -156,6 +165,10 @@ test('desktop QR service creates signed profile and home share QR outputs', asyn
   assert.equal(result.profileUri.startsWith('kepos://profile?v=1&payload='), true)
   assert.equal(result.homeUri.startsWith('kepos://home?v=1&payload='), true)
   assert.equal(decodeQrUri(result.profileUri).profileId, identity.publicKey)
+  assert.equal(decodeQrUri(result.profileUri).avatarUri, 'kepos://avatar/ada')
+  assert.equal(decodeQrUri(result.profileUri).homeDescriptor.ownerProfileId, identity.publicKey)
+  assert.equal(decodeQrUri(result.profileUri).homeDescriptor.address, 'a'.repeat(64))
+  assert.equal(decodeQrUri(result.profileUri).homeDescriptor.roomKey, 'b'.repeat(64))
   assert.equal(decodeQrUri(result.homeUri).ownerProfileId, identity.publicKey)
   assert.match(result.profileSvg, /^<svg/)
   assert.match(result.homeSvg, /^<svg/)
@@ -163,8 +176,35 @@ test('desktop QR service creates signed profile and home share QR outputs', asyn
   assert.match(result.homeSvg, /width="172"/)
 })
 
+test('desktop profile QR includes signed avatar media metadata when present', async () => {
+  const identity = createSigningKeyPair()
+  const avatarMedia = createAvatarMediaReference({
+    bytes: Uint8Array.from([1, 2, 3]),
+    createdAt: 1002,
+    mimeType: 'image/png',
+    sha256Hex: () => 'a'.repeat(64)
+  })
+
+  const result = await createDesktopShareQrOutputs({
+    profile: {
+      avatarMedia,
+      avatarUri: avatarMedia.uri,
+      displayName: 'Ada',
+      homeRoom: {
+        address: 'a'.repeat(64),
+        policy: 'trusted_only',
+        roomKey: 'b'.repeat(64)
+      },
+      identity
+    }
+  })
+
+  assert.deepEqual(decodeQrUri(result.profileUri).avatarMedia, avatarMedia)
+  assert.equal(decodeQrUri(result.profileUri).type, 'kepos.trust.invite.v2')
+})
+
 test('desktop QR service uses the browser-safe qrcode renderer for Bare worker', async () => {
-  const source = await readFile(new URL('../src/desktop-qr-service.js', import.meta.url), 'utf8')
+  const source = await readFile(new URL('../src/desktop-qr-service.ts', import.meta.url), 'utf8')
 
   assert.match(source, /qrcode\/lib\/browser\.js/)
   assert.doesNotMatch(source, /from 'qrcode'/)

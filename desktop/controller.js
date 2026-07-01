@@ -7,11 +7,18 @@ import { setDesktopTab } from '../src/desktop-state.ts'
 import { createDesktopRendererBackendClient } from '../src/desktop-renderer-backend-client.ts'
 import { createDesktopControllerState } from '../src/desktop-controller-state.ts'
 import { createDesktopUiActionBindings } from '../src/desktop-ui-action-bindings.ts'
+import { createDefaultSecureId } from '../src/secure-id.ts'
 
-const BLOCKING_COMMANDS = new Set(['joinHome', 'joinHomeUri', 'leaveHome', 'trustProfileUri'])
+const BLOCKING_COMMANDS = new Set([
+  'joinHome',
+  'joinHomeUri',
+  'leaveHome',
+  'prepareProfileRequestTarget'
+])
 
 const controllerState = createDesktopControllerState()
 let backendContactBook = null
+let backendDmThreads = []
 let localBackendSession = null
 let localBackendSessionFactory = null
 let localProfileApi = null
@@ -47,6 +54,8 @@ createDesktopUiActionBindings({
   setTab,
   ui: globalThis.keposDesktopUi,
   updateDirectComposerRecipient,
+  updateAvatarMedia,
+  updateAvatarUri,
   updateDisplayName
 })
 
@@ -68,8 +77,14 @@ createDesktopBackendSubscriptions({
   setDmSession: (nextSession) => {
     controllerState.setDmSession(nextSession)
   },
+  setDmThreads: (nextThreads) => {
+    backendDmThreads = Array.isArray(nextThreads) ? nextThreads : []
+  },
   setHomeSession: (nextSession) => {
     controllerState.setSession(nextSession)
+  },
+  setProfileRequestTarget: (target) => {
+    globalThis.keposDesktopUi?.setProfileRequestTarget(target)
   },
   setShareQrOutputs: (outputs) => {
     qrActions.setShareQrOutputs(outputs)
@@ -93,6 +108,18 @@ function updateDisplayName(displayName = 'Desktop') {
   refreshLocalShareQrOutputs().catch(showError)
 }
 
+function updateAvatarUri(avatarUri = '') {
+  controllerState.setCurrentAvatarMedia(null)
+  controllerState.setCurrentAvatarUri(avatarUri)
+  refreshLocalShareQrOutputs().catch(showError)
+}
+
+function updateAvatarMedia(avatar = {}) {
+  if (avatar.avatarMedia) controllerState.setCurrentAvatarMedia(avatar.avatarMedia)
+  if (avatar.avatarUri) controllerState.setCurrentAvatarUri(avatar.avatarUri)
+  refreshLocalShareQrOutputs().catch(showError)
+}
+
 async function refreshLocalShareQrOutputs() {
   if (backendClient.hasPreloadBackend()) return
   await qrActions.updateQrOutputs()
@@ -103,7 +130,11 @@ function getCurrentDisplayName() {
 }
 
 function getProfileContext(displayName = getCurrentDisplayName()) {
-  return getLocalProfileApi().createProfileContext({ displayName })
+  return getLocalProfileApi().createProfileContext({
+    avatarMedia: controllerState.getCurrentAvatarMedia(),
+    avatarUri: controllerState.getCurrentAvatarUri(),
+    displayName
+  })
 }
 
 function setTab(tab) {
@@ -116,10 +147,16 @@ function render() {
     contactBook: getRenderContactBook(),
     directComposerRecipientProfileId: controllerState.getDirectComposerRecipientProfileId(),
     dmSession: controllerState.getDmSession(),
+    dmThreads: getRenderDmThreads(),
     pendingCommand: commandDispatcher.getPendingCommand(),
     session: controllerState.getSession(),
     state: controllerState.getState()
   })
+}
+
+function getRenderDmThreads() {
+  if (backendClient.hasPreloadBackend()) return backendDmThreads
+  return getLocalBackendSession().runtime.dm.loadThreads()
 }
 
 function getRenderContactBook() {
@@ -157,7 +194,7 @@ function getDesktopErrorNotice(error) {
   }
 
   if (message.includes('Home QR is required') || message.includes('Invalid signed home QR')) {
-    return 'Could not read this invite.'
+    return 'Could not read this Home QR.'
   }
 
   if (message.includes('Profile QR is required') || message.includes('Invalid signed profile QR')) {
@@ -168,7 +205,7 @@ function getDesktopErrorNotice(error) {
 }
 
 function createId() {
-  return globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`
+  return createDefaultSecureId()
 }
 
 function shorten(value) {
@@ -199,6 +236,9 @@ function getLocalBackendSession() {
       setDirectComposerRecipient: (profileId) => {
         controllerState.setDirectComposerRecipient(profileId)
         globalThis.keposDesktopUi?.setDirectComposerRecipient(profileId)
+      },
+      setProfileRequestTarget: (target) => {
+        globalThis.keposDesktopUi?.setProfileRequestTarget(target)
       },
       setNotice: (notice) => {
         controllerState.updateState((state) => ({ ...state, notice }))

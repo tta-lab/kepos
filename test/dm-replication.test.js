@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
 
-import { createDmReplicationChannel, deriveDmTopic } from '../src/dm-replication.js'
+import { createDmReplicationChannel, deriveDmTopic } from '../src/dm-replication.ts'
 import { createSignedDmMessage } from '../src/dm-message.ts'
 import { createSigningKeyPair } from '../src/signed-record.ts'
 

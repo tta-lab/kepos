@@ -11,11 +11,12 @@ test('mobile room view model counts pending tab work', () => {
         { direction: 'in', type: 'kepos.dm.message.v1' },
         { direction: 'in', type: 'kepos.message.request.v1' }
       ],
+      outgoingRequests: [{ profileId: 'friend-c' }],
       pendingRequests: [{ profileId: 'friend-a' }, { profileId: 'friend-b' }]
     }),
     {
       direct: 2,
-      people: 2
+      people: 3
     }
   )
 })

@@ -647,6 +647,20 @@ textarea {
   margin: 0;
 }
 
+.directMessageContent {
+  min-width: 0;
+}
+
+#dmList .item {
+  align-items: flex-start;
+  display: flex;
+  gap: 10px;
+}
+
+#dmList .outgoing {
+  flex-direction: row-reverse;
+}
+
 .messageText {
   font-size: 14px;
   line-height: 1.55;
@@ -766,7 +780,7 @@ textarea {
   background: var(--success-soft);
   border-color: var(--border-strong);
   color: var(--accent-strong);
-  min-height: 32px;
+  min-height: 38px;
   padding: 0 10px;
 }
 
@@ -774,6 +788,169 @@ textarea {
   background: var(--accent);
   border-color: var(--accent-strong);
   color: var(--surface);
+}
+
+.threadButton {
+  align-items: stretch;
+  display: grid;
+  gap: 8px;
+  justify-content: stretch;
+  min-height: 72px;
+  padding: 10px;
+  text-align: left;
+  width: 100%;
+}
+
+.threadMainButton {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  display: grid;
+  column-gap: 10px;
+  gap: 4px 10px;
+  grid-template-columns: auto 1fr;
+  padding: 0;
+  text-align: left;
+}
+
+.threadMainButton .threadHeader,
+.threadMainButton .threadPreview,
+.threadMainButton .threadStatus {
+  grid-column: 2;
+}
+
+.profileAvatar {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--color-base-content) 15%, transparent);
+  font-size: 0.72rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.directThreadHeader {
+  align-items: center;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.profileAvatarLarge {
+  width: 48px;
+  height: 48px;
+  font-size: 0.95rem;
+}
+
+.profileAvatarImage {
+  height: 100%;
+  width: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}
+
+.threadAvatar {
+  grid-row: 1 / span 3;
+}
+
+.avatarTone0 {
+  background: var(--color-primary);
+  color: var(--color-primary-content);
+}
+
+.avatarTone1 {
+  background: var(--color-secondary);
+  color: var(--color-secondary-content);
+}
+
+.avatarTone2 {
+  background: var(--color-accent);
+  color: var(--color-accent-content);
+}
+
+.avatarTone3 {
+  background: var(--color-info);
+  color: var(--color-info-content);
+}
+
+.avatarTone4 {
+  background: var(--color-success);
+  color: var(--color-success-content);
+}
+
+.avatarTone5 {
+  background: var(--color-warning);
+  color: var(--color-warning-content);
+}
+
+.threadHeader {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.threadLabel,
+.threadPreview,
+.threadStatus,
+.threadTime {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.threadMetaCluster {
+  align-items: center;
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 6px;
+  min-width: 0;
+}
+
+.threadUnreadBadge {
+  background: var(--accent-strong);
+  border-radius: 999px;
+  color: var(--surface);
+  flex: 0 0 auto;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1;
+  padding: 4px 6px;
+}
+
+.threadLabel {
+  color: inherit;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.threadTime,
+.threadStatus {
+  color: var(--ink-muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.threadPreview {
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.activeContactButton .threadPreview,
+.activeContactButton .threadStatus,
+.activeContactButton .threadTime {
+  color: var(--surface);
+}
+
+.activeContactButton .threadUnreadBadge {
+  background: var(--surface);
+  color: var(--accent-strong);
 }
 
 .managedContacts {
@@ -879,6 +1056,21 @@ textarea {
   display: flex;
   gap: 12px;
   justify-content: space-between;
+}
+
+.postAuthorRow,
+.commentAuthorRow {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+}
+
+.commentAuthorRow .profileAvatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  font-size: 0.62rem;
 }
 
 .postText {

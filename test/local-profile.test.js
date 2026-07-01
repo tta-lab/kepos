@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
+import { createAvatarMediaReference } from '../src/avatar-media.ts'
 import { getOrCreateLocalProfile } from '../src/local-profile.ts'
 
 describe('local profile identity', () => {
@@ -80,6 +81,78 @@ describe('local profile identity', () => {
     assert.equal(profile.homeRoom.roomKey, 'b'.repeat(64))
     assert.equal(profile.homeRoom.ownerProfileId, publicKey)
     assert.deepEqual(profile.dmEncryptionKeyPair, dmEncryptionKeyPair)
+  })
+
+  test('persists and restores the local profile avatar uri', () => {
+    const storage = createMemoryStorage()
+    const identity = {
+      publicKey: 'a'.repeat(64),
+      secretKey: 'c'.repeat(128)
+    }
+
+    const created = getOrCreateLocalProfile({
+      avatarUri: ' kepos://avatar/local ',
+      createIdentity: () => identity,
+      displayName: 'Ada',
+      storage
+    })
+    const restored = getOrCreateLocalProfile({
+      createIdentity: () => {
+        throw new Error('should reuse stored identity')
+      },
+      displayName: 'Ada',
+      storage
+    })
+
+    assert.equal(created.avatarUri, 'kepos://avatar/local')
+    assert.equal(restored.avatarUri, 'kepos://avatar/local')
+    assert.deepEqual(JSON.parse(storage.getItem('kepos.v1.profile')), {
+      data: {
+        avatarUri: 'kepos://avatar/local'
+      },
+      schemaVersion: 1,
+      type: 'kepos.profile'
+    })
+  })
+
+  test('persists and restores the local profile avatar media reference', () => {
+    const storage = createMemoryStorage()
+    const identity = {
+      publicKey: 'a'.repeat(64),
+      secretKey: 'c'.repeat(128)
+    }
+    const avatarMedia = createAvatarMediaReference({
+      bytes: Uint8Array.from([1, 2, 3]),
+      createdAt: 1000,
+      mimeType: 'image/png',
+      sha256Hex: () => 'b'.repeat(64)
+    })
+
+    const created = getOrCreateLocalProfile({
+      avatarMedia,
+      avatarUri: avatarMedia.uri,
+      createIdentity: () => identity,
+      displayName: 'Ada',
+      storage
+    })
+    const restored = getOrCreateLocalProfile({
+      createIdentity: () => {
+        throw new Error('should reuse stored identity')
+      },
+      displayName: 'Ada',
+      storage
+    })
+
+    assert.deepEqual(created.avatarMedia, avatarMedia)
+    assert.deepEqual(restored.avatarMedia, avatarMedia)
+    assert.deepEqual(JSON.parse(storage.getItem('kepos.v1.profile')), {
+      data: {
+        avatarMedia,
+        avatarUri: avatarMedia.uri
+      },
+      schemaVersion: 1,
+      type: 'kepos.profile'
+    })
   })
 
   test('imports legacy localStorage identity and home keys into V1 JSON documents', () => {

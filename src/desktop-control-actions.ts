@@ -2,6 +2,11 @@ import {
   createDesktopControlMessageResult,
   createDesktopTreeholeControlSendResult
 } from './desktop-control-service.ts'
+import {
+  createAvatarMediaBytesControl,
+  storeAvatarMediaBytesControl as storeAvatarMediaBytesControlDefault
+} from './avatar-media-sync.ts'
+import type { AvatarMediaReference } from './avatar-media.ts'
 import type { DesktopProfileContext } from './desktop-profile-context-core.ts'
 
 type ControlMessage = Record<string, unknown> & {
@@ -54,9 +59,16 @@ type ControlMessageResultFactory = (
 type TreeholeControlSendResultFactory = (
   options: Record<string, unknown>
 ) => TreeholeControlSendResult
+type AvatarMediaBytesControlStore = (
+  options: Record<string, unknown>
+) => null | unknown | Promise<null | unknown>
+type AvatarMediaBytesReader = (
+  reference: AvatarMediaReference
+) => Uint8Array | null | Promise<Uint8Array | null>
 
 export type DesktopControlActions = {
   handleControl(message: ControlMessage, peer?: unknown): Promise<void>
+  sendProfileAvatarMedia(peer: unknown): Promise<void>
   sendTreeholeBootstrap(peer: unknown, remoteProfileId?: string): void
   sendTreeholeWriter(peer: unknown): void
 }
@@ -73,8 +85,10 @@ export function createDesktopControlActions({
   getTreeholeRuntime,
   onChanged = () => {},
   openTreehole,
+  readLocalAvatarMediaBytes = () => null,
   setHomeJoinDetails,
   setNotice,
+  storeAvatarMediaBytesControl = storeAvatarMediaBytesControlDefault as unknown as AvatarMediaBytesControlStore,
   shortenProfileId
 }: {
   allowHomeDmBodyFallback?: boolean
@@ -91,11 +105,26 @@ export function createDesktopControlActions({
   getTreeholeRuntime: () => TreeholeRuntime
   onChanged?: () => void
   openTreehole: (bootstrapKey?: unknown) => unknown | Promise<unknown>
+  readLocalAvatarMediaBytes?: AvatarMediaBytesReader
   setHomeJoinDetails: (details: HomeJoinDetails) => void
   setNotice: (notice: string) => void
+  storeAvatarMediaBytesControl?: AvatarMediaBytesControlStore
   shortenProfileId: (profileId?: string) => string
 }): DesktopControlActions {
   async function handleControl(message: ControlMessage, peer?: unknown): Promise<void> {
+    if (message.type === 'kepos.avatar.media.bytes.v1') {
+      const context = getProfileContext()
+      const result = await storeAvatarMediaBytesControl({
+        book: context.contactBook,
+        message
+      })
+      if (!result) return
+
+      setNotice('Profile image received.')
+      onChanged()
+      return
+    }
+
     if (message.type === 'kepos.message.request.v1') {
       const context = getProfileContext()
       const dmRuntime = getDmRuntime()
@@ -111,7 +140,7 @@ export function createDesktopControlActions({
         context.saveContactBook(result.book)
       }
       dmRuntime.appendIncomingRequest(result.appendIncomingRequest)
-      setNotice('Message request received.')
+      setNotice('Friend request received.')
       onChanged()
       return
     }
@@ -128,7 +157,10 @@ export function createDesktopControlActions({
       })
       if (!result) return
 
-      setNotice('Direct message ready.')
+      if (result.book) {
+        getProfileContext().saveContactBook(result.book)
+      }
+      setNotice('Message thread ready.')
       onChanged()
       return
     }
@@ -194,8 +226,28 @@ export function createDesktopControlActions({
     getHomeRuntime().sendControl(result.peer, result.payload)
   }
 
+  async function sendProfileAvatarMedia(peer: unknown): Promise<void> {
+    if (!peer || !getHomeRuntime().isJoined()) return
+
+    const { profile } = getProfileContext()
+    if (!profile.avatarMedia || !profile.id) return
+
+    const bytes = await readLocalAvatarMediaBytes(profile.avatarMedia)
+    if (!bytes) return
+
+    getHomeRuntime().sendControl(
+      peer,
+      createAvatarMediaBytesControl({
+        bytes,
+        profileId: profile.id,
+        reference: profile.avatarMedia
+      })
+    )
+  }
+
   return {
     handleControl,
+    sendProfileAvatarMedia,
     sendTreeholeBootstrap,
     sendTreeholeWriter
   }

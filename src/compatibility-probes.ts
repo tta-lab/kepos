@@ -2,11 +2,11 @@ import b4a from 'b4a'
 import compact from 'compact-encoding'
 import crypto from 'hypercore-crypto'
 import sodium from 'sodium-universal'
-import { deriveDmTopic } from './dm-replication.js'
+import { deriveDmTopic } from './dm-replication.ts'
 
 const PROBE_TEXT = 'kepos sealed box probe'
 
-type CompactState = any
+type CompactState = unknown
 
 type SignedProbeRecord = {
   message: string

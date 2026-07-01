@@ -2,6 +2,7 @@ import type { HomeRoom } from './home-room.ts'
 import { createHomeRoom } from './home-room.ts'
 import type { SigningIdentity } from './signed-record.ts'
 import { createIdentityKeyPair } from './identity.ts'
+import { isAvatarMediaReference, type AvatarMediaReference } from './avatar-media.ts'
 
 export type DmEncryptionKeyPair = {
   publicKey: string
@@ -9,6 +10,8 @@ export type DmEncryptionKeyPair = {
 }
 
 export type LocalProfile = {
+  avatarMedia?: AvatarMediaReference
+  avatarUri?: string
   displayName: string
   dmEncryptionKeyPair: DmEncryptionKeyPair | null
   homeRoom: HomeRoom
@@ -17,11 +20,15 @@ export type LocalProfile = {
 }
 
 export function createProfile({
+  avatarMedia = null,
+  avatarUri = null,
   dmEncryptionKeyPair = null,
   displayName = 'Kepos',
   homeRoomKey = null,
   identity = null
 }: {
+  avatarMedia?: AvatarMediaReference | null
+  avatarUri?: string | null
   displayName?: string | null
   dmEncryptionKeyPair?: DmEncryptionKeyPair | null
   homeRoomKey?: string | null
@@ -32,6 +39,8 @@ export function createProfile({
 
   return {
     id: profileId,
+    ...(avatarMedia ? { avatarMedia: cleanAvatarMediaReference(avatarMedia) } : {}),
+    ...(avatarUri?.trim() ? { avatarUri: avatarUri.trim() } : {}),
     displayName: displayName?.trim() || 'Kepos',
     dmEncryptionKeyPair,
     identity: profileIdentity,
@@ -40,6 +49,14 @@ export function createProfile({
       roomKey: homeRoomKey || undefined
     })
   }
+}
+
+function cleanAvatarMediaReference(value: unknown): AvatarMediaReference {
+  if (!isAvatarMediaReference(value)) {
+    throw new Error('Invalid avatar media reference')
+  }
+
+  return value
 }
 
 function cleanRequiredString(value: unknown, message: string): string {

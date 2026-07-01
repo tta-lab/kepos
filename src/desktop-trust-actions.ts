@@ -1,9 +1,13 @@
-import { applyDesktopProfileTrustQr } from './desktop-qr-service.js'
+import {
+  allowContactRequests as allowContactRequestsInBook,
+  createTreeholePolicyFromContactBook
+} from './contact-book.ts'
 import { createDesktopContactRevoke } from './desktop-revoke-service.ts'
-import type { ContactBook } from './contact-book.ts'
+import { createFriendRequestTargetViewModel } from './friend-request-target-view-model.ts'
+import { readSignedProfileQrRequestTarget } from './signed-qr-scan.ts'
 import type { DmThread } from './dm-thread.ts'
 import type { DesktopProfileContext } from './desktop-profile-context-core.ts'
-import type { SigningIdentity } from './signed-record.ts'
+import type { FriendRequestTargetViewModel } from './friend-request-target-view-model.ts'
 
 type TreeholePolicy = Record<string, unknown>
 
@@ -19,34 +23,29 @@ type DmRuntime = {
 }
 
 type ProfileTrustQrResult = {
-  book: ContactBook
+  createdAt: number
+  displayName: string
+  kind: 'profile_request_target'
   profileId: string
-  treeholePolicy: TreeholePolicy
 }
 
-type ProfileTrustQrApplier = (options: {
-  alias?: string
-  book: ContactBook
-  localIdentity?: SigningIdentity | null
-  localProfileId: string
-  uri: string
-}) => ProfileTrustQrResult
+type ProfileTrustQrReader = (options: { now?: number; uri: string }) => ProfileTrustQrResult
 
 type ContactRevokeCreator = typeof createDesktopContactRevoke
 
-type TrustProfileUriPayload = {
+type ProfileRequestTargetPayload = {
   alias?: string
   displayName?: string
   uri?: string
 }
 
 export type DesktopTrustActions = {
+  allowContactRequests(profileId: string): Promise<void>
   revokeContact(profileId: string): Promise<void>
-  trustProfileUri(payload?: TrustProfileUriPayload): void
+  prepareProfileRequestTarget(payload?: ProfileRequestTargetPayload): void
 }
 
 export function createDesktopTrustActions({
-  applyProfileTrustQr = applyDesktopProfileTrustQr as unknown as ProfileTrustQrApplier,
   configureTreeholeRuntime,
   createContactRevoke = createDesktopContactRevoke,
   getDmRuntime,
@@ -54,12 +53,13 @@ export function createDesktopTrustActions({
   getProfileContext,
   getSelectedRecipientProfileId,
   onChanged = () => {},
+  readProfileTrustQr = readSignedProfileQrRequestTarget,
   setContextFormDraft = () => {},
   setDirectComposerRecipient,
+  setProfileRequestTarget = () => {},
   setHomeJoinDetails,
   setNotice
 }: {
-  applyProfileTrustQr?: ProfileTrustQrApplier
   configureTreeholeRuntime: () => void
   createContactRevoke?: ContactRevokeCreator
   getDmRuntime: () => DmRuntime
@@ -69,8 +69,10 @@ export function createDesktopTrustActions({
   onChanged?: () => void
   setContextFormDraft?: (draft: Record<string, unknown>) => void
   setDirectComposerRecipient: (profileId: string) => void
+  setProfileRequestTarget?: (target: FriendRequestTargetViewModel | null) => void
   setHomeJoinDetails: (details: HomeJoinDetails) => void
   setNotice: (notice: string) => void
+  readProfileTrustQr?: ProfileTrustQrReader
 }): DesktopTrustActions {
   function refreshActiveTreeholePolicy({
     localProfileId,
@@ -89,33 +91,29 @@ export function createDesktopTrustActions({
     configureTreeholeRuntime()
   }
 
-  function trustProfileUri({
-    alias = '',
+  function prepareProfileRequestTarget({
     displayName = 'Desktop',
     uri
-  }: TrustProfileUriPayload = {}): void {
+  }: ProfileRequestTargetPayload = {}): void {
     if (!uri) return
 
     const context = getProfileContext(displayName)
-    const { contactBook, profile } = context
-    const result = applyProfileTrustQr({
-      alias,
-      book: contactBook,
-      localIdentity: profile.identity,
-      localProfileId: profile.id,
+    const result = readProfileTrustQr({
       uri
     })
-
-    context.saveContactBook(result.book)
-    refreshActiveTreeholePolicy({
-      localProfileId: profile.id,
-      treeholePolicy: result.treeholePolicy
+    const targetView = createFriendRequestTargetViewModel({
+      contactBook: context.contactBook,
+      shortenProfileId: (profileId) => `${profileId.slice(0, 8)}...${profileId.slice(-8)}`,
+      target: result
     })
+
+    setDirectComposerRecipient(result.profileId)
+    setProfileRequestTarget(targetView)
     setContextFormDraft({
       trustAlias: '',
       trustQrUri: ''
     })
-    setNotice('Trusted friend added.')
+    setNotice('Friend request target ready.')
     onChanged()
   }
 
@@ -144,12 +142,31 @@ export function createDesktopTrustActions({
       setDirectComposerRecipient('')
     }
 
-    setNotice('Trust revoked.')
+    setNotice('Friend removed.')
     onChanged()
   }
 
+  function allowContactRequests(profileId: string): Promise<void> {
+    const context = getProfileContext()
+    const { contactBook, profile } = context
+    const nextBook = allowContactRequestsInBook(contactBook, { profileId })
+    const treeholePolicy = createTreeholePolicyFromContactBook(nextBook)
+
+    context.saveContactBook(nextBook)
+
+    refreshActiveTreeholePolicy({
+      localProfileId: profile.id,
+      treeholePolicy
+    })
+
+    setNotice('Requests allowed again.')
+    onChanged()
+    return Promise.resolve()
+  }
+
   return {
+    allowContactRequests,
     revokeContact,
-    trustProfileUri
+    prepareProfileRequestTarget
   }
 }

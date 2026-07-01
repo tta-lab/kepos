@@ -14,7 +14,7 @@ import {
 import { createDmEncryptionKeyPair, verifyDmInvite } from '../src/dm-invite.ts'
 import { createSignedDmMessage, verifySignedDmMessage } from '../src/dm-message.ts'
 import { loadDmMessagesFromStorage, saveDmMessagesToStorage } from '../src/dm-message-storage.ts'
-import { createDmThreadRuntime } from '../src/dm-thread-runtime.js'
+import { createDmThreadRuntime } from '../src/dm-thread-runtime.ts'
 import { isDmThreadActive } from '../src/dm-thread.ts'
 import {
   acceptMessageRequestWithInvite,
@@ -28,7 +28,7 @@ import {
   createSignedTrustInvitePayload,
   encodeQrUri
 } from '../src/signed-qr-payload.ts'
-import { createTreeholeBase } from '../src/treehole-base.js'
+import { createTreeholeBase } from '../src/treehole-base.ts'
 import { canGrantTreeholeWriter } from '../src/treehole-policy.ts'
 
 describe('V1 model smoke', () => {

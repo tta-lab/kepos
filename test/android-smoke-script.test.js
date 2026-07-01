@@ -2,6 +2,26 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 
+async function readMobileSmokeUiSource() {
+  const files = await Promise.all(
+    [
+      '../mobile/App.tsx',
+      '../mobile/action-components.tsx',
+      '../mobile/chrome-components.tsx',
+      '../mobile/lobby-components.tsx',
+      '../mobile/people-components.tsx',
+      '../mobile/profile-components.tsx',
+      '../mobile/qr-components.tsx',
+      '../mobile/room-components.tsx',
+      '../mobile/setup-components.tsx',
+      '../mobile/tab-components.tsx',
+      '../mobile/treehole-components.tsx'
+    ].map((path) => readFile(new URL(path, import.meta.url), 'utf8'))
+  )
+
+  return files.join('\n')
+}
+
 test('android smoke is wired through Maestro', async () => {
   const packageJson = JSON.parse(
     await readFile(new URL('../package.json', import.meta.url), 'utf8')
@@ -34,20 +54,31 @@ test('android smoke is wired through Maestro', async () => {
   )
   assert.match(flow, /id: ['"]create-home-button['"]/)
   assert.match(flow, /id: ['"]home-title['"]/)
-  assert.match(flow, /id: ['"]quick-scan-home-qr-button['"]/)
   assert.match(flow, /id: ['"]people-setup-toggle['"]/)
+  assert.match(flow, /id: ['"]scan-home-qr-button['"]/)
   assert.match(flow, /id: ['"]scan-profile-qr-button['"]/)
   assert.match(flow, /id: ['"]qr-scanner-overlay['"]/)
   assert.match(flow, /id: ['"]qr-scanner-cancel['"]/)
   assert.match(flow, /No posts yet/)
+  assert.match(flow, /id: ['"]treehole-post-input['"]/)
+  assert.match(flow, /android smoke treehole post/)
+  assert.match(flow, /hideKeyboard/)
+  assert.match(flow, /id: ['"]treehole-post-button['"]/)
+  assert.match(flow, /stopApp/)
+  assert.match(flow, /launchApp/)
+  assert.match(
+    flow,
+    /stopApp[\s\S]*launchApp[\s\S]*id: ['"]create-home-button['"][\s\S]*id: ['"]home-title['"][\s\S]*id: ['"]treehole-tab['"][\s\S]*android smoke treehole post/
+  )
 })
 
 test('mobile exposes stable ids for Android smoke', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const source = await readMobileSmokeUiSource()
 
   assert.match(source, /testID='create-home-button'/)
   assert.match(source, /testID='home-profile-uri'/)
-  assert.match(source, /testID='quick-scan-home-qr-button'/)
+  assert.match(source, /testID='quick-show-my-qr-button'/)
+  assert.match(source, /testID='quick-open-contacts-button'/)
   assert.doesNotMatch(source, /testID='quick-scan-profile-qr-button'/)
   assert.match(source, /testID='people-setup-toggle'/)
   assert.match(source, /testID='scan-home-qr-button'/)
@@ -60,4 +91,6 @@ test('mobile exposes stable ids for Android smoke', async () => {
   assert.match(source, /testID='room-home-address'/)
   assert.match(source, /testID='chat-tab'/)
   assert.match(source, /testID='treehole-tab'/)
+  assert.match(source, /testID='treehole-post-input'/)
+  assert.match(source, /testID='treehole-post-button'/)
 })

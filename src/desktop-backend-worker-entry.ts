@@ -1,5 +1,6 @@
 import { createDesktopMainBackendSession } from './desktop-main-backend-session.ts'
-import { createDesktopBackendWorkerIpcServer } from './desktop-backend-worker-ipc.js'
+import { createDesktopBackendWorkerIpcServer } from './desktop-backend-worker-ipc.ts'
+import type { IpcStream } from './desktop-backend-worker-ipc.ts'
 
 type BackendBridgeLike = {
   dispatch(command: string, payload?: unknown): unknown | Promise<unknown>
@@ -27,11 +28,13 @@ export function startDesktopBackendWorker({
   storageBasePath,
   stream
 }: {
-  createIpcServer?: (options: { bridge: BackendBridgeLike; stream: unknown }) => WorkerServerLike
+  createIpcServer?: (options: { bridge: BackendBridgeLike; stream: IpcStream }) => WorkerServerLike
   createMainBackendSession?: (options: { storageBasePath?: string | null }) => WorkerSessionLike
   storageBasePath?: string | null
-  stream?: unknown
+  stream?: IpcStream
 } = {}) {
+  if (!stream) throw new Error('Desktop backend worker stream is required')
+
   const session = createMainBackendSession({ storageBasePath })
   const server = createIpcServer({
     bridge: session.backendHost.bridge,

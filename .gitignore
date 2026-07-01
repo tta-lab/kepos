@@ -2,6 +2,7 @@ node_modules/
 .DS_Store
 .expo/
 android/
+ios/
 desktop/app.bundle.cjs
 desktop/app.bundle.js
 desktop/tailwind.css

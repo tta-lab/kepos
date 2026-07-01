@@ -21,6 +21,20 @@ test('bare bundle TypeScript emit rewrites relative ts imports', () => {
   assert.equal(tsconfig.compilerOptions.rewriteRelativeImportExtensions, true)
 })
 
+test('Expo Metro resolves local JavaScript specifiers to TypeScript mobile source', () => {
+  const metroConfig = readFileSync(new URL('../metro.config.cjs', import.meta.url), 'utf8')
+  const mobileApp = readFileSync(new URL('../mobile/App.tsx', import.meta.url), 'utf8')
+
+  assert.match(metroConfig, /mapLocalJavaScriptSpecifierToTypeScriptSource/)
+  assert.match(metroConfig, /moduleName\.endsWith\('\.js'\)/)
+  assert.equal(metroConfig.includes("['.ts', '.tsx']"), true)
+  assert.match(metroConfig, /context\.resolveRequest\(context, mappedModuleName, platform\)/)
+  assert.match(mobileApp, /from '\.\/styles\.js'/)
+  assert.match(mobileApp, /from '\.\/chrome-components\.js'/)
+  assert.match(mobileApp, /from '\.\/room-components\.js'/)
+  assert.doesNotMatch(mobileApp, /app\.bundle\.mjs\.js/)
+})
+
 test('android backend trims outgoing text at the RPC boundary', () => {
   const source = readFileSync(new URL('../backend/backend.mjs', import.meta.url), 'utf8')
   const rpcSend = sliceBetween(
@@ -117,6 +131,30 @@ test('android backend trims outgoing text at the RPC boundary', () => {
   assert.doesNotMatch(commentTreehole, /text: payload\.text/)
   assert.doesNotMatch(sendMessageRequest, /text: payload\.text/)
   assert.doesNotMatch(sendDmBody, /text: payload\.text/)
+})
+
+test('android backend forwards avatar media controls between Home peers and UI', () => {
+  const source = readFileSync(new URL('../backend/backend.mjs', import.meta.url), 'utf8')
+  const joinRoom = sliceBetween(source, 'async function joinRoom', 'async function leaveRoom')
+  const handleHomeHello = sliceBetween(
+    source,
+    "if (message.type === 'kepos.home.hello.v1')",
+    "if (message.type === 'kepos.message.request.v1')"
+  )
+  const handleAvatarControl = sliceBetween(
+    source,
+    "if (message.type === 'kepos.avatar.media.bytes.v1')",
+    "if (message.type === 'kepos.message.request.v1')"
+  )
+
+  assert.match(source, /RPC_AVATAR_MEDIA_BYTES/)
+  assert.match(source, /let localAvatarMediaControl = null/)
+  assert.match(joinRoom, /localAvatarMediaControl = payload\.localAvatarMediaControl \|\| null/)
+  assert.match(source, /localAvatarMediaControl = null/)
+  assert.match(handleHomeHello, /sendProfileAvatarMedia\(peer\)/)
+  assert.match(handleAvatarControl, /sendToUI\(RPC_AVATAR_MEDIA_BYTES, message\)/)
+  assert.match(source, /function sendProfileAvatarMedia\(peer\)/)
+  assert.match(source, /room\.sendControl\(peer, localAvatarMediaControl\)/)
 })
 
 function sliceBetween(source, startMarker, endMarker) {

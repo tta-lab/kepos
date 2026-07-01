@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createDesktopDmRuntime } from '../src/desktop-dm-runtime.js'
+import { createDesktopDmRuntime } from '../src/desktop-dm-runtime.ts'
 
 const localProfileId = 'a'.repeat(64)
 const remoteProfileId = 'b'.repeat(64)
@@ -24,6 +24,7 @@ const profile = {
 function createRuntime({ acceptInvite, closeAll, sessionMessages = [], threads = [] } = {}) {
   const calls = []
   const sessions = []
+  const threadEvents = []
   let threadRuntimeOptions = null
   const threadRuntime = {
     closeAll: closeAll || (() => calls.push(['closeAll'])),
@@ -84,27 +85,34 @@ function createRuntime({ acceptInvite, closeAll, sessionMessages = [], threads =
     },
     loadThreads: () => threads,
     onSessionChanged: (session) => sessions.push(session),
+    onThreadsChanged: (nextThreads) =>
+      threadEvents.push(nextThreads.map((thread) => thread.threadId)),
     saveMessages: (thread, messages) => calls.push(['saveMessages', thread.threadId, messages]),
     saveSessionMessages: ({ messages }) => calls.push(['saveSessionMessages', messages]),
     saveThreads: ({ threads }) =>
-      calls.push(['saveThreads', threads.map((thread) => thread.threadId)])
+      calls.push([
+        'saveThreads',
+        threads.map((thread) => ({ lastReadAt: thread.lastReadAt, threadId: thread.threadId }))
+      ])
   })
 
   return {
     calls,
     runtime,
     sessions,
+    threadEvents,
     threadRuntimeOptions: () => threadRuntimeOptions
   }
 }
 
 test('desktop DM runtime starts session and opens saved threads', async () => {
-  const { calls, runtime } = createRuntime({ threads: [thread] })
+  const { calls, runtime, threadEvents } = createRuntime({ threads: [thread] })
 
   await runtime.start({ nick: 'Owner', profile, storage: {} })
 
   assert.equal(runtime.getSession().localProfileId, localProfileId)
   assert.deepEqual(calls, [['loadSessionMessages'], ['openThread', 'thread-1']])
+  assert.deepEqual(threadEvents, [['thread-1']])
 })
 
 test('desktop DM runtime ignores stale overlapping starts', async () => {
@@ -196,6 +204,32 @@ test('desktop DM runtime sends over an accepted local thread', async () => {
   ])
 })
 
+test('desktop DM runtime marks accepted threads read in persistent thread state', async () => {
+  const { calls, runtime, threadEvents } = createRuntime({ threads: [thread] })
+
+  await runtime.start({ nick: 'Owner', profile, storage: {} })
+  const marked = runtime.markThreadRead({ profileId: remoteProfileId, readAt: 3000 })
+
+  assert.equal(marked.lastReadAt, 3000)
+  assert.deepEqual(calls.at(-1), ['saveThreads', [{ lastReadAt: 3000, threadId: 'thread-1' }]])
+  assert.deepEqual(threadEvents.at(-1), ['thread-1'])
+})
+
+test('desktop DM runtime ignores read markers for unknown or revoked threads', async () => {
+  const { calls, runtime } = createRuntime({
+    threads: [{ ...thread, revokedAt: 2500, state: 'revoked' }]
+  })
+
+  await runtime.start({ nick: 'Owner', profile, storage: {} })
+
+  assert.equal(runtime.markThreadRead({ profileId: remoteProfileId, readAt: 3000 }), null)
+  assert.equal(runtime.markThreadRead({ profileId: 'c'.repeat(64), readAt: 3000 }), null)
+  assert.equal(
+    calls.some(([name]) => name === 'saveThreads'),
+    false
+  )
+})
+
 test('desktop DM runtime creates and appends a message request without a thread', async () => {
   const { calls, runtime, sessions } = createRuntime()
   const broadcasts = []
@@ -239,7 +273,7 @@ test('desktop DM runtime ignores blank outgoing text', async () => {
 })
 
 test('desktop DM runtime accepts requests and invites into saved open threads', async () => {
-  const { calls, runtime } = createRuntime()
+  const { calls, runtime, threadEvents } = createRuntime()
 
   await runtime.start({ nick: 'Owner', profile, storage: {} })
   const accepted = await runtime.acceptMessageRequest({
@@ -260,10 +294,11 @@ test('desktop DM runtime accepts requests and invites into saved open threads', 
   assert.deepEqual(
     calls.filter(([name]) => name === 'saveThreads'),
     [
-      ['saveThreads', ['thread-1']],
-      ['saveThreads', ['thread-1']]
+      ['saveThreads', [{ lastReadAt: undefined, threadId: 'thread-1' }]],
+      ['saveThreads', [{ lastReadAt: undefined, threadId: 'thread-1' }]]
     ]
   )
+  assert.deepEqual(threadEvents, [[], ['thread-1'], ['thread-1']])
   assert.equal(calls.filter(([name]) => name === 'openThread').length, 2)
 })
 
@@ -302,5 +337,49 @@ test('desktop DM runtime binds request invites to outgoing local requests', asyn
         recipientEncryptionKeyPair: profile.dmEncryptionKeyPair
       }),
     /not authorized/
+  )
+})
+
+test('desktop DM runtime returns contact book updates from accepted request invites', async () => {
+  const updatedBook = { trusted: remoteProfileId }
+  const { calls, runtime } = createRuntime({
+    acceptInvite: ({ canAcceptInvite, invite }) => {
+      if (canAcceptInvite && !canAcceptInvite(invite)) {
+        throw new Error('DM invite is not authorized')
+      }
+
+      return {
+        book: updatedBook,
+        thread: { ...thread, remoteProfileId: invite.fromProfileId }
+      }
+    },
+    sessionMessages: [
+      {
+        at: 2,
+        createdAt: 2,
+        direction: 'out',
+        fromProfileId: localProfileId,
+        id: 'request-2',
+        requestId: 'request-2',
+        text: 'hello',
+        toProfileId: remoteProfileId,
+        type: 'kepos.message.request.v1'
+      }
+    ]
+  })
+
+  await runtime.start({ nick: 'Owner', profile, storage: {} })
+  const accepted = await runtime.acceptInviteAsRecipient({
+    acceptedAt: 4,
+    contactBook: { ownerProfileId: localProfileId },
+    invite: { fromProfileId: remoteProfileId, requestId: 'request-2' },
+    recipientEncryptionKeyPair: profile.dmEncryptionKeyPair
+  })
+
+  assert.deepEqual(accepted.book, updatedBook)
+  assert.equal(accepted.thread.threadId, 'thread-1')
+  assert.deepEqual(
+    calls.filter(([name]) => name === 'saveThreads'),
+    [['saveThreads', [{ lastReadAt: undefined, threadId: 'thread-1' }]]]
   )
 })

@@ -1,3 +1,5 @@
+import { createDefaultSecureHexId } from './secure-id.ts'
+
 const HOME_POLICIES = new Set(['trusted_only', 'public'])
 const ROOM_KEY_PATTERN = /^[0-9a-f]{64}$/
 
@@ -50,17 +52,7 @@ export function isHomePolicy(policy: unknown): policy is HomePolicy {
 }
 
 function createRoomKey(): string {
-  const bytes = new Uint8Array(32)
-
-  if (globalThis.crypto?.getRandomValues) {
-    globalThis.crypto.getRandomValues(bytes)
-  } else {
-    for (let index = 0; index < bytes.length; index += 1) {
-      bytes[index] = Math.floor(Math.random() * 256)
-    }
-  }
-
-  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('')
+  return createDefaultSecureHexId(32)
 }
 
 function isRoomKey(value: unknown): value is string {

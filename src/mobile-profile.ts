@@ -1,3 +1,4 @@
+import { isAvatarMediaReference, type AvatarMediaReference } from './avatar-media.ts'
 import { isIdentityKey, isIdentityKeyPair } from './identity.ts'
 import type { SigningIdentity } from './signed-record.ts'
 
@@ -8,6 +9,7 @@ const IDENTITY_SECRET_KEY_FILE = 'identity-secret-key.txt'
 const V1_DIR = 'v1'
 const V1_IDENTITY_FILE = 'identity.json'
 const V1_HOME_FILE = 'home.json'
+const V1_PROFILE_FILE = 'profile.json'
 const DM_ENCRYPTION_PUBLIC_KEY_FILE = 'dm-encryption-public-key.txt'
 const DM_ENCRYPTION_SECRET_KEY_FILE = 'dm-encryption-secret-key.txt'
 const HEX_32_PATTERN = /^[0-9a-f]{64}$/
@@ -34,6 +36,11 @@ type MobileStorageDocument<TData> = {
 type MobileHomeDocumentData = {
   ownerProfileId: string | null
   roomKey: string
+}
+
+export type MobileProfileDocumentData = {
+  avatarMedia?: AvatarMediaReference
+  avatarUri: string
 }
 
 export type MobileDmEncryptionKeyPair = {
@@ -261,6 +268,77 @@ export async function getOrCreateMobileDmEncryptionKeyPair({
   return keyPair
 }
 
+export async function loadMobileProfileDocument({
+  baseUri,
+  fileSystem
+}: {
+  baseUri?: string | null
+  fileSystem: MobileFileSystem
+}): Promise<MobileProfileDocumentData> {
+  if (!baseUri) {
+    throw new Error('App storage directory is unavailable')
+  }
+
+  const profilePath = `${baseUri.replace(/\/+$/, '')}/kepos/${V1_DIR}/${V1_PROFILE_FILE}`
+  const document = await readMobileDocument<Partial<MobileProfileDocumentData>>(
+    fileSystem,
+    profilePath,
+    'kepos.profile'
+  )
+
+  const avatarMedia = cleanOptionalAvatarMediaReference(document?.data?.avatarMedia)
+
+  return {
+    ...(avatarMedia ? { avatarMedia } : {}),
+    avatarUri: cleanOptionalString(document?.data?.avatarUri)
+  }
+}
+
+export async function saveMobileProfileDocument({
+  avatarMedia = null,
+  avatarUri = '',
+  baseUri,
+  fileSystem
+}: {
+  avatarMedia?: AvatarMediaReference | null
+  avatarUri?: string | null
+  baseUri?: string | null
+  fileSystem: MobileFileSystem
+}): Promise<void> {
+  if (!baseUri) {
+    throw new Error('App storage directory is unavailable')
+  }
+
+  const profileDir = `${baseUri.replace(/\/+$/, '')}/kepos`
+  const v1Dir = `${profileDir}/${V1_DIR}`
+  const cleanAvatarMedia = cleanOptionalAvatarMediaReference(avatarMedia)
+
+  await fileSystem.makeDirectoryAsync(v1Dir, { intermediates: true })
+  await fileSystem.writeAsStringAsync(
+    `${v1Dir}/${V1_PROFILE_FILE}`,
+    JSON.stringify({
+      data: {
+        ...(cleanAvatarMedia ? { avatarMedia: cleanAvatarMedia } : {}),
+        ...(cleanOptionalString(avatarUri) ? { avatarUri: cleanOptionalString(avatarUri) } : {})
+      },
+      schemaVersion: 1,
+      type: 'kepos.profile'
+    })
+  )
+}
+
+function cleanOptionalAvatarMediaReference(value: unknown): AvatarMediaReference | undefined {
+  if (value === undefined || value === null) {
+    return undefined
+  }
+
+  if (!isAvatarMediaReference(value)) {
+    throw new Error('Invalid avatar media reference')
+  }
+
+  return value
+}
+
 async function readOptionalFile(
   fileSystem: MobileFileSystem,
   path: string
@@ -368,4 +446,8 @@ function isSigningIdentity(value: unknown): value is SigningIdentity {
 function isDmEncryptionKeyPair(value: unknown): value is MobileDmEncryptionKeyPair {
   const keyPair = value as Partial<MobileDmEncryptionKeyPair> | null | undefined
   return isIdentityKey(keyPair?.publicKey) && isIdentityKey(keyPair?.secretKey)
+}
+
+function cleanOptionalString(value: unknown): string {
+  return typeof value === 'string' ? value.trim() : ''
 }

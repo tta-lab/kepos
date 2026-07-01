@@ -9,12 +9,14 @@ Use these docs as the current architecture map for Kepos.
 - `docs/v1.06-identity-security.md`: target identity and security model, including Keet-style identity, device attestation, trust grants, and DM security.
 - `docs/v1.08-dm-bootstrap-security.md`: target DM invite, message request, durable thread, revoke, and bootstrap security model.
 - `docs/v1.10-qr-code-matching.md`: QR payloads and matching flows for profile trust, home entry, and message requests.
+- `docs/v1.16-final-mlp-ui-ux-refactor.md`: final V1 MLP person-first UI/UX refactor target: friend request, mutual trust, profile, contacts, messages, recent posts, and explicit home entry.
+- `docs/v1.17-ready-im-completion-plan.md`: canonical V1 completion evidence checklist and self-review for a ready private IM product on top of P2P infra.
 - `docs/v1.07-architecture-gaps.md`: remaining architecture gaps for V1 after identity and QR design.
 - `docs/v1.03-limitations.md`: explicit V1 limitations, non-goals, and success bar.
 - `docs/v1.04-tradeoffs.md`: accepted V1 tradeoffs, rejected options, risks, and future escape hatches.
 - `docs/v1.05-typescript-boundary.md`: TypeScript boundary for V1 protocol/domain modules versus platform runtime glue.
 - `docs/v1.20-smoke-guide.md`: desktop and Android manual smoke checklist for V1 parity.
-- `docs/v1.21-cross-device-smoke.md`: agent recipe for desktop/Android gates, smoke, QR, persistence, revoke, and cleanup.
+- `docs/v1.21-cross-device-smoke.md`: agent recipe for desktop/Android gates, smoke, QR, persistence, revoke, cleanup, and the final V1 release proof packet at `tmp/final-v1-proof.md`.
 - `docs/v1.30-kepos-features.html`: local HTML overview of implemented user-visible features and supported platforms.
 
 ## Current V1 Product Rules
@@ -37,7 +39,7 @@ Use these docs as the current architecture map for Kepos.
 ## Local Conventions
 
 - Use npm and Node for this project.
-- Prefer TypeScript for all new code. Keep JS/JSX/MJS only for existing runtime glue, loader constraints, or narrowly scoped compatibility work.
+- Prefer TypeScript for all new code. React UI source should be TSX. Keep JS/MJS only for existing runtime glue, loader constraints, or narrowly scoped compatibility work.
 - Prefer TailwindCSS and daisyUI for new frontend UI and UI refactors. Use local CSS only when the existing surface has not migrated yet, when a platform wrapper requires it, or when Tailwind/daisyUI cannot express the needed behavior cleanly.
 - Do not run high-cost smoke tests by default. Unless the user explicitly asks
   for smoke, the work is release proof, or the change cannot be verified any

@@ -1,4 +1,4 @@
-import { createDesktopShareQrOutputs, renderDesktopQrSvg } from './desktop-qr-service.js'
+import { createDesktopShareQrOutputs, renderDesktopQrSvg } from './desktop-qr-service.ts'
 import type { DesktopProfileContext } from './desktop-profile-context-core.ts'
 
 export type DesktopShareQrOutputs = {
@@ -8,7 +8,7 @@ export type DesktopShareQrOutputs = {
   profileUri: string
 }
 
-type FocusTarget = {
+export type FocusTarget = {
   focus(): void
 }
 

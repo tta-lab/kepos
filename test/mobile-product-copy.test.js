@@ -11,6 +11,7 @@ import {
   formatMessageRequestTitle,
   formatMobileTrustSource,
   formatMobileTrustTime,
+  formatOutgoingRequestTitle,
   formatPendingBadgeCount,
   formatRequestPreview,
   getMobileTreeholeEmptyCopy,
@@ -30,33 +31,33 @@ test('mobile product copy formats home and treehole status', () => {
     'Waiting for friends'
   )
 
-  assert.equal(getMobileTreeholeStatus('ready'), 'Treehole ready')
-  assert.equal(getMobileTreeholeStatus('starting'), 'Treehole starting')
-  assert.equal(getMobileTreeholeStatus('waiting'), 'Waiting treehole')
-  assert.equal(getMobileTreeholeStatus('waiting-for-bootstrap'), 'Waiting treehole')
-  assert.equal(getMobileTreeholeStatus('idle'), 'Treehole offline')
+  assert.equal(getMobileTreeholeStatus('ready'), 'My treehole ready')
+  assert.equal(getMobileTreeholeStatus('starting'), 'Starting My treehole')
+  assert.equal(getMobileTreeholeStatus('waiting'), 'Waiting for posts')
+  assert.equal(getMobileTreeholeStatus('waiting-for-bootstrap'), 'Waiting for posts')
+  assert.equal(getMobileTreeholeStatus('idle'), 'My treehole offline')
 })
 
 test('mobile product copy maps backend and room state to user copy', () => {
   assert.equal(getMobileBackendNotice('joining'), 'Starting home...')
   assert.equal(getMobileBackendNotice('opening-dm'), 'Starting home...')
-  assert.equal(getMobileBackendNotice('opening-treehole-state'), 'Syncing treehole...')
+  assert.equal(getMobileBackendNotice('opening-treehole-state'), 'Syncing posts...')
   assert.equal(getMobileBackendNotice('joined'), 'Connected.')
   assert.equal(getMobileBackendNotice('left'), 'Left home.')
   assert.equal(getMobileBackendNotice('unknown'), 'Home status updated.')
 
   assert.equal(getMobileRoomSurface('chat'), 'Home chat')
-  assert.equal(getMobileRoomSurface('dm'), 'Direct messages')
-  assert.equal(getMobileRoomSurface('treehole'), 'Treehole')
-  assert.equal(getMobileRoomSurface('people'), 'People')
+  assert.equal(getMobileRoomSurface('dm'), 'Messages')
+  assert.equal(getMobileRoomSurface('treehole'), 'My treehole')
+  assert.equal(getMobileRoomSurface('people'), 'Contacts')
 })
 
 test('mobile product copy formats people and request labels', () => {
   assert.equal(formatMobileTrustSource('profile_qr'), 'Profile QR')
   assert.equal(formatMobileTrustSource('person_qr'), 'Profile QR')
   assert.equal(formatMobileTrustSource('home_room'), 'Home')
-  assert.equal(formatMobileTrustSource('message_request'), 'Message request')
-  assert.equal(formatMobileTrustSource('manual'), 'local trust')
+  assert.equal(formatMobileTrustSource('message_request'), 'Friend request')
+  assert.equal(formatMobileTrustSource('manual'), 'This device')
   assert.equal(formatMobileTrustTime(Number.NaN), 'recently')
   assert.equal(
     formatMobileTrustTime(0, (value) => `date:${value}`),
@@ -65,23 +66,32 @@ test('mobile product copy formats people and request labels', () => {
 
   assert.equal(formatRequestPreview(' hello '), 'hello')
   assert.equal(formatRequestPreview('  '), 'No message yet')
-  assert.equal(formatMessageRequestTitle({ alias: 'Ada' }), 'Ada wants to start a direct chat.')
-  assert.equal(formatMessageRequestTitle({}), 'Someone wants to start a direct chat.')
+  assert.equal(formatMessageRequestTitle({ alias: 'Ada' }), 'Ada sent a friend request.')
+  assert.equal(formatMessageRequestTitle({}), 'Someone sent a friend request.')
+  assert.equal(
+    formatMessageRequestTitle({ profileId: '1234567890abcdef1234567890abcdef' }),
+    'Profile 12345678...90abcdef sent a friend request.'
+  )
   assert.equal(formatMessageRequestSubtitle({ alias: ' Ada ' }), 'Ada')
   assert.equal(
     formatMessageRequestSubtitle({ profileId: '1234567890abcdef1234567890abcdef' }),
-    '12345678...90abcdef'
+    'Profile 12345678...90abcdef'
   )
   assert.equal(formatMobileTrustedContactName({ alias: ' Grace ' }), 'Grace')
   assert.equal(
     formatMobileTrustedContactName({ profileId: '1234567890abcdef1234567890abcdef' }),
     'Profile 12345678...90abcdef'
   )
+  assert.equal(formatOutgoingRequestTitle({ alias: ' Ada ' }), 'Ada has not accepted yet.')
+  assert.equal(
+    formatOutgoingRequestTitle({ profileId: '1234567890abcdef1234567890abcdef' }),
+    'Profile 12345678...90abcdef has not accepted yet.'
+  )
 })
 
 test('mobile product copy formats pending tab badges', () => {
-  assert.equal(getMobileTabButtonLabel('Direct', 0), 'Direct')
-  assert.equal(getMobileTabButtonLabel('Direct', 2), 'Direct, 2 pending')
+  assert.equal(getMobileTabButtonLabel('Messages', 0), 'Messages')
+  assert.equal(getMobileTabButtonLabel('Messages', 2), 'Messages, 2 pending')
   assert.equal(formatPendingBadgeCount(0), '0')
   assert.equal(formatPendingBadgeCount(12), '12')
   assert.equal(formatPendingBadgeCount(100), '99+')
@@ -94,10 +104,11 @@ test('mobile product copy formats profile and author labels', () => {
   assert.equal(shortenProfileId(''), '')
   assert.equal(displayDirectPeer(profileId), 'Profile 12345678...90abcdef')
   assert.equal(displayDirectPeer(profileId, ' Ada '), 'Ada')
+  assert.equal(displayDirectPeer(''), 'Someone')
   assert.equal(displayPostAuthor({ authorDisplayName: 'Ada' }), 'Ada')
   assert.equal(displayPostAuthor({ author: 'anon-name' }), 'anon-name')
-  assert.equal(displayPostAuthor({ authorProfileId: profileId }), '12345678...90abcdef')
-  assert.equal(displayPostAuthor({}), 'anon')
+  assert.equal(displayPostAuthor({ authorProfileId: profileId }), 'Profile 12345678...90abcdef')
+  assert.equal(displayPostAuthor({}), 'Someone')
 })
 
 test('mobile product copy formats direct message meta labels', () => {
@@ -125,7 +136,7 @@ test('mobile product copy formats direct message meta labels', () => {
       direction: 'out',
       type: 'kepos.message.request.v1'
     }),
-    'You asked someone to start a direct chat'
+    'You sent a friend request'
   )
   assert.equal(
     formatMobileDirectMessageMeta({
@@ -133,7 +144,19 @@ test('mobile product copy formats direct message meta labels', () => {
       direction: 'in',
       type: 'kepos.message.request.v1'
     }),
-    'Grace wants to start a direct chat.'
+    'Grace sent a friend request.'
+  )
+  assert.equal(
+    formatMobileDirectMessageMeta(
+      {
+        direction: 'in',
+        fromProfileId: profileId,
+        nick: 'Old Ada',
+        type: 'kepos.dm.message.v1'
+      },
+      [{ alias: 'Local Ada', profileId }]
+    ),
+    'Local Ada to you'
   )
 })
 
@@ -144,16 +167,21 @@ test('mobile product copy formats home message sender labels', () => {
 })
 
 test('mobile product copy formats treehole empty copy and post time', () => {
-  assert.equal(
-    getMobileTreeholeEmptyCopy('waiting'),
-    'Waiting for the home owner to share the treehole.'
-  )
+  assert.equal(getMobileTreeholeEmptyCopy('waiting'), 'Waiting for the home owner to share posts.')
   assert.equal(
     getMobileTreeholeEmptyCopy('waiting-for-bootstrap'),
-    'Waiting for the home owner to share the treehole.'
+    'Waiting for the home owner to share posts.'
   )
-  assert.equal(getMobileTreeholeEmptyCopy('starting'), 'Starting the treehole.')
+  assert.equal(getMobileTreeholeEmptyCopy('starting'), 'Starting My treehole.')
   assert.equal(getMobileTreeholeEmptyCopy('ready'), 'Write the first post from this phone.')
+  assert.equal(
+    getMobileTreeholeEmptyCopy('ready', { canPost: false }),
+    'Posts from this home will appear here.'
+  )
+  assert.equal(
+    getMobileTreeholeEmptyCopy(undefined, { canPost: false }),
+    'Posts from this home will appear here.'
+  )
   assert.equal(
     formatMobilePostTime(0, (value, options) => {
       assert.equal(value, 0)

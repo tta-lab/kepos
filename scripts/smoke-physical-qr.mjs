@@ -4,6 +4,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { _electron as electron } from 'playwright'
+import { markSmokeStorage } from './smoke-storage.mjs'
 
 const serial = process.env.ANDROID_SERIAL || '32131JEHN00865'
 const repoDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
@@ -15,6 +16,7 @@ const electronExecutable = path.join(
   process.platform === 'win32' ? 'electron.cmd' : 'electron'
 )
 const userDataDir = await mkdtemp(path.join(os.tmpdir(), 'kepos-physical-qr-desktop-'))
+await markSmokeStorage(userDataDir)
 const usePearRuntime = process.argv.includes('--pear')
 const androidDevClientUrl = 'kepos://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8081'
 let app = null
@@ -49,15 +51,21 @@ try {
   await openAndroidPeopleSetup()
   await openAndroidScanner('scan-profile-qr-button')
   console.log('Point the Android camera at the desktop Profile QR.')
-  await waitForAndroidTextWithDiagnostics(page, 'Trusted friend added.', 'profile', {
-    timeoutMs: 180000
-  })
+  await waitForAndroidTextWithDiagnostics(
+    page,
+    'Write a message below to send the request.',
+    'profile',
+    {
+      timeoutMs: 180000
+    }
+  )
   await page.click('#largeQrCloseButton')
 
   await clickDesktopContextButton(page, '#showLargeHomeQrButton')
   await page.locator('#largeQrDialog:not(.hidden)').waitFor({ state: 'visible' })
   await page.bringToFront()
-  await openAndroidScanner('quick-scan-home-qr-button')
+  await openAndroidPeopleSetup()
+  await openAndroidScanner('scan-home-qr-button')
   console.log('Point the Android camera at the desktop Home QR.')
   await waitForAndroidTextWithDiagnostics(page, 'Connected.', 'home', { timeoutMs: 180000 })
   await page.click('#largeQrCloseButton')

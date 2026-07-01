@@ -1,8 +1,8 @@
 declare module 'compact-encoding' {
-  type Encoding<T = any> = {
-    preencode(state: any, value: T): void
-    encode(state: any, value: T): void
-    decode(state: any): T
+  type Encoding<T = unknown> = {
+    preencode(state: unknown, value: T): void
+    encode(state: unknown, value: T): void
+    decode(state: unknown): T
   }
 
   const compact: {
@@ -20,9 +20,10 @@ declare module 'b4a' {
   const b4a: {
     alloc(size: number): Uint8Array
     from(value: string): Uint8Array
-    from(value: string, encoding: 'hex'): Uint8Array
+    from(value: string, encoding: 'base64' | 'hex'): Uint8Array
+    equals(left: Uint8Array, right: Uint8Array): boolean
     toString(value: Uint8Array): string
-    toString(value: Uint8Array, encoding: 'hex'): string
+    toString(value: Uint8Array, encoding: 'base64' | 'hex'): string
   }
 
   export default b4a

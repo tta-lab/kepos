@@ -5,6 +5,7 @@ import {
   getContact,
   loadContactBookFromFileSystem,
   loadContactBookFromStorage,
+  recordOutgoingFriendRequest,
   saveContactBookToFileSystem,
   saveContactBookToStorage,
   trustContact
@@ -22,6 +23,24 @@ describe('contact book storage', () => {
     saveContactBookToStorage({ book, storage })
     const restored = loadContactBookFromStorage({ ownerProfileId: 'owner-a', storage })
 
+    assert.equal(getContact(restored, 'profile-b').alias, 'Ada')
+  })
+
+  test('saves and loads outgoing friend requests from sync key-value storage', () => {
+    const storage = createMemoryStorage()
+    const book = recordOutgoingFriendRequest(createContactBook({ ownerProfileId: 'owner-a' }), {
+      alias: 'Ada',
+      profileId: 'profile-b',
+      requestedAt: 1000,
+      requestId: 'request-1',
+      source: 'profile_qr',
+      text: 'hi'
+    })
+
+    saveContactBookToStorage({ book, storage })
+    const restored = loadContactBookFromStorage({ ownerProfileId: 'owner-a', storage })
+
+    assert.equal(restored.outgoingRequestsByProfileId.get('profile-b').requestId, 'request-1')
     assert.equal(getContact(restored, 'profile-b').alias, 'Ada')
   })
 
@@ -57,6 +76,34 @@ describe('contact book storage', () => {
 
     assert.equal(getContact(restored, 'profile-b').alias, 'Ada')
     assert.equal(files.has('file:///app/kepos/contact-book.json'), true)
+  })
+
+  test('saves and loads outgoing friend requests from async app file storage', async () => {
+    const files = new Map()
+    const fileSystem = createFileSystem(files)
+    const book = recordOutgoingFriendRequest(createContactBook({ ownerProfileId: 'owner-a' }), {
+      alias: 'Ada',
+      profileId: 'profile-b',
+      requestedAt: 1000,
+      requestId: 'request-1',
+      source: 'profile_qr',
+      text: 'hi'
+    })
+
+    await saveContactBookToFileSystem({
+      baseUri: 'file:///app/',
+      book,
+      fileSystem
+    })
+    const restored = await loadContactBookFromFileSystem({
+      baseUri: 'file:///app/',
+      fileSystem,
+      ownerProfileId: 'owner-a'
+    })
+
+    assert.equal(restored.outgoingRequestsByProfileId.get('profile-b').requestId, 'request-1')
+    assert.equal(restored.outgoingRequestsByProfileId.get('profile-b').text, 'hi')
+    assert.equal(getContact(restored, 'profile-b').alias, 'Ada')
   })
 
   test('fails closed on corrupt async app file contact book storage', async () => {

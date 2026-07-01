@@ -4,6 +4,8 @@ import { createDesktopHomeChatViewModel } from './desktop-home-chat-view-model.t
 import { createDesktopPeopleViewModel } from './desktop-people-view-model.ts'
 import { createDesktopStatusViewModel } from './desktop-status-view-model.ts'
 import { createDesktopTreeholeViewModel } from './desktop-treehole-view-model.ts'
+import { createDmThreadListView } from './dm-thread-list.ts'
+import { createHomeOwnerViewModel } from './home-owner-view-model.ts'
 import type { ContactBook } from './contact-book.ts'
 import type { DesktopState } from './desktop-state.ts'
 
@@ -22,11 +24,14 @@ type TreeholeFormatTime = NonNullable<
 >
 
 type DesktopRenderUi = {
+  setActiveHomeOwnerProfileId(profileId: string): void
   setActiveTab(tab: DesktopState['activeTab']): void
   setControls(controls: Record<string, boolean>): void
   setDirectContactPicker(viewModel: unknown): void
   setDirectMessages(messages: unknown): void
+  setDirectThreads(threads: unknown): void
   setHomeMessages(messages: unknown): void
+  setHomeOwner(viewModel: unknown): void
   setPeople(viewModel: unknown): void
   setShellBusy(busy: boolean): void
   setStatus(viewModel: unknown): void
@@ -38,6 +43,7 @@ export type DesktopRenderPresenter = {
     contactBook: ContactBook | null
     directComposerRecipientProfileId?: string
     dmSession?: MessageSession | null
+    dmThreads?: unknown[]
     pendingCommand?: string | null
     session?: MessageSession | null
     state: DesktopState
@@ -61,6 +67,7 @@ export function createDesktopRenderPresenter({
     contactBook,
     directComposerRecipientProfileId = '',
     dmSession = null,
+    dmThreads = [],
     pendingCommand = null,
     session = null,
     state
@@ -68,6 +75,7 @@ export function createDesktopRenderPresenter({
     contactBook: ContactBook | null
     directComposerRecipientProfileId?: string
     dmSession?: MessageSession | null
+    dmThreads?: unknown[]
     pendingCommand?: string | null
     session?: MessageSession | null
     state: DesktopState
@@ -76,6 +84,7 @@ export function createDesktopRenderPresenter({
     const isActionPending = Boolean(pendingCommand)
 
     ui?.setShellBusy(isActionPending)
+    ui?.setActiveHomeOwnerProfileId(state.activeHomeOwnerProfileId || '')
     ui?.setStatus(
       createDesktopStatusViewModel({
         session: session as StatusSession,
@@ -99,10 +108,28 @@ export function createDesktopRenderPresenter({
         messages: (session?.messages || []) as HomeMessages
       })
     )
+    ui?.setHomeOwner(
+      createHomeOwnerViewModel({
+        contacts: contactBook ? Array.from(contactBook.contactsByProfileId.values()) : [],
+        localProfileId: (session as StatusSession | null)?.profileId || '',
+        ownerProfileId: state.activeHomeOwnerProfileId || '',
+        shortenProfileId
+      })
+    )
     ui?.setDirectMessages(
       createDesktopDirectMessageListViewModel({
+        contactBook,
         messages: (dmSession?.messages || []) as DirectMessages,
         shortenProfileId
+      })
+    )
+    ui?.setDirectThreads(
+      createDmThreadListView({
+        contactBook,
+        formatTime,
+        messages: (dmSession?.messages || []) as DirectMessages,
+        shortenProfileId,
+        threads: dmThreads
       })
     )
     ui?.setDirectContactPicker(

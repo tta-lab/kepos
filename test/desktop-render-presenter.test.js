@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createContactBook, trustContact } from '../src/contact-book.ts'
+import {
+  createContactBook,
+  recordOutgoingFriendRequest,
+  trustContact
+} from '../src/contact-book.ts'
 import { createDesktopRenderPresenter } from '../src/desktop-render-presenter.ts'
 import { createDesktopState, setDesktopRoom, setDesktopTreehole } from '../src/desktop-state.ts'
 
@@ -11,8 +15,11 @@ function createUiRecorder() {
     setControls: (payload) => calls.push(['controls', payload]),
     setDirectContactPicker: (payload) => calls.push(['directContactPicker', payload]),
     setDirectMessages: (payload) => calls.push(['directMessages', payload]),
+    setDirectThreads: (payload) => calls.push(['directThreads', payload]),
     setHomeMessages: (payload) => calls.push(['homeMessages', payload]),
+    setHomeOwner: (payload) => calls.push(['homeOwner', payload]),
     setPeople: (payload) => calls.push(['people', payload]),
+    setActiveHomeOwnerProfileId: (payload) => calls.push(['activeHomeOwnerProfileId', payload]),
     setShellBusy: (payload) => calls.push(['shellBusy', payload]),
     setStatus: (payload) => calls.push(['status', payload]),
     setTreeholePosts: (payload) => calls.push(['treeholePosts', payload])
@@ -22,13 +29,23 @@ function createUiRecorder() {
 }
 
 test('desktop render presenter pushes the full room snapshot to React UI', () => {
+  const localProfileId = 'a'.repeat(64)
   const profileId = 'b'.repeat(64)
-  const contactBook = trustContact(createContactBook({ ownerProfileId: 'owner' }), {
-    alias: 'Ada',
-    profileId,
-    source: 'profile_qr',
-    trustedAt: 1000
-  })
+  const contactBook = recordOutgoingFriendRequest(
+    trustContact(createContactBook({ ownerProfileId: 'owner' }), {
+      alias: 'Ada',
+      profileId,
+      source: 'profile_qr',
+      trustedAt: 1000
+    }),
+    {
+      alias: 'Grace',
+      profileId: 'e'.repeat(64),
+      requestedAt: 1200,
+      requestId: 'request-1',
+      text: 'hi'
+    }
+  )
   const { calls, ui } = createUiRecorder()
   const presenter = createDesktopRenderPresenter({
     formatTime: () => '09:30',
@@ -39,6 +56,7 @@ test('desktop render presenter pushes the full room snapshot to React UI', () =>
     setDesktopRoom(createDesktopState(), {
       mode: 'host',
       nick: 'Desktop',
+      ownerProfileId: profileId,
       peers: 1,
       roomKey: 'a'.repeat(64)
     }),
@@ -64,17 +82,37 @@ test('desktop render presenter pushes the full room snapshot to React UI', () =>
     dmSession: {
       messages: [
         {
+          at: 1300,
           direction: 'out',
+          id: 'dm-1',
           text: 'dm',
           toProfileId: profileId,
           type: 'kepos.dm.message.v1'
         }
       ]
     },
+    dmThreads: [
+      {
+        remoteProfileId: profileId,
+        state: 'accepted',
+        threadId: 'thread-1'
+      },
+      {
+        remoteProfileId: 'c'.repeat(64),
+        state: 'requested',
+        threadId: 'thread-2'
+      },
+      {
+        remoteProfileId: 'd'.repeat(64),
+        revokedAt: 2,
+        state: 'accepted',
+        threadId: 'thread-3'
+      }
+    ],
     pendingCommand: 'joinHome',
     session: {
       messages: [{ direction: 'out', nick: 'Desktop', text: 'hi' }],
-      profileId
+      profileId: localProfileId
     },
     state
   })
@@ -88,12 +126,65 @@ test('desktop render presenter pushes the full room snapshot to React UI', () =>
   assert.equal(calls.find(([name]) => name === 'controls')[1].canLeaveHome, false)
   assert.equal(calls.find(([name]) => name === 'status')[1].homeStatusLabel, 'Connected')
   assert.equal(calls.find(([name]) => name === 'homeMessages')[1][0].text, 'hi')
+  assert.deepEqual(
+    calls.find(([name]) => name === 'homeOwner'),
+    [
+      'homeOwner',
+      {
+        actionLabel: 'Open profile',
+        canOpenProfile: true,
+        ownerProfileId: profileId,
+        subtitle: 'Ada is hosting',
+        title: "Ada's home"
+      }
+    ]
+  )
+  assert.deepEqual(
+    calls.find(([name]) => name === 'activeHomeOwnerProfileId'),
+    ['activeHomeOwnerProfileId', profileId]
+  )
   assert.equal(calls.find(([name]) => name === 'directMessages')[1][0].text, 'dm')
+  assert.deepEqual(calls.find(([name]) => name === 'directThreads')[1], [
+    {
+      avatar: {
+        initials: 'A',
+        label: 'Ada avatar',
+        tone: 'avatarTone3'
+      },
+      label: 'Ada',
+      preview: 'You: dm',
+      profileId,
+      statusLabel: 'Accepted thread',
+      threadId: 'thread-1',
+      timeLabel: '09:30',
+      unreadCount: 0,
+      unreadLabel: ''
+    },
+    {
+      avatar: {
+        initials: 'CC',
+        label: 'Profile cc avatar',
+        tone: 'avatarTone1'
+      },
+      label: 'cccccc',
+      preview: 'Waiting for acceptance',
+      profileId: 'c'.repeat(64),
+      statusLabel: 'Request pending',
+      threadId: 'thread-2',
+      timeLabel: 'Request pending',
+      unreadCount: 0,
+      unreadLabel: ''
+    }
+  ])
   assert.equal(
     calls.find(([name]) => name === 'directContactPicker')[1].contacts[0].profileId,
     profileId
   )
   assert.equal(calls.find(([name]) => name === 'people')[1].trustedContacts[0].alias, 'Ada')
+  assert.equal(
+    calls.find(([name]) => name === 'people')[1].outgoingRequests[0].statusLabel,
+    'Request sent'
+  )
   assert.equal(calls.find(([name]) => name === 'treeholePosts')[1][0].text, 'hello tree')
 })
 

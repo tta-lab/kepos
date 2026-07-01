@@ -31,7 +31,9 @@ test('desktop backend subscriptions update renderer snapshots from backend event
   let contextFormDraft = null
   let directComposerRecipient = 'friend-old'
   let dmSession = null
+  let dmThreads = []
   let homeSession = null
+  let profileRequestTarget = null
   let shareQrOutputs = null
   let state = createDesktopState()
 
@@ -52,8 +54,14 @@ test('desktop backend subscriptions update renderer snapshots from backend event
     setDmSession: (nextSession) => {
       dmSession = nextSession
     },
+    setDmThreads: (nextThreads) => {
+      dmThreads = nextThreads
+    },
     setHomeSession: (nextSession) => {
       homeSession = nextSession
+    },
+    setProfileRequestTarget: (target) => {
+      profileRequestTarget = target
     },
     setShareQrOutputs: (nextOutputs) => {
       shareQrOutputs = nextOutputs
@@ -68,7 +76,9 @@ test('desktop backend subscriptions update renderer snapshots from backend event
   emit('contextFormDraftChanged', { trustAlias: '', trustQrUri: '' })
   emit('desktopStateChanged', { ...state, mode: 'host', notice: 'Home joined.', view: 'room' })
   emit('directComposerRecipientChanged', '')
+  emit('profileRequestTargetChanged', { displayName: 'Ada', profileId: 'friend' })
   emit('dmMessageReceived', { messages: ['dm'] })
+  emit('dmThreadChanged', [{ threadId: 'thread-1' }])
   emit('shareQrOutputsChanged', { homeUri: 'kepos://home', profileUri: 'kepos://profile' })
   emit('treeholeStateChanged', { canPost: false, posts: [], status: 'ready' })
   emit('peerCountChanged', { peers: 3 })
@@ -81,6 +91,8 @@ test('desktop backend subscriptions update renderer snapshots from backend event
   assert.equal(directComposerRecipient, '')
   assert.deepEqual(homeSession, { messages: ['home'] })
   assert.deepEqual(dmSession, { messages: ['dm'] })
+  assert.deepEqual(dmThreads, [{ threadId: 'thread-1' }])
+  assert.deepEqual(profileRequestTarget, { displayName: 'Ada', profileId: 'friend' })
   assert.deepEqual(shareQrOutputs, { homeUri: 'kepos://home', profileUri: 'kepos://profile' })
   assert.equal(state.mode, 'host')
   assert.equal(state.notice, 'Home joined.')
@@ -100,6 +112,8 @@ test('desktop backend subscriptions update renderer snapshots from backend event
     'render',
     'render',
     'render',
+    'render',
+    'render',
     'render'
   ])
   assert.deepEqual(subscriptions, [
@@ -108,7 +122,9 @@ test('desktop backend subscriptions update renderer snapshots from backend event
     ['subscribe', 'contextFormDraftChanged'],
     ['subscribe', 'desktopStateChanged'],
     ['subscribe', 'directComposerRecipientChanged'],
+    ['subscribe', 'profileRequestTargetChanged'],
     ['subscribe', 'dmMessageReceived'],
+    ['subscribe', 'dmThreadChanged'],
     ['subscribe', 'treeholeStateChanged'],
     ['subscribe', 'peerCountChanged'],
     ['subscribe', 'transportDebugChanged'],
@@ -119,7 +135,9 @@ test('desktop backend subscriptions update renderer snapshots from backend event
     ['unsubscribe', 'contextFormDraftChanged'],
     ['unsubscribe', 'desktopStateChanged'],
     ['unsubscribe', 'directComposerRecipientChanged'],
+    ['unsubscribe', 'profileRequestTargetChanged'],
     ['unsubscribe', 'dmMessageReceived'],
+    ['unsubscribe', 'dmThreadChanged'],
     ['unsubscribe', 'treeholeStateChanged'],
     ['unsubscribe', 'peerCountChanged'],
     ['unsubscribe', 'transportDebugChanged'],

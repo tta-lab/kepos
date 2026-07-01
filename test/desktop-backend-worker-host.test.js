@@ -2,8 +2,8 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import { Duplex } from 'node:stream'
 import test from 'node:test'
-import { createDesktopBackendWorkerHost } from '../src/desktop-backend-worker-host.js'
-import { createDesktopBackendWorkerIpcServer } from '../src/desktop-backend-worker-ipc.js'
+import { createDesktopBackendWorkerHost } from '../src/desktop-backend-worker-host.ts'
+import { createDesktopBackendWorkerIpcServer } from '../src/desktop-backend-worker-ipc.ts'
 
 test('desktop backend worker host starts and exposes an ipc worker bridge', async () => {
   const backendHandlers = new Map()
@@ -118,7 +118,7 @@ test('desktop backend worker host can start from an external worker stream', asy
 
 test('desktop backend worker host delegates session creation to worker entry', async () => {
   const source = await readFile(
-    new URL('../src/desktop-backend-worker-host.js', import.meta.url),
+    new URL('../src/desktop-backend-worker-host.ts', import.meta.url),
     'utf8'
   )
 

@@ -1,17 +1,22 @@
 const DESKTOP_COMMANDS = [
   'acceptMessageRequest',
+  'allowContactRequests',
   'commentTreehole',
+  'enterContactHome',
   'ignoreMessageRequest',
   'joinHome',
   'joinHomeUri',
   'leaveHome',
   'likeTreehole',
+  'markDmThreadRead',
   'postTreehole',
   'revokeContact',
   'sendDmMessage',
   'sendHomeMessage',
   'sendMessageRequest',
-  'trustProfileUri',
+  'prepareProfileRequestTarget',
+  'updateAvatarMedia',
+  'updateAvatarUri',
   'updateDisplayName'
 ]
 
@@ -25,6 +30,7 @@ const DESKTOP_EVENTS = [
   'errorReceived',
   'homeMessageReceived',
   'peerCountChanged',
+  'profileRequestTargetChanged',
   'shareQrOutputsChanged',
   'statusChanged',
   'transportDebugChanged',
@@ -45,8 +51,10 @@ const REPLAY_EVENT_SET = new Set([
   'desktopStateChanged',
   'directComposerRecipientChanged',
   'dmMessageReceived',
+  'dmThreadChanged',
   'homeMessageReceived',
   'peerCountChanged',
+  'profileRequestTargetChanged',
   'shareQrOutputsChanged',
   'transportDebugChanged',
   'treeholeStateChanged'

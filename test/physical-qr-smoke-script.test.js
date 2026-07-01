@@ -28,11 +28,12 @@ test('physical QR smoke stages desktop QR dialogs and Android scanners', async (
     '#showLargeHomeQrButton',
     'people-setup-toggle',
     'scan-profile-qr-button',
-    'quick-scan-home-qr-button',
+    'scan-home-qr-button',
     'qr-scanner-camera',
-    'Trusted friend added.',
+    'Write a message below to send the request.',
     'Connected.',
     'page.bringToFront()',
+    'markSmokeStorage(userDataDir)',
     'Desktop screenshot:',
     'Android screenshot:',
     "exec-out', 'screencap', '-p",
@@ -54,4 +55,40 @@ test('V1 smoke docs keep physical QR helper out of automatic gates', async () =>
   assert.match(guide, /not part of `npm run v1:gate`/)
   assert.match(recipe, /npm run smoke:physical-qr/)
   assert.match(recipe, /needs a human to aim the phone/)
+  assert.doesNotMatch(`${guide}\n${recipe}`, /physical QR release proof (passed|remains)/i)
+})
+
+test('cross-device recipe defines the final V1 normal product proof packet', async () => {
+  const guide = await readFile(new URL('../docs/v1.20-smoke-guide.md', import.meta.url), 'utf8')
+  const recipe = await readFile(
+    new URL('../docs/v1.21-cross-device-smoke.md', import.meta.url),
+    'utf8'
+  )
+
+  assert.match(recipe, /## Final V1 Release Proof Packet/)
+  assert.match(recipe, /commit SHA and branch/)
+  assert.match(recipe, /desktop mode: normal Electron or Pear\/Bare worker/)
+  assert.match(recipe, /Android device model and `ANDROID_SERIAL`/)
+  assert.match(recipe, /whether physical Profile QR scan passed/)
+  assert.match(recipe, /Advanced Home QR scan passed as a transport-descriptor check/)
+  assert.doesNotMatch(recipe, /Profile QR and Home QR scan both passed/)
+  assert.match(recipe, /Android scans the desktop Profile QR through the camera/)
+  assert.match(recipe, /Android sends a friend request/)
+  assert.match(recipe, /Android still shows the outgoing request as Request sent after restart/)
+  assert.match(recipe, /Desktop ignores the friend request/)
+  assert.match(recipe, /chooses Allow requests/)
+  assert.match(recipe, /Desktop accepts the second friend request/)
+  assert.match(recipe, /Both sides still show the trusted contact and the prior Messages thread/)
+  assert.match(recipe, /explicitly chooses Enter Home/)
+  assert.match(recipe, /Recent posts/)
+  assert.match(recipe, /Desktop revokes Android from Contacts/)
+  assert.match(recipe, /debug and physical QR helpers are sub-proofs/)
+  assert.match(guide, /Final V1 release proof should use the one-run packet/)
+  assert.match(guide, /Android Messages persistence across restart/)
+  assert.match(guide, /post-restart\s+Messages delivery/)
+  assert.match(guide, /accepted Messages receive path/)
+  assert.match(guide, /The debug and physical QR helpers are\s+sub-proofs/)
+  assert.doesNotMatch(guide, /Android DM persistence across restart/)
+  assert.doesNotMatch(guide, /post-restart DM delivery/)
+  assert.doesNotMatch(guide, /accepted DM receive path/)
 })

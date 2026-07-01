@@ -1,10 +1,12 @@
 import compact from 'compact-encoding'
+import { isAvatarMediaReference, type AvatarMediaReference } from './avatar-media.ts'
 import { isHomePolicy } from './home-room.ts'
 import type { MessageRequest } from './message-request.ts'
 import { createSignedRecord, verifySignedRecord } from './signed-record.ts'
 import type { PayloadEncoding, SignedRecord, SigningIdentity } from './signed-record.ts'
 
 const TRUST_INVITE = 'kepos.trust.invite.v1'
+const TRUST_INVITE_WITH_AVATAR_MEDIA = 'kepos.trust.invite.v2'
 const HOME_ADDRESS = 'kepos.home.address.v1'
 const MESSAGE_REQUEST = 'kepos.message.request.v1'
 const PROFILE_ROUTE = 'profile'
@@ -23,6 +25,8 @@ type SignedProof = {
 }
 
 type TrustInvitePayload = {
+  avatarMedia?: AvatarMediaReference
+  avatarUri?: string
   displayName: string
   expiresAt: number | null
   identityPublicKey: string
@@ -43,8 +47,9 @@ type VerifyOptions = {
 
 export type SignedTrustInvitePayload = TrustInvitePayload & {
   createdAt: number
+  homeDescriptor?: SignedHomeAddressPayload
   proof: SignedProof
-  type: typeof TRUST_INVITE
+  type: typeof TRUST_INVITE | typeof TRUST_INVITE_WITH_AVATAR_MEDIA
 }
 
 export type SignedHomeAddressPayload = HomeAddressPayload & {
@@ -60,6 +65,10 @@ const trustInvitePayloadEncoding: PayloadEncoding<TrustInvitePayload> = {
     compact.string.preencode(state, payload.profileId)
     compact.string.preencode(state, payload.identityPublicKey)
     compact.string.preencode(state, payload.displayName)
+    compact.bool.preencode(state, Boolean(payload.avatarUri))
+    if (payload.avatarUri) {
+      compact.string.preencode(state, payload.avatarUri)
+    }
     compact.bool.preencode(state, payload.expiresAt !== null)
     if (payload.expiresAt !== null) {
       compact.uint.preencode(state, payload.expiresAt)
@@ -69,6 +78,10 @@ const trustInvitePayloadEncoding: PayloadEncoding<TrustInvitePayload> = {
     compact.string.encode(state, payload.profileId)
     compact.string.encode(state, payload.identityPublicKey)
     compact.string.encode(state, payload.displayName)
+    compact.bool.encode(state, Boolean(payload.avatarUri))
+    if (payload.avatarUri) {
+      compact.string.encode(state, payload.avatarUri)
+    }
     compact.bool.encode(state, payload.expiresAt !== null)
     if (payload.expiresAt !== null) {
       compact.uint.encode(state, payload.expiresAt)
@@ -78,12 +91,15 @@ const trustInvitePayloadEncoding: PayloadEncoding<TrustInvitePayload> = {
     const profileId = compact.string.decode(state)
     const identityPublicKey = compact.string.decode(state)
     const displayName = compact.string.decode(state)
+    const hasAvatarUri = compact.bool.decode(state)
+    const avatarUri = hasAvatarUri ? compact.string.decode(state) : undefined
     const hasExpiresAt = compact.bool.decode(state)
 
     return {
       profileId,
       identityPublicKey,
       displayName,
+      ...(avatarUri ? { avatarUri } : {}),
       expiresAt: hasExpiresAt ? compact.uint.decode(state) : null
     }
   }
@@ -127,35 +143,103 @@ const homeAddressPayloadEncoding: PayloadEncoding<HomeAddressPayload> = {
   }
 }
 
+const trustInviteWithAvatarMediaPayloadEncoding: PayloadEncoding<TrustInvitePayload> = {
+  preencode(state, payload) {
+    trustInvitePayloadEncoding.preencode(state, payload)
+    encodeAvatarMediaReference.preencode(state, payload.avatarMedia)
+  },
+  encode(state, payload) {
+    trustInvitePayloadEncoding.encode(state, payload)
+    encodeAvatarMediaReference.encode(state, payload.avatarMedia)
+  },
+  decode(state) {
+    return {
+      ...trustInvitePayloadEncoding.decode(state),
+      ...dropEmptyAvatarMedia(encodeAvatarMediaReference.decode(state))
+    }
+  }
+}
+
+const encodeAvatarMediaReference: PayloadEncoding<AvatarMediaReference | undefined> = {
+  preencode(state, reference) {
+    compact.bool.preencode(state, Boolean(reference))
+    if (!reference) return
+
+    compact.string.preencode(state, reference.type)
+    compact.string.preencode(state, reference.digestAlgorithm)
+    compact.string.preencode(state, reference.digest)
+    compact.string.preencode(state, reference.mimeType)
+    compact.string.preencode(state, reference.uri)
+    compact.uint.preencode(state, reference.byteLength)
+    compact.uint.preencode(state, reference.createdAt)
+  },
+  encode(state, reference) {
+    compact.bool.encode(state, Boolean(reference))
+    if (!reference) return
+
+    compact.string.encode(state, reference.type)
+    compact.string.encode(state, reference.digestAlgorithm)
+    compact.string.encode(state, reference.digest)
+    compact.string.encode(state, reference.mimeType)
+    compact.string.encode(state, reference.uri)
+    compact.uint.encode(state, reference.byteLength)
+    compact.uint.encode(state, reference.createdAt)
+  },
+  decode(state) {
+    const hasAvatarMedia = compact.bool.decode(state)
+    if (!hasAvatarMedia) return undefined
+
+    return cleanAvatarMediaReference({
+      type: compact.string.decode(state),
+      digestAlgorithm: compact.string.decode(state),
+      digest: compact.string.decode(state),
+      mimeType: compact.string.decode(state),
+      uri: compact.string.decode(state),
+      byteLength: compact.uint.decode(state),
+      createdAt: compact.uint.decode(state)
+    })
+  }
+}
+
 export function createSignedTrustInvitePayload({
+  avatarMedia = null,
+  avatarUri = '',
   createdAt = Date.now(),
   displayName,
   expiresAt = null,
+  homeDescriptor = null,
   identity
 }: {
+  avatarMedia?: AvatarMediaReference | null
+  avatarUri?: string | null
   createdAt?: number
   displayName: string
   expiresAt?: number | null
+  homeDescriptor?: SignedHomeAddressPayload | null
   identity: SigningIdentity
 }): SignedTrustInvitePayload {
   const payload = cleanTrustInvitePayload({
+    avatarMedia,
+    avatarUri,
     displayName,
     expiresAt,
     identityPublicKey: identity?.publicKey,
     profileId: identity?.publicKey
   })
+  const type = payload.avatarMedia ? TRUST_INVITE_WITH_AVATAR_MEDIA : TRUST_INVITE
   const signed = createSignedRecord({
     createdAt,
     identity,
     payload,
-    payloadEncoding: trustInvitePayloadEncoding,
-    type: TRUST_INVITE,
+    payloadEncoding: payloadEncodingForTrustInviteType(type),
+    type,
     version: RECORD_VERSION
   })
 
   return {
-    type: TRUST_INVITE,
+    type,
     ...payload,
+    ...(homeDescriptor ? { homeDescriptor } : {}),
     createdAt,
     proof: proofFromSignedRecord(signed)
   }
@@ -173,14 +257,21 @@ export function verifySignedTrustInvitePayload(
       return false
     }
 
-    if (!hasMatchingProof(value, TRUST_INVITE, cleanPayload.profileId)) {
+    const type = cleanTrustInviteType(value.type)
+    if (!hasMatchingProof(value, type, cleanPayload.profileId)) {
       return false
     }
 
-    return verifySignedRecord({
-      payloadEncoding: trustInvitePayloadEncoding,
-      record: recordFromPayload({ payload: value, signedPayload: cleanPayload })
-    })
+    if (
+      !verifySignedRecord({
+        payloadEncoding: payloadEncodingForTrustInviteType(type),
+        record: recordFromPayload({ payload: value, signedPayload: cleanPayload })
+      })
+    ) {
+      return false
+    }
+
+    return verifyProfileHomeDescriptor(value.homeDescriptor, cleanPayload.profileId, { now })
   } catch {
     return false
   }
@@ -338,6 +429,10 @@ function routeForPayload(
     return PROFILE_ROUTE
   }
 
+  if (value.type === TRUST_INVITE_WITH_AVATAR_MEDIA) {
+    return PROFILE_ROUTE
+  }
+
   if (value.type === HOME_ADDRESS) {
     return HOME_ROUTE
   }
@@ -358,11 +453,58 @@ function cleanTrustInvitePayload(payload: Record<string, unknown> = {}): TrustIn
   }
 
   return {
+    ...dropEmptyAvatarMedia(cleanAvatarMediaReference(payload.avatarMedia)),
+    ...dropEmptyString({ avatarUri: cleanOptionalString(payload.avatarUri) }),
     displayName: cleanString(payload.displayName, 'Display name is required'),
     expiresAt: cleanOptionalTimestamp(payload.expiresAt),
     identityPublicKey,
     profileId
   }
+}
+
+function cleanTrustInviteType(
+  value: unknown
+): typeof TRUST_INVITE | typeof TRUST_INVITE_WITH_AVATAR_MEDIA {
+  if (value === TRUST_INVITE || value === TRUST_INVITE_WITH_AVATAR_MEDIA) {
+    return value
+  }
+
+  throw new Error('Invalid signed profile QR type')
+}
+
+function payloadEncodingForTrustInviteType(
+  type: typeof TRUST_INVITE | typeof TRUST_INVITE_WITH_AVATAR_MEDIA
+): PayloadEncoding<TrustInvitePayload> {
+  return type === TRUST_INVITE_WITH_AVATAR_MEDIA
+    ? trustInviteWithAvatarMediaPayloadEncoding
+    : trustInvitePayloadEncoding
+}
+
+function cleanAvatarMediaReference(value: unknown): AvatarMediaReference | undefined {
+  if (value === undefined || value === null) {
+    return undefined
+  }
+
+  if (!isAvatarMediaReference(value)) {
+    throw new Error('Invalid avatar media reference')
+  }
+
+  const reference = value as AvatarMediaReference
+  return {
+    byteLength: reference.byteLength,
+    createdAt: reference.createdAt,
+    digest: reference.digest,
+    digestAlgorithm: reference.digestAlgorithm,
+    mimeType: reference.mimeType,
+    type: reference.type,
+    uri: reference.uri
+  }
+}
+
+function dropEmptyAvatarMedia(value: AvatarMediaReference | undefined): {
+  avatarMedia?: AvatarMediaReference
+} {
+  return value ? { avatarMedia: value } : {}
 }
 
 function cleanHomeAddressPayload(payload: Record<string, unknown> = {}): HomeAddressPayload {
@@ -375,6 +517,22 @@ function cleanHomeAddressPayload(payload: Record<string, unknown> = {}): HomeAdd
     policy,
     roomKey: cleanKey(payload.roomKey, 'Home room key is required')
   }
+}
+
+function verifyProfileHomeDescriptor(
+  value: unknown,
+  profileId: string,
+  options: VerifyOptions
+): boolean {
+  if (value === undefined || value === null) {
+    return true
+  }
+
+  if (!verifySignedHomeAddressPayload(value, options)) {
+    return false
+  }
+
+  return (value as SignedHomeAddressPayload).ownerProfileId === profileId
 }
 
 function cleanHomePolicy(value: unknown): 'public' | 'trusted_only' {
@@ -411,6 +569,17 @@ function cleanString(value: unknown, message: string): string {
   }
 
   return cleaned
+}
+
+function cleanOptionalString(value: unknown): string | undefined {
+  return typeof value === 'string' ? value.trim() || undefined : undefined
+}
+
+function dropEmptyString(value: Record<string, string | undefined>): Record<string, string> {
+  return Object.fromEntries(Object.entries(value).filter(([, entry]) => Boolean(entry))) as Record<
+    string,
+    string
+  >
 }
 
 function cleanTimestamp(value: unknown): number {

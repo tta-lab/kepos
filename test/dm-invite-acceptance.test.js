@@ -1,8 +1,17 @@
 import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
-import { createContactBook, revokeContact, trustContact } from '../src/contact-book.ts'
+import {
+  createContactBook,
+  isContactTrusted,
+  recordOutgoingFriendRequest,
+  revokeContact,
+  trustContact
+} from '../src/contact-book.ts'
 import { createDmEncryptionKeyPair, createDmInvite } from '../src/dm-invite.ts'
-import { acceptDmInviteAsRecipient } from '../src/dm-invite-acceptance.ts'
+import {
+  acceptDmInviteAsRecipient,
+  acceptDmInviteAsRecipientWithContactBook
+} from '../src/dm-invite-acceptance.ts'
 import { isDmThreadActive } from '../src/dm-thread.ts'
 import { createSigningKeyPair } from '../src/signed-record.ts'
 
@@ -85,6 +94,49 @@ describe('DM invite acceptance', () => {
 
     assert.equal(thread.remoteProfileId, sender.publicKey)
     assert.equal(isDmThreadActive(thread), true)
+  })
+
+  test('accepted request invite creates the requester side of mutual trust', () => {
+    const acceptor = createSigningKeyPair()
+    const requester = createSigningKeyPair()
+    const requesterEncryption = createDmEncryptionKeyPair()
+    const book = recordOutgoingFriendRequest(
+      createContactBook({ ownerProfileId: requester.publicKey }),
+      {
+        alias: 'Ada',
+        profileId: acceptor.publicKey,
+        requestedAt: 900,
+        requestId: 'request-1',
+        source: 'profile_qr'
+      }
+    )
+    const invite = createDmInvite({
+      channelDiscoveryKey: '1'.repeat(64),
+      channelPublicKey: '2'.repeat(64),
+      createdAt: 1000,
+      fromIdentity: acceptor,
+      inviteId: 'invite-1',
+      payload: {
+        channelDiscoveryKey: '1'.repeat(64),
+        channelPublicKey: '2'.repeat(64),
+        threadId: 'thread-1'
+      },
+      recipientEncryptionPublicKey: requesterEncryption.publicKey,
+      requestId: 'request-1',
+      toProfileId: requester.publicKey
+    })
+
+    const result = acceptDmInviteAsRecipientWithContactBook({
+      acceptedAt: 2000,
+      contactBook: book,
+      invite,
+      localProfileId: requester.publicKey,
+      recipientEncryptionKeyPair: requesterEncryption
+    })
+
+    assert.equal(result.thread.remoteProfileId, acceptor.publicKey)
+    assert.equal(isContactTrusted(result.book, acceptor.publicKey), true)
+    assert.equal(result.book.outgoingRequestsByProfileId.has(acceptor.publicKey), false)
   })
 
   test('rejects request-bound invites without explicit local request authorization', () => {

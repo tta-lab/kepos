@@ -321,12 +321,12 @@
         <div class="hero-copy">
           <div>
             <div class="mark">K</div>
-            <p class="eyebrow">Kepos / current prototype</p>
-            <h1>私人花园里的 P2P 房间。</h1>
+            <p class="eyebrow">Kepos / V1 MLP</p>
+            <h1>可信小圈子的私人花园。</h1>
             <p class="lead">
-              Kepos
-              现在已经有多人房间、实时文字聊天和纯文本树洞原型。核心方向是不依赖业务服务器，让移动端、桌面端和命令行端都能作为
-              peer 参与测试。
+              Kepos 当前 V1 聚焦一个简单路径：Profile QR 加好友，Contacts 管理信任，Messages
+              持久私聊，显式进入好友 Home，再看 Recent posts 或写 My treehole。底层仍是
+              P2P，但正常用户不需要理解原始 key 或 topic。
             </p>
           </div>
         </div>
@@ -335,21 +335,22 @@
             <p class="eyebrow">当前能力</p>
             <div class="meter">
               <div>
-                <strong>3</strong>
-                <span>可测试端</span>
+                <strong>2+</strong>
+                <span>主产品端</span>
               </div>
               <div>
-                <strong>P2P</strong>
-                <span>Hyperswarm 房间</span>
+                <strong>QR</strong>
+                <span>好友请求入口</span>
               </div>
               <div>
-                <strong>Text</strong>
-                <span>聊天与树洞</span>
+                <strong>IM</strong>
+                <span>消息与动态</span>
               </div>
             </div>
           </div>
           <p class="note">
-            这是产品原型说明页，不是发布页。它描述的是当前仓库已经实现并可本地验证的功能。
+            这是当前 V1 MLP 功能说明页，不是发布页。最终 ready 仍需要真实 desktop/Android normal
+            path release proof。
           </p>
         </aside>
       </header>
@@ -358,53 +359,57 @@
         <div class="section-head">
           <h2>已有功能</h2>
           <p>
-            第一版聚焦多人房间和文字内容。图片、账号体系、审核后台、正式邀请流还没有进入当前实现。
+            第一版聚焦私人 IM 的闭环：朋友关系、持久消息、个人动态、显式 Home 进入和撤销信任。 Home
+            QR 和手动 key 仍可用于 Advanced/debug，不是正常授权入口。
           </p>
         </div>
         <div class="feature-grid">
           <article class="feature">
-            <span class="tag">room</span>
-            <h3>创建和加入房间</h3>
+            <span class="tag">profile</span>
+            <h3>Profile QR 好友请求</h3>
             <p>
-              可以生成 32-byte room key，其他 peer 用同一个 key 加入。房间 topic 从 key 派生，用
-              Hyperswarm 做发现和连接。
+              扫描或粘贴 Profile QR 会准备好友请求，而不是直接创建信任。接受请求后双方进入
+              Contacts，并获得后续 Messages 和 Home 入口。
             </p>
           </article>
           <article class="feature">
-            <span class="tag">chat</span>
-            <h3>实时文字聊天</h3>
-            <p>房间内支持 live text message。消息在当前会话中展示，并做了基本的重复消息过滤。</p>
+            <span class="tag">messages</span>
+            <h3>持久 Messages</h3>
+            <p>
+              Messages 有线程列表、请求行、未读标记、联系人头像和重启恢复。消息体走独立的 pairwise
+              通道，不混进 Home room chat。
+            </p>
+          </article>
+          <article class="feature">
+            <span class="tag">contacts</span>
+            <h3>Contacts 和撤销</h3>
+            <p>
+              Contacts 显示好友请求、已发送请求、可信好友和 removed/ignored
+              状态。撤销会阻止未来访问， 但不会承诺删除对方已经复制到本地的数据。
+            </p>
+          </article>
+          <article class="feature">
+            <span class="tag">home</span>
+            <h3>显式进入 Home</h3>
+            <p>
+              朋友关系是权限，signed Home descriptor 是连接信息。用户从可信联系人 profile 显式 Enter
+              Home，未信任用户不能读取私有 treehole 内容。
+            </p>
           </article>
           <article class="feature">
             <span class="tag">treehole</span>
-            <h3>纯文本树洞</h3>
+            <h3>My treehole / Recent posts</h3>
             <p>
-              树洞采用 Autobase 事件日志。当前 UI 暴露发纯文本帖子；数据模型已经包含评论和点赞事件。
+              My treehole 是自己的持久动态面。可信联系人 profile 可显示 Recent posts，并通过 Home
+              bootstrap 和本地缓存刷新。
             </p>
           </article>
           <article class="feature">
-            <span class="tag">multiwriter</span>
-            <h3>树洞 writer 交换</h3>
+            <span class="tag">evidence</span>
+            <h3>类型和证据门禁</h3>
             <p>
-              peer 会交换 treehole bootstrap key 和 writer key，让多端可以加入同一个 Autobase
-              treehole 日志并复制内容。
-            </p>
-          </article>
-          <article class="feature">
-            <span class="tag">native</span>
-            <h3>Android Bare 后端</h3>
-            <p>
-              Android UI 运行在 React Native，P2P 后端运行在 Bare worklet，两边通过
-              <code>bare-rpc</code> 通信。
-            </p>
-          </article>
-          <article class="feature">
-            <span class="tag">tooling</span>
-            <h3>代码风格和边界检查</h3>
-            <p>
-              项目已有
-              <code>prettier</code
-              >、<code>lunte</code>、<code>lefthook</code>，并检查桌面依赖不泄漏到 Android 构建。
+              <code>npm run v1:gate</code> 覆盖 lint、typecheck、Node tests、TypeScript probes、
+              desktop bundle、Android Bare bundle、Expo export 和 APK native-library 检查。
             </p>
           </article>
         </div>
@@ -413,29 +418,29 @@
       <section class="section">
         <div class="section-head">
           <h2>支持的端</h2>
-          <p>当前目标是能做 two-device path：手机和桌面端互相作为 peer 测试。</p>
+          <p>当前主产品目标是 desktop 和 Android 的同一套 V1 IM 流程；CLI 保留为协议验证入口。</p>
         </div>
         <div class="platforms">
           <article class="platform ready">
             <span class="tag">Android</span>
-            <h3>原生开发构建可测</h3>
+            <h3>React Native + Bare 后端</h3>
             <p>
-              Expo React Native + <code>react-native-bare-kit</code>。支持创建/加入房间、聊天、树洞
-              tab、Bare P2P 后端和 Autobase treehole。
+              Expo React Native + <code>react-native-bare-kit</code>。支持 Profile QR、Contacts、
+              Messages、Home、My treehole、scanner 打开/取消和 app-private 持久化。
             </p>
           </article>
           <article class="platform ready">
             <span class="tag">Desktop</span>
             <h3>Electron + pear-runtime</h3>
             <p>
-              桌面端已经从旧 <code>pear run</code> 切到官方最新方向：Electron 主进程内嵌
-              <code>pear-runtime</code>，用于和 Android 做 peer 测试。
+              Electron React UI + <code>pear-runtime</code> bundled Bare worker。Pear smoke 已覆盖
+              Home、Profile QR、ContactBook、message request、restart 和 revoke 路径。
             </p>
           </article>
           <article class="platform ready">
             <span class="tag">CLI</span>
             <h3>终端房间原型</h3>
-            <p>命令行端可以创建/加入房间并发送实时文字消息，适合快速验证协议和 P2P 连接。</p>
+            <p>命令行端仍可创建/加入房间并发送实时文字消息，适合快速验证协议和 P2P 连接。</p>
           </article>
           <article class="platform later">
             <span class="tag">iOS</span>
@@ -454,8 +459,8 @@
             <span class="tag">Server</span>
             <h3>没有业务服务器</h3>
             <p>
-              Kepos 当前不是 client-server 产品；已有后端是 Android 内部 Bare
-              worklet，不是中心化服务。
+              Kepos 当前不是 client-server 产品；已有后端是本地 Bare
+              worker/worklet，不是中心化服务。
             </p>
           </article>
         </div>
@@ -465,21 +470,23 @@
         <aside>
           <p class="eyebrow">运行入口</p>
           <ul>
-            <li><code>npm start -- create --nick Neil</code></li>
-            <li><code>npm start -- join &lt;room-key&gt; --nick Ada</code></li>
-            <li><code>npm run android</code></li>
-            <li><code>npm run android:assemble</code></li>
             <li><code>npm run desktop</code></li>
+            <li><code>npm run android</code></li>
+            <li><code>npm run v1:gate</code></li>
+            <li><code>npm run smoke:desktop:pear</code></li>
+            <li><code>npm run smoke:android</code></li>
           </ul>
         </aside>
         <div class="list">
-          <p class="eyebrow">还未完成</p>
+          <p class="eyebrow">还需要证明 / 非 V1</p>
           <ul>
-            <li>正式账号、邀请和成员管理。</li>
-            <li>树洞评论和点赞的完整 UI。</li>
-            <li>消息历史持久化和产品级同步体验。</li>
-            <li>iOS、Web、正式桌面打包和 OTA 发布流程。</li>
-            <li>图片、画图游戏、审核/管理工具。</li>
+            <li>最终 V1 ready 需要真实 desktop/Android normal path release proof。</li>
+            <li>
+              Debug two-device smoke 和 physical QR 是强子证据，但不能替代完整 friend-request 流。
+            </li>
+            <li>iOS、Web、正式发布和 OTA 不属于当前 V1。</li>
+            <li>V2 才考虑听歌房、观影房和更丰富媒体。</li>
+            <li>V3 才考虑本地服务 tunnel 和 RetroArch 游戏联机。</li>
           </ul>
         </div>
       </section>

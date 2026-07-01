@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
+import { createAvatarMediaReference } from '../src/avatar-media.ts'
+import { avatarMediaBase64 } from '../src/avatar-media-storage.ts'
 import { createDesktopControlActions } from '../src/desktop-control-actions.ts'
 
 function createHarness(overrides = {}) {
@@ -8,6 +10,7 @@ function createHarness(overrides = {}) {
   const context = {
     contactBook: { ownerProfileId: 'local' },
     profile: {
+      id: 'local',
       dmEncryptionKeyPair: { publicKey: 'dm-public' }
     },
     saveContactBook(book) {
@@ -57,7 +60,10 @@ function createHarness(overrides = {}) {
         }
       }
       if (message.type === 'kepos.dm.invite.v1') {
-        return { kind: 'dm_invite' }
+        return {
+          book: message.nextBook,
+          kind: 'dm_invite'
+        }
       }
       if (message.type === 'treehole.bootstrap') {
         return {
@@ -120,7 +126,7 @@ test('desktop control actions append incoming message requests', async () => {
   assert.deepEqual(calls, [
     ['saveContactBook', { pending: 'friend' }],
     ['dm.appendIncomingRequest', message],
-    ['notice', 'Message request received.'],
+    ['notice', 'Friend request received.'],
     ['render']
   ])
 })
@@ -130,7 +136,20 @@ test('desktop control actions accept incoming DM invites', async () => {
 
   await actions.handleControl({ type: 'kepos.dm.invite.v1' }, 'peer-1')
 
-  assert.deepEqual(calls, [['notice', 'Direct message ready.'], ['render']])
+  assert.deepEqual(calls, [['notice', 'Message thread ready.'], ['render']])
+})
+
+test('desktop control actions persist contact book updates from accepted DM invites', async () => {
+  const { actions, calls } = createHarness()
+  const nextBook = { trusted: 'friend' }
+
+  await actions.handleControl({ nextBook, type: 'kepos.dm.invite.v1' }, 'peer-1')
+
+  assert.deepEqual(calls, [
+    ['saveContactBook', nextBook],
+    ['notice', 'Message thread ready.'],
+    ['render']
+  ])
 })
 
 test('desktop control actions ignore signed DM body Home fallback frames by default', async () => {
@@ -186,5 +205,100 @@ test('desktop control actions add treehole writers and send bootstrap controls',
   assert.deepEqual(calls, [
     ['treehole.addWriter', { key: 'writer-key', type: 'treehole.writer' }],
     ['home.sendControl', 'peer-2', { profileId: 'friend', type: 'treehole.bootstrap' }]
+  ])
+})
+
+test('desktop control actions store verified avatar media control bytes', async () => {
+  const bytes = Uint8Array.from([1, 2, 3])
+  const reference = createAvatarMediaReference({
+    bytes,
+    createdAt: 1000,
+    mimeType: 'image/png',
+    sha256Hex: () => 'a'.repeat(64)
+  })
+  const context = {
+    contactBook: {
+      contactsByProfileId: new Map([
+        [
+          'profile-a',
+          {
+            alias: 'Ada',
+            avatarMediaSnapshot: reference,
+            profileId: 'profile-a'
+          }
+        ]
+      ]),
+      outgoingRequestsByProfileId: new Map(),
+      ownerProfileId: 'local',
+      pendingRequestsByProfileId: new Map()
+    },
+    profile: { dmEncryptionKeyPair: { publicKey: 'dm-public' } },
+    saveContactBook() {}
+  }
+  const writes = new Map()
+  const { actions, calls } = createHarness({
+    getProfileContext: () => context,
+    storeAvatarMediaBytesControl: (payload) => {
+      calls.push(['avatar.store', payload.message.profileId])
+      return {
+        kind: 'avatar_media_stored',
+        profileId: payload.message.profileId,
+        storageUri: `file:///app/${payload.message.reference.digest}.png`
+      }
+    }
+  })
+
+  await actions.handleControl(
+    {
+      bytesBase64: avatarMediaBase64.encode(bytes),
+      profileId: 'profile-a',
+      reference,
+      type: 'kepos.avatar.media.bytes.v1',
+      writeBytes: (path, value) => writes.set(path, value)
+    },
+    'peer-1'
+  )
+
+  assert.deepEqual(calls, [
+    ['avatar.store', 'profile-a'],
+    ['notice', 'Profile image received.'],
+    ['render']
+  ])
+})
+
+test('desktop control actions send local avatar media bytes to a verified peer', async () => {
+  const bytes = Uint8Array.from([7, 8, 9])
+  const reference = createAvatarMediaReference({
+    bytes,
+    createdAt: 1000,
+    mimeType: 'image/webp',
+    sha256Hex: () => 'b'.repeat(64)
+  })
+  const context = {
+    contactBook: { ownerProfileId: 'local' },
+    profile: {
+      avatarMedia: reference,
+      id: 'local'
+    },
+    saveContactBook() {}
+  }
+  const { actions, calls } = createHarness({
+    getProfileContext: () => context,
+    readLocalAvatarMediaBytes: () => bytes
+  })
+
+  await actions.sendProfileAvatarMedia('peer-1')
+
+  assert.deepEqual(calls, [
+    [
+      'home.sendControl',
+      'peer-1',
+      {
+        bytesBase64: avatarMediaBase64.encode(bytes),
+        profileId: 'local',
+        reference,
+        type: 'kepos.avatar.media.bytes.v1'
+      }
+    ]
   ])
 })

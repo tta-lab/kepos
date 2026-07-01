@@ -1,6 +1,9 @@
-import { createDesktopBackendSession } from './desktop-backend-session.js'
+import { createDesktopBackendSession } from './desktop-backend-session.ts'
 import { createDesktopControllerState } from './desktop-controller-state.ts'
-import { createDesktopShareQrOutputs } from './desktop-qr-service.js'
+import { createDesktopShareQrOutputs } from './desktop-qr-service.ts'
+import { createDefaultSecureId } from './secure-id.ts'
+import type { AvatarMediaReference } from './avatar-media.ts'
+import type { DesktopShareProfile, DesktopShareQrOutputs } from './desktop-qr-service.ts'
 
 type BackendBridgeLike = {
   dispatch(command: string, payload?: unknown): unknown | Promise<unknown>
@@ -19,6 +22,8 @@ export type DesktopMainBackendSession = {
 }
 
 type DesktopControllerStateLike = {
+  getCurrentAvatarMedia?(): AvatarMediaReference | null | undefined
+  getCurrentAvatarUri(): string
   getCurrentDisplayName(): string
   getDmSession(): unknown
   getState(): unknown
@@ -28,10 +33,12 @@ type DesktopControllerStateLike = {
 
 type DesktopProfileContext = {
   contactBook: unknown
-  profile: unknown
+  profile: DesktopShareProfile
 }
 
 type CreateProfileContext = (options: {
+  avatarMedia?: AvatarMediaReference
+  avatarUri?: string
   displayName: string
   storageBasePath?: string
 }) => DesktopProfileContext
@@ -53,7 +60,9 @@ export function createDesktopMainBackendSessionCore({
   createId?: () => string
   env?: Record<string, string>
   createProfileContext?: CreateProfileContext
-  createShareQrOutputs?: (options: { profile: unknown }) => unknown | Promise<unknown>
+  createShareQrOutputs?: (options: {
+    profile: DesktopShareProfile
+  }) => DesktopShareQrOutputs | Promise<DesktopShareQrOutputs>
   defaultDisplayName?: string
   storageBasePath?: string | null
 } = {}): DesktopMainBackendSession {
@@ -70,7 +79,12 @@ export function createDesktopMainBackendSessionCore({
     env,
     getCurrentDisplayName: () => controllerState.getCurrentDisplayName(),
     getProfileContext: (displayName = controllerState.getCurrentDisplayName()) =>
-      profileContext({ displayName, storageBasePath: storageBasePath ?? undefined }),
+      profileContext({
+        ...readCurrentAvatarMediaOption(),
+        avatarUri: controllerState.getCurrentAvatarUri(),
+        displayName,
+        storageBasePath: storageBasePath ?? undefined
+      }),
     onChanged: () => {
       publishSnapshots()
       publishShareQrOutputs()
@@ -81,6 +95,9 @@ export function createDesktopMainBackendSessionCore({
     setDirectComposerRecipient: (profileId: string) => {
       controllerState.setDirectComposerRecipient(profileId)
       backendSession?.backendHost.bridge.emit('directComposerRecipientChanged', profileId)
+    },
+    setProfileRequestTarget: (target: unknown) => {
+      backendSession?.backendHost.bridge.emit('profileRequestTargetChanged', target)
     },
     setNotice: (notice: unknown) => {
       controllerState.updateState((state: Record<string, unknown>) => ({ ...state, notice }))
@@ -107,6 +124,8 @@ export function createDesktopMainBackendSessionCore({
     backendSession?.backendHost.bridge.emit(
       'contactBookChanged',
       profileContext({
+        ...readCurrentAvatarMediaOption(),
+        avatarUri: controllerState.getCurrentAvatarUri(),
         displayName: controllerState.getCurrentDisplayName(),
         storageBasePath: storageBasePath ?? undefined
       }).contactBook
@@ -117,6 +136,8 @@ export function createDesktopMainBackendSessionCore({
   async function publishShareQrOutputs() {
     try {
       const { profile } = profileContext({
+        ...readCurrentAvatarMediaOption(),
+        avatarUri: controllerState.getCurrentAvatarUri(),
         displayName: controllerState.getCurrentDisplayName(),
         storageBasePath: storageBasePath ?? undefined
       })
@@ -128,8 +149,13 @@ export function createDesktopMainBackendSessionCore({
       backendSession?.backendHost.bridge.emit('errorReceived', error)
     }
   }
+
+  function readCurrentAvatarMediaOption(): { avatarMedia?: AvatarMediaReference } {
+    const avatarMedia = controllerState.getCurrentAvatarMedia?.()
+    return avatarMedia ? { avatarMedia } : {}
+  }
 }
 
 function defaultCreateId() {
-  return globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`
+  return createDefaultSecureId()
 }

@@ -4,6 +4,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { _electron as electron } from 'playwright'
+import { markSmokeStorage } from './smoke-storage.mjs'
 
 const serial = process.env.ANDROID_SERIAL || '32131JEHN00865'
 const repoDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
@@ -17,6 +18,8 @@ const electronExecutable = path.join(
 const maestro = resolveMaestroCommand()
 const userDataDir = await mkdtemp(path.join(os.tmpdir(), 'kepos-two-device-desktop-'))
 const workDir = await mkdtemp(path.join(os.tmpdir(), 'kepos-two-device-'))
+await markSmokeStorage(userDataDir)
+await markSmokeStorage(workDir)
 const usePearRuntime = process.argv.includes('--pear')
 const androidDevClientUrl = 'kepos://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8081'
 const androidChatText = 'Android hello'
@@ -90,6 +93,7 @@ try {
   await waitForDesktopTreeholeText(page, desktopTreeholeText)
   await tapAndroidByTestId('treehole-tab')
   await waitForAndroidTextWithSnapshot(page, desktopTreeholeText)
+  await waitForAndroidRecentPostText(page, desktopTreeholeText)
 
   await sendAndroidMessageRequest()
   await acceptDesktopMessageRequest(page)
@@ -136,6 +140,7 @@ try {
           'desktop chat reaches Android',
           'Android chat reaches desktop',
           'desktop treehole post reaches Android',
+          'desktop treehole post appears in Android trusted profile recent posts',
           'Android message request reaches desktop',
           'desktop accepts request and opens signed DM thread',
           'Android signed DM body reaches desktop',
@@ -539,7 +544,7 @@ async function revokeDesktopContact(page, profileId) {
   )
   await waitFor(async () => {
     const text = await page.locator('#noticeLabel').textContent()
-    return textIncludes(text, 'Trust revoked.')
+    return textIncludes(text, 'Friend removed.')
   }, 'desktop revoked Android contact')
   await waitFor(async () => {
     const text = await page.locator('#contactList').textContent()
@@ -619,6 +624,11 @@ async function waitForAndroidTextWithSnapshot(page, text) {
   } catch (error) {
     throw new Error(`${error.message}\n${await createTwoDeviceDebugSnapshot(page)}`)
   }
+}
+
+async function waitForAndroidRecentPostText(page, text) {
+  await tapAndroidByTestId('people-tab')
+  await waitForAndroidTextWithSnapshot(page, text)
 }
 
 function dumpAndroidUi() {

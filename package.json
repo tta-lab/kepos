@@ -14,7 +14,7 @@
     "compat:probe": "node scripts/probe-compatibility.mjs",
     "compat:typescript": "node scripts/probe-typescript.ts",
     "desktop": "npm run start --prefix desktop",
-    "desktop:bundle": "npm run desktop:styles && esbuild desktop/app.tsx --bundle --platform=browser --format=iife --define:process.env.NODE_ENV=\\\"production\\\" --minify --outfile=desktop/app.bundle.js && esbuild desktop/controller.js --bundle --platform=browser --format=iife --define:process.env.NODE_ENV=\\\"production\\\" --outfile=desktop/controller.browser.bundle.js && esbuild desktop/controller.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/controller.bundle.cjs && esbuild desktop/local-backend.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/local-backend.bundle.cjs && esbuild desktop/local-profile.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/local-profile.bundle.cjs && esbuild src/desktop-backend-worker-bare-entry.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/backend-worker.bundle.cjs",
+    "desktop:bundle": "npm run desktop:styles && esbuild desktop/app.tsx --bundle --platform=browser --format=iife --define:process.env.NODE_ENV=\\\"production\\\" --minify --outfile=desktop/app.bundle.js && esbuild desktop/controller.js --bundle --platform=browser --format=iife --define:process.env.NODE_ENV=\\\"production\\\" --outfile=desktop/controller.browser.bundle.js && esbuild desktop/controller.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/controller.bundle.cjs && esbuild desktop/local-backend.ts --bundle --platform=node --format=cjs --packages=external --outfile=desktop/local-backend.bundle.cjs && esbuild desktop/local-profile.ts --bundle --platform=node --format=cjs --packages=external --outfile=desktop/local-profile.bundle.cjs && esbuild src/desktop-backend-worker-bare-entry.ts --bundle --platform=node --format=cjs --packages=external --outfile=desktop/backend-worker.bundle.cjs",
     "desktop:styles": "tailwindcss -i desktop/tailwind.source.css -o desktop/tailwind.css --minify",
     "desktop:install": "npm install --prefix desktop",
     "format": "prettier --write . && lunte --fix",
@@ -32,9 +32,11 @@
     "smoke:two-device:debug": "npm run desktop:bundle && node scripts/smoke-two-device-debug.mjs",
     "smoke:two-device:debug:pear": "npm run desktop:bundle && node scripts/smoke-two-device-debug.mjs --pear",
     "start": "node src/cli.js",
+    "storage:cleanup": "node scripts/cleanup-dev-storage.mjs",
     "test": "node --test",
     "typecheck": "tsc --noEmit",
-    "v1:gate": "npm run lint && npm test && npm run compat:typescript && npm run compat:bundle:typescript && npm run backend:bundle:android && npx expo export --platform android --output-dir tmp/expo-export-android && npm run android:check-apk"
+    "v1:proof:packet": "node scripts/final-v1-proof-packet.mjs",
+    "v1:gate": "npm run lint && npm test && npm run compat:typescript && npm run compat:bundle:typescript && npm run desktop:bundle && npm run backend:bundle:android && npx expo export --platform android --output-dir tmp/expo-export-android && npm run android:check-apk"
   },
   "dependencies": {
     "autobase": "^7.28.1",
@@ -49,6 +51,7 @@
     "expo-camera": "^56.0.8",
     "expo-crypto": "^56.0.4",
     "expo-file-system": "~56.0.8",
+    "expo-image-picker": "~56.0.18",
     "hypercore-crypto": "^3.7.0",
     "hyperswarm": "^4.17.0",
     "lucide-react": "^1.21.0",

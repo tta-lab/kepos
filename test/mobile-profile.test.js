@@ -1,11 +1,14 @@
 import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
+import { createAvatarMediaReference } from '../src/avatar-media.ts'
 import {
   getOrCreateMobileHomeRoomKey,
   getOrCreateMobileDmEncryptionKeyPair,
   getOrCreateMobileIdentity,
+  loadMobileProfileDocument,
   getOrCreateMobileProfileId,
-  getRequiredMobileDocumentDirectory
+  getRequiredMobileDocumentDirectory,
+  saveMobileProfileDocument
 } from '../src/mobile-profile.ts'
 
 describe('mobile profile persistence', () => {
@@ -144,6 +147,67 @@ describe('mobile profile persistence', () => {
       type: 'kepos.identity'
     })
     assert.equal(files.get('file:///app/kepos/profile-id.txt'), identity.publicKey)
+  })
+
+  test('persists and restores local avatar uri in the mobile profile document', async () => {
+    const files = new Map()
+    const fileSystem = createFileSystem(files)
+
+    await saveMobileProfileDocument({
+      avatarUri: ' file:///avatar/me.png ',
+      baseUri: 'file:///app/',
+      fileSystem
+    })
+    const restored = await loadMobileProfileDocument({
+      baseUri: 'file:///app/',
+      fileSystem
+    })
+
+    assert.deepEqual(restored, {
+      avatarUri: 'file:///avatar/me.png'
+    })
+    assert.deepEqual(JSON.parse(files.get('file:///app/kepos/v1/profile.json')), {
+      data: {
+        avatarUri: 'file:///avatar/me.png'
+      },
+      schemaVersion: 1,
+      type: 'kepos.profile'
+    })
+  })
+
+  test('persists and restores local avatar media reference in the mobile profile document', async () => {
+    const files = new Map()
+    const fileSystem = createFileSystem(files)
+    const avatarMedia = createAvatarMediaReference({
+      bytes: Uint8Array.from([1, 2, 3]),
+      createdAt: 1000,
+      mimeType: 'image/webp',
+      sha256Hex: () => 'c'.repeat(64)
+    })
+
+    await saveMobileProfileDocument({
+      avatarMedia,
+      avatarUri: avatarMedia.uri,
+      baseUri: 'file:///app/',
+      fileSystem
+    })
+    const restored = await loadMobileProfileDocument({
+      baseUri: 'file:///app/',
+      fileSystem
+    })
+
+    assert.deepEqual(restored, {
+      avatarMedia,
+      avatarUri: avatarMedia.uri
+    })
+    assert.deepEqual(JSON.parse(files.get('file:///app/kepos/v1/profile.json')), {
+      data: {
+        avatarMedia,
+        avatarUri: avatarMedia.uri
+      },
+      schemaVersion: 1,
+      type: 'kepos.profile'
+    })
   })
 
   test('imports legacy mobile identity and home files into V1 JSON documents', async () => {

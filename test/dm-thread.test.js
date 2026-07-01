@@ -5,6 +5,7 @@ import {
   createDmThread,
   deserializeDmThread,
   isDmThreadActive,
+  markDmThreadRead,
   revokeDmThread,
   serializeDmThread
 } from '../src/dm-thread.ts'
@@ -67,6 +68,19 @@ describe('DM thread domain model', () => {
     assert.equal(isDmThreadActive(acceptDmThread(revoked, { acceptedAt: 4000 })), false)
   })
 
+  test('marks a thread read without moving the marker backwards', () => {
+    const accepted = acceptDmThread(createThread(), { acceptedAt: 2000 })
+    const read = markDmThreadRead(accepted, { readAt: 3000 })
+    const stale = markDmThreadRead(read, { readAt: 2500 })
+
+    assert.equal(accepted.lastReadAt, undefined)
+    assert.deepEqual(read, {
+      ...accepted,
+      lastReadAt: 3000
+    })
+    assert.deepEqual(stale, read)
+  })
+
   test('serializes and restores threads with schema version', () => {
     const revoked = revokeDmThread(acceptDmThread(createThread(), { acceptedAt: 2000 }), {
       revokedAt: 3000
@@ -96,6 +110,10 @@ describe('DM thread domain model', () => {
     assert.throws(
       () => revokeDmThread(createThread(), { revokedAt: Infinity }),
       /Revoked timestamp is required/
+    )
+    assert.throws(
+      () => markDmThreadRead(createThread(), { readAt: Number.NaN }),
+      /Read timestamp is required/
     )
     assert.throws(
       () => deserializeDmThread({ version: 2, thread: createThread() }),

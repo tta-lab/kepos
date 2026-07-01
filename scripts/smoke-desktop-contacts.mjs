@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url'
 import { _electron as electron } from 'playwright'
 import { createIdentityKeyPairFromSeed } from '../src/identity.js'
 import { createSignedTrustInvitePayload, encodeQrUri } from '../src/signed-qr-payload.ts'
+import { markSmokeStorage } from './smoke-storage.mjs'
 
 const repoDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const desktopDir = path.join(repoDir, 'desktop')
@@ -15,6 +16,7 @@ const electronExecutable = path.join(
   process.platform === 'win32' ? 'electron.cmd' : 'electron'
 )
 const userDataDir = await mkdtemp(path.join(os.tmpdir(), 'kepos-desktop-contacts-'))
+await markSmokeStorage(userDataDir)
 const usePearRuntime = process.argv.includes('--pear')
 const contactAlias = 'Persistent smoke'
 const directRequestText = 'smoke direct request'
@@ -122,8 +124,8 @@ async function sendDirectRequest(page) {
 async function revokeTrustedContact(page) {
   await page.click('#peopleTab')
   const contactCard = page.locator('#contactList .managedContact', { hasText: contactAlias })
-  await contactCard.locator('button', { hasText: 'Revoke' }).click()
-  await waitForText(page, '#noticeLabel', 'Trust revoked.')
+  await contactCard.locator('button', { hasText: 'Remove friend' }).click()
+  await waitForText(page, '#noticeLabel', 'Friend removed.')
 }
 
 async function waitForContact(page, alias) {

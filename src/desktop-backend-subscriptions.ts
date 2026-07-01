@@ -14,7 +14,9 @@ export function createDesktopBackendSubscriptions({
   setContextFormDraft = () => {},
   setDirectComposerRecipient = () => {},
   setDmSession,
+  setDmThreads = () => {},
   setHomeSession,
+  setProfileRequestTarget = () => {},
   setShareQrOutputs = () => {},
   setState
 }: {
@@ -26,7 +28,9 @@ export function createDesktopBackendSubscriptions({
   setContextFormDraft?: (draft: unknown) => void
   setDirectComposerRecipient?: (profileId: unknown) => void
   setDmSession: (session: unknown) => void
+  setDmThreads?: (threads: unknown) => void
   setHomeSession: (session: unknown) => void
+  setProfileRequestTarget?: (target: unknown) => void
   setShareQrOutputs?: (outputs: unknown) => void
   setState: (state: DesktopState) => void
 }): () => void {
@@ -55,8 +59,16 @@ export function createDesktopBackendSubscriptions({
       setDirectComposerRecipient(profileId)
       onRender()
     }),
+    backendClient.subscribe('profileRequestTargetChanged', (target) => {
+      setProfileRequestTarget(target)
+      onRender()
+    }),
     backendClient.subscribe('dmMessageReceived', (nextSession) => {
       setDmSession(nextSession)
+      onRender()
+    }),
+    backendClient.subscribe('dmThreadChanged', (nextThreads) => {
+      setDmThreads(nextThreads)
       onRender()
     }),
     backendClient.subscribe('treeholeStateChanged', (snapshot) => {

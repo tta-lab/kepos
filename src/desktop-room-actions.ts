@@ -1,11 +1,13 @@
 import { createDesktopHomeJoinDetails } from './desktop-home-join-service.ts'
-import { applyDesktopHomeQr } from './desktop-qr-service.js'
+import { applyDesktopHomeQr } from './desktop-qr-service.ts'
 import { createDesktopState, setDesktopRoom, setDesktopTreehole } from './desktop-state.ts'
+import { readTrustedContactHomeDescriptor } from './signed-qr-scan.ts'
 import type { DesktopState } from './desktop-state.ts'
 import type { DesktopProfileContext } from './desktop-profile-context-core.ts'
 
 type DesktopHomeAddress = Record<string, unknown> & {
   address: string
+  book?: DesktopProfileContext['contactBook']
   ownerProfileId: string
   roomKey: string
 }
@@ -13,6 +15,8 @@ type DesktopHomeAddress = Record<string, unknown> & {
 type DesktopHomeJoinDetails = {
   homeJoinDetails: Record<string, unknown> & {
     directTransport?: Record<string, unknown>
+    ownerProfileId?: string | null
+    profileId?: string | null
     roomKey?: string
   }
   mode?: string
@@ -49,9 +53,11 @@ type RoomActionPayload = {
   mode?: string
   roomKey?: string
   uri?: string
+  profileId?: string
 }
 
 export type DesktopRoomActions = {
+  enterContactHome(payload?: RoomActionPayload): Promise<void>
   joinHome(payload?: RoomActionPayload): Promise<void>
   joinHomeUri(payload?: RoomActionPayload): Promise<void>
   leaveHome(): Promise<void>
@@ -156,6 +162,8 @@ export function createDesktopRoomActions({
       const roomState = setDesktopRoom(state, {
         mode: homeJoin.mode,
         nick,
+        ownerProfileId:
+          homeJoin.homeJoinDetails.ownerProfileId || (createTreehole ? profile.id : ''),
         peers: 0,
         roomKey: homeJoin.homeJoinDetails.roomKey
       })
@@ -189,12 +197,15 @@ export function createDesktopRoomActions({
   }: RoomActionPayload = {}): Promise<void> {
     if (!uri) return
 
-    const { contactBook, profile } = getProfileContext(displayName)
+    const { contactBook, profile, saveContactBook } = getProfileContext(displayName)
     const homeAddress = applyHomeQr({
       book: contactBook,
       localProfileId: profile.id,
       uri
     })
+    if (homeAddress.book && homeAddress.book !== contactBook) {
+      saveContactBook(homeAddress.book)
+    }
 
     setContextFormDraft({ homeQrUri: '' })
     await joinHome({
@@ -204,7 +215,30 @@ export function createDesktopRoomActions({
     })
   }
 
+  async function enterContactHome({
+    displayName,
+    profileId
+  }: RoomActionPayload = {}): Promise<void> {
+    if (!profileId) return
+
+    const { contactBook } = getProfileContext(displayName)
+    const homeDescriptor = readTrustedContactHomeDescriptor({ book: contactBook, profileId })
+
+    await joinHome({
+      createTreehole: false,
+      displayName,
+      homeAddress: {
+        address: homeDescriptor.address,
+        ownerProfileId: homeDescriptor.ownerProfileId,
+        policy: homeDescriptor.policy,
+        roomKey: homeDescriptor.roomKey
+      },
+      mode: 'peer'
+    })
+  }
+
   return {
+    enterContactHome,
     joinHome,
     joinHomeUri,
     leaveHome

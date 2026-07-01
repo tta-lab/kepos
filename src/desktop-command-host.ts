@@ -26,7 +26,15 @@ export function createDesktopCommandHost({
         const { message } = readCommandPayload(payload)
         if (message) return actions.acceptMessageRequest(message)
       },
+      allowContactRequests: (payload) => {
+        const { profileId } = readCommandPayload(payload)
+        if (profileId) return actions.allowContactRequests(profileId)
+      },
       commentTreehole: (payload) => actions.commentTreehole(readCommandPayload(payload)),
+      enterContactHome: (payload) => {
+        const { profileId } = readCommandPayload(payload)
+        if (profileId) return actions.enterContactHome({ profileId })
+      },
       ignoreMessageRequest: (payload) => {
         const { message, profileId } = readCommandPayload(payload)
         return actions.ignoreMessageRequest({ message, profileId })
@@ -38,6 +46,7 @@ export function createDesktopCommandHost({
         const { postId } = readCommandPayload(payload)
         if (postId) return actions.likeTreehole(postId)
       },
+      markDmThreadRead: (payload) => actions.markDmThreadRead(readCommandPayload(payload)),
       postTreehole: (payload) => actions.postTreehole(readCommandPayload(payload)),
       revokeContact: (payload) => {
         const { profileId } = readCommandPayload(payload)
@@ -46,7 +55,10 @@ export function createDesktopCommandHost({
       sendDmMessage: (payload) => actions.sendDmMessage(readCommandPayload(payload)),
       sendHomeMessage: (payload) => actions.sendHomeMessage(readCommandPayload(payload)),
       sendMessageRequest: () => actions.sendMessageRequest(),
-      trustProfileUri: (payload) => actions.trustProfileUri(readCommandPayload(payload)),
+      prepareProfileRequestTarget: (payload) =>
+        actions.prepareProfileRequestTarget(readCommandPayload(payload)),
+      updateAvatarMedia: (payload) => actions.updateAvatarMedia(readCommandPayload(payload)),
+      updateAvatarUri: (payload) => actions.updateAvatarUri(readCommandPayload(payload)),
       updateDisplayName: (payload) => actions.updateDisplayName(readCommandPayload(payload))
     }
   })

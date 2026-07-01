@@ -28,6 +28,7 @@ export type DesktopControlMessageResult =
       kind: 'message_request'
     }
   | {
+      book?: ContactBook
       kind: 'dm_invite'
     }
   | {
@@ -98,7 +99,7 @@ export async function createDesktopControlMessageResult({
     if (message.toProfileId !== currentDmSession.localProfileId) return null
     if (!acceptInviteAsRecipient || !contactBook) return null
 
-    await acceptInviteAsRecipient({
+    const accepted = await acceptInviteAsRecipient({
       acceptedAt,
       contactBook,
       invite: message,
@@ -106,11 +107,18 @@ export async function createDesktopControlMessageResult({
     })
 
     return {
+      book: readAcceptedInviteBook(accepted),
       kind: 'dm_invite'
     }
   }
 
   return null
+}
+
+function readAcceptedInviteBook(value: unknown): ContactBook | undefined {
+  if (!value || typeof value !== 'object') return undefined
+
+  return (value as { book?: ContactBook }).book
 }
 
 export function createDesktopTreeholeControlSendResult({

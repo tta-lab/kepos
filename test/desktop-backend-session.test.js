@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import test from 'node:test'
-import { createDesktopBackendSession } from '../src/desktop-backend-session.js'
+import { createDesktopBackendSession } from '../src/desktop-backend-session.ts'
 
 test('desktop backend session composes actions and runtime host behind one boundary', () => {
   const createdHosts = []
@@ -48,6 +48,7 @@ test('desktop backend session composes actions and runtime host behind one bound
   assert.equal(controllerState.getCurrentDisplayName(), 'Ada')
   assert.deepEqual(changes, ['changed'])
   assert.equal(typeof createdHosts[0].runtimeOptions.onHomeControl, 'function')
+  assert.equal(typeof createdHosts[0].runtimeOptions.onVerifiedHello, 'function')
   assert.equal(typeof session.configureTreeholeRuntime, 'function')
   assert.equal(typeof session.openTreehole, 'function')
   assert.equal(typeof session.roomActions.leaveHome, 'function')
@@ -211,6 +212,76 @@ test('desktop backend session keeps runtime DM changes in controller state', () 
   assert.deepEqual(changes, ['changed'])
 })
 
+test('desktop backend session persists outgoing friend requests from message actions', async () => {
+  const controllerState = createControllerState()
+  const createdHosts = []
+  const savedBooks = []
+  const context = createProfileContext()
+  context.contactBook = {
+    contactsByProfileId: new Map(),
+    outgoingRequestsByProfileId: new Map(),
+    ownerProfileId: 'a'.repeat(64),
+    pendingRequestsByProfileId: new Map()
+  }
+  context.saveContactBook = (book) => savedBooks.push(book)
+
+  createDesktopBackendSession({
+    controllerState,
+    createId: (() => {
+      let id = 0
+      return () => `id-${id++}`
+    })(),
+    createLocalBackendHost: (options) => {
+      createdHosts.push(options)
+      return {
+        bridge: { label: 'bridge' },
+        dmRuntime: {
+          loadThreads: () => [],
+          replaceThreads: () => {},
+          sendMessageOrRequest(payload) {
+            return {
+              kind: 'request',
+              request: {
+                requestId: payload.requestId,
+                text: payload.text,
+                toProfileId: payload.toProfileId
+              }
+            }
+          },
+          start: () => ({ id: 'restored-dm-session', messages: [] })
+        },
+        homeRuntime: {
+          broadcastControl() {},
+          isJoined: () => true
+        },
+        runtime: {
+          closeAll: () => Promise.resolve(),
+          configure: () => {}
+        },
+        treeholeRuntime: { canPost: () => false }
+      }
+    },
+    getCurrentDisplayName: () => 'Desktop',
+    getProfileContext: () => context,
+    onChanged: () => {},
+    setContextFormDraft: () => {},
+    setDirectComposerRecipient: () => {},
+    setNotice: () => {},
+    shortenProfileId: (value) => value.slice(0, 8),
+    storageBasePath: '/user-data/kepos/v1',
+    updateState: (updater) => controllerState.updateState(updater)
+  })
+  await Promise.resolve()
+
+  createdHosts[0].actions.sendDmMessage({
+    text: 'hello',
+    toProfileId: 'b'.repeat(64)
+  })
+
+  assert.equal(savedBooks.length, 1)
+  assert.equal(savedBooks[0].outgoingRequestsByProfileId.get('b'.repeat(64)).requestId, 'id-1')
+})
+
 test('desktop backend session keeps runtime transport debug in controller state', () => {
   const controllerState = createControllerState()
   const changes = []
@@ -265,7 +336,7 @@ test('desktop backend session keeps runtime transport debug in controller state'
 test('desktop controller delegates backend session composition to a boundary', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const localBackendSource = await readFile(
-    new URL('../desktop/local-backend.js', import.meta.url),
+    new URL('../desktop/local-backend.ts', import.meta.url),
     'utf8'
   )
 
@@ -290,7 +361,7 @@ test('desktop controller delegates backend session composition to a boundary', a
 
 test('desktop backend session keeps Home DM body fallback debug-only', async () => {
   const source = await readFile(
-    new URL('../src/desktop-backend-session.js', import.meta.url),
+    new URL('../src/desktop-backend-session.ts', import.meta.url),
     'utf8'
   )
 

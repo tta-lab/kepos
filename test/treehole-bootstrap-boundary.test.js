@@ -5,18 +5,18 @@ import test from 'node:test'
 test('desktop shares treehole capabilities only after signed home hello', async () => {
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const session = await readFile(
-    new URL('../src/desktop-backend-session.js', import.meta.url),
+    new URL('../src/desktop-backend-session.ts', import.meta.url),
     'utf8'
   )
   const actions = await readFile(
     new URL('../src/desktop-control-actions.ts', import.meta.url),
     'utf8'
   )
-  const runtime = await readFile(new URL('../src/desktop-home-runtime.js', import.meta.url), 'utf8')
+  const runtime = await readFile(new URL('../src/desktop-home-runtime.ts', import.meta.url), 'utf8')
 
   assert.match(runtime, /createHomeHello/)
   assert.match(runtime, /verifyHomeHello/)
-  assert.match(session, /onVerifiedHello: \(message, peer\) =>/)
+  assert.match(session, /onVerifiedHello: \(message: \{ profileId\?: string \}, peer: unknown\) =>/)
   assert.match(session, /controlActions\.sendTreeholeBootstrap\(peer, message\.profileId\)/)
   assert.match(actions, /function sendTreeholeBootstrap\(peer: unknown, remoteProfileId = ''\)/)
   assert.doesNotMatch(controller, /broadcastControl\(\{\s*key: treehole\.key/s)

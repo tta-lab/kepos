@@ -39,7 +39,7 @@ test('desktop command registry dispatches known commands and rejects unknown com
 test('desktop controller routes UI actions through the command host', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const session = await readFile(
-    new URL('../src/desktop-backend-session.js', import.meta.url),
+    new URL('../src/desktop-backend-session.ts', import.meta.url),
     'utf8'
   )
   const host = await readFile(
@@ -51,7 +51,7 @@ test('desktop controller routes UI actions through the command host', async () =
     'utf8'
   )
   const localBackend = await readFile(
-    new URL('../desktop/local-backend.js', import.meta.url),
+    new URL('../desktop/local-backend.ts', import.meta.url),
     'utf8'
   )
 
@@ -65,14 +65,16 @@ test('desktop controller routes UI actions through the command host', async () =
 
   for (const command of [
     'joinHome',
+    'allowContactRequests',
     'ignoreMessageRequest',
     'leaveHome',
     'sendHomeMessage',
     'sendDmMessage',
     'postTreehole',
-    'trustProfileUri',
+    'prepareProfileRequestTarget',
     'joinHomeUri',
     'revokeContact',
+    'markDmThreadRead',
     'acceptMessageRequest',
     'likeTreehole',
     'commentTreehole'
@@ -84,7 +86,7 @@ test('desktop controller routes UI actions through the command host', async () =
 test('desktop home message command carries composer text as payload', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const session = await readFile(
-    new URL('../src/desktop-backend-session.js', import.meta.url),
+    new URL('../src/desktop-backend-session.ts', import.meta.url),
     'utf8'
   )
   const bindings = await readFile(
@@ -226,7 +228,7 @@ test('desktop Home QR join command carries QR text and display name as payload',
   assert.doesNotMatch(source, /async function joinHomeQr/)
 })
 
-test('desktop Profile QR trust command carries QR text alias and display name as payload', async () => {
+test('desktop Profile QR request target command carries QR text alias and display name as payload', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const bindings = await readFile(
     new URL('../src/desktop-ui-action-bindings.ts', import.meta.url),
@@ -244,18 +246,27 @@ test('desktop Profile QR trust command carries QR text alias and display name as
 
   assert.match(
     bindings,
-    /trustProfileQr: \(\{ alias, displayName, uri \}\) =>\s*dispatchCommand\('trustProfileUri', \{ alias, displayName, uri \}\)/
+    /prepareProfileRequestTarget: \(\{ alias, displayName, uri \}\) => \{[\s\S]*const result = dispatchCommand\('prepareProfileRequestTarget', \{ alias, displayName, uri \}\)[\s\S]*setTab\('dm'\)[\s\S]*return result/
   )
   assert.match(bindings, /ui\?\.setContextFormActions\(\{/)
   assert.match(
     host,
-    /trustProfileUri: \(payload\) => actions\.trustProfileUri\(readCommandPayload\(payload\)\)/
+    /prepareProfileRequestTarget: \(payload\) =>\s*actions\.prepareProfileRequestTarget\(readCommandPayload\(payload\)\)/
   )
-  assert.match(backendActions, /trustProfileUri: trustActions\?\.trustProfileUri/)
+  assert.match(
+    backendActions,
+    /prepareProfileRequestTarget: trustActions\?\.prepareProfileRequestTarget/
+  )
   assert.match(
     actions,
-    /function trustProfileUri\(\{[\s\S]*alias = '',[\s\S]*displayName = 'Desktop',[\s\S]*uri[\s\S]*\}: TrustProfileUriPayload = \{\}\)/
+    /function prepareProfileRequestTarget\(\{[\s\S]*displayName = 'Desktop',[\s\S]*uri[\s\S]*\}: ProfileRequestTargetPayload = \{\}\)/
   )
+  assert.match(actions, /readProfileTrustQr\(\{[\s\S]*uri[\s\S]*\}\)/)
+  assert.match(actions, /setDirectComposerRecipient\(result\.profileId\)/)
+  assert.doesNotMatch(bindings, /trustProfileQr|trustProfileUri/)
+  assert.doesNotMatch(host, /trustProfileUri/)
+  assert.doesNotMatch(backendActions, /trustProfileUri/)
+  assert.doesNotMatch(actions, /trustProfileUri|TrustProfileUriPayload/)
   assert.doesNotMatch(source, /trustForm: document\.querySelector/)
   assert.doesNotMatch(source, /trustQrInput: document\.querySelector/)
   assert.doesNotMatch(source, /trustAliasInput: document\.querySelector/)
@@ -277,17 +288,29 @@ test('desktop display name updates are mirrored to the backend command bridge', 
     'utf8'
   )
   const session = await readFile(
-    new URL('../src/desktop-backend-session.js', import.meta.url),
+    new URL('../src/desktop-backend-session.ts', import.meta.url),
     'utf8'
   )
 
   assert.match(bindings, /updateDisplayName\(displayName\)/)
   assert.match(bindings, /dispatchCommand\('updateDisplayName', \{ displayName \}\)/)
+  assert.match(bindings, /updateAvatarUri\(avatarUri\)/)
+  assert.match(bindings, /dispatchCommand\('updateAvatarUri', \{ avatarUri \}\)/)
   assert.match(
     host,
     /updateDisplayName: \(payload\) => actions\.updateDisplayName\(readCommandPayload\(payload\)\)/
   )
+  assert.match(
+    host,
+    /updateAvatarUri: \(payload\) => actions\.updateAvatarUri\(readCommandPayload\(payload\)\)/
+  )
   assert.match(backendActions, /updateDisplayName: displayNameActions\?\.updateDisplayName/)
-  assert.match(session, /updateDisplayName\(\{ displayName \} = \{\}\)/)
+  assert.match(backendActions, /updateAvatarUri: displayNameActions\?\.updateAvatarUri/)
+  assert.match(
+    session,
+    /updateDisplayName\(\{ displayName \}: \{ displayName\?: string \} = \{\}\)/
+  )
   assert.match(session, /controllerState\.setCurrentDisplayName\(displayName\)/)
+  assert.match(session, /updateAvatarUri\(\{ avatarUri \}: \{ avatarUri\?: string \} = \{\}\)/)
+  assert.match(session, /controllerState\.setCurrentAvatarUri\(avatarUri\)/)
 })

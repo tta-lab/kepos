@@ -1,5 +1,11 @@
-import { isContactTrusted, trustContact } from './contact-book.ts'
+import {
+  getContact,
+  isContactTrusted,
+  recordContactHomeDescriptor,
+  trustContact
+} from './contact-book.ts'
 import type { ContactBook } from './contact-book.ts'
+import type { AvatarMediaReference } from './avatar-media.ts'
 import {
   decodeQrUri,
   verifySignedHomeAddressPayload,
@@ -7,6 +13,42 @@ import {
 } from './signed-qr-payload.ts'
 import { applyTrustGrantToContactBook, createTrustGrant } from './trust-grant.ts'
 import type { SigningIdentity } from './signed-record.ts'
+
+export function readSignedProfileQrRequestTarget({
+  now = Date.now(),
+  uri
+}: {
+  now?: number
+  uri: string
+}): {
+  avatarMediaSnapshot?: AvatarMediaReference
+  avatarUri?: string
+  createdAt: number
+  displayName: string
+  homeDescriptor?: ReturnType<typeof decodeQrUri>
+  kind: 'profile_request_target'
+  profileId: string
+} {
+  const payload = decodeQrUri(uri)
+
+  if (!isSignedProfileQrType(payload.type)) {
+    throw new Error('Profile QR is required.')
+  }
+
+  if (!verifySignedTrustInvitePayload(payload, { now })) {
+    throw new Error('Invalid signed profile QR')
+  }
+
+  return {
+    ...(payload.avatarMedia ? { avatarMediaSnapshot: payload.avatarMedia } : {}),
+    ...(payload.avatarUri ? { avatarUri: payload.avatarUri } : {}),
+    createdAt: payload.createdAt,
+    displayName: payload.displayName,
+    ...(payload.homeDescriptor ? { homeDescriptor: payload.homeDescriptor } : {}),
+    kind: 'profile_request_target',
+    profileId: payload.profileId
+  }
+}
 
 export function applySignedQrUriToContactBook({
   alias,
@@ -42,7 +84,7 @@ export function applySignedQrUriToContactBook({
   const payload = decodeQrUri(uri)
   const localAlias = alias?.trim() || undefined
 
-  if (payload.type === 'kepos.trust.invite.v1') {
+  if (isSignedProfileQrType(payload.type)) {
     if (!verifySignedTrustInvitePayload(payload, { now })) {
       throw new Error('Invalid signed profile QR')
     }
@@ -53,11 +95,17 @@ export function applySignedQrUriToContactBook({
         ownerIdentity: localIdentity,
         trustedProfileId: payload.profileId
       })
-      const nextBook = applyTrustGrantToContactBook(book, {
+      const trustedBook = applyTrustGrantToContactBook(book, {
         alias: localAlias,
+        avatarMediaSnapshot: payload.avatarMedia,
+        avatarUriSnapshot: payload.avatarUri,
         displayNameSnapshot: payload.displayName,
         grant,
         source
+      })
+      const nextBook = recordProfileHomeDescriptorIfTrusted({
+        book: trustedBook,
+        homeDescriptor: payload.homeDescriptor
       })
 
       return {
@@ -67,12 +115,18 @@ export function applySignedQrUriToContactBook({
       }
     }
 
-    const nextBook = trustContact(book, {
+    const trustedBook = trustContact(book, {
       alias: localAlias,
+      avatarMediaSnapshot: payload.avatarMedia,
+      avatarUriSnapshot: payload.avatarUri,
       displayNameSnapshot: payload.displayName,
       profileId: payload.profileId,
       source,
       trustedAt: payload.createdAt
+    })
+    const nextBook = recordProfileHomeDescriptorIfTrusted({
+      book: trustedBook,
+      homeDescriptor: payload.homeDescriptor
     })
 
     return {
@@ -86,16 +140,28 @@ export function applySignedQrUriToContactBook({
     if (!verifySignedHomeAddressPayload(payload, { now })) {
       throw new Error('Invalid signed home QR')
     }
+    const canEnter = canEnterHomeFromLocalContactBook({
+      book,
+      localProfileId,
+      ownerProfileId: payload.ownerProfileId,
+      policy: payload.policy
+    })
+    const nextBook =
+      canEnter && isContactTrusted(book, payload.ownerProfileId)
+        ? recordContactHomeDescriptor(book, {
+            address: payload.address,
+            expiresAt: payload.expiresAt,
+            ownerProfileId: payload.ownerProfileId,
+            policy: payload.policy,
+            proof: payload.proof,
+            roomKey: payload.roomKey
+          })
+        : book
 
     return {
       address: payload.address,
-      book,
-      canEnter: canEnterHomeFromLocalContactBook({
-        book,
-        localProfileId,
-        ownerProfileId: payload.ownerProfileId,
-        policy: payload.policy
-      }),
+      book: nextBook,
+      canEnter,
       kind: 'home',
       ownerProfileId: payload.ownerProfileId,
       policy: payload.policy,
@@ -104,6 +170,52 @@ export function applySignedQrUriToContactBook({
   }
 
   throw new Error('Unsupported signed QR payload')
+}
+
+export function readTrustedContactHomeDescriptor({
+  book,
+  now = Date.now(),
+  profileId
+}: {
+  book: ContactBook
+  now?: number
+  profileId: string
+}): {
+  address: string
+  ownerProfileId: string
+  policy: 'public' | 'trusted_only'
+  roomKey: string
+} {
+  const contact = getContact(book, profileId)
+  if (!contact?.homeAddress || !contact.homeRoomKey || !contact.proof) {
+    throw new Error('This contact does not have a saved Home descriptor yet.')
+  }
+
+  if (!isContactTrusted(book, contact.profileId)) {
+    throw new Error('Trusted contact is required before entering a saved Home descriptor.')
+  }
+
+  const payload = {
+    type: 'kepos.home.address.v1',
+    address: contact.homeAddress,
+    createdAt: (contact.proof as { createdAt?: unknown }).createdAt,
+    expiresAt: contact.homeExpiresAt ?? null,
+    ownerProfileId: contact.profileId,
+    policy: contact.homePolicy || 'trusted_only',
+    proof: contact.proof,
+    roomKey: contact.homeRoomKey
+  }
+
+  if (!verifySignedHomeAddressPayload(payload, { now })) {
+    throw new Error('Invalid saved Home descriptor.')
+  }
+
+  return {
+    address: contact.homeAddress,
+    ownerProfileId: contact.profileId,
+    policy: payload.policy,
+    roomKey: contact.homeRoomKey
+  }
 }
 
 function canEnterHomeFromLocalContactBook({
@@ -122,4 +234,33 @@ function canEnterHomeFromLocalContactBook({
   }
 
   return isContactTrusted(book, ownerProfileId)
+}
+
+function isSignedProfileQrType(type: unknown): boolean {
+  return type === 'kepos.trust.invite.v1' || type === 'kepos.trust.invite.v2'
+}
+
+function recordProfileHomeDescriptorIfTrusted({
+  book,
+  homeDescriptor
+}: {
+  book: ContactBook
+  homeDescriptor?: ReturnType<typeof decodeQrUri>
+}): ContactBook {
+  if (!homeDescriptor || homeDescriptor.type !== 'kepos.home.address.v1') {
+    return book
+  }
+
+  if (!isContactTrusted(book, homeDescriptor.ownerProfileId)) {
+    return book
+  }
+
+  return recordContactHomeDescriptor(book, {
+    address: homeDescriptor.address,
+    expiresAt: homeDescriptor.expiresAt,
+    ownerProfileId: homeDescriptor.ownerProfileId,
+    policy: homeDescriptor.policy,
+    proof: homeDescriptor.proof,
+    roomKey: homeDescriptor.roomKey
+  })
 }

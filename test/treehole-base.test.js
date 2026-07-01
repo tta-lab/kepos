@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, test } from 'node:test'
 import { createSigningKeyPair } from '../src/signed-record.ts'
-import { createTreeholeBase } from '../src/treehole-base.js'
+import { createTreeholeBase } from '../src/treehole-base.ts'
 
 describe('treehole autobase', () => {
   test('appends text posts into an autobase-backed feed', async () => {

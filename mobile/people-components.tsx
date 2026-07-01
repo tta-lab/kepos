@@ -1,0 +1,685 @@
+import { useState } from 'react'
+import { ScrollView, Text, TextInput, View } from 'react-native'
+import {
+  ArrowRight,
+  House,
+  Plus,
+  QrCode,
+  Send,
+  Settings,
+  ShieldOff,
+  User,
+  UserMinus,
+  UserPlus,
+  Users
+} from 'lucide-react-native'
+import { getBlockedContactCopy } from '../src/blocked-contact-copy.ts'
+import type { ContactBookContact } from '../src/contact-book.ts'
+import { createContactProfileViewModel } from '../src/contact-profile-view-model.ts'
+import type { FriendRequestTargetViewModel } from '../src/friend-request-target-view-model.ts'
+import {
+  createProfileRecentPostsViewModel,
+  type ProfileRecentPostCache,
+  type ProfileRecentPostsViewModel,
+  type ProfileRecentTreeholePost
+} from '../src/profile-recent-posts-view-model.ts'
+import {
+  createRequestTargetProfileViewModel,
+  type RequestTargetProfileInput
+} from '../src/request-target-profile-view-model.ts'
+import { formatMobileTrustTime, shortenProfileId } from '../src/mobile-product-copy.ts'
+import { MobileActionButton, MobileSmallActionButton } from './action-components.js'
+import { QrCard } from './chrome-components.js'
+import { Field } from './form-components.js'
+import { PanelEmptyState, TaskHeader } from './panel-components.js'
+import {
+  ContactProfileDetail,
+  MobileProfileAvatar,
+  type ContactProfileDetailView
+} from './profile-components.js'
+import {
+  MessageRequestManager,
+  OutgoingRequestManager,
+  type IncomingFriendRequest,
+  type MessageRequestManagerProps,
+  type OutgoingFriendRequest,
+  type RequestManagerStyles,
+  type RequestManagerTheme
+} from './request-components.js'
+import type { MobileStyles } from './styles.js'
+import { formatMobileThreadTime } from './thread-components.js'
+
+type MobileTheme = {
+  accentStrong: string
+  danger: string
+  iconMuted: string
+  ink: string
+  placeholder: string
+  raised: string
+  surface: string
+}
+
+type ContactRecord = ContactBookContact
+type ProfileRequestTarget = FriendRequestTargetViewModel
+type TreeholePost = ProfileRecentTreeholePost
+
+export type PeoplePaneProps = {
+  activeHomeOwnerProfileId?: string
+  blockedContacts?: ContactRecord[]
+  homeQrUri: string
+  myHomeQrUri: string
+  onAcceptRequest: MessageRequestManagerProps['onAcceptRequest']
+  onAllowContactRequests(profileId: string): void
+  onEnterContactHome(profileId: string): void
+  onHomeQrChange(value: string): void
+  onIgnoreRequest: MessageRequestManagerProps['onIgnoreRequest']
+  onJoinHomeQr(): void
+  onMessageContact(profileId: string): void
+  onRevokeContact(profileId: string): void
+  onScanHomeQr(): void
+  onScanProfileQr(): void
+  onSelectedProfileChange(profileId: string | null): void
+  onTrustAliasChange(value: string): void
+  onTrustProfile(): void
+  onTrustQrChange(value: string): void
+  outgoingRequests?: OutgoingFriendRequest[]
+  pendingRequests?: IncomingFriendRequest[]
+  profileId?: string | null
+  profileQrUri: string
+  profileReady: boolean
+  profileRecentPostCache?: ProfileRecentPostCache
+  profileRequestTarget?: ProfileRequestTarget | null
+  selectedProfileId?: string | null
+  styles: MobileStyles & RequestManagerStyles
+  theme: MobileTheme & RequestManagerTheme
+  treeholePosts?: TreeholePost[]
+  trustAlias?: string
+  trustedContacts?: ContactRecord[]
+  trustQrUri: string
+}
+
+export function PeoplePane({
+  activeHomeOwnerProfileId,
+  blockedContacts,
+  homeQrUri,
+  myHomeQrUri,
+  onAcceptRequest,
+  onAllowContactRequests,
+  onHomeQrChange,
+  onIgnoreRequest,
+  onJoinHomeQr,
+  onEnterContactHome,
+  onMessageContact,
+  onRevokeContact,
+  onScanHomeQr,
+  onScanProfileQr,
+  onTrustAliasChange,
+  onTrustProfile,
+  onTrustQrChange,
+  outgoingRequests,
+  pendingRequests,
+  profileRequestTarget,
+  profileRecentPostCache,
+  profileId,
+  profileReady,
+  profileQrUri,
+  selectedProfileId,
+  onSelectedProfileChange,
+  treeholePosts,
+  trustAlias,
+  trustedContacts,
+  trustQrUri,
+  styles,
+  theme
+}: PeoplePaneProps) {
+  return (
+    <ScrollView contentContainerStyle={styles.peoplePane} keyboardShouldPersistTaps='handled'>
+      <MessageRequestManager
+        onAcceptRequest={onAcceptRequest}
+        onIgnoreRequest={onIgnoreRequest}
+        pendingRequests={pendingRequests}
+        profileId={profileId}
+        styles={styles}
+        theme={theme}
+      />
+      <OutgoingRequestManager outgoingRequests={outgoingRequests} styles={styles} theme={theme} />
+      <PeopleActions
+        canJoinHome={false}
+        homeQrUri={homeQrUri}
+        myHomeQrUri={myHomeQrUri}
+        onHomeQrChange={onHomeQrChange}
+        onAllowContactRequests={onAllowContactRequests}
+        onEnterContactHome={onEnterContactHome}
+        onJoinHomeQr={onJoinHomeQr}
+        onMessageContact={onMessageContact}
+        onRevokeContact={onRevokeContact}
+        onScanHomeQr={onScanHomeQr}
+        onScanProfileQr={onScanProfileQr}
+        onTrustAliasChange={onTrustAliasChange}
+        onTrustProfile={onTrustProfile}
+        onTrustQrChange={onTrustQrChange}
+        profileRequestTarget={profileRequestTarget}
+        profileRecentPostCache={profileRecentPostCache}
+        profileReady={profileReady}
+        profileQrUri={profileQrUri}
+        activeHomeOwnerProfileId={activeHomeOwnerProfileId}
+        blockedContacts={blockedContacts}
+        selectedProfileId={selectedProfileId}
+        onSelectedProfileChange={onSelectedProfileChange}
+        treeholePosts={treeholePosts}
+        trustAlias={trustAlias}
+        trustedContacts={trustedContacts}
+        trustQrUri={trustQrUri}
+        styles={styles}
+        theme={theme}
+      />
+    </ScrollView>
+  )
+}
+
+export type PeopleActionsProps = {
+  activeHomeOwnerProfileId?: string
+  blockedContacts?: ContactRecord[]
+  canJoinHome: boolean
+  homeQrUri: string
+  myHomeQrUri: string
+  onAllowContactRequests(profileId: string): void
+  onEnterContactHome(profileId: string): void
+  onHomeQrChange(value: string): void
+  onJoinHomeQr(): void
+  onMessageContact?(profileId: string): void
+  onRevokeContact(profileId: string): void
+  onScanHomeQr(): void
+  onScanProfileQr(): void
+  onSelectedProfileChange(profileId: string | null): void
+  onTrustAliasChange(value: string): void
+  onTrustProfile(): void
+  onTrustQrChange(value: string): void
+  profileReady: boolean
+  profileQrUri: string
+  profileRecentPostCache?: ProfileRecentPostCache
+  profileRequestTarget?: ProfileRequestTarget | null
+  selectedProfileId?: string | null
+  styles: MobileStyles
+  theme: MobileTheme
+  treeholePosts?: TreeholePost[]
+  trustAlias?: string
+  trustedContacts?: ContactRecord[]
+  trustQrUri: string
+}
+
+export function PeopleActions({
+  activeHomeOwnerProfileId,
+  blockedContacts,
+  canJoinHome,
+  homeQrUri,
+  myHomeQrUri,
+  onAllowContactRequests,
+  onHomeQrChange,
+  onEnterContactHome,
+  onJoinHomeQr,
+  onMessageContact = () => {},
+  onRevokeContact,
+  onScanHomeQr,
+  onScanProfileQr,
+  onTrustAliasChange,
+  onTrustProfile,
+  onTrustQrChange,
+  profileRequestTarget,
+  profileRecentPostCache,
+  profileReady,
+  profileQrUri,
+  selectedProfileId,
+  onSelectedProfileChange,
+  treeholePosts,
+  trustAlias,
+  trustedContacts,
+  trustQrUri,
+  styles,
+  theme
+}: PeopleActionsProps) {
+  const [showAdvancedShare, setShowAdvancedShare] = useState(false)
+  const [showHomeQr, setShowHomeQr] = useState(false)
+  const [showProfileQr, setShowProfileQr] = useState(false)
+  const canUseHomeJoin = profileReady && canJoinHome
+
+  return (
+    <>
+      <MobileActionButton
+        accentColor={theme.accentStrong}
+        disabledContentColor={theme.placeholder}
+        primaryContentColor={theme.surface}
+        styles={styles}
+        accessibilityState={{ expanded: showAdvancedShare }}
+        icon={Settings}
+        label='Advanced'
+        onPress={() => setShowAdvancedShare((value) => !value)}
+        testID='advanced-share-toggle'
+      />
+      {showAdvancedShare ? (
+        <View style={styles.panel}>
+          <TaskHeader
+            description='Connection details for trusted friends; trust still controls entry.'
+            eyebrow='Advanced'
+            styles={styles}
+            title='Home QR'
+          />
+          <MobileActionButton
+            accentColor={theme.accentStrong}
+            disabledContentColor={theme.placeholder}
+            primaryContentColor={theme.surface}
+            styles={styles}
+            accessibilityState={{ expanded: showHomeQr }}
+            disabled={!profileReady}
+            icon={QrCode}
+            label='Show Home QR'
+            onPress={() => setShowHomeQr((value) => !value)}
+            testID='show-home-qr-button'
+          />
+          {showHomeQr ? (
+            <QrCard backgroundColor={theme.raised} styles={styles} value={myHomeQrUri} />
+          ) : null}
+          <MobileActionButton
+            accentColor={theme.accentStrong}
+            disabledContentColor={theme.placeholder}
+            primaryContentColor={theme.surface}
+            styles={styles}
+            disabled={!canUseHomeJoin}
+            icon={ArrowRight}
+            label='Scan Home QR'
+            onPress={onScanHomeQr}
+            testID='scan-home-qr-button'
+          />
+          {!canJoinHome ? (
+            <Text style={styles.panelCopy}>Leave this home before joining another one.</Text>
+          ) : null}
+          <TaskHeader
+            description='Paste a Profile QR, then write a request in Messages.'
+            eyebrow='Advanced'
+            styles={styles}
+            title='Profile request'
+          />
+          <MobileActionButton
+            accentColor={theme.accentStrong}
+            disabledContentColor={theme.placeholder}
+            primaryContentColor={theme.surface}
+            styles={styles}
+            accessibilityState={{ expanded: showProfileQr }}
+            disabled={!profileReady}
+            icon={QrCode}
+            label='Show My QR'
+            onPress={() => setShowProfileQr((value) => !value)}
+            testID='show-profile-qr-button'
+          />
+          {showProfileQr ? (
+            <QrCard backgroundColor={theme.raised} styles={styles} value={profileQrUri} />
+          ) : null}
+          <MobileActionButton
+            accentColor={theme.accentStrong}
+            disabledContentColor={theme.placeholder}
+            primaryContentColor={theme.surface}
+            styles={styles}
+            disabled={!profileReady}
+            icon={Plus}
+            label='Scan Profile QR'
+            onPress={onScanProfileQr}
+            testID='scan-profile-qr-button'
+          />
+          <TaskHeader
+            description='Paste or copy raw QR payloads for debug flows.'
+            eyebrow='Advanced'
+            styles={styles}
+            title='QR details'
+          />
+          <Text style={styles.panelCopy}>Enter Home</Text>
+          <TextInput
+            autoCapitalize='none'
+            autoCorrect={false}
+            multiline
+            onChangeText={onHomeQrChange}
+            placeholder='Paste Home QR'
+            placeholderTextColor={theme.placeholder}
+            style={styles.keyInput}
+            testID='join-home-uri-input'
+            value={homeQrUri}
+          />
+          <MobileActionButton
+            accentColor={theme.accentStrong}
+            disabledContentColor={theme.placeholder}
+            primaryContentColor={theme.surface}
+            styles={styles}
+            disabled={!canUseHomeJoin || !homeQrUri.trim()}
+            icon={ArrowRight}
+            label='Enter Home'
+            onPress={onJoinHomeQr}
+            testID='join-home-uri-button'
+          />
+          <Text style={styles.panelCopy}>Profile QR</Text>
+          <TextInput
+            autoCapitalize='none'
+            autoCorrect={false}
+            multiline
+            onChangeText={onTrustQrChange}
+            placeholder='Paste Profile QR'
+            placeholderTextColor={theme.placeholder}
+            style={styles.keyInput}
+            testID='trust-profile-uri-input'
+            value={trustQrUri}
+          />
+          <Field
+            label='Friend name'
+            onChangeText={onTrustAliasChange}
+            styles={styles}
+            testID='trust-profile-alias-input'
+            value={trustAlias}
+          />
+          <MobileActionButton
+            accentColor={theme.accentStrong}
+            disabledContentColor={theme.placeholder}
+            primaryContentColor={theme.surface}
+            styles={styles}
+            disabled={!profileReady || !trustQrUri.trim()}
+            icon={Plus}
+            label='Start request'
+            onPress={onTrustProfile}
+            testID='trust-profile-button'
+          />
+          <TextInput
+            autoCapitalize='none'
+            autoCorrect={false}
+            editable={false}
+            multiline
+            placeholder='Home QR details'
+            placeholderTextColor={theme.placeholder}
+            style={styles.keyInput}
+            testID='home-address-uri'
+            value={myHomeQrUri}
+          />
+          <TextInput
+            autoCapitalize='none'
+            autoCorrect={false}
+            editable={false}
+            multiline
+            placeholder='Profile QR details'
+            placeholderTextColor={theme.placeholder}
+            style={styles.keyInput}
+            testID='home-profile-uri'
+            value={profileQrUri}
+          />
+        </View>
+      ) : null}
+
+      <ContactManager
+        blockedContacts={blockedContacts}
+        contacts={trustedContacts}
+        onAllowContactRequests={onAllowContactRequests}
+        onEnterContactHome={onEnterContactHome}
+        onMessageContact={onMessageContact}
+        onRevokeContact={onRevokeContact}
+        profileRequestTarget={profileRequestTarget}
+        profileRecentPostCache={profileRecentPostCache}
+        activeHomeOwnerProfileId={activeHomeOwnerProfileId}
+        selectedProfileId={selectedProfileId}
+        styles={styles}
+        theme={theme}
+        treeholePosts={treeholePosts}
+        onSelectedProfileChange={onSelectedProfileChange}
+      />
+    </>
+  )
+}
+
+export type ContactManagerProps = {
+  activeHomeOwnerProfileId?: string
+  blockedContacts?: ContactRecord[]
+  contacts?: ContactRecord[]
+  onAllowContactRequests(profileId: string): void
+  onEnterContactHome(profileId: string): void
+  onMessageContact?(profileId: string): void
+  onRevokeContact(profileId: string): void
+  onSelectedProfileChange(profileId: string | null): void
+  profileRecentPostCache?: ProfileRecentPostCache
+  profileRequestTarget?: ProfileRequestTarget | null
+  selectedProfileId?: string | null
+  styles: MobileStyles
+  theme: MobileTheme
+  treeholePosts?: TreeholePost[]
+}
+
+export function ContactManager({
+  activeHomeOwnerProfileId,
+  blockedContacts,
+  contacts,
+  onAllowContactRequests,
+  onEnterContactHome,
+  onMessageContact = () => {},
+  onRevokeContact,
+  profileRequestTarget,
+  profileRecentPostCache,
+  selectedProfileId,
+  styles,
+  theme,
+  treeholePosts,
+  onSelectedProfileChange
+}: ContactManagerProps) {
+  const selectedContact = (contacts || []).find(
+    (contact) => contact.profileId === selectedProfileId
+  )
+  const selectedProfile = selectedContact
+    ? withMobileProfileRecentPosts({
+        activeHomeOwnerProfileId,
+        profileRecentPostCache,
+        profile: createContactProfileViewModel({
+          contact: selectedContact,
+          formatDate: formatMobileTrustTime,
+          shortenProfileId
+        }),
+        treeholePosts
+      })
+    : createRequestTargetProfileViewModel({
+        requestTarget: toRequestTargetProfileInput(profileRequestTarget),
+        selectedProfileId,
+        shortenProfileId
+      })
+
+  return (
+    <View style={styles.panel}>
+      <TaskHeader
+        description='Open a profile, message a trusted contact, or enter when Home access is saved.'
+        eyebrow='Profiles'
+        styles={styles}
+        title='Contacts'
+      />
+      {!contacts?.length ? (
+        <PanelEmptyState
+          copy='Accepted friends will appear here as contacts.'
+          icon={Users}
+          iconColor={theme.iconMuted}
+          styles={styles}
+          title='No contacts yet'
+        />
+      ) : null}
+      <ContactProfileDetail
+        onBack={() => onSelectedProfileChange(null)}
+        onEnterContactHome={onEnterContactHome}
+        onMessageContact={onMessageContact}
+        onRevokeContact={onRevokeContact}
+        profile={selectedProfile}
+        styles={styles}
+        theme={theme}
+      />
+      {(contacts || []).map((contact) => {
+        const profile = withMobileProfileRecentPosts({
+          activeHomeOwnerProfileId,
+          profileRecentPostCache,
+          profile: createContactProfileViewModel({
+            contact,
+            formatDate: formatMobileTrustTime,
+            shortenProfileId
+          }),
+          treeholePosts
+        })
+
+        return (
+          <View key={profile.profileId} style={styles.contactRow}>
+            <MobileProfileAvatar avatar={profile.avatar} styles={styles} />
+            <View style={styles.contactRowText}>
+              <Text style={styles.contactName}>{profile.displayName}</Text>
+              <Text style={styles.contactProfile}>{profile.shortProfileId}</Text>
+              <View style={styles.trustMeta}>
+                <Text style={styles.trustStatus}>{profile.statusLabel}</Text>
+                <Text style={styles.trustMetaText}>{profile.sourceLabel}</Text>
+                <Text style={styles.trustMetaText}>{profile.trustedAtLabel}</Text>
+              </View>
+              <View style={styles.contactRecent}>
+                <Text style={styles.contactRecentTitle}>{profile.recentTitle}</Text>
+                <Text style={styles.contactRecentCopy}>{profile.recentCopy}</Text>
+                {profile.recentPosts?.map((post) => (
+                  <View key={post.id} style={styles.contactRecentPost}>
+                    <Text style={styles.contactRecentPostText}>{post.text}</Text>
+                    <Text style={styles.contactRecentPostMeta}>{post.metaLabel}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+            <View style={styles.contactActions}>
+              <MobileSmallActionButton
+                accentColor={theme.accentStrong}
+                dangerColor={theme.danger}
+                styles={styles}
+                accessibilityLabel={`Message ${profile.displayName}`}
+                icon={Send}
+                label={profile.messageLabel}
+                onPress={() => onMessageContact(profile.profileId)}
+              />
+              <MobileSmallActionButton
+                accentColor={theme.accentStrong}
+                dangerColor={theme.danger}
+                styles={styles}
+                accessibilityLabel={`Open ${profile.displayName} profile`}
+                icon={User}
+                label='Profile'
+                onPress={() => onSelectedProfileChange(profile.profileId)}
+              />
+              <MobileSmallActionButton
+                accentColor={theme.accentStrong}
+                dangerColor={theme.danger}
+                styles={styles}
+                accessibilityLabel={`Enter ${profile.displayName} home`}
+                disabled={!profile.enterHomeEnabled}
+                icon={House}
+                label={profile.enterHomeLabel}
+                onPress={() => onEnterContactHome(profile.profileId)}
+              />
+              <MobileSmallActionButton
+                accentColor={theme.accentStrong}
+                dangerColor={theme.danger}
+                styles={styles}
+                accessibilityLabel={`Remove ${profile.displayName} as friend`}
+                icon={UserMinus}
+                label={profile.revokeLabel}
+                onPress={() => onRevokeContact(profile.profileId)}
+                variant='danger'
+              />
+            </View>
+          </View>
+        )
+      })}
+      <View style={styles.contactBlockedSection}>
+        <TaskHeader
+          description='Removed friends and ignored requests stay visible here.'
+          eyebrow='Manage'
+          styles={styles}
+          title='Removed / ignored'
+        />
+        {!blockedContacts?.length ? (
+          <PanelEmptyState
+            copy='Profiles you remove or ignore will appear here.'
+            icon={ShieldOff}
+            iconColor={theme.iconMuted}
+            styles={styles}
+            title='No removed profiles'
+          />
+        ) : null}
+        {(blockedContacts || []).map((contact) => {
+          const blockedCopy = getBlockedContactCopy(contact)
+          const profileLabel =
+            contact.alias || contact.displayNameSnapshot || shortenProfileId(contact.profileId)
+
+          return (
+            <View key={contact.profileId} style={styles.requestCard}>
+              <View style={styles.requestText}>
+                <Text style={styles.requestTitle}>{profileLabel}</Text>
+                <Text style={styles.contactProfile}>{shortenProfileId(contact.profileId)}</Text>
+                <Text style={styles.requestPreview}>{blockedCopy.copy}</Text>
+                <Text style={styles.trustMetaText}>
+                  {blockedCopy.statusLabel} {formatMobileTrustTime(blockedCopy.blockedAt)}
+                </Text>
+              </View>
+              <View style={styles.trustMeta}>
+                <Text style={styles.trustStatus}>{blockedCopy.statusLabel}</Text>
+                <MobileSmallActionButton
+                  accentColor={theme.accentStrong}
+                  dangerColor={theme.danger}
+                  styles={styles}
+                  accessibilityLabel={`Allow requests from ${profileLabel}`}
+                  icon={UserPlus}
+                  label='Allow requests'
+                  onPress={() => onAllowContactRequests(contact.profileId)}
+                />
+              </View>
+            </View>
+          )
+        })}
+      </View>
+    </View>
+  )
+}
+
+function withMobileProfileRecentPosts<
+  TProfile extends ContactProfileDetailView & { profileId: string }
+>({
+  activeHomeOwnerProfileId,
+  profile,
+  profileRecentPostCache,
+  treeholePosts
+}: {
+  activeHomeOwnerProfileId?: string
+  profile: TProfile
+  profileRecentPostCache?: ProfileRecentPostCache
+  treeholePosts?: TreeholePost[]
+}): TProfile & ProfileRecentPostsViewModel {
+  return {
+    ...profile,
+    ...createProfileRecentPostsViewModel({
+      activeHomeOwnerProfileId,
+      cachedPostsByProfileId: profileRecentPostCache,
+      formatTime: formatRecentPostTime,
+      posts: treeholePosts,
+      selectedProfileId: profile.profileId
+    })
+  }
+}
+
+function toRequestTargetProfileInput(
+  requestTarget?: ProfileRequestTarget | null
+): RequestTargetProfileInput | null {
+  if (!requestTarget) return null
+
+  return {
+    avatar: requestTarget.avatar,
+    displayName: requestTarget.displayName,
+    profileId: requestTarget.profileId,
+    shortProfileId: requestTarget.shortProfileId,
+    statusLabel: requestTarget.statusLabel
+  }
+}
+
+function formatRecentPostTime(value: number | string | undefined): string {
+  if (typeof value === 'number') return formatMobileThreadTime(value)
+  if (typeof value === 'string') {
+    const timestamp = Date.parse(value)
+    return Number.isFinite(timestamp) ? formatMobileThreadTime(timestamp) : value
+  }
+  return ''
+}

@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
+import { createAvatarMediaReference } from '../src/avatar-media.ts'
+import { createContactBook, recordOutgoingFriendRequest } from '../src/contact-book.ts'
 import { createDesktopMessageActions } from '../src/desktop-message-actions.ts'
 
 test('desktop message actions send home chat through the home runtime', () => {
@@ -63,6 +65,187 @@ test('desktop message actions send direct messages through the dm runtime', () =
   assert.equal(calls[0].toProfileId, 'friend')
   assert.deepEqual(broadcasts, [{ type: 'control' }])
   assert.deepEqual(renders, ['render'])
+})
+
+test('desktop message actions mark direct threads read through the dm runtime', () => {
+  const calls = []
+  const renders = []
+  const actions = createDesktopMessageActions({
+    getDmRuntime: () => ({
+      markThreadRead(payload) {
+        calls.push(payload)
+        return { threadId: 'thread-1' }
+      }
+    }),
+    now: () => 1234,
+    onChanged: () => renders.push('render')
+  })
+
+  actions.markDmThreadRead({ profileId: 'friend' })
+  actions.markDmThreadRead({ profileId: 'friend', readAt: 2000 })
+
+  assert.deepEqual(calls, [
+    { profileId: 'friend', readAt: 1234 },
+    { profileId: 'friend', readAt: 2000 }
+  ])
+  assert.deepEqual(renders, ['render', 'render'])
+})
+
+test('desktop message actions ignore blank read marker profiles', () => {
+  const calls = []
+  const actions = createDesktopMessageActions({
+    getDmRuntime: () => ({
+      markThreadRead(payload) {
+        calls.push(payload)
+      }
+    })
+  })
+
+  actions.markDmThreadRead({ profileId: ' ' })
+
+  assert.deepEqual(calls, [])
+})
+
+test('desktop message actions record outgoing friend requests when direct send creates a request', () => {
+  const savedBooks = []
+  let nextId = 0
+  const actions = createDesktopMessageActions({
+    createId: () => `id-${nextId++}`,
+    getContactBook: () => createContactBook({ ownerProfileId: 'local' }),
+    getDmRuntime: () => ({
+      sendMessageOrRequest(payload) {
+        return {
+          kind: 'request',
+          request: {
+            requestId: payload.requestId,
+            text: payload.text,
+            toProfileId: payload.toProfileId
+          }
+        }
+      }
+    }),
+    getDmSession: () => ({ messages: [] }),
+    getHomeRuntime: () => ({
+      broadcastControl() {},
+      isJoined: () => true
+    }),
+    now: () => 456,
+    saveContactBook: (book) => savedBooks.push(book)
+  })
+
+  actions.sendDmMessage({ text: '  hello  ', toProfileId: 'friend' })
+
+  assert.equal(savedBooks.length, 1)
+  assert.equal(savedBooks[0].outgoingRequestsByProfileId.get('friend').requestId, 'id-1')
+  assert.equal(savedBooks[0].outgoingRequestsByProfileId.get('friend').text, 'hello')
+})
+
+test('desktop message actions preserve scanned Home descriptors on outgoing friend requests', () => {
+  const savedBooks = []
+  const avatarMedia = createAvatarMediaReference({
+    bytes: Uint8Array.from([1, 2, 3]),
+    createdAt: 1000,
+    mimeType: 'image/png',
+    sha256Hex: () => 'a'.repeat(64)
+  })
+  const homeDescriptor = {
+    address: 'c'.repeat(64),
+    createdAt: 1000,
+    expiresAt: null,
+    ownerProfileId: 'friend',
+    policy: 'trusted_only',
+    proof: {
+      createdAt: 1000,
+      signature: 'signed-home',
+      signerProfileId: 'friend',
+      type: 'kepos.home.address.v1',
+      version: 1
+    },
+    roomKey: 'd'.repeat(64),
+    type: 'kepos.home.address.v1'
+  }
+  const actions = createDesktopMessageActions({
+    createId: () => 'id',
+    getContactBook: () => createContactBook({ ownerProfileId: 'local' }),
+    getDmRuntime: () => ({
+      sendMessageOrRequest(payload) {
+        return {
+          kind: 'request',
+          request: {
+            requestId: payload.requestId,
+            text: payload.text,
+            toProfileId: payload.toProfileId
+          }
+        }
+      }
+    }),
+    getDmSession: () => ({ messages: [] }),
+    getHomeRuntime: () => ({
+      broadcastControl() {},
+      isJoined: () => true
+    }),
+    getProfileRequestTarget: () => ({
+      avatarMediaSnapshot: avatarMedia,
+      avatarUri: avatarMedia.uri,
+      displayName: 'Ada Lovelace',
+      homeDescriptor,
+      profileId: 'friend'
+    }),
+    saveContactBook: (book) => savedBooks.push(book)
+  })
+
+  actions.sendDmMessage({ text: 'hello', toProfileId: 'friend' })
+
+  assert.equal(savedBooks[0].outgoingRequestsByProfileId.get('friend').homeAddress, 'c'.repeat(64))
+  assert.equal(savedBooks[0].outgoingRequestsByProfileId.get('friend').homeRoomKey, 'd'.repeat(64))
+  assert.equal(
+    savedBooks[0].outgoingRequestsByProfileId.get('friend').avatarUriSnapshot,
+    avatarMedia.uri
+  )
+  assert.equal(
+    savedBooks[0].outgoingRequestsByProfileId.get('friend').displayNameSnapshot,
+    'Ada Lovelace'
+  )
+  assert.deepEqual(
+    savedBooks[0].outgoingRequestsByProfileId.get('friend').avatarMediaSnapshot,
+    avatarMedia
+  )
+  assert.deepEqual(
+    savedBooks[0].outgoingRequestsByProfileId.get('friend').proof,
+    homeDescriptor.proof
+  )
+})
+
+test('desktop message actions do not send duplicate outgoing friend requests', () => {
+  const calls = []
+  const requestedBook = recordOutgoingFriendRequest(
+    createContactBook({ ownerProfileId: 'local' }),
+    {
+      alias: 'Friend',
+      profileId: 'friend',
+      requestedAt: 1000,
+      requestId: 'request-1',
+      text: 'hello'
+    }
+  )
+  const actions = createDesktopMessageActions({
+    getContactBook: () => requestedBook,
+    getDmRuntime: () => ({
+      sendMessageOrRequest() {
+        calls.push('dm')
+      }
+    }),
+    getDmSession: () => ({ messages: [] }),
+    getHomeRuntime: () => ({
+      broadcastControl() {},
+      isJoined: () => true
+    }),
+    setNotice: (notice) => calls.push(['notice', notice])
+  })
+
+  actions.sendDmMessage({ text: 'again', toProfileId: 'friend' })
+
+  assert.deepEqual(calls, [['notice', 'You already sent a request. Wait for them to accept.']])
 })
 
 test('desktop message actions do not broadcast signed DM bodies over Home by default', () => {

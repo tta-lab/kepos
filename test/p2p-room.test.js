@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
-import { createP2PRoom } from '../src/p2p-room.js'
+import { createP2PRoom } from '../src/p2p-room.ts'
 
 describe('p2p room backend', () => {
   test('join starts discovery with a derived room topic', async () => {

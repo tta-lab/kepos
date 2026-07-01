@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
 
-import { createDmThreadRuntime } from '../src/dm-thread-runtime.js'
+import { createDmThreadRuntime } from '../src/dm-thread-runtime.ts'
 import { createSignedDmMessage } from '../src/dm-message.ts'
 import { createSigningKeyPair } from '../src/signed-record.ts'
 

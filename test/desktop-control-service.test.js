@@ -93,6 +93,32 @@ test('desktop control service accepts DM invites for the local DM session', asyn
   ])
 })
 
+test('desktop control service returns contact book updates from accepted DM invites', async () => {
+  const local = createSigningKeyPair()
+  const contactBook = createContactBook({ ownerProfileId: local.publicKey })
+  const updatedBook = createContactBook({ ownerProfileId: local.publicKey })
+  const recipientEncryptionKeyPair = createDmEncryptionKeyPair()
+  const invite = {
+    type: 'kepos.dm.invite.v1',
+    inviteId: 'invite-1',
+    toProfileId: local.publicKey
+  }
+
+  const result = await createDesktopControlMessageResult({
+    acceptInviteAsRecipient: () => ({ book: updatedBook, thread: { threadId: 'thread-1' } }),
+    acceptedAt: 2000,
+    contactBook,
+    currentDmSession: { localProfileId: local.publicKey },
+    message: invite,
+    recipientEncryptionKeyPair
+  })
+
+  assert.deepEqual(result, {
+    book: updatedBook,
+    kind: 'dm_invite'
+  })
+})
+
 test('desktop control service maps treehole bootstrap control to open intent', async () => {
   const message = {
     type: 'treehole.bootstrap',

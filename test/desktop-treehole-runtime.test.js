@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import test from 'node:test'
-import { createDesktopTreeholeRuntime } from '../src/desktop-treehole-runtime.js'
+import { createDesktopTreeholeRuntime } from '../src/desktop-treehole-runtime.ts'
 
 const ownerProfileId = 'a'.repeat(64)
 const trustedProfileId = 'b'.repeat(64)
@@ -103,7 +103,7 @@ test('desktop treehole runtime uses injected storage base path', async () => {
 
 test('desktop treehole runtime keeps worker path free of node os imports', async () => {
   const source = await readFile(
-    new URL('../src/desktop-treehole-runtime.js', import.meta.url),
+    new URL('../src/desktop-treehole-runtime.ts', import.meta.url),
     'utf8'
   )
 

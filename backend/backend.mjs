@@ -18,7 +18,7 @@ import { createDmThreadRuntime } from '../src/dm-thread-runtime.js'
 import { loadDmThreadsFromFileSystem, saveDmThreadsToFileSystem } from '../src/dm-thread-storage.ts'
 import { createMessageRequest, verifyMessageRequest } from '../src/message-request.ts'
 import { createDirectRoomTransport } from '../src/direct-room-transport.ts'
-import { createP2PRoom } from '../src/p2p-room.js'
+import { createP2PRoom } from '../src/p2p-room.ts'
 import { createHomeHello, verifyHomeHello } from '../src/home-presence.ts'
 import { createTreeholeBase } from '../src/treehole-base.js'
 import {
@@ -45,6 +45,7 @@ import {
   RPC_LEAVE,
   RPC_MESSAGE,
   RPC_PEER_COUNT,
+  RPC_AVATAR_MEDIA_BYTES,
   RPC_ROOM_DEBUG,
   RPC_SEND,
   RPC_STATUS,
@@ -80,6 +81,7 @@ let dmEncryptionKeyPair = null
 let dmRuntime = null
 let treeholePolicy = null
 let allowHomeDmBodyFallback = false
+let localAvatarMediaControl = null
 const addedWriters = new Set()
 const outgoingMessageRequestsByProfileId = new Map()
 
@@ -172,6 +174,7 @@ async function joinRoom(payload) {
   profileId = payload.profileId?.trim() || null
   identity = payload.identity || null
   allowHomeDmBodyFallback = payload.allowHomeDmBodyFallback === true
+  localAvatarMediaControl = payload.localAvatarMediaControl || null
   dmEncryptionKeyPair = await getOrCreateBackendDmEncryptionKeyPair({
     basePath: treeholeStorageBasePath,
     createKeyPair: createDmEncryptionKeyPair,
@@ -260,6 +263,7 @@ async function leaveRoom() {
   dmEncryptionKeyPair = null
   treeholePolicy = null
   allowHomeDmBodyFallback = false
+  localAvatarMediaControl = null
   addedWriters.clear()
   outgoingMessageRequestsByProfileId.clear()
 }
@@ -349,6 +353,12 @@ async function handleControl(message, peer) {
     }
 
     sendTreeholeBootstrap(peer, message.profileId)
+    sendProfileAvatarMedia(peer)
+    return
+  }
+
+  if (message.type === 'kepos.avatar.media.bytes.v1') {
+    sendToUI(RPC_AVATAR_MEDIA_BYTES, message)
     return
   }
 
@@ -470,6 +480,14 @@ function sendTreeholeBootstrap(peer, remoteProfileId) {
     ownerProfileId: profileId,
     type: 'treehole.bootstrap'
   })
+}
+
+function sendProfileAvatarMedia(peer) {
+  if (!room || !peer || !localAvatarMediaControl) {
+    return
+  }
+
+  room.sendControl(peer, localAvatarMediaControl)
 }
 
 function sendTreeholeWriter(peer) {

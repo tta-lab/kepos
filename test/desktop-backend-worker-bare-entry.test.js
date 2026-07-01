@@ -1,14 +1,15 @@
 import assert from 'node:assert/strict'
+import { readFile } from 'node:fs/promises'
 import { Duplex } from 'node:stream'
 import test from 'node:test'
 import {
   installBareEncodingGlobals,
   startDesktopBackendBareWorker
-} from '../src/desktop-backend-worker-bare-entry.js'
+} from '../src/desktop-backend-worker-bare-entry.ts'
 import {
   createDesktopBackendWorkerIpcClient,
   createDesktopBackendWorkerIpcServer
-} from '../src/desktop-backend-worker-ipc.js'
+} from '../src/desktop-backend-worker-ipc.ts'
 
 test('desktop backend bare worker entry attaches Bare IPC to the backend worker', async () => {
   const calls = []
@@ -63,6 +64,15 @@ test('desktop backend bare worker entry installs encoding globals for web crypto
 
   assert.equal(globalObject.TextEncoder, TestTextEncoder)
   assert.equal(globalObject.TextDecoder, TestTextDecoder)
+})
+
+test('desktop backend bare worker entry imports the typed Bare profile context source', async () => {
+  const source = await readFile(
+    new URL('../src/desktop-backend-worker-bare-entry.ts', import.meta.url),
+    'utf8'
+  )
+
+  assert.match(source, /import\('\.\/desktop-bare-profile-context\.ts'\)/)
 })
 
 function createIpcStreamPair() {

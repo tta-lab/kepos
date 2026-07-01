@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createDesktopHomeRuntime } from '../src/desktop-home-runtime.js'
+import { createDesktopHomeRuntime } from '../src/desktop-home-runtime.ts'
 
 const identity = { publicKey: 'a'.repeat(64), secretKey: 'b'.repeat(128) }
 const homeJoinDetails = {

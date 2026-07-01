@@ -7,6 +7,7 @@ export type DesktopTransportDebug = Record<string, unknown>
 
 export type DesktopState = {
   activeTab: DesktopTab
+  activeHomeOwnerProfileId: string
   lastError: string
   messages: unknown[]
   mode: string | null
@@ -24,6 +25,7 @@ export type DesktopState = {
 export function createDesktopState(): DesktopState {
   return {
     activeTab: 'chat',
+    activeHomeOwnerProfileId: '',
     messages: [],
     lastError: '',
     mode: null,
@@ -44,12 +46,14 @@ export function setDesktopRoom(
   room: {
     mode?: string | null
     nick?: string
+    ownerProfileId?: string | null
     peers?: number
     roomKey?: string
   }
 ): DesktopState {
   return {
     ...state,
+    activeHomeOwnerProfileId: room.ownerProfileId || '',
     mode: room.mode ?? state.mode,
     nick: room.nick?.trim() || 'Desktop',
     peers: room.peers || 0,
@@ -96,7 +100,7 @@ export function getDesktopHomeStatus(state: DesktopState): string {
 
 export function getDesktopTreeholeStatus(state: DesktopState): string {
   if (state.treeholeStatus === 'ready') {
-    return 'Treehole ready'
+    return 'My treehole ready'
   }
 
   if (
@@ -104,12 +108,12 @@ export function getDesktopTreeholeStatus(state: DesktopState): string {
     state.treeholeStatus === 'waiting' ||
     state.treeholeStatus === 'waiting-for-bootstrap'
   ) {
-    return 'Syncing treehole'
+    return 'Syncing posts'
   }
 
   if (state.treeholeStatus === 'error') {
-    return 'Treehole error'
+    return 'My treehole error'
   }
 
-  return 'Treehole offline'
+  return 'My treehole offline'
 }

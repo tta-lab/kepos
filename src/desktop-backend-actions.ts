@@ -20,18 +20,23 @@ export function createDesktopBackendActions({
 }): DesktopBackendActions {
   const actions = {
     acceptMessageRequest: messageRequestActions?.acceptMessageRequest,
+    allowContactRequests: trustActions?.allowContactRequests,
     commentTreehole: messageActions?.commentTreehole,
+    enterContactHome: roomActions?.enterContactHome,
     ignoreMessageRequest: messageRequestActions?.ignoreMessageRequest,
     joinHome: roomActions?.joinHome,
     joinHomeUri: roomActions?.joinHomeUri,
     leaveHome: roomActions?.leaveHome,
     likeTreehole: messageActions?.likeTreehole,
+    markDmThreadRead: messageActions?.markDmThreadRead,
     postTreehole: messageActions?.postTreehole,
     revokeContact: trustActions?.revokeContact,
     sendDmMessage: messageActions?.sendDmMessage,
     sendHomeMessage: messageActions?.sendHomeMessage,
     sendMessageRequest: messageActions?.sendDmMessage,
-    trustProfileUri: trustActions?.trustProfileUri,
+    prepareProfileRequestTarget: trustActions?.prepareProfileRequestTarget,
+    updateAvatarMedia: displayNameActions?.updateAvatarMedia,
+    updateAvatarUri: displayNameActions?.updateAvatarUri,
     updateDisplayName: displayNameActions?.updateDisplayName
   }
 

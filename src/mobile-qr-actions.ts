@@ -1,12 +1,26 @@
-import { applySignedQrUriToContactBook } from './signed-qr-scan.ts'
+import {
+  applySignedQrUriToContactBook,
+  readSignedProfileQrRequestTarget
+} from './signed-qr-scan.ts'
 import type { ContactBook } from './contact-book.ts'
 import type { SigningIdentity } from './signed-record.ts'
 
 type SignedQrContactBookResult = ReturnType<typeof applySignedQrUriToContactBook>
 type MobileProfileQrScanResult = Extract<SignedQrContactBookResult, { kind: 'trust' }>
 type MobileHomeQrScanResult = Extract<SignedQrContactBookResult, { kind: 'home' }>
+type MobileProfileRequestTarget = ReturnType<typeof readSignedProfileQrRequestTarget>
 
-export function applyMobileProfileQrScan({
+export function readMobileProfileRequestTarget({
+  now,
+  uri
+}: {
+  now?: number
+  uri: string
+}): MobileProfileRequestTarget {
+  return readSignedProfileQrRequestTarget({ now, uri })
+}
+
+export function applyMobileDebugProfileTrustScan({
   alias,
   book,
   localIdentity,

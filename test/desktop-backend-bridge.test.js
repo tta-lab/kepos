@@ -48,7 +48,7 @@ test('desktop backend bridge validates event subscriptions and supports unsubscr
 test('desktop controller routes commands through the backend bridge', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const session = await readFile(
-    new URL('../src/desktop-backend-session.js', import.meta.url),
+    new URL('../src/desktop-backend-session.ts', import.meta.url),
     'utf8'
   )
   const host = await readFile(
@@ -60,7 +60,7 @@ test('desktop controller routes commands through the backend bridge', async () =
     'utf8'
   )
   const localBackend = await readFile(
-    new URL('../desktop/local-backend.js', import.meta.url),
+    new URL('../desktop/local-backend.ts', import.meta.url),
     'utf8'
   )
 
@@ -85,7 +85,7 @@ test('desktop controller routes commands through the backend bridge', async () =
 test('desktop controller routes treehole runtime updates through backend bridge events', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const session = await readFile(
-    new URL('../src/desktop-backend-session.js', import.meta.url),
+    new URL('../src/desktop-backend-session.ts', import.meta.url),
     'utf8'
   )
   const host = await readFile(
@@ -122,9 +122,14 @@ test('desktop controller routes Home and Direct sessions through backend bridge 
 
   assert.match(runtime, /emit\('homeMessageReceived', session\)/)
   assert.match(runtime, /emit\('dmMessageReceived', session\)/)
+  assert.match(runtime, /emit\('dmThreadChanged', threads\)/)
   assert.match(source, /createDesktopBackendSubscriptions/)
   assert.match(subscriptions, /backendClient\.subscribe\('homeMessageReceived'/)
   assert.match(subscriptions, /backendClient\.subscribe\('dmMessageReceived'/)
+  assert.match(subscriptions, /backendClient\.subscribe\('dmThreadChanged'/)
+  assert.match(source, /let backendDmThreads = \[\]/)
+  assert.match(source, /setDmThreads: \(nextThreads\) =>/)
+  assert.match(source, /if \(backendClient\.hasPreloadBackend\(\)\) return backendDmThreads/)
   assert.doesNotMatch(source, /onHomeSessionChanged:/)
   assert.doesNotMatch(source, /onDmSessionChanged:/)
 })
@@ -158,7 +163,7 @@ test('desktop controller only generates local share QR outputs as a fallback', a
 test('desktop controller delegates home transport to a runtime boundary', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const session = await readFile(
-    new URL('../src/desktop-backend-session.js', import.meta.url),
+    new URL('../src/desktop-backend-session.ts', import.meta.url),
     'utf8'
   )
   const actions = await readFile(
@@ -184,7 +189,10 @@ test('desktop controller delegates home transport to a runtime boundary', async 
 
   assert.match(host, /createDesktopBackendRuntime/)
   assert.match(session, /homeRuntime = backendHost\.homeRuntime/)
-  assert.match(session, /onHomeControl: \(message, peer\) => controlActions\.handleControl/)
+  assert.match(
+    session,
+    /onHomeControl: \(message: unknown, peer: unknown\) =>\s*controlActions\.handleControl/
+  )
   assert.match(
     controlActions,
     /async function handleControl\(message: ControlMessage, peer\?: unknown\)/
@@ -201,7 +209,7 @@ test('desktop controller delegates home transport to a runtime boundary', async 
 test('desktop controller delegates direct message runtime and storage to a boundary', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const session = await readFile(
-    new URL('../src/desktop-backend-session.js', import.meta.url),
+    new URL('../src/desktop-backend-session.ts', import.meta.url),
     'utf8'
   )
   const actions = await readFile(
@@ -225,7 +233,7 @@ test('desktop controller delegates direct message runtime and storage to a bound
 test('desktop controller uses one backend runtime facade for long lived runtimes', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const session = await readFile(
-    new URL('../src/desktop-backend-session.js', import.meta.url),
+    new URL('../src/desktop-backend-session.ts', import.meta.url),
     'utf8'
   )
   const host = await readFile(
@@ -233,7 +241,7 @@ test('desktop controller uses one backend runtime facade for long lived runtimes
     'utf8'
   )
   const localBackend = await readFile(
-    new URL('../desktop/local-backend.js', import.meta.url),
+    new URL('../desktop/local-backend.ts', import.meta.url),
     'utf8'
   )
 

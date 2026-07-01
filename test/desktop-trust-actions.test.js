@@ -1,5 +1,14 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
+import {
+  canContactAccessHome,
+  canSendMessageRequest,
+  createContactBook,
+  getContact,
+  recordOutgoingFriendRequest,
+  revokeContact,
+  trustContact
+} from '../src/contact-book.ts'
 import { createDesktopTrustActions } from '../src/desktop-trust-actions.ts'
 
 function createHarness(overrides = {}) {
@@ -7,7 +16,7 @@ function createHarness(overrides = {}) {
   let homeJoinDetails = { profileId: 'local', treeholePolicy: { trusted: [] } }
   let selectedRecipientProfileId = 'friend'
   const context = {
-    contactBook: { ownerProfileId: 'local' },
+    contactBook: createContactBook({ ownerProfileId: 'local' }),
     profile: {
       id: 'local',
       identity: { publicKey: 'local-public' }
@@ -29,11 +38,6 @@ function createHarness(overrides = {}) {
     }
   }
   const actions = createDesktopTrustActions({
-    applyProfileTrustQr: ({ alias, uri }) => ({
-      book: { trustedAlias: alias, trustedUri: uri },
-      profileId: 'friend',
-      treeholePolicy: { trusted: ['friend'] }
-    }),
     configureTreeholeRuntime: () => calls.push(['treehole.configure']),
     createContactRevoke: ({ profileId, selectedRecipientProfileId, threads }) => ({
       book: { revoked: profileId },
@@ -47,11 +51,21 @@ function createHarness(overrides = {}) {
     getProfileContext: () => context,
     getSelectedRecipientProfileId: () => selectedRecipientProfileId,
     onChanged: () => calls.push(['render']),
+    readProfileTrustQr: ({ uri }) => {
+      calls.push(['readProfileQr', uri])
+      return {
+        createdAt: 123,
+        displayName: 'Ada',
+        kind: 'profile_request_target',
+        profileId: 'friend'
+      }
+    },
     setContextFormDraft: (draft) => calls.push(['form.draft', draft]),
     setDirectComposerRecipient: (profileId) => {
       selectedRecipientProfileId = profileId
       calls.push(['composer.recipient', profileId])
     },
+    setProfileRequestTarget: (target) => calls.push(['request.target', target]),
     setHomeJoinDetails: (nextDetails) => {
       homeJoinDetails = nextDetails
     },
@@ -71,10 +85,10 @@ function createHarness(overrides = {}) {
   }
 }
 
-test('desktop trust actions apply profile QR trust and refresh active treehole policy', () => {
+test('desktop trust actions prepare a friend request target from a profile QR', () => {
   const harness = createHarness()
 
-  harness.actions.trustProfileUri({
+  harness.actions.prepareProfileRequestTarget({
     alias: 'Ada',
     displayName: 'Neil',
     uri: 'kepos://profile'
@@ -82,14 +96,77 @@ test('desktop trust actions apply profile QR trust and refresh active treehole p
 
   assert.deepEqual(harness.homeJoinDetails, {
     profileId: 'local',
-    treeholePolicy: { trusted: ['friend'] }
+    treeholePolicy: { trusted: [] }
   })
   assert.deepEqual(harness.calls, [
-    ['saveContactBook', { trustedAlias: 'Ada', trustedUri: 'kepos://profile' }],
-    ['treehole.configure'],
+    ['readProfileQr', 'kepos://profile'],
+    ['composer.recipient', 'friend'],
+    [
+      'request.target',
+      {
+        avatar: {
+          initials: 'A',
+          label: 'Ada avatar',
+          tone: 'avatarTone3'
+        },
+        canOpenProfile: true,
+        canSendRequest: true,
+        copy: 'Write a message below to send the request.',
+        displayName: 'Ada',
+        profileId: 'friend',
+        relationshipState: 'new',
+        shortProfileId: 'friend...friend',
+        statusLabel: 'Friend request'
+      }
+    ],
     ['form.draft', { trustAlias: '', trustQrUri: '' }],
-    ['notice', 'Trusted friend added.'],
+    ['notice', 'Friend request target ready.'],
     ['render']
+  ])
+})
+
+test('desktop trust actions mark repeated profile QR requests as pending', () => {
+  const contactBook = recordOutgoingFriendRequest(createContactBook({ ownerProfileId: 'local' }), {
+    alias: 'Ada',
+    profileId: 'friend',
+    requestedAt: 1000,
+    requestId: 'request-1',
+    text: 'hello'
+  })
+  const harness = createHarness({
+    getProfileContext: () => ({
+      contactBook,
+      profile: {
+        id: 'local',
+        identity: { publicKey: 'local-public' }
+      },
+      saveContactBook: (book) => harness.calls.push(['saveContactBook', book])
+    })
+  })
+
+  harness.actions.prepareProfileRequestTarget({ uri: 'kepos://profile' })
+
+  assert.deepEqual(harness.calls.slice(0, 3), [
+    ['readProfileQr', 'kepos://profile'],
+    ['composer.recipient', 'friend'],
+    [
+      'request.target',
+      {
+        avatar: {
+          initials: 'A',
+          label: 'Ada avatar',
+          tone: 'avatarTone3'
+        },
+        canOpenProfile: true,
+        canSendRequest: false,
+        copy: 'You already sent a request. Wait for them to accept.',
+        displayName: 'Ada',
+        profileId: 'friend',
+        relationshipState: 'outgoing_request',
+        shortProfileId: 'friend...friend',
+        statusLabel: 'Request sent'
+      }
+    ]
   ])
 })
 
@@ -110,15 +187,59 @@ test('desktop trust actions revoke contact threads and clear selected direct rec
     ['dm.closeThreads', ['thread-1']],
     ['treehole.configure'],
     ['composer.recipient', ''],
-    ['notice', 'Trust revoked.'],
+    ['notice', 'Friend removed.'],
     ['render']
   ])
 })
 
-test('desktop trust actions ignore empty profile QR trust input', () => {
+test('desktop trust actions allow requests again without restoring revoked trust', async () => {
+  let contactBook = revokeContact(
+    trustContact(createContactBook({ ownerProfileId: 'local' }), {
+      alias: 'Ada',
+      displayNameSnapshot: 'Ada Lovelace',
+      homeAddress: 'home-b',
+      profileId: 'friend',
+      trustedAt: 1000
+    }),
+    { profileId: 'friend', revokedAt: 2000 }
+  )
+  const harness = createHarness({
+    getProfileContext: () => ({
+      contactBook,
+      profile: {
+        id: 'local',
+        identity: { publicKey: 'local-public' }
+      },
+      saveContactBook: (book) => {
+        contactBook = book
+        harness.calls.push(['saveContactBook', book])
+      }
+    })
+  })
+
+  await harness.actions.allowContactRequests('friend')
+
+  assert.equal(canSendMessageRequest(contactBook, 'friend'), true)
+  assert.equal(canContactAccessHome(contactBook, 'friend'), false)
+  assert.equal(getContact(contactBook, 'friend').trustedAt, undefined)
+  assert.deepEqual(harness.homeJoinDetails, {
+    profileId: 'local',
+    treeholePolicy: {
+      ownerProfileId: 'local',
+      revokedProfileIds: [],
+      trustedProfileIds: []
+    }
+  })
+  assert.deepEqual(
+    harness.calls.map((call) => call[0]),
+    ['saveContactBook', 'treehole.configure', 'notice', 'render']
+  )
+})
+
+test('desktop trust actions ignore empty profile request target input', () => {
   const harness = createHarness()
 
-  harness.actions.trustProfileUri({ uri: '' })
+  harness.actions.prepareProfileRequestTarget({ uri: '' })
 
   assert.deepEqual(harness.calls, [])
 })

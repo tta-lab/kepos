@@ -45,6 +45,34 @@ describe('profile home model', () => {
     assert.equal(isHomePolicy('friends'), false)
   })
 
+  test('home room creation fails closed without secure random bytes', () => {
+    const originalCrypto = Object.getOwnPropertyDescriptor(globalThis, 'crypto')
+    const originalRandom = Math.random
+
+    try {
+      Object.defineProperty(globalThis, 'crypto', {
+        configurable: true,
+        value: undefined
+      })
+      Math.random = () => {
+        throw new Error('Math.random must not generate home room keys')
+      }
+
+      assert.throws(
+        () =>
+          createHomeRoom({
+            ownerProfileId: PUBLIC_KEY_A
+          }),
+        /Secure random id source is required/
+      )
+    } finally {
+      Math.random = originalRandom
+      if (originalCrypto) {
+        Object.defineProperty(globalThis, 'crypto', originalCrypto)
+      }
+    }
+  })
+
   test('home room creation requires an owner profile id', () => {
     assert.throws(
       () =>

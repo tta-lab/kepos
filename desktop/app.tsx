@@ -5,10 +5,10 @@ import { createRoot } from 'react-dom/client'
 import { flushSync } from 'react-dom'
 import { X } from 'lucide-react'
 import { useDesktopAppModel } from './app-state.ts'
-import { ContextPanel } from './context-components.jsx'
-import { DirectPane, HomePane, TreeholePane } from './pane-components.jsx'
-import { PeoplePane } from './people-components.jsx'
-import { AppRail, HomeStatusPanel, Topbar } from './shell-components.jsx'
+import { ContextPanel } from './context-components.tsx'
+import { DirectPane, HomePane, TreeholePane } from './pane-components.tsx'
+import { PeoplePane } from './people-components.tsx'
+import { AppRail, HomeStatusPanel, Topbar } from './shell-components.tsx'
 import { ActionButton } from './ui-components.tsx'
 
 type LargeQrState = {
@@ -21,7 +21,7 @@ function DesktopApp() {
   const model = useDesktopAppModel()
   const navBadges = {
     direct: model.directMessages.filter((message) => message.actions).length,
-    people: model.people.messageRequests.length
+    people: model.people.messageRequests.length + (model.people.outgoingRequests || []).length
   }
 
   return (
@@ -39,7 +39,9 @@ function DesktopApp() {
           <HomePane
             activeTab={model.activeTab}
             controls={model.controls}
+            homeOwner={model.homeOwner}
             messages={model.homeMessages}
+            onOpenOwnerProfile={model.peopleActions.openProfile}
             onSend={model.homeComposerActions.sendHomeMessage}
           />
 
@@ -52,7 +54,10 @@ function DesktopApp() {
             controls={model.controls}
             messageActions={model.directMessageActions}
             messages={model.directMessages}
+            onOpenProfile={model.peopleActions.openProfile}
+            requestTarget={model.profileRequestTarget}
             setComposer={model.setDirectComposer}
+            threads={model.directThreads}
           />
 
           <TreeholePane
@@ -66,12 +71,15 @@ function DesktopApp() {
           <PeoplePane
             activeTab={model.activeTab}
             actions={model.peopleActions}
+            blockedContacts={model.people.blockedContacts}
             messageRequests={model.people.messageRequests}
+            outgoingRequests={model.people.outgoingRequests}
+            selectedProfile={model.selectedProfile}
             trustedContacts={model.people.trustedContacts}
           />
         </section>
 
-        <aside className='contextPanel' aria-label='Home and people context'>
+        <aside className='contextPanel' aria-label='Home and Contacts context'>
           <ContextPanel
             actions={model.contextFormActions}
             controls={model.controls}

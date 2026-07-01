@@ -18,6 +18,7 @@ describe('desktop state', () => {
     assert.equal(state.notice, 'Create or join a home.')
     assert.deepEqual(state.messages, [])
     assert.deepEqual(state.treeholePosts, [])
+    assert.equal(state.activeHomeOwnerProfileId, '')
   })
 
   test('setDesktopRoom enters a room with visible peer metadata', () => {
@@ -25,6 +26,7 @@ describe('desktop state', () => {
       mode: 'host',
       roomKey: 'a'.repeat(64),
       nick: 'Neil',
+      ownerProfileId: 'owner-profile',
       peers: 1
     })
 
@@ -33,6 +35,7 @@ describe('desktop state', () => {
     assert.equal(state.roomKey, 'a'.repeat(64))
     assert.equal(state.nick, 'Neil')
     assert.equal(state.peers, 1)
+    assert.equal(state.activeHomeOwnerProfileId, 'owner-profile')
   })
 
   test('setDesktopTreehole stores ready status and feed posts', () => {
@@ -81,18 +84,18 @@ describe('desktop state', () => {
   })
 
   test('getDesktopTreeholeStatus maps internal states to product words', () => {
-    assert.equal(getDesktopTreeholeStatus(createDesktopState()), 'Treehole offline')
+    assert.equal(getDesktopTreeholeStatus(createDesktopState()), 'My treehole offline')
     assert.equal(
       getDesktopTreeholeStatus(setDesktopTreehole(createDesktopState(), { status: 'starting' })),
-      'Syncing treehole'
+      'Syncing posts'
     )
     assert.equal(
       getDesktopTreeholeStatus(setDesktopTreehole(createDesktopState(), { status: 'ready' })),
-      'Treehole ready'
+      'My treehole ready'
     )
     assert.equal(
       getDesktopTreeholeStatus(setDesktopTreehole(createDesktopState(), { status: 'waiting' })),
-      'Syncing treehole'
+      'Syncing posts'
     )
   })
 })

@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { createDesktopRoomActions } from '../src/desktop-room-actions.ts'
+import { createSignedHomeAddressPayload } from '../src/signed-qr-payload.ts'
+import { createSigningKeyPair } from '../src/signed-record.ts'
 
 function createHarness(overrides = {}) {
   const calls = []
@@ -49,6 +51,7 @@ function createHarness(overrides = {}) {
         displayName,
         id: 'profile-1'
       },
+      saveContactBook: (book) => calls.push(['contactBook.save', book]),
       storage: { key: 'storage' }
     }),
     getTreeholeRuntime: () => ({
@@ -163,6 +166,148 @@ test('desktop room actions join a home from QR details', async () => {
   assert.deepEqual(
     harness.calls.filter(([name]) => name === 'treehole.open' || name === 'home.requestHomeHello'),
     []
+  )
+})
+
+test('desktop room actions persist a trusted contact descriptor from Home QR', async () => {
+  const savedBook = { ownerProfileId: 'profile-1', saved: true }
+  const harness = createHarness({
+    applyHomeQr: ({ uri }) => ({
+      address: `address:${uri}`,
+      book: savedBook,
+      ownerProfileId: 'owner-from-qr',
+      policy: 'trusted_only',
+      roomKey: `room:${uri}`
+    })
+  })
+
+  await harness.actions.joinHomeUri({ displayName: 'Friend', uri: 'kepos://home' })
+
+  assert.deepEqual(
+    harness.calls.filter(([name]) => name === 'contactBook.save'),
+    [['contactBook.save', savedBook]]
+  )
+})
+
+test('desktop room actions enter a trusted contact Home from saved descriptor', async () => {
+  const friend = createSigningKeyPair()
+  const descriptor = createSignedHomeAddressPayload({
+    address: 'a'.repeat(64),
+    createdAt: 1000,
+    identity: friend,
+    policy: 'trusted_only',
+    roomKey: 'b'.repeat(64)
+  })
+  const contactBook = {
+    contactsByProfileId: new Map([
+      [
+        friend.publicKey,
+        {
+          alias: 'Ada',
+          homeAddress: descriptor.address,
+          homePolicy: 'trusted_only',
+          homeRoomKey: descriptor.roomKey,
+          profileId: friend.publicKey,
+          proof: descriptor.proof,
+          trustedAt: 1000
+        }
+      ]
+    ]),
+    ownerProfileId: 'profile-1'
+  }
+  const harness = createHarness({
+    getProfileContext: (displayName = 'Neil') => ({
+      contactBook,
+      profile: {
+        displayName,
+        id: 'profile-1'
+      },
+      saveContactBook: (book) => harness.calls.push(['contactBook.save', book]),
+      storage: { key: 'storage' }
+    })
+  })
+
+  await harness.actions.enterContactHome({ displayName: 'Friend', profileId: friend.publicKey })
+
+  assert.equal(harness.homeJoinDetails.ownerProfileId, friend.publicKey)
+  assert.equal(harness.homeJoinDetails.roomKey, 'b'.repeat(64))
+  assert.equal(harness.state.treeholeStatus, 'waiting-for-bootstrap')
+})
+
+test('desktop room actions reject a saved contact Home descriptor with invalid proof', async () => {
+  const friend = createSigningKeyPair()
+  const descriptor = createSignedHomeAddressPayload({
+    address: 'a'.repeat(64),
+    createdAt: 1000,
+    identity: friend,
+    policy: 'trusted_only',
+    roomKey: 'b'.repeat(64)
+  })
+  const contactBook = {
+    contactsByProfileId: new Map([
+      [
+        friend.publicKey,
+        {
+          alias: 'Ada',
+          homeAddress: descriptor.address,
+          homePolicy: 'trusted_only',
+          homeRoomKey: 'c'.repeat(64),
+          profileId: friend.publicKey,
+          proof: descriptor.proof,
+          trustedAt: 1000
+        }
+      ]
+    ]),
+    ownerProfileId: 'profile-1'
+  }
+  const harness = createHarness({
+    getProfileContext: (displayName = 'Neil') => ({
+      contactBook,
+      profile: {
+        displayName,
+        id: 'profile-1'
+      },
+      saveContactBook: (book) => harness.calls.push(['contactBook.save', book]),
+      storage: { key: 'storage' }
+    })
+  })
+
+  await assert.rejects(
+    () => harness.actions.enterContactHome({ displayName: 'Friend', profileId: friend.publicKey }),
+    /Invalid saved Home descriptor/
+  )
+  assert.equal(harness.homeJoinDetails, null)
+})
+
+test('desktop room actions reject contact Home entry without a saved descriptor', async () => {
+  const contactBook = {
+    contactsByProfileId: new Map([
+      [
+        'profile-a',
+        {
+          alias: 'Ada',
+          profileId: 'profile-a',
+          trustedAt: 1000
+        }
+      ]
+    ]),
+    ownerProfileId: 'profile-1'
+  }
+  const harness = createHarness({
+    getProfileContext: (displayName = 'Neil') => ({
+      contactBook,
+      profile: {
+        displayName,
+        id: 'profile-1'
+      },
+      saveContactBook: (book) => harness.calls.push(['contactBook.save', book]),
+      storage: { key: 'storage' }
+    })
+  })
+
+  await assert.rejects(
+    () => harness.actions.enterContactHome({ displayName: 'Friend', profileId: 'profile-a' }),
+    /saved Home descriptor/
   )
 })
 

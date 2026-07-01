@@ -9,6 +9,7 @@ export type MobileThemeTokens = {
   disabled: string
   disabledBorder: string
   field: string
+  info: string
   iconMuted: string
   ink: string
   inkMuted: string
@@ -22,9 +23,11 @@ export type MobileThemeTokens = {
   statusBar: 'dark-content' | 'light-content'
   statusDot: string
   statusText: string
+  success: string
   surface: string
   treeComment: string
   treeCommentBorder: string
+  warning: string
 }
 
 export type MobileThemeName = 'neoCozy' | 'indieConsole'
@@ -41,6 +44,7 @@ export const mobileThemes: Record<MobileThemeName, MobileThemeTokens> = {
     disabled: '#b7bdae',
     disabledBorder: '#c6cdc1',
     field: '#fffdf7',
+    info: '#3b6d8f',
     iconMuted: '#56715f',
     ink: '#162119',
     inkMuted: '#6f766b',
@@ -54,9 +58,11 @@ export const mobileThemes: Record<MobileThemeName, MobileThemeTokens> = {
     statusBar: 'dark-content',
     statusDot: '#2f8f61',
     statusText: '#324137',
+    success: '#2f8f61',
     surface: '#fffaf0',
     treeComment: '#f4f6ed',
-    treeCommentBorder: '#9bb68d'
+    treeCommentBorder: '#9bb68d',
+    warning: '#b7791f'
   },
   indieConsole: {
     accent: '#ffcf3d',
@@ -69,6 +75,7 @@ export const mobileThemes: Record<MobileThemeName, MobileThemeTokens> = {
     disabled: '#4a5269',
     disabledBorder: '#4a5269',
     field: '#11182b',
+    info: '#7fd7ff',
     iconMuted: '#a9b1cf',
     ink: '#f8f2df',
     inkMuted: '#a9b1cf',
@@ -82,9 +89,11 @@ export const mobileThemes: Record<MobileThemeName, MobileThemeTokens> = {
     statusBar: 'light-content',
     statusDot: '#ffcf3d',
     statusText: '#f8f2df',
+    success: '#69e4a6',
     surface: '#171d33',
     treeComment: '#202a4a',
-    treeCommentBorder: '#ffcf3d'
+    treeCommentBorder: '#ffcf3d',
+    warning: '#ff9f43'
   }
 }
 

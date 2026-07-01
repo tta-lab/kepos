@@ -1,6 +1,23 @@
 /* global document */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import {
+  createProfileRecentPostsViewModel,
+  type ProfileRecentPostCache,
+  type ProfileRecentTreeholePost
+} from '../src/profile-recent-posts-view-model.ts'
+import {
+  loadProfileRecentPostCacheFromStorage,
+  saveProfileRecentPostCacheToStorage,
+  updateProfileRecentPostCache
+} from '../src/profile-recent-post-cache-storage.ts'
+import { createRequestTargetProfileViewModel as createSharedRequestTargetProfileViewModel } from '../src/request-target-profile-view-model.ts'
+import type {
+  BlockedContactView,
+  MessageRequestView,
+  OutgoingRequestView,
+  TrustedContactView
+} from './people-components.tsx'
 
 type ThemeName = 'light' | 'dark'
 type UiAction = (...args: unknown[]) => unknown
@@ -27,6 +44,7 @@ type ControlsState = {
   canUseTrustProfile: boolean
 }
 type ContextFormState = {
+  avatarUri: string
   displayName: string
   homeQrUri: string
   roomKey: string
@@ -44,8 +62,32 @@ type ShareQrOutputsState = {
   profileSvg: string
   profileUri: string
 }
+type ProfileRequestTargetState = {
+  avatar?: {
+    imageUri?: string
+    initials: string
+    label: string
+    tone: string
+  }
+  canOpenProfile?: boolean
+  canSendRequest?: boolean
+  copy?: string
+  displayName?: string
+  relationshipState?: string
+  shortProfileId?: string
+  statusLabel?: string
+  profileId: string
+} | null
 
 type DirectMessageView = { actions?: unknown; [key: string]: unknown }
+type DirectThreadView = { [key: string]: unknown }
+type HomeOwnerState = {
+  actionLabel?: string
+  canOpenProfile: boolean
+  ownerProfileId: string
+  subtitle: string
+  title: string
+}
 type DirectContactPickerState = {
   contacts: unknown[]
   empty: {
@@ -59,8 +101,10 @@ type DirectComposerState = {
   toProfileId: string
 }
 type PeopleState = {
-  messageRequests: unknown[]
-  trustedContacts: unknown[]
+  blockedContacts: BlockedContactView[]
+  messageRequests: MessageRequestView[]
+  outgoingRequests: OutgoingRequestView[]
+  trustedContacts: TrustedContactView[]
 }
 
 type ContextFormActions = Record<
@@ -71,7 +115,9 @@ type ContextFormActions = Record<
   | 'joinManualHome'
   | 'showLargeHomeQr'
   | 'showLargeProfileQr'
-  | 'trustProfileQr'
+  | 'prepareProfileRequestTarget'
+  | 'updateAvatarMedia'
+  | 'updateAvatarUri'
   | 'updateDisplayName',
   UiAction
 >
@@ -80,14 +126,23 @@ type DirectComposerActions = Record<'sendDirectMessage' | 'updateRecipient', UiA
 type DirectMessageActions = Record<'acceptMessage' | 'ignoreMessage', UiAction>
 type HomeComposerActions = Record<'sendHomeMessage', UiAction>
 type PeopleActions = Record<
-  'acceptMessageRequest' | 'ignoreMessageRequest' | 'revokeContact',
+  | 'acceptMessageRequest'
+  | 'allowContactRequests'
+  | 'closeProfile'
+  | 'enterContactHome'
+  | 'ignoreMessageRequest'
+  | 'messageContact'
+  | 'openProfile'
+  | 'revokeContact',
   UiAction
 >
+type BackendPeopleActions = Omit<PeopleActions, 'closeProfile' | 'openProfile'>
 type ShellActions = Record<'hideLargeQr' | 'leaveHome' | 'setTab', UiAction>
 type TreeholeActions = Record<'commentPost' | 'likePost', UiAction>
 type TreeholeComposerActions = Record<'postTreehole', UiAction>
 
 type DesktopUiBridge = {
+  setActiveHomeOwnerProfileId: (profileId: string) => void
   setActiveTab: (tab: ActiveTab) => void
   setContextFormActions: (actions: ContextFormActions) => void
   setContextFormDraft: (draft?: Partial<ContextFormState>) => void
@@ -98,11 +153,14 @@ type DesktopUiBridge = {
   setDirectContactPickerActions: (actions: DirectContactPickerActions) => void
   setDirectMessageActions: (actions: DirectMessageActions) => void
   setDirectMessages: (messages: DirectMessageView[]) => void
+  setDirectThreads: (threads: DirectThreadView[]) => void
   setHomeComposerActions: (actions: HomeComposerActions) => void
   setHomeMessages: (messages: unknown[]) => void
+  setHomeOwner: (owner: HomeOwnerState) => void
   setLargeQr: (qr: LargeQrState) => void
   setPeople: (people: PeopleState) => void
-  setPeopleActions: (actions: PeopleActions) => void
+  setPeopleActions: (actions: BackendPeopleActions) => void
+  setProfileRequestTarget: (target: ProfileRequestTargetState) => void
   setShareQrOutputs: (outputs: ShareQrOutputsState) => void
   setShellActions: (actions: ShellActions) => void
   setShellBusy: (isBusy: boolean) => void
@@ -113,6 +171,7 @@ type DesktopUiBridge = {
 }
 
 type DesktopUiApi = {
+  setActiveHomeOwnerProfileId(profileId?: string): void
   setActiveTab(tab?: ActiveTab): void
   setContextFormActions(actions?: ContextFormActions): void
   setContextFormDraft(draft?: Partial<ContextFormState>): void
@@ -123,11 +182,14 @@ type DesktopUiApi = {
   setDirectContactPickerActions(actions?: DirectContactPickerActions): void
   setDirectMessageActions(actions?: DirectMessageActions): void
   setDirectMessages(messages?: DirectMessageView[]): void
+  setDirectThreads(threads?: DirectThreadView[]): void
   setHomeComposerActions(actions?: HomeComposerActions): void
   setHomeMessages(messages?: unknown[]): void
+  setHomeOwner(owner?: HomeOwnerState): void
   setLargeQr(qr?: LargeQrState): void
   setPeople(people?: PeopleState): void
-  setPeopleActions(actions?: PeopleActions): void
+  setPeopleActions(actions?: BackendPeopleActions): void
+  setProfileRequestTarget(target?: ProfileRequestTargetState): void
   setShareQrOutputs(outputs?: ShareQrOutputsState): void
   setShellActions(actions?: ShellActions): void
   setShellBusy(isBusy?: boolean): void
@@ -147,7 +209,7 @@ const DEFAULT_STATUS = {
   profileIdLabel: 'not ready',
   roomKeyLabel: 'not joined',
   transportDebugLabel: 'none',
-  treeholeStatusLabel: 'Treehole offline'
+  treeholeStatusLabel: 'My treehole offline'
 }
 const DEFAULT_CONTROLS = {
   canCreateHome: true,
@@ -160,6 +222,7 @@ const DEFAULT_CONTROLS = {
   canUseTrustProfile: false
 }
 const DEFAULT_CONTEXT_FORM = {
+  avatarUri: '',
   displayName: 'Desktop',
   homeQrUri: '',
   roomKey: '',
@@ -173,6 +236,12 @@ const EMPTY_SHARE_QR_OUTPUTS = {
   profileSvg: '',
   profileUri: ''
 }
+const DEFAULT_HOME_OWNER = {
+  canOpenProfile: false,
+  ownerProfileId: '',
+  subtitle: 'Live chat and presence',
+  title: 'Home'
+}
 const DEFAULT_CONTEXT_FORM_ACTIONS: ContextFormActions = {
   copyHomeQr: () => {},
   copyProfileQr: () => {},
@@ -181,7 +250,9 @@ const DEFAULT_CONTEXT_FORM_ACTIONS: ContextFormActions = {
   joinManualHome: () => {},
   showLargeHomeQr: () => {},
   showLargeProfileQr: () => {},
-  trustProfileQr: () => {},
+  prepareProfileRequestTarget: () => {},
+  updateAvatarMedia: () => {},
+  updateAvatarUri: () => {},
   updateDisplayName: () => {}
 }
 const DEFAULT_DIRECT_COMPOSER_ACTIONS: DirectComposerActions = {
@@ -199,9 +270,12 @@ const DEFAULT_DIRECT_MESSAGE_ACTIONS: DirectMessageActions = {
 const DEFAULT_HOME_COMPOSER_ACTIONS: HomeComposerActions = {
   sendHomeMessage: () => {}
 }
-const DEFAULT_PEOPLE_ACTIONS: PeopleActions = {
+const DEFAULT_BACKEND_PEOPLE_ACTIONS: BackendPeopleActions = {
   acceptMessageRequest: () => {},
+  allowContactRequests: () => {},
+  enterContactHome: () => {},
   ignoreMessageRequest: () => {},
+  messageContact: () => {},
   revokeContact: () => {}
 }
 const DEFAULT_SHELL_ACTIONS: ShellActions = {
@@ -218,6 +292,7 @@ const DEFAULT_TREEHOLE_COMPOSER_ACTIONS: TreeholeComposerActions = {
 }
 const NOOP_SET_STATE = () => {}
 const desktopUiBridge: DesktopUiBridge = {
+  setActiveHomeOwnerProfileId: NOOP_SET_STATE,
   setActiveTab: NOOP_SET_STATE,
   setContextFormActions: NOOP_SET_STATE,
   setContextFormDraft: () => {},
@@ -228,11 +303,14 @@ const desktopUiBridge: DesktopUiBridge = {
   setDirectContactPickerActions: NOOP_SET_STATE,
   setDirectMessageActions: NOOP_SET_STATE,
   setDirectMessages: NOOP_SET_STATE,
+  setDirectThreads: NOOP_SET_STATE,
   setHomeComposerActions: NOOP_SET_STATE,
   setHomeMessages: NOOP_SET_STATE,
+  setHomeOwner: NOOP_SET_STATE,
   setLargeQr: NOOP_SET_STATE,
   setPeople: NOOP_SET_STATE,
   setPeopleActions: NOOP_SET_STATE,
+  setProfileRequestTarget: NOOP_SET_STATE,
   setShareQrOutputs: NOOP_SET_STATE,
   setShellActions: NOOP_SET_STATE,
   setShellBusy: NOOP_SET_STATE,
@@ -243,6 +321,9 @@ const desktopUiBridge: DesktopUiBridge = {
 }
 
 ;(globalThis as DesktopGlobal).keposDesktopUi = {
+  setActiveHomeOwnerProfileId(profileId = '') {
+    desktopUiBridge.setActiveHomeOwnerProfileId(profileId)
+  },
   setActiveTab(tab = 'chat') {
     desktopUiBridge.setActiveTab(tab)
   },
@@ -265,9 +346,9 @@ const desktopUiBridge: DesktopUiBridge = {
     picker = {
       contacts: [],
       empty: {
-        actionLabel: 'Add trusted friend',
-        copy: 'Add a trusted friend before starting a direct message.',
-        title: 'No trusted friends yet'
+        actionLabel: 'Open Contacts',
+        copy: 'Open Contacts to scan a profile or accept a friend request.',
+        title: 'No message threads yet'
       }
     }
   ) {
@@ -282,20 +363,31 @@ const desktopUiBridge: DesktopUiBridge = {
   setDirectMessages(messages = []) {
     desktopUiBridge.setDirectMessages(messages)
   },
+  setDirectThreads(threads = []) {
+    desktopUiBridge.setDirectThreads(threads)
+  },
   setHomeComposerActions(actions = DEFAULT_HOME_COMPOSER_ACTIONS) {
     desktopUiBridge.setHomeComposerActions(actions)
   },
   setHomeMessages(messages = []) {
     desktopUiBridge.setHomeMessages(messages)
   },
+  setHomeOwner(owner = DEFAULT_HOME_OWNER) {
+    desktopUiBridge.setHomeOwner(owner)
+  },
   setLargeQr(qr = EMPTY_LARGE_QR) {
     desktopUiBridge.setLargeQr(qr)
   },
-  setPeople(people = { messageRequests: [], trustedContacts: [] }) {
+  setPeople(
+    people = { blockedContacts: [], messageRequests: [], outgoingRequests: [], trustedContacts: [] }
+  ) {
     desktopUiBridge.setPeople(people)
   },
-  setPeopleActions(actions = DEFAULT_PEOPLE_ACTIONS) {
+  setPeopleActions(actions = DEFAULT_BACKEND_PEOPLE_ACTIONS) {
     desktopUiBridge.setPeopleActions(actions)
+  },
+  setProfileRequestTarget(target = null) {
+    desktopUiBridge.setProfileRequestTarget(target)
   },
   setShareQrOutputs(outputs = EMPTY_SHARE_QR_OUTPUTS) {
     desktopUiBridge.setShareQrOutputs(outputs)
@@ -321,6 +413,8 @@ const desktopUiBridge: DesktopUiBridge = {
 }
 
 export function useDesktopAppModel() {
+  const [activeHomeOwnerProfileId, setActiveHomeOwnerProfileId] = useState('')
+  const activeHomeOwnerProfileIdRef = useRef('')
   const [activeTab, setActiveTab] = useState<ActiveTab>('chat')
   const [contextForm, setContextForm] = useState(DEFAULT_CONTEXT_FORM)
   const [contextFormActions, setContextFormActions] = useState<ContextFormActions>(
@@ -330,9 +424,9 @@ export function useDesktopAppModel() {
   const [directContactPicker, setDirectContactPicker] = useState<DirectContactPickerState>({
     contacts: [],
     empty: {
-      actionLabel: 'Add trusted friend',
-      copy: 'Add a trusted friend before starting a direct message.',
-      title: 'No trusted friends yet'
+      actionLabel: 'Open Contacts',
+      copy: 'Open Contacts to scan a profile or accept a friend request.',
+      title: 'No message threads yet'
     }
   })
   const [directContactPickerActions, setDirectContactPickerActions] =
@@ -348,13 +442,24 @@ export function useDesktopAppModel() {
     DEFAULT_DIRECT_MESSAGE_ACTIONS
   )
   const [directMessages, setDirectMessages] = useState<DirectMessageView[]>([])
+  const [directThreads, setDirectThreads] = useState<DirectThreadView[]>([])
   const [homeComposerActions, setHomeComposerActions] = useState<HomeComposerActions>(
     DEFAULT_HOME_COMPOSER_ACTIONS
   )
   const [homeMessages, setHomeMessages] = useState<unknown[]>([])
+  const [homeOwner, setHomeOwner] = useState<HomeOwnerState>(DEFAULT_HOME_OWNER)
   const [largeQr, setLargeQr] = useState(EMPTY_LARGE_QR)
-  const [people, setPeople] = useState<PeopleState>({ messageRequests: [], trustedContacts: [] })
-  const [peopleActions, setPeopleActions] = useState<PeopleActions>(DEFAULT_PEOPLE_ACTIONS)
+  const [people, setPeople] = useState<PeopleState>({
+    blockedContacts: [],
+    messageRequests: [],
+    outgoingRequests: [],
+    trustedContacts: []
+  })
+  const [backendPeopleActions, setPeopleActions] = useState<BackendPeopleActions>(
+    DEFAULT_BACKEND_PEOPLE_ACTIONS
+  )
+  const [selectedProfileId, setSelectedProfileId] = useState('')
+  const [profileRequestTarget, setProfileRequestTarget] = useState<ProfileRequestTargetState>(null)
   const [shareQrOutputs, setShareQrOutputs] = useState(EMPTY_SHARE_QR_OUTPUTS)
   const [isShellBusy, setShellBusy] = useState(false)
   const [shellActions, setShellActions] = useState<ShellActions>(DEFAULT_SHELL_ACTIONS)
@@ -362,10 +467,18 @@ export function useDesktopAppModel() {
   const [treeholeComposerActions, setTreeholeComposerActions] = useState<TreeholeComposerActions>(
     DEFAULT_TREEHOLE_COMPOSER_ACTIONS
   )
+  const [profileRecentPostCache, setProfileRecentPostCache] = useState<ProfileRecentPostCache>(
+    loadInitialProfileRecentPostCache
+  )
   const [treeholePosts, setTreeholePosts] = useState<unknown[]>([])
   const [status, setStatus] = useState(DEFAULT_STATUS)
   const [theme, setTheme] = useState(getInitialTheme)
 
+  desktopUiBridge.setActiveHomeOwnerProfileId = (profileId) => {
+    const nextProfileId = profileId || ''
+    activeHomeOwnerProfileIdRef.current = nextProfileId
+    setActiveHomeOwnerProfileId(nextProfileId)
+  }
   desktopUiBridge.setActiveTab = (tab) => setActiveTab(tab)
   desktopUiBridge.setContextFormActions = (actions) => setContextFormActions(actions)
   desktopUiBridge.setContextFormDraft = (draft = {}) => {
@@ -381,18 +494,35 @@ export function useDesktopAppModel() {
     setDirectContactPickerActions(actions)
   desktopUiBridge.setDirectMessageActions = (actions) => setDirectMessageActions(actions)
   desktopUiBridge.setDirectMessages = (messages) => setDirectMessages(messages)
+  desktopUiBridge.setDirectThreads = (threads) => setDirectThreads(threads)
   desktopUiBridge.setHomeComposerActions = (actions) => setHomeComposerActions(actions)
   desktopUiBridge.setHomeMessages = (messages) => setHomeMessages(messages)
+  desktopUiBridge.setHomeOwner = (owner) => setHomeOwner(owner)
   desktopUiBridge.setLargeQr = (qr) => setLargeQr(qr)
   desktopUiBridge.setPeople = (nextPeople) => setPeople(nextPeople)
-  desktopUiBridge.setPeopleActions = (actions) => setPeopleActions(actions)
+  desktopUiBridge.setPeopleActions = (actions) =>
+    setPeopleActions({ ...DEFAULT_BACKEND_PEOPLE_ACTIONS, ...actions })
+  desktopUiBridge.setProfileRequestTarget = (target) => setProfileRequestTarget(target)
   desktopUiBridge.setShareQrOutputs = (outputs) => setShareQrOutputs(outputs)
   desktopUiBridge.setShellActions = (actions) => setShellActions(actions)
   desktopUiBridge.setShellBusy = (isBusy) => setShellBusy(isBusy)
   desktopUiBridge.setStatus = (nextStatus) => setStatus(nextStatus)
   desktopUiBridge.setTreeholeActions = (actions) => setTreeholeActions(actions)
   desktopUiBridge.setTreeholeComposerActions = (actions) => setTreeholeComposerActions(actions)
-  desktopUiBridge.setTreeholePosts = (posts) => setTreeholePosts(posts)
+  desktopUiBridge.setTreeholePosts = (posts) => {
+    setTreeholePosts(posts)
+    const ownerProfileId = activeHomeOwnerProfileIdRef.current
+    if (ownerProfileId && posts.length > 0) {
+      setProfileRecentPostCache((current) => {
+        const nextCache = updateProfileRecentPostCache(current, {
+          ownerProfileId,
+          posts: posts as ProfileRecentTreeholePost[]
+        })
+        saveProfileRecentPostCache(nextCache)
+        return nextCache
+      })
+    }
+  }
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
@@ -407,6 +537,33 @@ export function useDesktopAppModel() {
     document.body.setAttribute('aria-busy', String(isShellBusy))
   }, [isShellBusy])
 
+  const peopleActions: PeopleActions = {
+    ...backendPeopleActions,
+    closeProfile: () => setSelectedProfileId(''),
+    openProfile: (profileId) => {
+      setSelectedProfileId(String(profileId || ''))
+      setActiveTab('people')
+    }
+  }
+  const trustedSelectedProfile = people.trustedContacts.find(
+    (contact) => contact.profileId === selectedProfileId
+  )
+  const selectedProfile =
+    (trustedSelectedProfile
+      ? withProfileRecentPosts({
+          activeHomeOwnerProfileId,
+          profileRecentPostCache,
+          profile: trustedSelectedProfile,
+          treeholePosts
+        })
+      : null) ||
+    (profileRequestTarget?.profileId === selectedProfileId
+      ? createRequestTargetProfileViewModel({
+          selectedProfileId,
+          requestTarget: profileRequestTarget
+        })
+      : null)
+
   return {
     activeTab,
     contextForm,
@@ -418,11 +575,15 @@ export function useDesktopAppModel() {
     directContactPickerActions,
     directMessageActions,
     directMessages,
+    directThreads,
     homeComposerActions,
     homeMessages,
+    homeOwner,
     largeQr,
     people,
     peopleActions,
+    profileRequestTarget,
+    selectedProfile,
     setContextForm,
     setDirectComposer,
     setTheme,
@@ -436,6 +597,71 @@ export function useDesktopAppModel() {
   }
 }
 
+function withProfileRecentPosts({
+  activeHomeOwnerProfileId,
+  profileRecentPostCache,
+  profile,
+  treeholePosts
+}: {
+  activeHomeOwnerProfileId: string
+  profileRecentPostCache: ProfileRecentPostCache
+  profile: TrustedContactView
+  treeholePosts: unknown[]
+}): TrustedContactView {
+  return {
+    ...profile,
+    ...createProfileRecentPostsViewModel({
+      activeHomeOwnerProfileId,
+      cachedPostsByProfileId: profileRecentPostCache,
+      formatTime: formatRecentPostTime,
+      posts: treeholePosts as ProfileRecentTreeholePost[],
+      selectedProfileId: profile.profileId
+    })
+  }
+}
+
+function formatRecentPostTime(value: number | string | undefined): string {
+  return new Date(value ?? Date.now()).toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+function createRequestTargetProfileViewModel({
+  selectedProfileId,
+  requestTarget
+}: {
+  selectedProfileId: string
+  requestTarget: ProfileRequestTargetState
+}): TrustedContactView | null {
+  const profile = createSharedRequestTargetProfileViewModel({
+    requestTarget,
+    selectedProfileId,
+    shortenProfileId
+  })
+  if (!profile) return null
+
+  return {
+    alias: profile.displayName,
+    avatar: profile.avatar,
+    canRemove: profile.canRemove,
+    homeActionEnabled: profile.enterHomeEnabled,
+    homeActionLabel: profile.enterHomeLabel,
+    messageActionLabel: profile.messageLabel,
+    profileId: profile.profileId,
+    recentCopy: profile.recentCopy,
+    recentTitle: profile.recentTitle,
+    shortProfileId: profile.shortProfileId,
+    sourceLabel: profile.sourceLabel,
+    statusLabel: profile.statusLabel,
+    trustedAtLabel: profile.trustedAtLabel
+  }
+}
+
+function shortenProfileId(value: string): string {
+  return `${value.slice(0, 8)}...${value.slice(-8)}`
+}
+
 function getInitialTheme(): ThemeName {
   try {
     const savedTheme = globalThis.localStorage?.getItem(THEME_STORAGE_KEY)
@@ -445,4 +671,25 @@ function getInitialTheme(): ThemeName {
   }
 
   return globalThis.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+}
+
+function loadInitialProfileRecentPostCache(): ProfileRecentPostCache {
+  try {
+    return loadProfileRecentPostCacheFromStorage({
+      storage: globalThis.localStorage
+    })
+  } catch {
+    return {}
+  }
+}
+
+function saveProfileRecentPostCache(cache: ProfileRecentPostCache): void {
+  try {
+    saveProfileRecentPostCacheToStorage({
+      cache,
+      storage: globalThis.localStorage
+    })
+  } catch {
+    // Recent posts cache is an optional profile convenience.
+  }
 }

@@ -3,11 +3,91 @@ import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 
 async function readMobileSource() {
-  return await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  return await readFile(new URL('../mobile/App.tsx', import.meta.url), 'utf8')
+}
+
+async function readMobileActionComponentsSource() {
+  return await readFile(new URL('../mobile/action-components.tsx', import.meta.url), 'utf8')
+}
+
+async function readMobileQrComponentsSource() {
+  return await readFile(new URL('../mobile/qr-components.tsx', import.meta.url), 'utf8')
+}
+
+async function readMobilePanelComponentsSource() {
+  return await readFile(new URL('../mobile/panel-components.tsx', import.meta.url), 'utf8')
+}
+
+async function readMobileProfileComponentsSource() {
+  return await readFile(new URL('../mobile/profile-components.tsx', import.meta.url), 'utf8')
+}
+
+async function readMobilePeopleComponentsSource() {
+  return await readFile(new URL('../mobile/people-components.tsx', import.meta.url), 'utf8')
+}
+
+async function readMobileMessageComponentsSource() {
+  return await readFile(new URL('../mobile/message-components.tsx', import.meta.url), 'utf8')
+}
+
+async function readMobileDirectComponentsSource() {
+  return await readFile(new URL('../mobile/direct-components.tsx', import.meta.url), 'utf8')
+}
+
+async function readMobileLobbyComponentsSource() {
+  return await readFile(new URL('../mobile/lobby-components.tsx', import.meta.url), 'utf8')
+}
+
+async function readMobileRoomComponentsSource() {
+  return await readFile(new URL('../mobile/room-components.tsx', import.meta.url), 'utf8')
+}
+
+async function readMobileThreadComponentsSource() {
+  return await readFile(new URL('../mobile/thread-components.tsx', import.meta.url), 'utf8')
+}
+
+async function readMobileFormComponentsSource() {
+  return await readFile(new URL('../mobile/form-components.tsx', import.meta.url), 'utf8')
+}
+
+async function readMobileEmptyComponentsSource() {
+  return await readFile(new URL('../mobile/empty-components.tsx', import.meta.url), 'utf8')
+}
+
+async function readMobileTabComponentsSource() {
+  return await readFile(new URL('../mobile/tab-components.tsx', import.meta.url), 'utf8')
+}
+
+async function readMobileTreeholeComponentsSource() {
+  return await readFile(new URL('../mobile/treehole-components.tsx', import.meta.url), 'utf8')
+}
+
+async function readMobileSetupComponentsSource() {
+  return await readFile(new URL('../mobile/setup-components.tsx', import.meta.url), 'utf8')
+}
+
+async function readMobileStylesSource() {
+  return await readFile(new URL('../mobile/styles.ts', import.meta.url), 'utf8')
+}
+
+async function readMobileChromeComponentsSource() {
+  return await readFile(new URL('../mobile/chrome-components.tsx', import.meta.url), 'utf8')
+}
+
+async function readMobileRequestComponentsSource() {
+  return await readFile(new URL('../mobile/request-components.tsx', import.meta.url), 'utf8')
+}
+
+async function readMobileAvatarViewModelSource() {
+  return await readFile(new URL('../src/mobile-avatar-view-model.ts', import.meta.url), 'utf8')
 }
 
 async function readMobileProductCopySource() {
   return await readFile(new URL('../src/mobile-product-copy.ts', import.meta.url), 'utf8')
+}
+
+async function readMobileProfileBootstrapSource() {
+  return await readFile(new URL('../src/mobile-profile-bootstrap.ts', import.meta.url), 'utf8')
 }
 
 async function readMobileRoomViewModelSource() {
@@ -17,52 +97,100 @@ async function readMobileRoomViewModelSource() {
 test('mobile tabs surface pending direct and people work without changing tab layout', async () => {
   const source = await readMobileSource()
   const copy = await readMobileProductCopySource()
+  const roomComponents = await readMobileRoomComponentsSource()
+  const mobileStyles = await readMobileStylesSource()
+  const tabComponents = await readMobileTabComponentsSource()
+  const peopleComponents = await readMobilePeopleComponentsSource()
   const viewModel = await readMobileRoomViewModelSource()
 
-  assert.match(source, /getMobileTabBadges\(\{ dmMessages, pendingRequests \}\)/)
+  assert.doesNotMatch(source, /@ts-nocheck/)
+  assert.match(source, /import \{ createMobileStyles, type MobileStyles \} from '\.\/styles\.js'/)
+  assert.doesNotMatch(source, /function createMobileStyles\(/)
+  assert.doesNotMatch(source, /type MobileStyles = ReturnType<typeof createMobileStyles>/)
+  assert.match(mobileStyles, /export function createMobileStyles\(/)
+  assert.match(mobileStyles, /export type MobileStyles = ReturnType<typeof createMobileStyles>/)
+  assert.match(peopleComponents, /import type \{ MobileStyles \} from '\.\/styles\.js'/)
+  assert.doesNotMatch(peopleComponents, /type MobileStyles = any/)
+  assert.match(mobileStyles, /StyleSheet\.create\(/)
+  assert.match(mobileStyles, /Platform\.OS === 'android'/)
+  assert.match(mobileStyles, /StatusBar\.currentHeight/)
+  assert.match(source, /import \{ ChatRoom \} from '\.\/room-components\.js'/)
+  assert.doesNotMatch(source, /function ChatRoom\(/)
+  assert.match(roomComponents, /export type ChatRoomProps = \{/)
+  assert.match(
+    roomComponents,
+    /getMobileTabBadges\(\{ dmMessages, outgoingRequests, pendingRequests \}\)/
+  )
   assert.match(
     viewModel,
-    /function getMobileTabBadges\(\{[\s\S]*dmMessages = \[\],[\s\S]*pendingRequests = \[\][\s\S]*\}: MobileTabBadgesInput\)/
+    /function getMobileTabBadges\(\{[\s\S]*dmMessages = \[\],[\s\S]*outgoingRequests = \[\],[\s\S]*pendingRequests = \[\][\s\S]*\}: MobileTabBadgesInput\)/
   )
   assert.match(viewModel, /message\?\.type === 'kepos\.message\.request\.v1'/)
   assert.match(viewModel, /message\?\.direction === 'in'/)
-  assert.match(viewModel, /people: pendingRequests\.length/)
-  assert.match(source, /badgeCount=\{tabBadges\.direct\}[\s\S]*testID='dm-tab'/)
-  assert.match(source, /badgeCount=\{tabBadges\.people\}[\s\S]*testID='people-tab'/)
-  assert.match(source, /function TabButton\(\{ active, badgeCount = 0, icon: Icon, label/)
-  assert.match(source, /accessibilityLabel=\{getMobileTabButtonLabel\(label, badgeCount\)\}/)
+  assert.match(viewModel, /people: pendingRequests\.length \+ outgoingRequests\.length/)
+  assert.match(roomComponents, /badgeCount=\{tabBadges\.direct\}[\s\S]*testID='dm-tab'/)
+  assert.match(roomComponents, /badgeCount=\{tabBadges\.people\}[\s\S]*testID='people-tab'/)
+  assert.match(roomComponents, /import \{ TabButton,[\s\S]*\} from '\.\/tab-components\.js'/)
+  assert.doesNotMatch(source, /function TabButton\(/)
+  assert.match(tabComponents, /export type TabButtonProps = \{/)
+  assert.match(tabComponents, /function TabButton\(\{[\s\S]*badgeCount = 0,[\s\S]*icon: Icon/)
+  assert.match(tabComponents, /accessibilityLabel=\{getMobileTabButtonLabel\(label, badgeCount\)\}/)
   assert.match(copy, /function getMobileTabButtonLabel\(label: string, badgeCount: number\) \{/)
   assert.match(copy, /return `\$\{label\}, \$\{badgeCount\} pending`/)
   assert.match(
-    source,
+    tabComponents,
     /<View style=\{styles\.tabBadge\} accessibilityLabel=\{`\$\{label\} pending \$\{badgeCount\}`\}>/
   )
-  assert.match(source, /\{formatPendingBadgeCount\(badgeCount\)\}/)
+  assert.match(tabComponents, /\{formatPendingBadgeCount\(badgeCount\)\}/)
   assert.match(copy, /function formatPendingBadgeCount\(badgeCount: number\) \{/)
   assert.match(copy, /return badgeCount > 99 \? '99\+' : String\(badgeCount\)/)
-  assert.match(source, /tabBadge: \{/)
-  assert.match(source, /tabBadgeText: \{/)
-  assert.match(source, /\bHeart,\n\s+House,/)
-  assert.match(source, /icon=\{House\}[\s\S]*label='Home'/)
+  assert.match(mobileStyles, /tabBadge: \{/)
+  assert.match(mobileStyles, /tabBadgeText: \{/)
+  assert.match(roomComponents, /getProductSurfaceLabel/)
+  assert.match(roomComponents, /icon=\{House\}[\s\S]*label=\{getProductSurfaceLabel\('chat'\)\}/)
+  assert.match(roomComponents, /iconColor=\{theme\.iconMuted\}/)
+  assert.match(roomComponents, /selectedIconColor=\{theme\.surface\}/)
+  assert.match(roomComponents, /styles=\{styles\}/)
+  assert.match(
+    roomComponents,
+    /testID='dm-tab'[\s\S]*icon=\{Users\}[\s\S]*label=\{getProductSurfaceLabel\('people'\)\}[\s\S]*testID='people-tab'[\s\S]*icon=\{Sprout\}[\s\S]*label=\{getProductSurfaceLabel\('treehole'\)\}/
+  )
   assert.doesNotMatch(source, /\bDoorOpen,/)
 })
 
 test('mobile request actions use icon-led trust controls', async () => {
   const source = await readMobileSource()
-  const importBlock = source.match(/import\s+\{([\s\S]*?)\}\s+from 'lucide-react-native'/)?.[1]
-  const requestActionButton = source.slice(
-    source.indexOf('function MobileRequestActionButton('),
-    source.indexOf('function QuickStartPanel(')
+  const directComponents = await readMobileDirectComponentsSource()
+  const messageComponents = await readMobileMessageComponentsSource()
+  const requestComponents = await readMobileRequestComponentsSource()
+  const actionComponents = await readMobileActionComponentsSource()
+  const importBlock = actionComponents.match(
+    /import\s+\{([\s\S]*?)\}\s+from 'lucide-react-native'/
+  )?.[1]
+  const requestActionButton = actionComponents.slice(
+    actionComponents.indexOf('function MobileRequestActionButton('),
+    actionComponents.length
   )
-  const messageRequestManager = source.slice(
-    source.indexOf('function MessageRequestManager('),
-    source.indexOf('function PanelEmptyState(')
+  const messageRequestManager = requestComponents.slice(
+    requestComponents.indexOf('function MessageRequestManager('),
+    requestComponents.length
   )
-  const directBubble = source.slice(
-    source.indexOf('function DirectBubble('),
-    source.indexOf('function MessageBubble(')
+  const directBubble = messageComponents.slice(
+    messageComponents.indexOf('function DirectBubble('),
+    messageComponents.indexOf('export type MessageBubble')
   )
 
+  assert.match(
+    directComponents,
+    /import \{[\s\S]*MobileSendButton[\s\S]*\} from '\.\/action-components\.js'/
+  )
+  assert.match(messageComponents, /export function DirectBubble\(/)
+  assert.doesNotMatch(source, /function MobileRequestActionButton\(/)
+  assert.doesNotMatch(source, /function DirectBubble\(/)
+  assert.doesNotMatch(source, /function MessageRequestManager\(/)
+  assert.match(actionComponents, /export type MobileRequestActionButtonProps = \{/)
+  assert.match(messageComponents, /export type DirectBubbleProps = \{/)
+  assert.match(requestComponents, /export type MessageRequestManagerProps = \{/)
   assert.match(importBlock, /\bCheck\b/)
   assert.match(importBlock, /\bX\b/)
   assert.match(
@@ -85,60 +213,625 @@ test('mobile request actions use icon-led trust controls', async () => {
   assert.match(requestActionButton, /const label = isAccept \? 'Accept' : 'Ignore'/)
   assert.match(
     requestActionButton,
-    /const accessibilityLabel = isAccept \? 'Accept message request' : 'Ignore message request'/
+    /const accessibilityLabel = isAccept \? 'Accept friend request' : 'Ignore friend request'/
   )
+  assert.equal(requestActionButton.includes('message request'), false)
   assert.match(requestActionButton, /accessibilityLabel=\{accessibilityLabel\}/)
   assert.match(requestActionButton, /accessibilityRole='button'/)
   assert.match(requestActionButton, /accessibilityState=\{\{ disabled \}\}/)
   assert.match(requestActionButton, /disabled && styles\.disabledButton/)
 })
 
-test('mobile direct contact chips and revoke actions expose trust state', async () => {
+test('mobile direct messages show generated sender avatars', async () => {
   const source = await readMobileSource()
-  const contactManager = source.slice(
-    source.indexOf('function ContactManager('),
-    source.indexOf('function TabButton(')
+  const roomComponents = await readMobileRoomComponentsSource()
+  const directComponents = await readMobileDirectComponentsSource()
+  const messageComponents = await readMobileMessageComponentsSource()
+  const avatarViewModel = await readMobileAvatarViewModelSource()
+  const directBubble = messageComponents.slice(
+    messageComponents.indexOf('function DirectBubble('),
+    messageComponents.indexOf('export type MessageBubble')
   )
-  const directPane = source.slice(
-    source.indexOf('function DirectPane('),
-    source.indexOf('function ContactManager(')
+
+  assert.match(roomComponents, /import \{ HomeChatPane,[\s\S]*\} from '\.\/message-components\.js'/)
+  assert.match(
+    directComponents,
+    /import \{[\s\S]*DirectBubble,[\s\S]*\} from '\.\/message-components\.js'/
   )
-  const contactChip = source.slice(
-    source.indexOf('function MobileContactChip('),
-    source.indexOf('function QuickStartPanel(')
+  assert.doesNotMatch(source, /function DirectBubble\(/)
+  assert.doesNotMatch(source, /function MessageBubble\(/)
+  assert.match(messageComponents, /export type DirectBubbleProps = \{/)
+  assert.match(avatarViewModel, /createProfileAvatarViewModel/)
+  assert.match(
+    directBubble,
+    /const avatar = createMobileDirectMessageAvatar\(message, contacts, resolveAvatarMediaUri\)/
+  )
+  assert.match(directBubble, /formatMobileDirectMessageMeta\(message, contacts\)/)
+  assert.match(directBubble, /<MobileProfileAvatar avatar=\{avatar\} styles=\{styles\} \/>/)
+  assert.match(directBubble, /styles\.directBubbleRow/)
+})
+
+test('mobile home message bubbles are checked TSX components', async () => {
+  const source = await readMobileSource()
+  const roomComponents = await readMobileRoomComponentsSource()
+  const directComponents = await readMobileDirectComponentsSource()
+  const messageComponents = await readMobileMessageComponentsSource()
+  const homeChatPane = messageComponents.slice(
+    messageComponents.indexOf('function HomeChatPane('),
+    messageComponents.indexOf('export type DirectBubbleContact')
+  )
+  const messageBubble = messageComponents.slice(
+    messageComponents.indexOf('function MessageBubble(')
+  )
+
+  assert.match(roomComponents, /import \{ HomeChatPane,[\s\S]*\} from '\.\/message-components\.js'/)
+  assert.match(
+    directComponents,
+    /import \{[\s\S]*DirectBubble,[\s\S]*\} from '\.\/message-components\.js'/
+  )
+  assert.match(
+    roomComponents,
+    /<HomeChatPane[\s\S]*draft=\{draft\}[\s\S]*messages=\{session\.messages\}[\s\S]*onDraftChange=\{onDraftChange\}[\s\S]*onSend=\{onSend\}/
+  )
+  assert.doesNotMatch(source, /function ChatPane\(/)
+  assert.match(messageComponents, /export type HomeChatPaneProps = \{/)
+  assert.match(
+    homeChatPane,
+    /<PaneLabel eyebrow='live' styles=\{styles\} title='Live home chat' \/>/
+  )
+  assert.match(
+    homeChatPane,
+    /renderItem=\{\(\{ item \}\) => <MessageBubble message=\{item\} styles=\{styles\} \/>\}/
+  )
+  assert.doesNotMatch(source, /function MessageBubble\(/)
+  assert.match(messageComponents, /export type MessageBubbleProps = \{/)
+  assert.match(messageBubble, /const outgoing = message\.direction === 'out'/)
+  assert.match(messageBubble, /formatMobileHomeMessageMeta\(message\)/)
+  assert.match(messageBubble, /outgoing \? styles\.outBubble : styles\.inBubble/)
+})
+
+test('mobile text fields are checked TSX components', async () => {
+  const source = await readMobileSource()
+  const formComponents = await readMobileFormComponentsSource()
+  const setupComponents = await readMobileSetupComponentsSource()
+  const peopleComponents = await readMobilePeopleComponentsSource()
+  const field = formComponents.slice(formComponents.indexOf('function Field('))
+  const quickStart = setupComponents.slice(
+    setupComponents.indexOf('export function QuickStartPanel')
+  )
+  const peopleActions = peopleComponents.slice(
+    peopleComponents.indexOf('function PeopleActions('),
+    peopleComponents.indexOf('export type ContactManagerProps')
+  )
+
+  assert.match(source, /import \{ Field \} from '\.\/form-components\.js'/)
+  assert.doesNotMatch(source, /function Field\(/)
+  assert.match(formComponents, /export type FieldProps = \{/)
+  assert.match(formComponents, /onChangeText\(value: string\): void/)
+  assert.match(field, /autoCapitalize='none'/)
+  assert.match(field, /autoCorrect=\{false\}/)
+  assert.match(field, /testID=\{testID\}/)
+  assert.match(
+    quickStart,
+    /<Field label='Name' onChangeText=\{onNickChange\} styles=\{styles\} value=\{nick\} \/>/
+  )
+  assert.match(
+    peopleActions,
+    /<Field[\s\S]*label='Friend name'[\s\S]*onChangeText=\{onTrustAliasChange\}[\s\S]*styles=\{styles\}[\s\S]*testID='trust-profile-alias-input'/
+  )
+})
+
+test('mobile profile avatars render real image snapshots when available', async () => {
+  const source = await readMobileSource()
+  const directComponents = await readMobileDirectComponentsSource()
+  const profileComponents = await readMobileProfileComponentsSource()
+  const avatar = profileComponents.slice(
+    profileComponents.indexOf('function MobileProfileAvatar('),
+    profileComponents.indexOf('function getMobileAvatarToneStyle(')
   )
 
   assert.match(
+    source,
+    /import \{ ContactProfileDetail, MobileProfileAvatar \} from '\.\/profile-components\.js'/
+  )
+  assert.match(directComponents, /ProfileRequestTargetCard,[\s\S]*type MobileContactChipStyles/)
+  assert.doesNotMatch(source, /function MobileProfileAvatar\(/)
+  assert.match(profileComponents, /import\s+\{[^}]*\bImage\b[^}]*\}\s+from 'react-native'/)
+  assert.match(profileComponents, /export type MobileProfileAvatarProps = \{/)
+  assert.match(avatar, /avatar\?\.imageUri/)
+  assert.match(avatar, /<Image[\s\S]*source=\{\{ uri: avatar\.imageUri \}\}/)
+  assert.match(avatar, /<Text style=\{styles\.contactAvatarText\}>/)
+})
+
+test('mobile QR card rendering lives in checked TSX component', async () => {
+  const source = await readMobileSource()
+  const chromeComponents = await readMobileChromeComponentsSource()
+  const qrComponents = await readMobileQrComponentsSource()
+
+  assert.doesNotMatch(source, /from 'react-native-qrcode-svg'/)
+  assert.match(source, /import \{[\s\S]*QrCard[\s\S]*\} from '\.\/chrome-components\.js'/)
+  assert.doesNotMatch(source, /function QrCard\(/)
+  assert.match(chromeComponents, /import \{ MobileQrCard \} from '\.\/qr-components\.js'/)
+  assert.match(chromeComponents, /<MobileQrCard[\s\S]*backgroundColor=\{backgroundColor\}/)
+  assert.match(chromeComponents, /export type QrCardProps = \{/)
+  assert.match(qrComponents, /export type MobileQrCardProps = \{/)
+  assert.match(qrComponents, /import QRCode, \{ type QRCodeProps \} from 'react-native-qrcode-svg'/)
+  assert.match(qrComponents, /QRCode as unknown as ComponentType<QRCodeProps>/)
+  assert.match(qrComponents, /value: string/)
+})
+
+test('mobile panel empty state lives in checked TSX component', async () => {
+  const source = await readMobileSource()
+  const panelComponents = await readMobilePanelComponentsSource()
+
+  assert.match(
+    source,
+    /import \{ PaneLabel, PanelEmptyState, TaskHeader \} from '\.\/panel-components\.js'/
+  )
+  assert.doesNotMatch(source, /function PanelEmptyState\(/)
+  assert.match(panelComponents, /export type PanelEmptyStateProps = \{/)
+  assert.match(panelComponents, /copy: string/)
+  assert.match(panelComponents, /title: string/)
+  assert.match(panelComponents, /icon: ComponentType<PanelEmptyStateIconProps>/)
+})
+
+test('mobile primary empty states live in checked TSX components', async () => {
+  const source = await readMobileSource()
+  const directComponents = await readMobileDirectComponentsSource()
+  const emptyComponents = await readMobileEmptyComponentsSource()
+  const messageComponents = await readMobileMessageComponentsSource()
+  const treeholeComponents = await readMobileTreeholeComponentsSource()
+  const homeChatPane = messageComponents.slice(
+    messageComponents.indexOf('function HomeChatPane('),
+    messageComponents.indexOf('export type DirectBubbleContact')
+  )
+  const treeholePane = treeholeComponents.slice(
+    treeholeComponents.indexOf('function TreeholePane('),
+    treeholeComponents.indexOf('export function TreeholePost(')
+  )
+
+  assert.match(
+    directComponents,
+    /import \{[\s\S]*EmptyDirectMessages,[\s\S]*\} from '\.\/empty-components\.js'/
+  )
+  assert.doesNotMatch(source, /function EmptyState\(/)
+  assert.doesNotMatch(source, /function EmptyMessages\(/)
+  assert.doesNotMatch(source, /function EmptyDirectMessages\(/)
+  assert.doesNotMatch(source, /function EmptyTreehole\(/)
+  assert.match(emptyComponents, /export type EmptyStateProps = \{/)
+  assert.match(emptyComponents, /export function EmptyMessages\(/)
+  assert.match(emptyComponents, /export function EmptyDirectMessages\(/)
+  assert.match(emptyComponents, /export function EmptyTreehole\(/)
+  assert.match(emptyComponents, /getMobileTreeholeEmptyCopy\(status, \{ canPost \}\)/)
+  assert.match(emptyComponents, /copy='Send the first line from this phone\.'/)
+  assert.match(emptyComponents, /copy='Choose a trusted contact and send the first message\.'/)
+  assert.match(
+    homeChatPane,
+    /ListEmptyComponent=\{<EmptyMessages styles=\{styles\} theme=\{theme\} \/>\}/
+  )
+  assert.match(
+    directComponents,
+    /ListEmptyComponent=\{<EmptyDirectMessages styles=\{styles\} theme=\{theme\} \/>\}/
+  )
+  assert.match(
+    treeholePane,
+    /ListEmptyComponent=\{[\s\S]*<EmptyTreehole canPost=\{canPost\} status=\{status\} styles=\{styles\} theme=\{theme\} \/>[\s\S]*\}/
+  )
+})
+
+test('mobile pane labels live in checked TSX panel components', async () => {
+  const source = await readMobileSource()
+  const panelComponents = await readMobilePanelComponentsSource()
+
+  assert.doesNotMatch(source, /function PaneLabel\(/)
+  assert.match(panelComponents, /export type PaneLabelProps = \{/)
+  assert.match(panelComponents, /eyebrow: string/)
+  assert.match(panelComponents, /title: string/)
+  assert.match(panelComponents, /function PaneLabel\(/)
+})
+
+test('mobile task headers live in checked TSX panel components', async () => {
+  const source = await readMobileSource()
+  const panelComponents = await readMobilePanelComponentsSource()
+
+  assert.doesNotMatch(source, /function TaskHeader\(/)
+  assert.match(panelComponents, /export type TaskHeaderProps = \{/)
+  assert.match(panelComponents, /description\?: string/)
+  assert.match(panelComponents, /eyebrow: string/)
+  assert.match(panelComponents, /title: string/)
+  assert.match(panelComponents, /function TaskHeader\(/)
+})
+
+test('mobile Profile QR includes the local profile avatar uri when present', async () => {
+  const source = await readMobileSource()
+  const profileQr = source.slice(
+    source.indexOf('const profileQrUri = useMemo('),
+    source.indexOf('const myHomeQrUri = useMemo(')
+  )
+
+  assert.match(profileQr, /avatarMedia: localAvatarMedia/)
+  assert.match(profileQr, /avatarUri: localAvatarUri/)
+  assert.match(profileQr, /const homeDescriptor = homeRoomKey/)
+  assert.match(profileQr, /homeDescriptor,/)
+  assert.match(profileQr, /\[homeRoomKey, identity, localAvatarMedia, localAvatarUri, nick\]/)
+})
+
+test('mobile local avatar uri can be edited and restored before sharing Profile QR', async () => {
+  const source = await readMobileSource()
+  const pkg = await readFile(new URL('../package.json', import.meta.url), 'utf8')
+  const bootstrap = await readMobileProfileBootstrapSource()
+  const setupComponents = await readMobileSetupComponentsSource()
+  const lobbyComponents = await readMobileLobbyComponentsSource()
+  const lobby = source.slice(source.indexOf('<Lobby'), source.indexOf('</Lobby>'))
+  const quickStart = setupComponents.slice(
+    setupComponents.indexOf('export function QuickStartPanel')
+  )
+
+  assert.match(pkg, /"expo-image-picker"/)
+  assert.match(source, /import \* as ImagePicker from 'expo-image-picker'/)
+  assert.match(source, /importMobileProfileAvatarMedia/)
+  assert.match(source, /async function chooseLocalAvatarImage\(\)/)
+  assert.match(source, /ImagePicker\.launchImageLibraryAsync/)
+  assert.match(source, /setLocalAvatarMedia\(avatar\.avatarMedia\)/)
+  assert.match(source, /setLocalAvatarUri\(avatar\.avatarUri\)/)
+  assert.match(bootstrap, /loadMobileProfileDocument/)
+  assert.match(source, /saveMobileProfileDocument/)
+  assert.match(source, /loadMobileRuntimeProfile\(/)
+  assert.doesNotMatch(source, /async function loadMobileProfile\(/)
+  assert.match(source, /async function updateLocalAvatarUri\(value: string\)/)
+  assert.match(source, /setLocalAvatarMedia\(null\)/)
+  assert.match(source, /setLocalAvatarUri\(cleanAvatarUri\)/)
+  assert.match(source, /saveMobileProfileDocument\(\{[\s\S]*avatarUri: cleanAvatarUri/)
+  assert.match(lobby, /localAvatarUri=\{localAvatarUri\}/)
+  assert.match(lobby, /onChooseLocalAvatarImage=\{chooseLocalAvatarImage\}/)
+  assert.match(lobby, /onLocalAvatarUriChange=\{updateLocalAvatarUri\}/)
+  assert.match(source, /import \{ Lobby \} from '\.\/lobby-components\.js'/)
+  assert.doesNotMatch(source, /function Lobby\(/)
+  assert.match(lobbyComponents, /export type LobbyProps = \{/)
+  assert.match(lobbyComponents, /<QuickStartPanel[\s\S]*localAvatarUri=\{localAvatarUri\}/)
+  assert.match(quickStart, /localAvatarUri/)
+  assert.match(quickStart, /onChooseLocalAvatarImage/)
+  assert.match(quickStart, /onLocalAvatarUriChange/)
+  assert.match(quickStart, /label='Avatar image'/)
+  assert.match(quickStart, /label='Choose image'/)
+  assert.match(quickStart, /testID='choose-avatar-image-button'/)
+  assert.match(quickStart, /value=\{localAvatarUri\}/)
+  assert.match(quickStart, /onChangeText=\{onLocalAvatarUriChange\}/)
+  assert.match(bootstrap, /const localProfile = await loadMobileProfileDocument\(/)
+  assert.match(bootstrap, /avatarMedia: localProfile\.avatarMedia/)
+  assert.match(bootstrap, /avatarMedia: profile\.avatarMedia/)
+  assert.match(bootstrap, /avatarUri: profile\.avatarUri \|\| ''/)
+})
+
+test('mobile Home startup and RPC store avatar media byte controls', async () => {
+  const source = await readMobileSource()
+  const startBackend = source.slice(
+    source.indexOf('function startBackend('),
+    source.indexOf('async function handleIncomingMessageRequest')
+  )
+
+  assert.match(
+    source,
+    /import \{[\s\S]*createMobileLocalAvatarMediaControl,[\s\S]*storeMobileAvatarMediaBytesControl[\s\S]*\} from '\.\.\/src\/mobile-avatar-media-sync\.ts'/
+  )
+  assert.match(source, /RPC_AVATAR_MEDIA_BYTES/)
+  assert.match(source, /async function createHomeSessionPayload\(/)
+  assert.match(source, /localAvatarMediaControl: await createMobileLocalAvatarMediaControl\(/)
+  assert.match(startBackend, /if \(req\.command === RPC_AVATAR_MEDIA_BYTES\)/)
+  assert.match(startBackend, /storeMobileAvatarMediaBytesControl\(/)
+  assert.match(startBackend, /book: contactBook/)
+  assert.match(startBackend, /sha256Hex: createMobileSha256Hex/)
+  assert.match(startBackend, /setNotice\('Profile image received\.'\)/)
+})
+
+test('mobile direct contact chips and revoke actions expose trust state', async () => {
+  const source = await readMobileSource()
+  const lobbyComponents = await readMobileLobbyComponentsSource()
+  const roomComponents = await readMobileRoomComponentsSource()
+  const directComponents = await readMobileDirectComponentsSource()
+  const peopleComponents = await readMobilePeopleComponentsSource()
+  const requestComponents = await readMobileRequestComponentsSource()
+  const contactManager = peopleComponents.slice(
+    peopleComponents.indexOf('function ContactManager('),
+    peopleComponents.indexOf('function withMobileProfileRecentPosts(')
+  )
+  const outgoingRequestManager = requestComponents.slice(
+    requestComponents.indexOf('function OutgoingRequestManager('),
+    requestComponents.indexOf('export type MessageRequestManagerProps')
+  )
+  const directPane = directComponents.slice(directComponents.indexOf('function DirectPane('))
+  const profileComponents = await readMobileProfileComponentsSource()
+  const contactChip = profileComponents.slice(
+    profileComponents.indexOf('function MobileContactChip('),
+    profileComponents.indexOf('export function ProfileRequestTargetCard(')
+  )
+  const contactProfileDetail = profileComponents.slice(
+    profileComponents.indexOf('function ContactProfileDetail('),
+    profileComponents.indexOf('function getMobileAvatarToneStyle(')
+  )
+
+  assert.match(
+    directComponents,
+    /import \{[\s\S]*MobileContactChip,[\s\S]*ProfileRequestTargetCard[\s\S]*\} from '\.\/profile-components/
+  )
+  assert.match(roomComponents, /import \{ DirectPane,[\s\S]*\} from '\.\/direct-components\.js'/)
+  assert.doesNotMatch(source, /function DirectPane\(/)
+  assert.match(directComponents, /export type DirectPaneProps = \{/)
+  assert.match(
+    lobbyComponents,
+    /import \{ PeopleActions,[\s\S]*\} from '\.\/people-components\.js'/
+  )
+  assert.match(roomComponents, /import \{ PeoplePane,[\s\S]*\} from '\.\/people-components\.js'/)
+  assert.doesNotMatch(source, /function PeoplePane\(/)
+  assert.match(peopleComponents, /export type PeoplePaneProps = \{/)
+  assert.doesNotMatch(source, /function MobileContactChip\(/)
+  assert.doesNotMatch(source, /function ContactManager\(/)
+  assert.match(peopleComponents, /export type ContactManagerProps = \{/)
+  assert.match(profileComponents, /export type MobileContactChipProps = \{/)
+  assert.match(
     contactManager,
-    /<MobileSmallActionButton[\s\S]*accessibilityLabel=\{`Revoke \$\{formatMobileTrustedContactName/
+    /accessibilityLabel=\{`Remove \$\{profile\.displayName\} as friend`\}/
   )
   assert.match(contactManager, /icon=\{UserMinus\}/)
-  assert.match(contactManager, /label='Revoke'/)
+  assert.match(contactManager, /label=\{profile\.revokeLabel\}/)
   assert.match(contactManager, /variant='danger'/)
-  assert.match(contactChip, /function MobileContactChip\(\{ contact, onPress, selected \}\)/)
+  assert.match(contactChip, /function MobileContactChip\(/)
   assert.match(contactChip, /const label = formatMobileTrustedContactName\(contact\)/)
-  assert.match(contactChip, /accessibilityLabel=\{`Direct recipient \$\{label\}`\}/)
+  assert.match(contactChip, /const avatar = createProfileAvatarViewModel\(\{/)
+  assert.match(contactChip, /avatarMediaSnapshot: contact\.avatarMediaSnapshot/)
+  assert.match(contactChip, /avatarUri: contact\.avatarUriSnapshot/)
+  assert.match(contactChip, /displayName: label/)
+  assert.match(contactChip, /profileId: contact\.profileId/)
+  assert.match(contactChip, /resolveAvatarMediaUri/)
+  assert.match(
+    contactChip,
+    /<MobileProfileAvatar avatar=\{avatar\} size='small' styles=\{styles\} \/>/
+  )
+  assert.match(contactChip, /accessibilityLabel=\{`Message recipient \$\{label\}`\}/)
+  assert.match(contactManager, /accessibilityLabel=\{`Message \$\{profile\.displayName\}`\}/)
+  assert.match(contactManager, /label=\{profile\.messageLabel\}/)
+  assert.match(contactManager, /accessibilityLabel=\{`Open \$\{profile\.displayName\} profile`\}/)
+  assert.match(contactManager, /label='Profile'/)
+  assert.match(contactManager, /onPress=\{\(\) => onSelectedProfileChange\(profile\.profileId\)\}/)
+  assert.match(contactManager, /accessibilityLabel=\{`Enter \$\{profile\.displayName\} home`\}/)
+  assert.match(contactManager, /disabled=\{!profile\.enterHomeEnabled\}/)
+  assert.match(contactManager, /label=\{profile\.enterHomeLabel\}/)
+  assert.match(contactManager, /onPress=\{\(\) => onEnterContactHome\(profile\.profileId\)\}/)
+  assert.match(contactManager, /profile\.recentTitle/)
+  assert.match(contactManager, /createContactProfileViewModel\(/)
+  assert.match(peopleComponents, /createProfileRecentPostsViewModel\(/)
+  assert.match(contactManager, /activeHomeOwnerProfileId/)
+  assert.match(contactManager, /treeholePosts/)
+  assert.match(source, /profileRecentPostCache/)
+  assert.match(peopleComponents, /cachedPostsByProfileId: profileRecentPostCache/)
+  assert.match(contactManager, /profile\.recentPosts/)
+  assert.match(contactManager, /<MobileProfileAvatar avatar=\{profile\.avatar\}/)
+  assert.match(contactManager, /profile\.recentCopy/)
+  assert.match(contactProfileDetail, /\{profile\.enterHomeEnabled \? \(/)
+  assert.match(
+    contactProfileDetail,
+    /accessibilityLabel=\{`Refresh recent posts from \$\{profile\.displayName\}`\}/
+  )
+  assert.match(contactProfileDetail, /label='Refresh posts'/)
+  assert.match(contactProfileDetail, /onPress=\{\(\) => onEnterContactHome\(profile\.profileId\)\}/)
+  assert.doesNotMatch(source, /function ContactProfileDetail\(/)
+  assert.match(profileComponents, /export type ContactProfileDetailProps = \{/)
+  assert.match(contactManager, /<ContactProfileDetail[\s\S]*profile=\{selectedProfile\}/)
+  assert.match(contactManager, /<ContactProfileDetail[\s\S]*styles=\{styles\}/)
+  assert.match(contactManager, /<ContactProfileDetail[\s\S]*theme=\{theme\}/)
+  assert.match(contactProfileDetail, /testID='contact-profile-detail'/)
+  assert.match(contactProfileDetail, /Advanced identity/)
+  assert.match(contactProfileDetail, /testID='contact-advanced-identity-toggle'/)
+  assert.match(contactProfileDetail, /accessibilityState=\{\{ expanded: showAdvancedIdentity \}\}/)
+  assert.match(contactProfileDetail, /showAdvancedIdentity \? \(/)
+  assert.equal(
+    contactProfileDetail.indexOf('Profile fingerprint') >
+      contactProfileDetail.indexOf('showAdvancedIdentity ? ('),
+    true
+  )
+  assert.match(contactManager, /onSelectedProfileChange\(null\)/)
+  assert.doesNotMatch(source, /function OutgoingRequestManager\(/)
+  assert.doesNotMatch(source, /function MessageRequestManager\(/)
+  assert.match(requestComponents, /export type OutgoingRequestManagerProps = \{/)
+  assert.match(outgoingRequestManager, /title='Sent requests'/)
+  assert.match(outgoingRequestManager, /Request sent/)
+  assert.match(outgoingRequestManager, /formatOutgoingRequestTitle\(request\)/)
   assert.match(contactChip, /accessibilityRole='button'/)
   assert.match(contactChip, /accessibilityState=\{\{ selected \}\}/)
   assert.match(directPane, /<MobileContactChip[\s\S]*contact=\{contact\}/)
   assert.match(directPane, /selected=\{recipient === contact\.profileId\}/)
 })
 
-test('mobile small trust and treehole actions share one icon button component', async () => {
+test('mobile contact Home entry validates the saved signed descriptor before joining', async () => {
   const source = await readMobileSource()
-  const contactManager = source.slice(
-    source.indexOf('function ContactManager('),
-    source.indexOf('function TabButton(')
-  )
-  const treeholePost = source.slice(
-    source.indexOf('function TreeholePost('),
-    source.indexOf('function EmptyMessages(')
-  )
-  const smallActionButton = source.slice(
-    source.indexOf('function MobileSmallActionButton('),
-    source.indexOf('function QuickStartPanel(')
+  const enterContactHome = source.slice(
+    source.indexOf('async function enterContactHome('),
+    source.indexOf('function buildShareQrOutputs(')
   )
 
+  assert.match(source, /readTrustedContactHomeDescriptor/)
+  assert.match(
+    enterContactHome,
+    /const homeDescriptor = readTrustedContactHomeDescriptor\(\{[\s\S]*book: contactBook,[\s\S]*profileId: profileIdToEnter/
+  )
+  assert.match(enterContactHome, /address: homeDescriptor\.address/)
+  assert.match(enterContactHome, /ownerProfileId: homeDescriptor\.ownerProfileId/)
+  assert.match(enterContactHome, /policy: homeDescriptor\.policy/)
+  assert.match(enterContactHome, /roomKey: homeDescriptor\.roomKey/)
+})
+
+test('mobile Messages focuses the selected direct thread message list', async () => {
+  const source = await readMobileSource()
+  const directComponents = await readMobileDirectComponentsSource()
+  const directPane = directComponents.slice(directComponents.indexOf('function DirectPane('))
+
+  assert.match(directComponents, /filterDirectMessagesForProfile/)
+  assert.match(
+    directPane,
+    /const visibleMessages = filterDirectMessagesForProfile\(\s*messages,\s*recipient\s*\)/
+  )
+  assert.match(directPane, /data=\{visibleMessages\}/)
+})
+
+test('mobile messages can show thread rows and scanned profile request targets', async () => {
+  const source = await readMobileSource()
+  const roomComponents = await readMobileRoomComponentsSource()
+  const directComponents = await readMobileDirectComponentsSource()
+  const peopleComponents = await readMobilePeopleComponentsSource()
+  const profileComponents = await readMobileProfileComponentsSource()
+  const threadComponents = await readMobileThreadComponentsSource()
+  const directPane = directComponents.slice(directComponents.indexOf('function DirectPane('))
+  const requestTarget = profileComponents.slice(
+    profileComponents.indexOf('export function ProfileRequestTargetCard('),
+    profileComponents.indexOf('function getMobileAvatarToneStyle(')
+  )
+  const checkedThreadList = threadComponents.slice(
+    threadComponents.indexOf('function MessageThreadList('),
+    threadComponents.indexOf('function ThreadRow(')
+  )
+  const checkedThreadRow = threadComponents.slice(
+    threadComponents.indexOf('function ThreadRow('),
+    threadComponents.indexOf('export type DirectThreadHeaderProps')
+  )
+  const checkedThreadHeader = threadComponents.slice(
+    threadComponents.indexOf('function DirectThreadHeader(')
+  )
+
+  assert.match(
+    directComponents,
+    /import \{[\s\S]*DirectThreadHeader,[\s\S]*MessageThreadList[\s\S]*\} from '\.\/thread-components\.js'/
+  )
+  assert.match(source, /readMobileProfileRequestTarget/)
+  assert.doesNotMatch(source, /applyMobileProfileQrScan/)
+  assert.doesNotMatch(source, /await trustProfileQr\(data\)/)
+  assert.match(source, /createFriendRequestTargetViewModel/)
+  assert.match(
+    source,
+    /const \[profileRequestTarget, setProfileRequestTarget\] =\s+useState<FriendRequestTargetViewModel \| null>\(null\)/
+  )
+  assert.match(
+    source,
+    /function chooseProfileRequestTarget\(uri: string, displayNameOverride = ''\)/
+  )
+  assert.match(source, /chooseProfileRequestTarget\(uri, trustAlias\)/)
+  assert.match(source, /setDmRecipient\(target\.profileId\)/)
+  assert.match(source, /setActiveTab\('dm'\)/)
+  assert.match(source, /setNotice\(targetView\.copy\)/)
+  assert.match(source, /contactBook,[\s\S]*shortenProfileId,[\s\S]*target/)
+  assert.match(directPane, /<ProfileRequestTargetCard[\s\S]*requestTarget=\{requestTarget\}/)
+  assert.match(directPane, /<ProfileRequestTargetCard[\s\S]*onOpenProfile=\{onOpenProfile\}/)
+  assert.doesNotMatch(source, /function ProfileRequestTargetCard\(/)
+  assert.match(profileComponents, /export type ProfileRequestTargetCardProps = \{/)
+  assert.match(
+    requestTarget,
+    /<MobileProfileAvatar avatar=\{requestTarget\.avatar\} styles=\{styles\}/
+  )
+  assert.match(directPane, /<MessageThreadList[\s\S]*threads=\{threads\}/)
+  assert.match(directPane, /<MessageThreadList[\s\S]*onOpenProfile=\{onOpenProfile\}/)
+  assert.match(directPane, /<MessageThreadList[\s\S]*onOpenPeople=\{onOpenPeople\}/)
+  assert.match(
+    directPane,
+    /const acceptRequest = \(message: unknown\) =>[\s\S]*Promise\.resolve\(onAcceptRequest\(message as DirectPaneMessage\)\)/
+  )
+  assert.match(
+    directPane,
+    /const ignoreRequest = \(message: unknown\) =>[\s\S]*Promise\.resolve\(onIgnoreRequest\(message as DirectPaneMessage\)\)/
+  )
+  assert.match(directPane, /<MessageThreadList[\s\S]*onAcceptRequest=\{acceptRequest\}/)
+  assert.match(directPane, /<MessageThreadList[\s\S]*onIgnoreRequest=\{ignoreRequest\}/)
+  assert.match(directPane, /<MessageThreadList[\s\S]*onMarkThreadRead=\{onMarkThreadRead\}/)
+  assert.match(directPane, /<MessageThreadList[\s\S]*messages=\{messages\}/)
+  assert.match(directPane, /<MessageThreadList[\s\S]*contacts=\{threadContacts\}/)
+  assert.match(directPane, /<MessageThreadList[\s\S]*styles=\{styles\}/)
+  assert.match(directPane, /<DirectBubble[\s\S]*contacts=\{contactOptions\}/)
+  assert.match(directPane, /const selectedThread = findSelectedDmThreadView\(/)
+  assert.match(directPane, /selectedProfileId: recipient/)
+  assert.match(directPane, /<DirectThreadHeader[\s\S]*thread=\{selectedThread\}/)
+  assert.match(directPane, /<DirectThreadHeader[\s\S]*styles=\{styles\}/)
+  assert.match(
+    directPane,
+    /placeholder=\{\s*selectedThread\?\.label \? `Message \$\{selectedThread\.label\}` : 'Write a message'\s*\}/
+  )
+  assert.doesNotMatch(source, /function DirectThreadHeader\(/)
+  assert.doesNotMatch(source, /function MessageThreadList\(/)
+  assert.match(threadComponents, /export type MessageThreadListProps = \{/)
+  assert.match(threadComponents, /export type DirectThreadHeaderProps = \{/)
+  assert.match(source, /findSelectedDmThreadView/)
+  assert.doesNotMatch(source, /function findSelectedDirectThread\(/)
+  assert.match(requestTarget, /testID='profile-request-target-card'/)
+  assert.match(requestTarget, /requestTarget\.statusLabel/)
+  assert.match(requestTarget, /requestTarget\.copy/)
+  assert.match(requestTarget, /const displayName = requestTarget\.displayName \|\| 'Profile'/)
+  assert.match(requestTarget, /accessibilityLabel=\{`Open \$\{displayName\} profile`\}/)
+  assert.match(requestTarget, /onPress=\{\(\) => onOpenProfile\(requestTarget\.profileId\)\}/)
+  assert.match(checkedThreadList, /testID='message-thread-list'/)
+  assert.match(checkedThreadList, /testID='message-thread-empty'/)
+  assert.match(checkedThreadList, /Open Contacts to scan a profile or accept a friend request\./)
+  assert.match(checkedThreadList, /testID='message-thread-open-contacts-button'/)
+  assert.match(checkedThreadList, /onPress=\{onOpenPeople\}/)
+  assert.match(checkedThreadList, /createDmThreadListView\(\{[\s\S]*messages,[\s\S]*threads/)
+  assert.match(checkedThreadRow, /<MobileProfileAvatar avatar=\{thread\.avatar\}/)
+  assert.match(checkedThreadRow, /thread\.preview/)
+  assert.match(checkedThreadRow, /thread\.timeLabel/)
+  assert.match(checkedThreadRow, /thread\.unreadCount/)
+  assert.match(checkedThreadRow, /threadUnreadBadge/)
+  assert.match(checkedThreadRow, /thread\.unreadLabel/)
+  assert.match(
+    checkedThreadRow,
+    /onPress=\{\(\) => \{[\s\S]*onSelectThread\(\{ remoteProfileId: thread\.profileId \}\)[\s\S]*onMarkThreadRead\(thread\.profileId\)[\s\S]*\}\}/
+  )
+  assert.match(checkedThreadHeader, /accessibilityLabel=\{`Open \$\{thread\.label\} profile`\}/)
+  assert.match(checkedThreadHeader, /onPress=\{\(\) => onOpenProfile\(thread\.profileId\)\}/)
+  assert.match(checkedThreadRow, /const requestActions = thread\.requestActions/)
+  assert.match(
+    checkedThreadRow,
+    /<MobileRequestActionButton[\s\S]*testID='thread-message-request-ignore-button'[\s\S]*variant='ignore'/
+  )
+  assert.match(
+    checkedThreadRow,
+    /<MobileRequestActionButton[\s\S]*testID='thread-message-request-accept-button'[\s\S]*variant='accept'/
+  )
+  assert.match(
+    source,
+    /const \[contactProfileTargetId, setContactProfileTargetId\] = useState<string \| null>\(null\)/
+  )
+  assert.match(source, /onContactProfileTargetChange=\{setContactProfileTargetId\}/)
+  assert.match(
+    roomComponents,
+    /onOpenProfile=\{\(contactProfileId\) => \{[\s\S]*onContactProfileTargetChange\(contactProfileId\)[\s\S]*onTabChange\('people'\)/
+  )
+  assert.match(peopleComponents, /createRequestTargetProfileViewModel\(/)
+})
+
+test('mobile small trust and treehole actions share one icon button component', async () => {
+  const source = await readMobileSource()
+  const roomComponents = await readMobileRoomComponentsSource()
+  const peopleComponents = await readMobilePeopleComponentsSource()
+  const treeholeComponents = await readMobileTreeholeComponentsSource()
+  const contactManager = peopleComponents.slice(
+    peopleComponents.indexOf('function ContactManager('),
+    peopleComponents.indexOf('function withMobileProfileRecentPosts(')
+  )
+  const treeholePost = treeholeComponents.slice(
+    treeholeComponents.indexOf('function TreeholePost('),
+    treeholeComponents.indexOf('export type TreeholePostInput')
+  )
+  const actionComponents = await readMobileActionComponentsSource()
+  const smallActionButton = actionComponents.slice(
+    actionComponents.indexOf('function MobileSmallActionButton('),
+    actionComponents.indexOf('export type MobileAdvancedToggleStyles')
+  )
+
+  assert.match(
+    peopleComponents,
+    /import \{[\s\S]*MobileSmallActionButton[\s\S]*\} from '\.\/action-components\.js'/
+  )
+  assert.match(
+    treeholeComponents,
+    /import \{[\s\S]*MobileSmallActionButton[\s\S]*\} from '\.\/action-components\.js'/
+  )
+  assert.doesNotMatch(source, /function MobileSmallActionButton\(/)
+  assert.match(actionComponents, /export type MobileSmallActionButtonProps = \{/)
   assert.match(smallActionButton, /function MobileSmallActionButton\(/)
   assert.match(smallActionButton, /const isDanger = variant === 'danger'/)
   assert.match(smallActionButton, /accessibilityRole='button'/)
@@ -146,32 +839,61 @@ test('mobile small trust and treehole actions share one icon button component', 
   assert.match(smallActionButton, /isDanger \? styles\.revokeButton : styles\.smallActionButton/)
   assert.match(smallActionButton, /disabled && styles\.disabledSmallActionButton/)
   assert.match(contactManager, /<MobileSmallActionButton[\s\S]*variant='danger'/)
+  assert.doesNotMatch(source, /function TreeholePost\(/)
+  assert.match(
+    roomComponents,
+    /import \{ TreeholePane,[\s\S]*\} from '\.\/treehole-components\.js'/
+  )
+  assert.match(treeholeComponents, /export function TreeholePost\(/)
+  assert.doesNotMatch(source, /function TreeholePane\(/)
+  assert.match(treeholeComponents, /export type TreeholePaneProps = \{/)
+  assert.match(treeholeComponents, /export type TreeholePostProps = \{/)
   assert.match(treeholePost, /<MobileSmallActionButton[\s\S]*icon=\{Heart\}/)
   assert.match(treeholePost, /<MobileSmallActionButton[\s\S]*label='Like'/)
 })
 
+test('mobile treehole author rows show generated avatars', async () => {
+  const source = await readMobileSource()
+  const roomComponents = await readMobileRoomComponentsSource()
+  const treeholeComponents = await readMobileTreeholeComponentsSource()
+  const avatarViewModel = await readMobileAvatarViewModelSource()
+  const treeholePost = treeholeComponents.slice(
+    treeholeComponents.indexOf('function TreeholePost('),
+    treeholeComponents.indexOf('export type TreeholePostInput')
+  )
+
+  assert.doesNotMatch(source, /function TreeholePost\(/)
+  assert.match(roomComponents, /<TreeholePane[\s\S]*styles=\{styles\}[\s\S]*theme=\{theme\}/)
+  assert.match(treeholeComponents, /<TreeholePost[\s\S]*styles=\{styles\}[\s\S]*theme=\{theme\}/)
+  assert.match(avatarViewModel, /createProfileAvatarViewModel/)
+  assert.match(treeholePost, /const postAvatar = createMobileTreeholeAuthorAvatar\(post\)/)
+  assert.match(treeholePost, /const commentAvatar = createMobileTreeholeAuthorAvatar\(comment\)/)
+  assert.match(treeholePost, /<MobileProfileAvatar avatar=\{postAvatar\} styles=\{styles\} \/>/)
+  assert.match(
+    treeholePost,
+    /<MobileProfileAvatar avatar=\{commentAvatar\} size='small' styles=\{styles\} \/>/
+  )
+  assert.match(treeholePost, /styles\.treeholeAuthorRow/)
+  assert.match(treeholePost, /styles\.commentAuthorRow/)
+})
+
 test('mobile collapsible controls expose expanded state', async () => {
   const source = await readMobileSource()
-  const lobby = source.slice(
-    source.indexOf('function Lobby('),
-    source.indexOf('function ChatRoom(')
+  const directComponents = await readMobileDirectComponentsSource()
+  const lobbyComponents = await readMobileLobbyComponentsSource()
+  const roomComponents = await readMobileRoomComponentsSource()
+  const setupComponents = await readMobileSetupComponentsSource()
+  const peopleComponents = await readMobilePeopleComponentsSource()
+  const lobby = lobbyComponents.slice(lobbyComponents.indexOf('function Lobby('))
+  const quickStart = setupComponents.slice(
+    setupComponents.indexOf('export function QuickStartPanel')
   )
-  const quickStart = source.slice(
-    source.indexOf('function QuickStartPanel('),
-    source.indexOf('function PeoplePane(')
+  const room = roomComponents.slice(roomComponents.indexOf('function ChatRoom('))
+  const peopleActions = peopleComponents.slice(
+    peopleComponents.indexOf('function PeopleActions('),
+    peopleComponents.indexOf('export type ContactManagerProps')
   )
-  const room = source.slice(
-    source.indexOf('function ChatRoom('),
-    source.indexOf('function TaskHeader(')
-  )
-  const peopleActions = source.slice(
-    source.indexOf('function PeopleActions('),
-    source.indexOf('function DirectPane(')
-  )
-  const directPane = source.slice(
-    source.indexOf('function DirectPane('),
-    source.indexOf('function ContactManager(')
-  )
+  const directPane = directComponents.slice(directComponents.indexOf('function DirectPane('))
 
   assert.match(
     lobby,
@@ -181,7 +903,7 @@ test('mobile collapsible controls expose expanded state', async () => {
     lobby,
     /accessibilityState=\{\{ expanded: showPeopleSetup \}\}[\s\S]*testID='people-setup-toggle'/
   )
-  assert.match(quickStart, /accessibilityState=\{\{ expanded: showQuickHomeQr \}\}/)
+  assert.match(quickStart, /accessibilityState=\{\{ expanded: showQuickProfileQr \}\}/)
   assert.match(room, /expanded=\{showRoomAdvanced\}/)
   assert.match(peopleActions, /accessibilityState=\{\{ expanded: showHomeQr \}\}/)
   assert.match(peopleActions, /accessibilityState=\{\{ expanded: showProfileQr \}\}/)
@@ -192,21 +914,153 @@ test('mobile collapsible controls expose expanded state', async () => {
   )
 })
 
-test('mobile room and direct advanced toggles share one component', async () => {
+test('mobile Contacts hides QR transport controls behind Advanced', async () => {
+  const peopleComponents = await readMobilePeopleComponentsSource()
+  const peopleActions = peopleComponents.slice(
+    peopleComponents.indexOf('function PeopleActions('),
+    peopleComponents.indexOf('export type ContactManagerProps')
+  )
+  const advancedToggleIndex = peopleActions.indexOf("testID='advanced-share-toggle'")
+  const advancedPanelIndex = peopleActions.indexOf('showAdvancedShare ? (')
+  const homeQrIndex = peopleActions.indexOf("title='Home QR'")
+  const profileRequestIndex = peopleActions.indexOf("title='Profile request'")
+  const rawQrIndex = peopleActions.indexOf("title='QR details'")
+
+  assert.ok(advancedToggleIndex > -1)
+  assert.ok(advancedPanelIndex > advancedToggleIndex)
+  assert.ok(homeQrIndex > advancedPanelIndex)
+  assert.ok(profileRequestIndex > advancedPanelIndex)
+  assert.ok(rawQrIndex > advancedPanelIndex)
+  assert.match(
+    peopleActions,
+    /description='Paste a Profile QR, then write a request in Messages\.'[\s\S]*title='Profile request'/
+  )
+  assert.equal(peopleActions.includes('trust-only setup'), false)
+  assert.match(peopleActions, /showAdvancedShare \? \([\s\S]*testID='show-home-qr-button'/)
+  assert.match(peopleActions, /showAdvancedShare \? \([\s\S]*testID='scan-profile-qr-button'/)
+})
+
+test('mobile Home bar shows the current Home owner context', async () => {
   const source = await readMobileSource()
-  const room = source.slice(
-    source.indexOf('function ChatRoom('),
-    source.indexOf('function TaskHeader(')
-  )
-  const directPane = source.slice(
-    source.indexOf('function DirectPane('),
-    source.indexOf('function ContactManager(')
-  )
-  const advancedToggle = source.slice(
-    source.indexOf('function MobileAdvancedToggle('),
-    source.indexOf('function QuickStartPanel(')
+  const roomComponents = await readMobileRoomComponentsSource()
+  const chatRoom = roomComponents.slice(roomComponents.indexOf('function ChatRoom('))
+
+  assert.match(roomComponents, /createHomeOwnerViewModel/)
+  assert.match(chatRoom, /const homeOwner = createHomeOwnerViewModel\(/)
+  assert.match(chatRoom, /ownerProfileId: activeHomeOwnerProfileId/)
+  assert.match(chatRoom, /localProfileId: profileId/)
+  assert.match(chatRoom, /contacts: dmContactOptions/)
+  assert.match(chatRoom, /\{homeOwner\.title\}/)
+  assert.match(chatRoom, /\{homeOwner\.subtitle\}/)
+  assert.match(chatRoom, /homeOwner\.canOpenProfile/)
+  assert.match(chatRoom, /onContactProfileTargetChange\(homeOwner\.ownerProfileId\)/)
+})
+
+test('mobile contacts expose removed and ignored profiles', async () => {
+  const source = await readMobileSource()
+  const peopleComponents = await readMobilePeopleComponentsSource()
+  const contactManager = peopleComponents.slice(
+    peopleComponents.indexOf('function ContactManager('),
+    peopleComponents.indexOf('function withMobileProfileRecentPosts(')
   )
 
+  assert.match(peopleComponents, /from '\.\.\/src\/request-target-profile-view-model\.ts'/)
+  assert.doesNotMatch(source, /function createRequestTargetProfileViewModel\(/)
+  assert.match(source, /allowContactRequests/)
+  assert.match(source, /listBlockedContacts/)
+  assert.match(source, /const blockedContactOptions = useMemo\(/)
+  assert.match(source, /blockedContacts=\{blockedContactOptions\}/)
+  assert.match(source, /onAllowContactRequests=\{allowRequestsFromContact\}/)
+  assert.match(peopleComponents, /from '\.\.\/src\/blocked-contact-copy\.ts'/)
+  assert.match(contactManager, /blockedContacts/)
+  assert.match(contactManager, /eyebrow='Manage'/)
+  assert.doesNotMatch(contactManager, /eyebrow='Blocked'/)
+  assert.match(contactManager, /title='Removed \/ ignored'/)
+  assert.match(contactManager, /Profiles you remove or ignore will appear here\./)
+  assert.match(contactManager, /getBlockedContactCopy\(contact\)/)
+  assert.match(contactManager, /blockedCopy\.copy/)
+  assert.match(contactManager, /blockedCopy\.statusLabel/)
+  assert.equal(contactManager.includes('Trust them again'), false)
+  assert.match(contactManager, /icon=\{ShieldOff\}/)
+  assert.match(contactManager, /label='Allow requests'/)
+  assert.match(contactManager, /onAllowContactRequests\(contact\.profileId\)/)
+})
+
+test('mobile request sent state is derived from restored contact book', async () => {
+  const source = await readMobileSource()
+  const bootstrap = await readMobileProfileBootstrapSource()
+  const peopleComponents = await readMobilePeopleComponentsSource()
+  const peoplePane = peopleComponents.slice(
+    peopleComponents.indexOf('function PeoplePane('),
+    peopleComponents.indexOf('export type PeopleActionsProps')
+  )
+  const requestComponents = await readMobileRequestComponentsSource()
+  const outgoingRequestManager = requestComponents.slice(
+    requestComponents.indexOf('function OutgoingRequestManager('),
+    requestComponents.indexOf('export type MessageRequestManagerProps')
+  )
+
+  assert.match(bootstrap, /loadContactBookFromFileSystem\(/)
+  assert.match(
+    bootstrap,
+    /return \{[\s\S]*contactBook,[\s\S]*treeholePolicy: createTreeholePolicyFromContactBook\(contactBook\)/
+  )
+  assert.match(source, /const outgoingMessageRequests = useMemo\(/)
+  assert.match(
+    source,
+    /\(\) => \(contactBook \? Array\.from\(contactBook\.outgoingRequestsByProfileId\.values\(\)\) : \[\]\)/
+  )
+  assert.match(source, /outgoingRequests=\{outgoingMessageRequests\}/)
+  assert.match(peoplePane, /<OutgoingRequestManager[\s\S]*outgoingRequests=\{outgoingRequests\}/)
+  assert.match(peoplePane, /<OutgoingRequestManager[\s\S]*styles=\{styles\}/)
+  assert.match(peoplePane, /<OutgoingRequestManager[\s\S]*theme=\{theme\}/)
+  assert.match(outgoingRequestManager, /title='Sent requests'/)
+  assert.match(outgoingRequestManager, /Request sent/)
+})
+
+test('mobile recent profile posts cache is durable across app restart', async () => {
+  const source = await readMobileSource()
+  const bootstrap = await readMobileProfileBootstrapSource()
+  const treeholeStateHandler = source.slice(
+    source.indexOf('if (req.command === RPC_TREEHOLE_STATE)'),
+    source.indexOf('if (req.command === RPC_ERROR)')
+  )
+
+  assert.match(bootstrap, /loadProfileRecentPostCacheFromFileSystem/)
+  assert.match(source, /saveProfileRecentPostCacheToFileSystem/)
+  assert.match(source, /updateProfileRecentPostCache/)
+  assert.match(
+    bootstrap,
+    /const profileRecentPostCache = await loadProfileRecentPostCacheFromFileSystem/
+  )
+  assert.match(bootstrap, /profileRecentPostCache,/)
+  assert.match(source, /setProfileRecentPostCache\(profile\.profileRecentPostCache\)/)
+  assert.match(treeholeStateHandler, /updateProfileRecentPostCache\(current,/)
+  assert.match(treeholeStateHandler, /saveProfileRecentPostCacheToFileSystem\(/)
+})
+
+test('mobile room and direct advanced toggles share one component', async () => {
+  const source = await readMobileSource()
+  const directComponents = await readMobileDirectComponentsSource()
+  const roomComponents = await readMobileRoomComponentsSource()
+  const actionComponents = await readMobileActionComponentsSource()
+  const room = roomComponents.slice(roomComponents.indexOf('function ChatRoom('))
+  const directPane = directComponents.slice(directComponents.indexOf('function DirectPane('))
+  const advancedToggle = actionComponents.slice(
+    actionComponents.indexOf('function MobileAdvancedToggle('),
+    actionComponents.indexOf('export type MobileSendButtonStyles')
+  )
+
+  assert.match(
+    roomComponents,
+    /import \{[\s\S]*MobileAdvancedToggle[\s\S]*\} from '\.\/action-components\.js'/
+  )
+  assert.match(
+    directComponents,
+    /import \{[\s\S]*MobileAdvancedToggle,[\s\S]*MobileSendButton[\s\S]*\} from '\.\/action-components\.js'/
+  )
+  assert.doesNotMatch(source, /function MobileAdvancedToggle\(/)
+  assert.match(actionComponents, /export type MobileAdvancedToggleProps = \{/)
   assert.match(advancedToggle, /function MobileAdvancedToggle\(/)
   assert.match(advancedToggle, /accessibilityRole='button'/)
   assert.match(advancedToggle, /accessibilityState=\{\{ expanded \}\}/)
@@ -218,23 +1072,25 @@ test('mobile room and direct advanced toggles share one component', async () => 
 
 test('mobile top-bar icon controls share one icon button component', async () => {
   const source = await readMobileSource()
-  const chatRoom = source.slice(
-    source.indexOf('function ChatRoom('),
-    source.indexOf('function TaskHeader(')
-  )
-  const iconButton = source.slice(
-    source.indexOf('function MobileIconButton('),
-    source.indexOf('function MobileSendButton(')
+  const roomComponents = await readMobileRoomComponentsSource()
+  const chatRoom = roomComponents.slice(roomComponents.indexOf('function ChatRoom('))
+  const actionComponents = await readMobileActionComponentsSource()
+  const iconButton = actionComponents.slice(
+    actionComponents.indexOf('function MobileIconButton('),
+    actionComponents.indexOf('export type MobileSmallActionButtonStyles')
   )
 
   assert.match(
-    iconButton,
-    /function MobileIconButton\(\{ accessibilityLabel, icon: Icon, onPress, testID \}\)/
+    roomComponents,
+    /import \{[\s\S]*MobileIconButton[\s\S]*\} from '\.\/action-components\.js'/
   )
+  assert.doesNotMatch(source, /function MobileIconButton\(/)
+  assert.match(actionComponents, /export type MobileIconButtonProps = \{/)
+  assert.match(iconButton, /function MobileIconButton\(/)
   assert.match(iconButton, /accessibilityLabel=\{accessibilityLabel\}/)
   assert.match(iconButton, /accessibilityRole='button'/)
   assert.match(iconButton, /style=\{styles\.iconButton\}/)
-  assert.match(iconButton, /<Icon color=\{theme\.accentStrong\} size=\{18\} \/>/)
+  assert.match(iconButton, /<Icon color=\{accentColor\} size=\{18\} \/>/)
   assert.match(chatRoom, /<MobileIconButton[\s\S]*accessibilityLabel='Leave home'/)
   assert.match(chatRoom, /<MobileIconButton[\s\S]*icon=\{LogOut\}/)
   assert.match(chatRoom, /<MobileIconButton[\s\S]*testID='leave-home-button'/)
@@ -242,17 +1098,28 @@ test('mobile top-bar icon controls share one icon button component', async () =>
 
 test('mobile QR scanner cancel uses a focused scanner action component', async () => {
   const source = await readMobileSource()
-  const qrScanner = source.slice(
-    source.indexOf('function QrScanner('),
-    source.indexOf('function Lobby(')
-  )
-  const scannerCancelButton = source.slice(
-    source.indexOf('function MobileScannerCancelButton('),
-    source.indexOf('function MobileSendButton(')
+  const chromeComponents = await readMobileChromeComponentsSource()
+  const qrScanner = chromeComponents.slice(chromeComponents.indexOf('function QrScanner('))
+  const actionComponents = await readMobileActionComponentsSource()
+  const scannerCancelButton = actionComponents.slice(
+    actionComponents.indexOf('function MobileScannerCancelButton('),
+    actionComponents.indexOf('export type MobileIconButtonStyles')
   )
 
-  assert.match(qrScanner, /<MobileScannerCancelButton onPress=\{onCancel\} \/>/)
-  assert.match(scannerCancelButton, /function MobileScannerCancelButton\(\{ onPress \}\)/)
+  assert.match(
+    chromeComponents,
+    /import \{[\s\S]*MobileScannerCancelButton[\s\S]*\} from '\.\/action-components\.js'/
+  )
+  assert.match(source, /import \{[\s\S]*QrScanner[\s\S]*\} from '\.\/chrome-components\.js'/)
+  assert.doesNotMatch(source, /function QrScanner\(/)
+  assert.doesNotMatch(source, /function MobileScannerCancelButton\(/)
+  assert.match(chromeComponents, /export type QrScannerProps = \{/)
+  assert.match(qrScanner, /<CameraView[\s\S]*testID='qr-scanner-camera'/)
+  assert.match(actionComponents, /export type MobileScannerCancelButtonProps = \{/)
+  assert.match(qrScanner, /<MobileScannerCancelButton[\s\S]*onPress=\{onCancel\}/)
+  assert.match(qrScanner, /<MobileScannerCancelButton[\s\S]*styles=\{styles\}/)
+  assert.match(scannerCancelButton, /function MobileScannerCancelButton\(\{/)
+  assert.match(scannerCancelButton, /}: MobileScannerCancelButtonProps\)/)
   assert.match(scannerCancelButton, /accessibilityLabel='Cancel QR scan'/)
   assert.match(scannerCancelButton, /accessibilityRole='button'/)
   assert.match(scannerCancelButton, /style=\{styles\.scannerCancel\}/)
@@ -262,23 +1129,36 @@ test('mobile QR scanner cancel uses a focused scanner action component', async (
 
 test('mobile setup actions share one icon button component', async () => {
   const source = await readMobileSource()
-  const lobby = source.slice(
-    source.indexOf('function Lobby('),
-    source.indexOf('function ChatRoom(')
+  const lobbyComponents = await readMobileLobbyComponentsSource()
+  const setupComponents = await readMobileSetupComponentsSource()
+  const peopleComponents = await readMobilePeopleComponentsSource()
+  const lobby = lobbyComponents.slice(lobbyComponents.indexOf('function Lobby('))
+  const quickStart = setupComponents.slice(
+    setupComponents.indexOf('export function QuickStartPanel'),
+    setupComponents.length
   )
-  const quickStart = source.slice(
-    source.indexOf('function QuickStartPanel('),
-    source.indexOf('function PeoplePane(')
+  const peopleActions = peopleComponents.slice(
+    peopleComponents.indexOf('function PeopleActions('),
+    peopleComponents.indexOf('export type ContactManagerProps')
   )
-  const peopleActions = source.slice(
-    source.indexOf('function PeopleActions('),
-    source.indexOf('function DirectPane(')
-  )
-  const actionButton = source.slice(
-    source.indexOf('function MobileActionButton('),
-    source.indexOf('function QuickStartPanel(')
+  const actionComponents = await readMobileActionComponentsSource()
+  const actionButton = actionComponents.slice(
+    actionComponents.indexOf('function MobileActionButton('),
+    actionComponents.indexOf('export type MobileScannerCancelButtonStyles')
   )
 
+  assert.match(
+    lobbyComponents,
+    /import \{[\s\S]*MobileActionButton,[\s\S]*\} from '\.\/action-components\.js'/
+  )
+  assert.match(
+    lobbyComponents,
+    /import \{ QuickStartPanel,[\s\S]*\} from '\.\/setup-components\.js'/
+  )
+  assert.doesNotMatch(source, /function MobileActionButton\(/)
+  assert.doesNotMatch(source, /function QuickStartPanel\(/)
+  assert.match(actionComponents, /export type MobileActionButtonProps = \{/)
+  assert.match(setupComponents, /export type QuickStartPanelProps = \{/)
   assert.match(actionButton, /function MobileActionButton\(/)
   assert.match(actionButton, /const isPrimary = variant === 'primary'/)
   assert.match(
@@ -293,41 +1173,49 @@ test('mobile setup actions share one icon button component', async () => {
   assert.match(lobby, /<MobileActionButton[\s\S]*testID='manual-home-join-button'/)
   assert.match(lobby, /<MobileActionButton[\s\S]*testID='people-setup-toggle'/)
   assert.match(quickStart, /<MobileActionButton[\s\S]*variant='primary'/)
-  assert.match(quickStart, /<MobileActionButton[\s\S]*testID='quick-scan-home-qr-button'/)
+  assert.match(quickStart, /<MobileActionButton[\s\S]*testID='quick-show-my-qr-button'/)
+  assert.match(quickStart, /<MobileActionButton[\s\S]*testID='quick-open-contacts-button'/)
   assert.match(peopleActions, /<MobileActionButton[\s\S]*testID='scan-profile-qr-button'/)
   assert.match(peopleActions, /<MobileActionButton[\s\S]*testID='advanced-share-toggle'/)
 })
 
 test('mobile composers share one send button component', async () => {
   const source = await readMobileSource()
-  const directPane = source.slice(
-    source.indexOf('function DirectPane('),
-    source.indexOf('function ContactManager(')
+  const actionComponents = await readMobileActionComponentsSource()
+  const directComponents = await readMobileDirectComponentsSource()
+  const treeholeComponents = await readMobileTreeholeComponentsSource()
+  const directPane = directComponents.slice(directComponents.indexOf('function DirectPane('))
+  const messageComponents = await readMobileMessageComponentsSource()
+  const homeChatPane = messageComponents.slice(
+    messageComponents.indexOf('function HomeChatPane('),
+    messageComponents.indexOf('export type DirectBubbleContact')
   )
-  const chatPane = source.slice(
-    source.indexOf('function ChatPane('),
-    source.indexOf('function TreeholePane(')
+  const treeholePane = treeholeComponents.slice(
+    treeholeComponents.indexOf('function TreeholePane('),
+    treeholeComponents.indexOf('export type TreeholePostInput')
   )
-  const treeholePane = source.slice(
-    source.indexOf('function TreeholePane('),
-    source.indexOf('function EmptyState(')
+  const treeholePost = treeholeComponents.slice(
+    treeholeComponents.indexOf('function TreeholePost('),
+    treeholeComponents.indexOf('export type TreeholePostInput')
   )
-  const treeholePost = source.slice(
-    source.indexOf('function TreeholePost('),
-    source.indexOf('function EmptyMessages(')
-  )
-  const sendButton = source.slice(
-    source.indexOf('function MobileSendButton('),
-    source.indexOf('function QuickStartPanel(')
+  const sendButton = actionComponents.slice(
+    actionComponents.indexOf('function MobileSendButton('),
+    actionComponents.indexOf('export type MobileRequestActionButtonStyles')
   )
 
+  assert.match(
+    directComponents,
+    /import \{[\s\S]*MobileSendButton[\s\S]*\} from '\.\/action-components\.js'/
+  )
+  assert.doesNotMatch(source, /function MobileSendButton\(/)
+  assert.match(actionComponents, /export type MobileSendButtonProps = \{/)
   assert.match(sendButton, /function MobileSendButton\(/)
   assert.match(sendButton, /accessibilityRole='button'/)
   assert.match(sendButton, /accessibilityState=\{\{ disabled \}\}/)
   assert.match(sendButton, /isSmall \? styles\.smallSendButton : styles\.sendButton/)
   assert.match(sendButton, /disabled && styles\.disabledSendButton/)
   assert.match(directPane, /<MobileSendButton[\s\S]*testID='dm-send-button'/)
-  assert.match(chatPane, /<MobileSendButton[\s\S]*testID='chat-send-button'/)
+  assert.match(homeChatPane, /<MobileSendButton[\s\S]*testID='chat-send-button'/)
   assert.match(treeholePane, /<MobileSendButton[\s\S]*testID='treehole-post-button'/)
   assert.match(treeholePost, /<MobileSendButton[\s\S]*size='small'/)
 })
@@ -351,28 +1239,44 @@ test('mobile composer sends trimmed text payloads', async () => {
     source.indexOf('function sendTreeholeLike(')
   )
 
-  assert.match(source, /function cleanComposerText\(text\)/)
-  assert.match(sendMessage, /const cleanText = cleanComposerText\(draft\)/)
+  assert.match(source, /import \{ normalizeComposerText \} from '\.\.\/src\/composer-text\.ts'/)
+  assert.match(sendMessage, /const cleanText = normalizeComposerText\(draft\)/)
   assert.match(sendMessage, /text: cleanText/)
   assert.doesNotMatch(sendMessage, /text: draft/)
-  assert.match(sendMessageRequest, /const cleanText = cleanComposerText\(dmDraft\)/)
+  assert.match(sendMessageRequest, /const cleanText = normalizeComposerText\(dmDraft\)/)
+  assert.match(sendMessageRequest, /createFriendRequestTargetViewModel\(/)
+  assert.match(sendMessageRequest, /if \(!requestTargetView\.canSendRequest\)/)
+  assert.match(
+    sendMessageRequest,
+    /const homeDescriptor = asRecord\(requestTargetView\.homeDescriptor\)/
+  )
+  assert.match(sendMessageRequest, /homeAddress: asString\(homeDescriptor\.address\)/)
+  assert.match(sendMessageRequest, /homeRoomKey: asString\(homeDescriptor\.roomKey\)/)
+  assert.match(sendMessageRequest, /avatarMediaSnapshot: requestTargetView\.avatarMediaSnapshot/)
+  assert.match(sendMessageRequest, /avatarUriSnapshot: requestTargetView\.avatarUri/)
+  assert.match(sendMessageRequest, /displayNameSnapshot: requestTargetView\.displayName/)
+  assert.match(sendMessageRequest, /proof: homeDescriptor\.proof/)
   assert.match(sendMessageRequest, /toProfileId: cleanRecipient/)
   assert.match(sendMessageRequest, /text: cleanText/)
   assert.doesNotMatch(sendMessageRequest, /text: dmDraft/)
-  assert.match(sendTreeholePost, /const cleanText = cleanComposerText\(treeholeDraft\)/)
+  assert.match(sendTreeholePost, /const cleanText = normalizeComposerText\(treeholeDraft\)/)
   assert.match(sendTreeholePost, /text: cleanText/)
   assert.doesNotMatch(sendTreeholePost, /text: treeholeDraft/)
-  assert.match(sendTreeholeComment, /const cleanText = cleanComposerText\(text\)/)
+  assert.match(sendTreeholeComment, /const cleanText = normalizeComposerText\(text\)/)
   assert.match(sendTreeholeComment, /text: cleanText/)
 })
 
 test('mobile product notices are announced as polite status updates', async () => {
   const source = await readMobileSource()
-  const header = source.slice(
-    source.indexOf('function Header('),
-    source.indexOf('function QrCard(')
+  const chromeComponents = await readMobileChromeComponentsSource()
+  const header = chromeComponents.slice(
+    chromeComponents.indexOf('function Header('),
+    chromeComponents.indexOf('export type QrCardProps')
   )
 
+  assert.match(source, /import \{[\s\S]*Header[\s\S]*\} from '\.\/chrome-components\.js'/)
+  assert.doesNotMatch(source, /function Header\(/)
+  assert.match(chromeComponents, /export type HeaderProps = \{/)
   assert.match(header, /accessibilityLabel='Current status'/)
   assert.match(header, /accessibilityLiveRegion='polite'/)
   assert.match(header, /testID='app-notice'/)

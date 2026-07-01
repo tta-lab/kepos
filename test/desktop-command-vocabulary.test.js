@@ -10,18 +10,23 @@ import {
 test('desktop command vocabulary covers the V1 MLP product actions', () => {
   assert.deepEqual(DESKTOP_COMMANDS, [
     'acceptMessageRequest',
+    'allowContactRequests',
     'commentTreehole',
+    'enterContactHome',
     'ignoreMessageRequest',
     'joinHome',
     'joinHomeUri',
     'leaveHome',
     'likeTreehole',
+    'markDmThreadRead',
     'postTreehole',
     'revokeContact',
     'sendDmMessage',
     'sendHomeMessage',
     'sendMessageRequest',
-    'trustProfileUri',
+    'prepareProfileRequestTarget',
+    'updateAvatarMedia',
+    'updateAvatarUri',
     'updateDisplayName'
   ])
 })
@@ -37,6 +42,7 @@ test('desktop event vocabulary covers room, people, DM, and treehole updates', (
     'errorReceived',
     'homeMessageReceived',
     'peerCountChanged',
+    'profileRequestTargetChanged',
     'shareQrOutputsChanged',
     'statusChanged',
     'transportDebugChanged',

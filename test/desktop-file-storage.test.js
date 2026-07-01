@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createDesktopFileStorage } from '../src/desktop-file-storage.js'
+import { createDesktopFileStorage } from '../src/desktop-file-storage.ts'
 
 test('desktop file storage persists localStorage-shaped values', () => {
   const writes = new Map()

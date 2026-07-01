@@ -29,16 +29,24 @@ This is the map of content for Kepos architecture docs.
    - Quiet Cyber is not included as a V1 MLP style candidate.
 
 7. `docs/v1.15-mlp-implementation-audit.md`
-   - Current V1 MLP implementation audit: finished UX/model evidence, remaining desktop worker bridge, and next phase.
-   - Use this before deciding whether to keep polishing UI or start architecture migration.
+   - Current V1 MLP implementation audit: finished UX/model evidence, proven desktop worker bridge, and remaining release-proof risk.
+   - Use this before deciding whether a new V1 task is implementation work or evidence hardening.
 
-8. `docs/v1.20-smoke-guide.md`
-   - Desktop and Android manual smoke checklist for V1 parity.
-   - Use this before calling V1 ready.
+8. `docs/v1.16-final-mlp-ui-ux-refactor.md`
+   - Final V1 MLP person-first UI/UX refactor target: friend request, mutual trust, profile, contacts, messages, recent posts, and explicit home entry.
+   - Use this before changing QR, trust, navigation, profile, contacts, messages, or treehole UX.
 
-9. `docs/v1.21-cross-device-smoke.md`
-   - Agent recipe for validating desktop/Android product paths.
-   - Use this before reporting cross-device work as ready.
+9. `docs/v1.17-ready-im-completion-plan.md`
+   - Canonical V1 completion evidence plan and self-review for a ready private IM product on top of P2P infra.
+   - Use this as the checklist before starting V2 or calling V1 ready.
+
+10. `docs/v1.20-smoke-guide.md`
+    - Desktop and Android manual smoke checklist for V1 parity.
+    - Use this before calling V1 ready.
+
+11. `docs/v1.21-cross-device-smoke.md`
+    - Agent recipe for validating desktop/Android product paths, including the final V1 release proof packet.
+    - Use this before reporting cross-device work as ready or generating `tmp/final-v1-proof.md`.
 
 ## V1 Architecture
 
@@ -138,7 +146,7 @@ V1 can be slower if needed, but it should do the right architecture first.
 The V1 bar is:
 
 - use TypeScript first for new protocol/domain modules when the runtime loading path is verified
-- keep JS/JSX/MJS for platform glue and browser/Electron renderer paths until their TS loader path is proven
+- use TSX for React UI source, and keep JS/MJS only for platform glue, loader constraints, or narrowly scoped compatibility work
 - query and evaluate maintained open source libraries before implementing protocol-critical pieces
 - real identity signing for protocol-critical records
 - trust as authorization SSOT

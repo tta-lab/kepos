@@ -5,14 +5,14 @@ import test from 'node:test'
 async function readDesktopUiSource() {
   const app = await readFile(new URL('../desktop/app.tsx', import.meta.url), 'utf8')
   const appState = await readFile(new URL('../desktop/app-state.ts', import.meta.url), 'utf8')
-  const panes = await readFile(new URL('../desktop/pane-components.jsx', import.meta.url), 'utf8')
-  const shell = await readFile(new URL('../desktop/shell-components.jsx', import.meta.url), 'utf8')
+  const panes = await readFile(new URL('../desktop/pane-components.tsx', import.meta.url), 'utf8')
+  const shell = await readFile(new URL('../desktop/shell-components.tsx', import.meta.url), 'utf8')
   const context = await readFile(
-    new URL('../desktop/context-components.jsx', import.meta.url),
+    new URL('../desktop/context-components.tsx', import.meta.url),
     'utf8'
   )
   const people = await readFile(
-    new URL('../desktop/people-components.jsx', import.meta.url),
+    new URL('../desktop/people-components.tsx', import.meta.url),
     'utf8'
   )
   return `${app}\n${appState}\n${panes}\n${shell}\n${context}\n${people}`
@@ -43,7 +43,7 @@ test('desktop scripts build the renderer bundle before launch', async () => {
 
   assert.equal(
     packageJson.scripts['desktop:bundle'],
-    'npm run desktop:styles && esbuild desktop/app.tsx --bundle --platform=browser --format=iife --define:process.env.NODE_ENV=\\\"production\\\" --minify --outfile=desktop/app.bundle.js && esbuild desktop/controller.js --bundle --platform=browser --format=iife --define:process.env.NODE_ENV=\\\"production\\\" --outfile=desktop/controller.browser.bundle.js && esbuild desktop/controller.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/controller.bundle.cjs && esbuild desktop/local-backend.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/local-backend.bundle.cjs && esbuild desktop/local-profile.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/local-profile.bundle.cjs && esbuild src/desktop-backend-worker-bare-entry.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/backend-worker.bundle.cjs'
+    'npm run desktop:styles && esbuild desktop/app.tsx --bundle --platform=browser --format=iife --define:process.env.NODE_ENV=\\\"production\\\" --minify --outfile=desktop/app.bundle.js && esbuild desktop/controller.js --bundle --platform=browser --format=iife --define:process.env.NODE_ENV=\\\"production\\\" --outfile=desktop/controller.browser.bundle.js && esbuild desktop/controller.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/controller.bundle.cjs && esbuild desktop/local-backend.ts --bundle --platform=node --format=cjs --packages=external --outfile=desktop/local-backend.bundle.cjs && esbuild desktop/local-profile.ts --bundle --platform=node --format=cjs --packages=external --outfile=desktop/local-profile.bundle.cjs && esbuild src/desktop-backend-worker-bare-entry.ts --bundle --platform=node --format=cjs --packages=external --outfile=desktop/backend-worker.bundle.cjs'
   )
   assert.equal(
     packageJson.scripts['desktop:styles'],
@@ -52,6 +52,10 @@ test('desktop scripts build the renderer bundle before launch', async () => {
   assert.equal(packageJson.scripts.desktop, 'npm run start --prefix desktop')
   assert.equal(desktopPackageJson.scripts.prestart, 'npm run desktop:bundle --prefix ..')
   assert.match(packageJson.scripts['smoke:desktop'], /^npm run desktop:bundle && /)
+  assert.match(
+    packageJson.scripts['v1:gate'],
+    /npm run desktop:bundle && npm run backend:bundle:android/
+  )
 })
 
 test('desktop scripts build a transpiled backend worker bundle for Bare', async () => {
@@ -63,7 +67,7 @@ test('desktop scripts build a transpiled backend worker bundle for Bare', async 
     'utf8'
   )
 
-  assert.match(packageJson.scripts['desktop:bundle'], /desktop-backend-worker-bare-entry\.js/)
+  assert.match(packageJson.scripts['desktop:bundle'], /desktop-backend-worker-bare-entry\.ts/)
   assert.match(
     packageJson.scripts['desktop:bundle'],
     /--outfile=desktop\/backend-worker\.bundle\.cjs/
@@ -96,7 +100,7 @@ test('desktop React owns the home chat list surface', async () => {
     'utf8'
   )
 
-  assert.match(source, /function HomeChatList\(\{ messages \}\)/)
+  assert.match(source, /function HomeChatList\(/)
   assert.match(source, /\(globalThis as DesktopGlobal\)\.keposDesktopUi/)
   assert.match(source, /setHomeMessages\(messages = \[\]\)/)
   assert.match(source, /<HomePane[\s\S]*messages=\{model\.homeMessages\}/)
@@ -109,7 +113,7 @@ test('desktop React owns the home chat composer draft', async () => {
   const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
 
-  assert.match(source, /function HomeChatComposer\(\{ controls, onSend \}\)/)
+  assert.match(source, /function HomeChatComposer\(/)
   assert.match(source, /const \[draft, setDraft\] = useState\(''\)/)
   assert.match(
     source,
@@ -137,13 +141,21 @@ test('desktop React owns the direct message list surface', async () => {
     'utf8'
   )
 
-  assert.match(source, /function DirectMessageList\(\{ messages, onAccept, onIgnore \}\)/)
+  assert.match(source, /function DirectMessageList\(/)
   assert.match(source, /setDirectMessages\(messages = \[\]\)/)
+  assert.match(source, /setDirectThreads\(threads = \[\]\)/)
   assert.match(source, /setDirectMessageActions\(actions = DEFAULT_DIRECT_MESSAGE_ACTIONS\)/)
   assert.match(source, /<DirectPane[\s\S]*messages=\{model\.directMessages\}/)
-  assert.match(source, /<DirectMessageList[\s\S]*messages=\{messages\}/)
-  assert.match(source, /onClick=\{\(\) => onIgnore\(message\.actions\.ignoreMessage\)\}/)
-  assert.match(source, /onClick=\{\(\) => onAccept\(message\.actions\.acceptMessage\)\}/)
+  assert.match(source, /<DirectPane[\s\S]*threads=\{model\.directThreads\}/)
+  assert.match(source, /const selectedThread = findSelectedDmThreadView\(/)
+  assert.match(source, /<DirectThreadHeader[\s\S]*thread=\{selectedThread\}/)
+  assert.match(source, /function DirectThreadList\(/)
+  assert.match(source, /function DirectThreadHeader\(/)
+  assert.match(source, /id='messageThreadList'/)
+  assert.match(source, /filterDirectMessagesForProfile/)
+  assert.match(source, /<DirectMessageList[\s\S]*messages=\{visibleMessages\}/)
+  assert.match(source, /onClick=\{\(\) => onIgnore\(actions\.ignoreMessage\)\}/)
+  assert.match(source, /onClick=\{\(\) => onAccept\(actions\.acceptMessage\)\}/)
   assert.match(presenter, /ui\?\.setDirectMessages\(/)
   assert.match(controller, /createDesktopUiActionBindings/)
   assert.doesNotMatch(controller, /els\.dmList\.replaceChildren/)
@@ -157,10 +169,7 @@ test('desktop React owns the direct contact picker surface', async () => {
     'utf8'
   )
 
-  assert.match(
-    source,
-    /function DirectContactPicker\(\{ actions, contacts, empty, selectedProfileId \}\)/
-  )
+  assert.match(source, /function DirectContactPicker\(/)
   assert.match(source, /setDirectContactPicker\([\s\S]*picker = \{[\s\S]*contacts: \[\]/)
   assert.match(
     source,
@@ -287,7 +296,7 @@ test('desktop React owns the large QR dialog surface', async () => {
   const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const localProfile = await readFile(
-    new URL('../desktop/local-profile.js', import.meta.url),
+    new URL('../desktop/local-profile.ts', import.meta.url),
     'utf8'
   )
 
@@ -358,7 +367,7 @@ test('desktop React owns inline QR share outputs', async () => {
   const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const localProfile = await readFile(
-    new URL('../desktop/local-profile.js', import.meta.url),
+    new URL('../desktop/local-profile.ts', import.meta.url),
     'utf8'
   )
 
@@ -396,6 +405,7 @@ test('desktop React owns context form drafts and QR actions', async () => {
   assert.match(source, /const DEFAULT_CONTEXT_FORM = \{/)
   assert.match(source, /const \[contextForm, setContextForm\] = useState\(DEFAULT_CONTEXT_FORM\)/)
   assert.match(source, /displayName: 'Desktop'/)
+  assert.match(source, /avatarUri: ''/)
   assert.match(source, /homeQrUri: ''/)
   assert.match(source, /roomKey: ''/)
   assert.match(source, /trustAlias: ''/)
@@ -404,11 +414,13 @@ test('desktop React owns context form drafts and QR actions', async () => {
   assert.match(source, /setContextFormDraft\(draft = \{\}\)/)
   assert.match(source, /form=\{model\.contextForm\}/)
   assert.match(source, /value=\{form\.displayName\}/)
+  assert.match(source, /value=\{form\.avatarUri\}/)
   assert.match(source, /value=\{form\.roomKey\}/)
   assert.match(source, /value=\{form\.homeQrUri\}/)
   assert.match(source, /value=\{form\.trustQrUri\}/)
   assert.match(source, /value=\{form\.trustAlias\}/)
   assert.match(source, /actions\.createHome\(\{ displayName \}\)/)
+  assert.match(source, /actions\.updateAvatarUri\(\{ avatarUri: value \}\)/)
   assert.match(
     source,
     /actions\.joinManualHome\(\{ displayName, roomKey: form\.roomKey\.trim\(\) \}\)/
@@ -437,12 +449,30 @@ test('desktop React owns the people list surfaces', async () => {
     'utf8'
   )
 
-  assert.match(source, /function PeopleLists\(\{ actions, messageRequests, trustedContacts \}\)/)
-  assert.match(source, /setPeople\(people = \{ messageRequests: \[\], trustedContacts: \[\] \}\)/)
-  assert.match(source, /setPeopleActions\(actions = DEFAULT_PEOPLE_ACTIONS\)/)
+  assert.match(source, /function PeopleLists\(/)
+  assert.match(
+    source,
+    /setPeople\([\s\S]*people = \{[\s\S]*blockedContacts: \[\],[\s\S]*messageRequests: \[\],[\s\S]*outgoingRequests: \[\],[\s\S]*trustedContacts: \[\][\s\S]*\}/
+  )
+  assert.match(source, /setPeopleActions\(actions = DEFAULT_BACKEND_PEOPLE_ACTIONS\)/)
+  assert.match(source, /const \[profileRequestTarget, setProfileRequestTarget\]/)
+  assert.match(source, /setProfileRequestTarget\(target = null\)/)
+  assert.match(source, /createRequestTargetProfileViewModel\(/)
+  assert.match(source, /profileRequestTarget\?\.profileId === selectedProfileId/)
+  assert.match(
+    source,
+    /openProfile: \(profileId\) => \{[\s\S]*setSelectedProfileId\(String\(profileId \|\| ''\)\)[\s\S]*setActiveTab\('people'\)/
+  )
+  assert.match(source, /closeProfile: \(\) => setSelectedProfileId\(''\)/)
+  assert.match(source, /<PeoplePane[\s\S]*blockedContacts=\{model\.people\.blockedContacts\}/)
   assert.match(source, /<PeoplePane[\s\S]*messageRequests=\{model\.people\.messageRequests\}/)
+  assert.match(source, /<PeoplePane[\s\S]*outgoingRequests=\{model\.people\.outgoingRequests\}/)
+  assert.match(source, /<PeoplePane[\s\S]*selectedProfile=\{model\.selectedProfile\}/)
   assert.match(source, /<PeopleLists[\s\S]*messageRequests=\{messageRequests\}/)
+  assert.match(source, /<PeopleLists[\s\S]*blockedContacts=\{blockedContacts\}/)
+  assert.match(source, /<PeopleLists[\s\S]*outgoingRequests=\{outgoingRequests\}/)
   assert.match(source, /onClick=\{\(\) => actions\.revokeContact\(contact\.profileId\)\}/)
+  assert.match(source, /onClick=\{\(\) => actions\.allowContactRequests\(contact\.profileId\)\}/)
   assert.match(source, /onClick=\{\(\) => actions\.ignoreMessageRequest\(request\.profileId\)\}/)
   assert.match(
     source,
@@ -462,11 +492,13 @@ test('desktop React owns the treehole post list surface', async () => {
     'utf8'
   )
 
-  assert.match(source, /function TreeholeList\(\{ actions, posts \}\)/)
+  assert.match(source, /function TreeholeList\(/)
   assert.match(source, /setTreeholePosts\(posts = \[\]\)/)
   assert.match(source, /setTreeholeActions\(actions = DEFAULT_TREEHOLE_ACTIONS\)/)
   assert.match(source, /<TreeholePane[\s\S]*posts=\{model\.treeholePosts\}/)
+  assert.match(source, /<TreeholeList[\s\S]*canPost=\{controls\.canPostTreehole\}/)
   assert.match(source, /<TreeholeList[\s\S]*posts=\{posts\}/)
+  assert.match(source, /const emptyCopy = canPost/)
   assert.match(source, /onClick=\{\(\) => actions\.likePost\(post\.actions\.likePostId\)\}/)
   assert.match(
     source,
@@ -481,7 +513,7 @@ test('desktop React owns the treehole main post composer draft', async () => {
   const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
 
-  assert.match(source, /function TreeholeComposer\(\{ controls, onPost \}\)/)
+  assert.match(source, /function TreeholeComposer\(/)
   assert.match(source, /const \[draft, setDraft\] = useState\(''\)/)
   assert.match(source, /const canPost = controls\.canPostTreehole && Boolean\(draft\.trim\(\)\)/)
   assert.match(source, /onPost\(\{ text: draft\.trim\(\) \}\)/)
@@ -523,6 +555,11 @@ test('desktop React owns the direct message composer draft and recipient', async
     /actions\.sendDirectMessage\(\{\s*text: composer\.text\.trim\(\),\s*toProfileId: composer\.toProfileId\.trim\(\)\s*\}\)/
   )
   assert.match(source, /value=\{composer\.toProfileId\}/)
+  assert.match(source, /<DirectComposer[\s\S]*selectedThread=\{selectedThread\}/)
+  assert.match(
+    source,
+    /selectedThread\?\.label \? `Message \$\{selectedThread\.label\}` : 'Write a private message'/
+  )
   assert.match(source, /value=\{composer\.text\}/)
   assert.match(controller, /createDesktopUiActionBindings/)
   assert.doesNotMatch(controller, /dmForm: document\.querySelector/)

@@ -9,6 +9,7 @@ export type DmThread = {
   channelPublicKey: string
   createdAt: number
   localProfileId: string
+  lastReadAt?: number
   remoteProfileId: string
   requestId?: string
   revokedAt?: number
@@ -82,6 +83,19 @@ export function revokeDmThread(thread: unknown, { revokedAt }: { revokedAt: numb
   }
 }
 
+export function markDmThreadRead(thread: unknown, { readAt }: { readAt: number }): DmThread {
+  const cleanThread = cleanDmThread(thread)
+  const nextReadAt = cleanTimestamp(readAt, 'Read timestamp is required')
+  const currentReadAt = cleanThread.lastReadAt ?? 0
+
+  if (currentReadAt >= nextReadAt) return cleanThread
+
+  return {
+    ...cleanThread,
+    lastReadAt: nextReadAt
+  }
+}
+
 export function isDmThreadActive(thread: unknown): boolean {
   try {
     const cleanThread = cleanDmThread(thread)
@@ -131,6 +145,10 @@ function cleanDmThread(thread: unknown = {}): DmThread {
       value.acceptedAt === undefined
         ? undefined
         : cleanTimestamp(value.acceptedAt, 'Accepted timestamp is required'),
+    lastReadAt:
+      value.lastReadAt === undefined
+        ? undefined
+        : cleanTimestamp(value.lastReadAt, 'Read timestamp is required'),
     revokedAt:
       value.revokedAt === undefined
         ? undefined

@@ -1,6 +1,6 @@
-import { createDesktopDmRuntime } from './desktop-dm-runtime.js'
-import { createDesktopHomeRuntime } from './desktop-home-runtime.js'
-import { createDesktopTreeholeRuntime } from './desktop-treehole-runtime.js'
+import { createDesktopDmRuntime } from './desktop-dm-runtime.ts'
+import { createDesktopHomeRuntime } from './desktop-home-runtime.ts'
+import { createDesktopTreeholeRuntime } from './desktop-treehole-runtime.ts'
 
 type BackendEmit = (event: string, payload?: unknown) => void
 
@@ -36,6 +36,7 @@ export function createDesktopBackendRuntime({
   createTreeholeRuntime = createDesktopTreeholeRuntime,
   emit = () => {},
   onDmSessionChanged = () => {},
+  onDmThreadsChanged = () => {},
   onHomeDebugState = () => {},
   onHomeControl = () => {},
   onHomeSessionChanged = () => {},
@@ -49,6 +50,7 @@ export function createDesktopBackendRuntime({
   createTreeholeRuntime?: RuntimeFactory<DesktopTreeholeRuntimeLike>
   emit?: BackendEmit
   onDmSessionChanged?: (session: unknown) => void
+  onDmThreadsChanged?: (threads: unknown) => void
   onHomeDebugState?: (debug: unknown) => void
   onHomeControl?: (message: unknown, peer?: unknown) => void
   onHomeSessionChanged?: (session: unknown) => void
@@ -60,6 +62,10 @@ export function createDesktopBackendRuntime({
     onSessionChanged: (session: unknown) => {
       emit('dmMessageReceived', session)
       onDmSessionChanged(session)
+    },
+    onThreadsChanged: (threads: unknown) => {
+      emit('dmThreadChanged', threads)
+      onDmThreadsChanged(threads)
     }
   })
   const home = createHomeRuntime({

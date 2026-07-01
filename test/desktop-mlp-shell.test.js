@@ -9,14 +9,14 @@ async function readDesktopAppSource() {
 async function readDesktopUiSource() {
   const app = await readDesktopAppSource()
   const appState = await readFile(new URL('../desktop/app-state.ts', import.meta.url), 'utf8')
-  const panes = await readFile(new URL('../desktop/pane-components.jsx', import.meta.url), 'utf8')
-  const shell = await readFile(new URL('../desktop/shell-components.jsx', import.meta.url), 'utf8')
+  const panes = await readFile(new URL('../desktop/pane-components.tsx', import.meta.url), 'utf8')
+  const shell = await readFile(new URL('../desktop/shell-components.tsx', import.meta.url), 'utf8')
   const context = await readFile(
-    new URL('../desktop/context-components.jsx', import.meta.url),
+    new URL('../desktop/context-components.tsx', import.meta.url),
     'utf8'
   )
   const people = await readFile(
-    new URL('../desktop/people-components.jsx', import.meta.url),
+    new URL('../desktop/people-components.tsx', import.meta.url),
     'utf8'
   )
   const shared = await readFile(new URL('../desktop/ui-components.tsx', import.meta.url), 'utf8')
@@ -25,13 +25,14 @@ async function readDesktopUiSource() {
 
 test('desktop React shell separates navigation, workspace, and context panels', async () => {
   const source = await readDesktopAppSource()
-  const shell = await readFile(new URL('../desktop/shell-components.jsx', import.meta.url), 'utf8')
+  const shell = await readFile(new URL('../desktop/shell-components.tsx', import.meta.url), 'utf8')
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
 
   assert.match(source, /<AppRail[\s\S]*activeTab=\{model\.activeTab\}/)
   assert.match(source, /<AppRail[\s\S]*shellActions=\{model\.shellActions\}/)
   assert.match(source, /className='workspace'/)
   assert.match(source, /className='contextPanel'/)
+  assert.match(source, /aria-label='Home and Contacts context'/)
   assert.match(shell, /className='appRail'/)
   assert.equal(source.indexOf('<AppRail') < source.indexOf("className='workspace'"), true)
   assert.equal(
@@ -46,11 +47,11 @@ test('desktop React shell separates navigation, workspace, and context panels', 
 test('desktop context actions live behind a dedicated component boundary', async () => {
   const source = await readDesktopAppSource()
   const context = await readFile(
-    new URL('../desktop/context-components.jsx', import.meta.url),
+    new URL('../desktop/context-components.tsx', import.meta.url),
     'utf8'
   )
 
-  assert.match(source, /import \{ ContextPanel \} from '\.\/context-components\.jsx'/)
+  assert.match(source, /import \{ ContextPanel \} from '\.\/context-components\.tsx'/)
   assert.match(source, /<ContextPanel[\s\S]*shareQrOutputs=\{model\.shareQrOutputs\}/)
   assert.match(context, /export function ContextPanel\(/)
   assert.match(context, /const ROOM_KEY_PATTERN = \/\^\[0-9a-f\]\{64\}\$\//)
@@ -62,25 +63,41 @@ test('desktop context panel uses product actions for home and people flows', asy
   const source = await readDesktopUiSource()
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
 
-  assert.match(source, /<h1>Kepos Home<\/h1>/)
+  assert.match(source, /<h1>Kepos<\/h1>/)
   assert.match(source, /<details className='contextGroup homeActions'[^>]+open>/)
-  assert.match(source, /Open your home, share one invite, or enter a trusted home\./)
+  assert.match(source, /Open your home, share My QR, or enter a trusted home\./)
   assert.match(source, /Name[\s\S]*id='nickInput'/)
-  assert.match(source, /Show invite/)
-  assert.match(source, /Copy invite/)
-  assert.match(source, /Enter a home/)
-  assert.match(source, /placeholder='Paste invite'/)
+  assert.match(source, /id='avatarFileInput'[\s\S]*type='file'/)
+  assert.match(source, /id='avatarFileInput'[\s\S]*accept='image\/png,image\/jpeg,image\/webp'/)
+  assert.match(source, /handleAvatarFileChange/)
+  assert.match(source, /id='showMyQrButton'[\s\S]*label='Show My QR'/)
+  assert.match(
+    source,
+    /id='showMyQrButton'[\s\S]*actions\.showLargeProfileQr\(\{ returnFocus: event\.currentTarget \}\)/
+  )
+  assert.equal(source.indexOf("id='showMyQrButton'") < source.indexOf("id='homeQrForm'"), true)
+  assert.match(source, /Show Home QR/)
+  assert.match(source, /Copy Home QR/)
+  assert.match(source, /Enter Home/)
+  assert.match(source, /placeholder='Paste Home QR'/)
   assert.match(source, /Profile QR details/)
+  assert.match(source, /id='showLargeProfileQrButton'[\s\S]*label='Show My QR'/)
   assert.match(source, /Copy Profile QR/)
+  assert.match(source, /SectionTitle[\s\S]*text='Contacts'/)
+  assert.match(source, /Profile QR[\s\S]*id='trustQrInput'/)
   assert.match(source, /Friend name[\s\S]*id='trustAliasInput'/)
   assert.match(source, /placeholder='Ada'/)
   assert.match(source, /<details className='contextGroup peopleActions'/)
   assert.equal(/<details className='contextGroup peopleActions'[^>]+open>/.test(source), false)
-  assert.match(source, /Advanced profile trust and direct message setup\./)
-  assert.match(source, /Add trusted friend/)
+  assert.match(source, /Advanced contact requests and private messages\./)
+  assert.equal(source.includes('Advanced profile trust and direct message setup.'), false)
+  assert.match(source, /Start request/)
+  assert.equal(source.includes("text='People'"), false)
   assert.equal(source.includes('Start your room'), false)
   assert.equal(source.includes('Trust a profile before private home access or DM.'), false)
   assert.equal(source.includes('Trust Profile'), false)
+  assert.equal(source.includes('Friend profile'), false)
+  assert.equal(source.includes('Show my profile'), false)
   assert.equal(source.includes('Join Home URI'), false)
   assert.equal(source.includes('Kepos Peer'), false)
   assert.equal(source.includes('Nick'), false)
@@ -96,7 +113,7 @@ test('desktop context panel uses product actions for home and people flows', asy
 
 test('desktop context forms use task panel headers', async () => {
   const context = await readFile(
-    new URL('../desktop/context-components.jsx', import.meta.url),
+    new URL('../desktop/context-components.tsx', import.meta.url),
     'utf8'
   )
   const shared = await readFile(new URL('../desktop/ui-components.tsx', import.meta.url), 'utf8')
@@ -114,11 +131,11 @@ test('desktop context forms use task panel headers', async () => {
   )
   assert.match(
     context,
-    /id='homeQrForm'[\s\S]*<PanelHeader[\s\S]*eyebrow='Invite'[\s\S]*title='One home invite'[\s\S]*description='Trust means this friend can enter your home\.'[\s\S]*\/>/
+    /id='homeQrForm'[\s\S]*<PanelHeader[\s\S]*eyebrow='Advanced'[\s\S]*title='Home QR'[\s\S]*description='Connection details for trusted friends; trust still controls entry\.'[\s\S]*\/>/
   )
   assert.match(
     context,
-    /id='trustForm'[\s\S]*<PanelHeader[\s\S]*eyebrow='Advanced'[\s\S]*title='Profile trust'[\s\S]*description='Debug profile QR flow for trust-only setup\.'[\s\S]*\/>/
+    /id='trustForm'[\s\S]*<PanelHeader[\s\S]*eyebrow='Advanced'[\s\S]*title='Profile request'[\s\S]*description='Paste a Profile QR, then write a request in Messages\.'[\s\S]*\/>/
   )
   assert.match(styles, /\.panelHeader/)
   assert.match(styles, /\.panelTitle/)
@@ -140,6 +157,10 @@ test('desktop people UI uses trusted friends copy', async () => {
     new URL('../src/desktop-render-presenter.ts', import.meta.url),
     'utf8'
   )
+  const peopleViewModel = await readFile(
+    new URL('../src/desktop-people-view-model.ts', import.meta.url),
+    'utf8'
+  )
   const actions = await readFile(
     new URL('../src/desktop-trust-actions.ts', import.meta.url),
     'utf8'
@@ -149,27 +170,62 @@ test('desktop people UI uses trusted friends copy', async () => {
     'utf8'
   )
 
-  assert.match(source, /id='peopleTab'[\s\S]*title='People'/)
-  assert.match(source, /label='People'/)
+  assert.match(source, /id='peopleTab'[\s\S]*title=\{getProductSurfaceTitle\('people'\)\}/)
+  assert.match(source, /label=\{getProductSurfaceLabel\('people'\)\}/)
   assert.doesNotMatch(source, /<span className='railLabel'>/)
   assert.match(source, /id='peoplePane'/)
   assert.match(
     source,
-    /<PaneHeader[\s\S]*eyebrow='trusted'[\s\S]*title='People'[\s\S]*description='Manage who can enter your home and start direct threads\.'/
+    /<PaneHeader[\s\S]*eyebrow='profiles'[\s\S]*title='Contacts'[\s\S]*description='Trusted profiles, Messages, and home entry live here\.'/
   )
-  assert.match(source, /Trusted friends/)
+  assert.match(source, /Profiles/)
   assert.match(source, /No trusted friends yet/)
   assert.match(source, /No requests waiting/)
-  assert.match(source, /Trusted people will appear here after you add a Profile QR\./)
+  assert.match(source, /Trusted contacts will appear here after a friend request is accepted\./)
+  assert.match(source, /Open Contacts to scan a profile or accept a friend request\./)
+  assert.equal(source.includes('Add a trusted friend before starting a direct message.'), false)
+  assert.equal(source.includes('Add a trusted friend before starting a message thread.'), false)
+  assert.equal(
+    source.includes('Trusted profiles, direct messages, and home entry live here.'),
+    false
+  )
   assert.match(presenter, /createDesktopPeopleViewModel/)
   assert.match(source, /\{contact\.statusLabel\}/)
   assert.match(source, /\{contact\.sourceLabel\}/)
   assert.match(source, /\{contact\.trustedAtLabel\}/)
-  assert.match(source, /<ActionButton[\s\S]*ariaLabel=\{`Revoke trust for \$\{contact\.alias\}`\}/)
+  assert.match(source, /label=\{contact\.messageActionLabel\}/)
+  assert.match(source, /onClick=\{\(\) => actions\.messageContact\(contact\.profileId\)\}/)
+  assert.match(source, /label='Profile'/)
+  assert.match(source, /onClick=\{\(\) => actions\.openProfile\(contact\.profileId\)\}/)
+  assert.doesNotMatch(
+    source,
+    /<p className='mono muted smallText text-xs text-base-content\/60'>Profile<\/p>/
+  )
+  assert.match(source, /label=\{contact\.homeActionLabel\}/)
+  assert.match(source, /disabled=\{!contact\.homeActionEnabled\}/)
+  assert.match(source, /\{contact\.recentTitle\}/)
+  assert.match(source, /id='contactProfileDetail'/)
+  assert.match(source, /ContactProfileDetail/)
+  assert.match(source, /Advanced identity/)
+  assert.match(source, /Profile fingerprint/)
+  assert.match(source, /actions\.closeProfile/)
+  assert.match(source, /\{profile\.homeActionEnabled \? \(/)
+  assert.match(source, /ariaLabel=\{`Refresh recent posts from \$\{profile\.alias\}`\}/)
+  assert.match(source, /label='Refresh posts'/)
+  assert.match(source, /actions\.enterContactHome\(profile\.profileId\)/)
+  assert.match(source, /<ActionButton[\s\S]*ariaLabel=\{`Remove \$\{contact\.alias\} as friend`\}/)
   assert.match(source, /<ActionButton[\s\S]*className='smallButton dangerButton'/)
   assert.match(source, /<ActionButton[\s\S]*icon=\{<UserX size=\{15\} \/>\}/)
-  assert.match(source, /<ActionButton[\s\S]*label='Revoke'/)
+  assert.match(source, /<ActionButton[\s\S]*label='Remove friend'/)
   assert.match(presenter, /ui\?\.setPeople\(/)
+  assert.match(
+    bindings,
+    /messageContact: \(profileId\) => \{[\s\S]*selectDirectContact\(profileId\)[\s\S]*return setTab\('dm'\)/
+  )
+  assert.match(
+    bindings,
+    /allowContactRequests: \(profileId\) => dispatchCommand\('allowContactRequests'/
+  )
   assert.match(bindings, /revokeContact: \(profileId\) => dispatchCommand\('revokeContact'/)
   assert.equal(source.indexOf("id='contactList'") > source.indexOf("id='peoplePane'"), true)
   assert.match(source, /onSelect=\{\(\) => shellActions\.setTab\('people'\)\}/)
@@ -177,26 +233,29 @@ test('desktop people UI uses trusted friends copy', async () => {
   assert.doesNotMatch(controller, /els\.peopleTab\.addEventListener/)
   assert.match(source, /className=\{activeTab === 'people' \? 'pane' : 'pane hidden'\}/)
   assert.match(source, /isActive=\{activeTab === 'people'\}/)
-  assert.equal(source.includes("text='Contacts'"), false)
   assert.equal(controller.includes('No trusted contacts'), false)
   assert.equal(controller.includes('notice: `Revoked ${shorten(profileId)}.`'), false)
-  assert.match(actions, /setNotice\('Trust revoked\.'\)/)
+  assert.match(actions, /setNotice\('Friend removed\.'\)/)
 })
 
 test('desktop People empty panels use icon-led product empty states', async () => {
   const people = await readFile(
-    new URL('../desktop/people-components.jsx', import.meta.url),
+    new URL('../desktop/people-components.tsx', import.meta.url),
     'utf8'
   )
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
 
-  assert.match(people, /function PeopleEmptyState\(\{ copy, icon, title \}\)/)
+  assert.match(people, /function PeopleEmptyState\(\{[\s\S]*copy,[\s\S]*icon,[\s\S]*title[\s\S]*\}/)
   assert.match(people, /<PeopleEmptyState[\s\S]*icon=\{<MessageCircle size=\{18\} \/>/)
   assert.match(people, /title='No requests waiting'/)
-  assert.match(people, /copy='Message requests from trusted Home traffic will appear here\.'/)
+  assert.match(people, /copy='Friend requests you receive will appear here\.'/)
+  assert.equal(people.includes('Message requests from trusted Home traffic'), false)
   assert.match(people, /<PeopleEmptyState[\s\S]*icon=\{<Users size=\{18\} \/>/)
   assert.match(people, /title='No trusted friends yet'/)
-  assert.match(people, /copy='Trusted people will appear here after you add a Profile QR\.'/)
+  assert.match(
+    people,
+    /copy='Trusted contacts will appear here after a friend request is accepted\.'/
+  )
   assert.match(styles, /\.peopleEmpty/)
   assert.match(styles, /\.peopleEmptyIcon/)
   assert.match(styles, /\.peopleEmptyTitle/)
@@ -206,14 +265,24 @@ test('desktop People empty panels use icon-led product empty states', async () =
 test('desktop People pane lives behind a dedicated component boundary', async () => {
   const source = await readDesktopAppSource()
   const people = await readFile(
-    new URL('../desktop/people-components.jsx', import.meta.url),
+    new URL('../desktop/people-components.tsx', import.meta.url),
     'utf8'
   )
 
-  assert.match(source, /import \{ PeoplePane \} from '\.\/people-components\.jsx'/)
+  assert.match(source, /import \{ PeoplePane \} from '\.\/people-components\.tsx'/)
+  assert.match(source, /blockedContacts=\{model\.people\.blockedContacts\}/)
+  assert.match(source, /outgoingRequests=\{model\.people\.outgoingRequests\}/)
   assert.match(source, /<PeoplePane[\s\S]*trustedContacts=\{model\.people\.trustedContacts\}/)
+  assert.match(source, /<PeoplePane[\s\S]*selectedProfile=\{model\.selectedProfile\}/)
   assert.match(people, /export function PeoplePane\(/)
   assert.match(people, /export function PeopleLists\(/)
+  assert.match(people, /id='blockedProfilesTitle'/)
+  assert.match(people, /id='blockedContactList'/)
+  assert.match(people, /Removed \/ ignored/)
+  assert.match(people, /Profiles you remove or ignore will appear here\./)
+  assert.match(people, /profile\.recentPosts/)
+  assert.match(people, /<ProfileAvatar avatar=\{contact\.avatar\}/)
+  assert.match(people, /<ProfileAvatar avatar=\{profile\.avatar\}/)
   assert.match(
     people,
     /import \{ ActionButton, PaneHeader, RequestActionButton, SectionTitle \} from '\.\/ui-components\.tsx'/
@@ -223,16 +292,44 @@ test('desktop People pane lives behind a dedicated component boundary', async ()
   assert.doesNotMatch(people, /function SectionTitle\(/)
 })
 
+test('desktop recent profile posts cache is durable across app restart', async () => {
+  const appState = await readFile(new URL('../desktop/app-state.ts', import.meta.url), 'utf8')
+
+  assert.match(appState, /loadProfileRecentPostCacheFromStorage/)
+  assert.match(appState, /saveProfileRecentPostCacheToStorage/)
+  assert.match(appState, /updateProfileRecentPostCache/)
+  assert.match(
+    appState,
+    /useState<ProfileRecentPostCache>\(\s*loadInitialProfileRecentPostCache\s*\)/
+  )
+  assert.match(appState, /function loadInitialProfileRecentPostCache\(\)/)
+  assert.match(appState, /function saveProfileRecentPostCache\(cache: ProfileRecentPostCache\)/)
+  assert.match(appState, /saveProfileRecentPostCache\(nextCache\)/)
+})
+
 test('desktop primary panes live behind a dedicated component boundary', async () => {
   const source = await readDesktopAppSource()
-  const panes = await readFile(new URL('../desktop/pane-components.jsx', import.meta.url), 'utf8')
+  const appState = await readFile(new URL('../desktop/app-state.ts', import.meta.url), 'utf8')
+  const panes = await readFile(new URL('../desktop/pane-components.tsx', import.meta.url), 'utf8')
+  const presenter = await readFile(
+    new URL('../src/desktop-render-presenter.ts', import.meta.url),
+    'utf8'
+  )
 
   assert.match(
     source,
-    /import \{ DirectPane, HomePane, TreeholePane \} from '\.\/pane-components\.jsx'/
+    /import \{ DirectPane, HomePane, TreeholePane \} from '\.\/pane-components\.tsx'/
   )
   assert.match(source, /<HomePane[\s\S]*messages=\{model\.homeMessages\}/)
+  assert.match(source, /<HomePane[\s\S]*homeOwner=\{model\.homeOwner\}/)
+  assert.match(appState, /setHomeOwner\(owner = DEFAULT_HOME_OWNER\)/)
+  assert.match(presenter, /setHomeOwner\(\s*createHomeOwnerViewModel/)
+  assert.match(panes, /homeOwner\.title/)
+  assert.match(panes, /homeOwner\.subtitle/)
+  assert.match(panes, /onOpenOwnerProfile\(homeOwner\.ownerProfileId\)/)
   assert.match(source, /<DirectPane[\s\S]*messages=\{model\.directMessages\}/)
+  assert.match(source, /<DirectPane[\s\S]*threads=\{model\.directThreads\}/)
+  assert.match(panes, /<ProfileAvatar avatar=\{thread\.avatar\}/)
   assert.match(source, /<TreeholePane[\s\S]*posts=\{model\.treeholePosts\}/)
   assert.match(panes, /export function HomePane\(/)
   assert.match(panes, /export function DirectPane\(/)
@@ -243,14 +340,29 @@ test('desktop primary panes live behind a dedicated component boundary', async (
   assert.doesNotMatch(source, /function PaneLabel\(/)
 })
 
+test('desktop Messages focuses the selected direct thread message list', async () => {
+  const panes = await readFile(new URL('../desktop/pane-components.tsx', import.meta.url), 'utf8')
+  const directPane = panes.slice(
+    panes.indexOf('export function DirectPane('),
+    panes.indexOf('function DirectThreadHeader(')
+  )
+
+  assert.match(panes, /filterDirectMessagesForProfile/)
+  assert.match(
+    directPane,
+    /const visibleMessages = filterDirectMessagesForProfile\(\s*messages,\s*composer\.toProfileId\.trim\(\)\s*\)/
+  )
+  assert.match(directPane, /<DirectMessageList[\s\S]*messages=\{visibleMessages\}/)
+})
+
 test('desktop panes share product headers with short guidance', async () => {
-  const panes = await readFile(new URL('../desktop/pane-components.jsx', import.meta.url), 'utf8')
+  const panes = await readFile(new URL('../desktop/pane-components.tsx', import.meta.url), 'utf8')
   const people = await readFile(
-    new URL('../desktop/people-components.jsx', import.meta.url),
+    new URL('../desktop/people-components.tsx', import.meta.url),
     'utf8'
   )
   const context = await readFile(
-    new URL('../desktop/context-components.jsx', import.meta.url),
+    new URL('../desktop/context-components.tsx', import.meta.url),
     'utf8'
   )
   const shared = await readFile(new URL('../desktop/ui-components.tsx', import.meta.url), 'utf8')
@@ -273,15 +385,17 @@ test('desktop panes share product headers with short guidance', async () => {
   )
   assert.match(
     panes,
-    /<PaneHeader[\s\S]*eyebrow='durable'[\s\S]*title='Direct messages'[\s\S]*description='Private pairwise threads that survive restarts\.'[\s\S]*\/>/
+    /<PaneHeader[\s\S]*eyebrow='durable'[\s\S]*title='Messages'[\s\S]*description='Private pairwise threads that survive restarts\.'[\s\S]*\/>/
   )
   assert.match(
     panes,
-    /<PaneHeader[\s\S]*eyebrow='durable'[\s\S]*title='Durable treehole'[\s\S]*description='The home owner writes the wall; trusted friends can react and comment\.'[\s\S]*\/>/
+    /<PaneHeader[\s\S]*eyebrow='durable'[\s\S]*title='My treehole'[\s\S]*description='Your durable posts stay here; trusted friends can react and comment\.'[\s\S]*\/>/
   )
+  assert.match(panes, /placeholder='Post to My treehole'/)
+  assert.equal(panes.includes("placeholder='Post to the treehole'"), false)
   assert.match(
     people,
-    /<PaneHeader[\s\S]*eyebrow='trusted'[\s\S]*title='People'[\s\S]*description='Manage who can enter your home and start direct threads\.'[\s\S]*\/>/
+    /<PaneHeader[\s\S]*eyebrow='profiles'[\s\S]*title='Contacts'[\s\S]*description='Trusted profiles, Messages, and home entry live here\.'[\s\S]*\/>/
   )
   assert.doesNotMatch(panes, /function PaneLabel\(/)
   assert.doesNotMatch(people, /function PaneLabel\(/)
@@ -298,6 +412,10 @@ test('desktop app state and bridge live behind a dedicated hook boundary', async
   assert.match(source, /const model = useDesktopAppModel\(\)/)
   assert.match(appState, /export function useDesktopAppModel\(\)/)
   assert.match(appState, /type DesktopUiBridge = \{/)
+  assert.match(appState, /createProfileRecentPostsViewModel/)
+  assert.match(appState, /activeHomeOwnerProfileId/)
+  assert.match(appState, /profileRecentPostCache/)
+  assert.match(appState, /cachedPostsByProfileId: profileRecentPostCache/)
   assert.match(
     appState,
     /type DesktopGlobal = typeof globalThis & \{ keposDesktopUi: DesktopUiApi \}/
@@ -319,6 +437,10 @@ test('desktop people pane surfaces pending message requests', async () => {
     new URL('../src/desktop-render-presenter.ts', import.meta.url),
     'utf8'
   )
+  const peopleViewModel = await readFile(
+    new URL('../src/desktop-people-view-model.ts', import.meta.url),
+    'utf8'
+  )
   const actions = await readFile(
     new URL('../src/desktop-message-request-actions.ts', import.meta.url),
     'utf8'
@@ -329,16 +451,20 @@ test('desktop people pane surfaces pending message requests', async () => {
   )
 
   assert.match(source, /id='requestList'/)
-  assert.match(source, /Message requests/)
+  assert.match(source, /Friend requests/)
+  assert.match(source, /id='outgoingRequestList'/)
+  assert.match(source, /Sent requests/)
+  assert.match(peopleViewModel, /Request sent/)
   assert.match(presenter, /createDesktopPeopleViewModel/)
   assert.match(source, /messageRequests=\{model\.people\.messageRequests\}/)
+  assert.match(source, /outgoingRequests=\{model\.people\.outgoingRequests\}/)
   assert.match(source, /No requests waiting/)
   assert.match(source, /\{request\.title\}/)
   assert.match(source, /\{request\.preview\}/)
   assert.match(source, /actions\.acceptMessageRequest\(request\.acceptMessage\)/)
   assert.match(source, /actions\.ignoreMessageRequest\(request\.profileId\)/)
-  assert.match(source, /ariaLabel=\{`Accept message request from \$\{request\.title\}`\}/)
-  assert.match(source, /ariaLabel=\{`Ignore message request from \$\{request\.title\}`\}/)
+  assert.match(source, /ariaLabel=\{`Accept friend request from \$\{request\.title\}`\}/)
+  assert.match(source, /ariaLabel=\{`Ignore friend request from \$\{request\.title\}`\}/)
   assert.match(
     bindings,
     /acceptMessageRequest: \(message\) => dispatchCommand\('acceptMessageRequest'/
@@ -348,7 +474,7 @@ test('desktop people pane surfaces pending message requests', async () => {
     /ignoreMessageRequest: \(profileId\) => dispatchCommand\('ignoreMessageRequest'/
   )
   const session = await readFile(
-    new URL('../src/desktop-backend-session.js', import.meta.url),
+    new URL('../src/desktop-backend-session.ts', import.meta.url),
     'utf8'
   )
 
@@ -368,7 +494,7 @@ test('desktop people pane surfaces pending message requests', async () => {
 test('desktop keeps inline QR codes as advanced share detail', async () => {
   const source = await readDesktopUiSource()
 
-  assert.match(source, /id='copyHomeQrButton'[\s\S]*Copy invite/)
+  assert.match(source, /id='copyHomeQrButton'[\s\S]*Copy Home QR/)
   assert.match(source, /id='copyProfileQrButton'[\s\S]*Copy Profile QR/)
   assert.equal(
     source.indexOf("qrId='homeQrCode'") > source.indexOf("detailsId='advancedHomeShare'"),
@@ -395,7 +521,7 @@ test('desktop keeps inline QR codes as advanced share detail', async () => {
 test('desktop QR sharing exposes copy actions without surfacing raw URI copy', async () => {
   const source = await readDesktopUiSource()
   const context = await readFile(
-    new URL('../desktop/context-components.jsx', import.meta.url),
+    new URL('../desktop/context-components.tsx', import.meta.url),
     'utf8'
   )
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
@@ -404,7 +530,7 @@ test('desktop QR sharing exposes copy actions without surfacing raw URI copy', a
     'utf8'
   )
 
-  assert.match(source, /Copy invite/)
+  assert.match(source, /Copy Home QR/)
   assert.match(source, /Copy Profile QR/)
   assert.match(context, /<ActionButton[\s\S]*id='copyHomeQrButton'[\s\S]*actions\.copyHomeQr\(\)/)
   assert.match(
@@ -414,7 +540,7 @@ test('desktop QR sharing exposes copy actions without surfacing raw URI copy', a
   assert.match(bindings, /copyHomeQr: \(\) =>/)
   assert.match(bindings, /copyProfileQr: \(\) =>/)
   assert.match(controller, /navigator\.clipboard\.writeText\(value\)/)
-  assert.match(bindings, /notice: 'Invite copied\.'/)
+  assert.match(bindings, /notice: 'Home QR copied\.'/)
   assert.match(bindings, /notice: 'Profile QR copied\.'/)
   assert.match(controller, /setNotice\(notice\)/)
   assert.equal(source.includes('Copy URI'), false)
@@ -422,9 +548,9 @@ test('desktop QR sharing exposes copy actions without surfacing raw URI copy', a
 
 test('desktop request and QR dialog actions use clear icons', async () => {
   const source = await readDesktopUiSource()
-  const panes = await readFile(new URL('../desktop/pane-components.jsx', import.meta.url), 'utf8')
+  const panes = await readFile(new URL('../desktop/pane-components.tsx', import.meta.url), 'utf8')
   const people = await readFile(
-    new URL('../desktop/people-components.jsx', import.meta.url),
+    new URL('../desktop/people-components.tsx', import.meta.url),
     'utf8'
   )
   const shared = await readFile(new URL('../desktop/ui-components.tsx', import.meta.url), 'utf8')
@@ -442,25 +568,30 @@ test('desktop request and QR dialog actions use clear icons', async () => {
   assert.match(shared, /const label = isAccept \? 'Accept' : 'Ignore'/)
   assert.match(
     people,
-    /<RequestActionButton[\s\S]*ariaLabel=\{`Ignore message request from \$\{request\.title\}`\}[\s\S]*actions\.ignoreMessageRequest\(request\.profileId\)[\s\S]*variant='ignore'/
+    /<RequestActionButton[\s\S]*ariaLabel=\{`Ignore friend request from \$\{request\.title\}`\}[\s\S]*actions\.ignoreMessageRequest\(request\.profileId\)[\s\S]*variant='ignore'/
   )
   assert.match(
     people,
-    /<RequestActionButton[\s\S]*ariaLabel=\{`Accept message request from \$\{request\.title\}`\}[\s\S]*actions\.acceptMessageRequest\(request\.acceptMessage\)[\s\S]*variant='accept'/
+    /<RequestActionButton[\s\S]*ariaLabel=\{`Accept friend request from \$\{request\.title\}`\}[\s\S]*actions\.acceptMessageRequest\(request\.acceptMessage\)[\s\S]*variant='accept'/
   )
   assert.match(
     people,
-    /<ActionButton[\s\S]*icon=\{<UserX size=\{15\} \/>\}[\s\S]*label='Revoke'[\s\S]*actions\.revokeContact\(contact\.profileId\)/
-  )
-  assert.match(source, /import \{ Heart, MessageCircle, Send, Sprout, UserPlus \}/)
-  assert.match(
-    panes,
-    /<RequestActionButton[\s\S]*ariaLabel='Ignore direct message request'[\s\S]*onIgnore\(message\.actions\.ignoreMessage\)[\s\S]*variant='ignore'/
+    /<ActionButton[\s\S]*icon=\{<UserX size=\{15\} \/>\}[\s\S]*label='Remove friend'[\s\S]*actions\.revokeContact\(contact\.profileId\)/
   )
   assert.match(
-    panes,
-    /<RequestActionButton[\s\S]*ariaLabel='Accept direct message request'[\s\S]*onAccept\(message\.actions\.acceptMessage\)[\s\S]*variant='accept'/
+    people,
+    /<ActionButton[\s\S]*icon=\{<UserPlus size=\{15\} \/>\}[\s\S]*label='Allow requests'[\s\S]*actions\.allowContactRequests\(contact\.profileId\)/
   )
+  assert.match(source, /import \{ Heart, MessageCircle, Send, Sprout, User, UserPlus \}/)
+  assert.match(
+    panes,
+    /<RequestActionButton[\s\S]*ariaLabel='Ignore friend request'[\s\S]*onIgnore\(actions\.ignoreMessage\)[\s\S]*variant='ignore'/
+  )
+  assert.match(
+    panes,
+    /<RequestActionButton[\s\S]*ariaLabel='Accept friend request'[\s\S]*onAccept\(actions\.acceptMessage\)[\s\S]*variant='accept'/
+  )
+  assert.equal(panes.includes('direct message request'), false)
 })
 
 test('desktop normal UI copy avoids raw home address language', async () => {
@@ -492,7 +623,7 @@ test('desktop status panel keeps raw ids in advanced details', async () => {
   )
 
   assert.match(source, /id='homeStatusLabel'/)
-  assert.match(source, /Treehole offline/)
+  assert.match(source, /My treehole offline/)
   assert.match(source, /<p className='label'>Online<\/p>/)
   assert.match(source, /<details[^>]+id='advancedStatus'/)
   assert.equal(source.indexOf("id='roomKeyLabel'") > source.indexOf("id='advancedStatus'"), true)
@@ -547,7 +678,7 @@ test('desktop error handling keeps raw exception detail advanced', async () => {
   assert.match(statusViewModel, /errorDetailLabel: state\?\.lastError \|\| 'none'/)
   assert.match(controller, /notice: getDesktopErrorNotice\(error\)/)
   assert.match(controller, /function getDesktopErrorNotice\(error\)/)
-  assert.match(controller, /Could not read this invite\./)
+  assert.match(controller, /Could not read this Home QR\./)
   assert.match(controller, /Could not read this Profile QR\./)
   assert.match(controller, /Could not join this home\. Trust this friend on this device first\./)
   assert.match(controller, /return 'Something went wrong\.'/)
@@ -563,14 +694,21 @@ test('desktop primary panes expose short empty states before content arrives', a
   )
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
 
-  assert.match(source, /function ListEmptyState\(\{ copy, icon, title \}\)/)
-  assert.match(source, /messages\.length === 0 \?/)
+  assert.match(source, /function ListEmptyState\(/)
+  assert.match(source, /visibleMessages\.length === 0 \?/)
   assert.match(source, /<ListEmptyState[\s\S]*title='No messages yet'/)
   assert.match(source, /copy='Send the first line from this desktop\.'/)
-  assert.match(source, /<ListEmptyState[\s\S]*title='No direct messages yet'/)
-  assert.match(source, /copy='Choose a trusted friend and send the first message\.'/)
+  assert.match(source, /<ListEmptyState[\s\S]*title='No messages yet'/)
+  assert.match(source, /copy='Choose a trusted contact and send the first message\.'/)
+  assert.match(source, /<DirectThreadList[\s\S]*onOpenPeople=\{contactPickerActions\.openPeople\}/)
+  assert.match(source, /No message threads yet/)
+  assert.match(source, /Open Contacts to scan a profile or accept a friend request\./)
+  assert.match(source, /Open Contacts/)
   assert.match(source, /<ListEmptyState[\s\S]*title='No posts yet'/)
-  assert.match(source, /copy='Posts from this home will appear here\.'/)
+  assert.match(source, /const emptyCopy = canPost/)
+  assert.match(source, /Write the first post from this desktop\./)
+  assert.match(source, /Posts from this home will appear here\./)
+  assert.match(source, /copy=\{emptyCopy\}/)
   assert.equal(source.includes('No DMs yet'), false)
   assert.match(styles, /\.listEmpty/)
   assert.match(styles, /\.listEmptyIcon/)
@@ -591,12 +729,38 @@ test('desktop panes label live and durable surfaces', async () => {
   )
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
 
-  for (const text of ['Live home chat', 'Direct messages', 'Durable treehole']) {
+  for (const text of ['Live home chat', 'Messages', 'My treehole']) {
     assert.match(source, new RegExp(text), `${text} is missing`)
   }
 
-  assert.match(source, /id='dmTab'[\s\S]*title='Direct messages'/)
-  assert.match(source, /label='Direct'/)
+  assert.match(source, /id='dmTab'[\s\S]*title=\{getProductSurfaceTitle\('dm'\)\}/)
+  assert.match(source, /label=\{getProductSurfaceLabel\('dm'\)\}/)
+  assert.match(source, /id='treeholeTab'[\s\S]*title=\{getProductSurfaceTitle\('treehole'\)\}/)
+  assert.match(source, /label=\{getProductSurfaceLabel\('treehole'\)\}/)
+  assert.match(source, /aria-label='Messages'/)
+  assert.equal(source.includes("aria-label='Direct messages'"), false)
+  assert.match(source, /aria-label='My treehole posts'/)
+  assert.equal(source.includes("aria-label='Treehole posts'"), false)
+  assert.match(source, /function DirectThreadList\(/)
+  assert.match(source, /id='messageThreadList'/)
+  assert.match(source, /aria-label=\{`Open message thread \$\{thread\.label\}`\}/)
+  assert.match(source, /aria-pressed=\{selected\}/)
+  assert.match(source, /onClick=\{\(\) => onSelect\(thread\.profileId\)\}/)
+  assert.match(source, /ariaLabel=\{`Open \$\{thread\.label\} profile`\}/)
+  assert.match(source, /onClick=\{\(\) => onOpenProfile\(thread\.profileId\)\}/)
+  assert.match(source, /<DirectPane[\s\S]*onOpenProfile=\{model\.peopleActions\.openProfile\}/)
+  assert.match(source, /<DirectPane[\s\S]*requestTarget=\{model\.profileRequestTarget\}/)
+  assert.match(source, /function ProfileRequestTargetCard\(/)
+  assert.match(source, /id='profileRequestTargetCard'/)
+  assert.match(source, /<ProfileAvatar avatar=\{requestTarget\.avatar\} \/>/)
+  assert.match(source, /Friend request/)
+  assert.match(source, /Write a message below to send the request\./)
+  assert.match(source, /onClick=\{\(\) => onOpenProfile\(requestTarget\.profileId\)\}/)
+  assert.match(source, /<DirectThreadList[\s\S]*onOpenProfile=\{onOpenProfile\}/)
+  assert.match(source, /<DirectThreadList[\s\S]*threads=\{threads\}/)
+  assert.match(source, /setDirectThreads\(threads = \[\]\)/)
+  assert.match(presenter, /ui\?\.setDirectThreads\([\s\S]*createDmThreadListView/)
+  assert.match(presenter, /messages: \(dmSession\?\.messages \|\| \[\]\) as DirectMessages/)
   assert.doesNotMatch(source, /<span className='railLabel'>/)
   assert.equal(source.includes("<span className='railLabel'>DM</span>"), false)
   assert.match(source, /icon=\{<House size=\{20\} \/>\}/)
@@ -606,7 +770,7 @@ test('desktop panes label live and durable surfaces', async () => {
     source,
     /const selected = contact\.profileId === selectedProfileId \|\| contact\.isSelected/
   )
-  assert.match(source, /aria-label=\{`Direct recipient \$\{contact\.alias\}`\}/)
+  assert.match(source, /aria-label=\{`Message recipient \$\{contact\.alias\}`\}/)
   assert.match(source, /aria-pressed=\{selected\}/)
   assert.match(
     source,
@@ -620,6 +784,63 @@ test('desktop panes label live and durable surfaces', async () => {
   assert.match(styles, /\.paneEyebrow/)
   assert.match(styles, /\.paneTitle/)
   assert.match(styles, /\.activeContactButton/)
+})
+
+test('desktop requested message thread rows expose request actions', async () => {
+  const panes = await readFile(new URL('../desktop/pane-components.tsx', import.meta.url), 'utf8')
+  const viewModel = await readFile(new URL('../src/dm-thread-list.ts', import.meta.url), 'utf8')
+  const directPane = panes.slice(
+    panes.indexOf('export function DirectPane('),
+    panes.indexOf('function DirectThreadHeader(')
+  )
+  const threadList = panes.slice(
+    panes.indexOf('function DirectThreadList('),
+    panes.indexOf('function ProfileAvatar(')
+  )
+
+  assert.match(viewModel, /const requestActions = createThreadRequestActions\(thread, messages\)/)
+  assert.match(viewModel, /export function findSelectedDmThreadView/)
+  assert.match(directPane, /const selectedThread = findSelectedDmThreadView\(/)
+  assert.doesNotMatch(panes, /function findSelectedDirectThread\(/)
+  assert.match(directPane, /<DirectThreadList[\s\S]*onAccept=\{messageActions\.acceptMessage\}/)
+  assert.match(directPane, /<DirectThreadList[\s\S]*onIgnore=\{messageActions\.ignoreMessage\}/)
+  assert.match(threadList, /const requestActions = thread\.requestActions/)
+  assert.match(
+    threadList,
+    /ariaLabel=\{`Ignore friend request from \$\{thread\.label\}`\}[\s\S]*onIgnore\(requestActions\.ignoreMessage\)[\s\S]*variant='ignore'/
+  )
+  assert.match(
+    threadList,
+    /ariaLabel=\{`Accept friend request from \$\{thread\.label\}`\}[\s\S]*onAccept\(requestActions\.acceptMessage\)[\s\S]*variant='accept'/
+  )
+  assert.equal(threadList.includes('message request from'), false)
+})
+
+test('desktop message thread rows can show unread badges', async () => {
+  const panes = await readFile(new URL('../desktop/pane-components.tsx', import.meta.url), 'utf8')
+  const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
+  const threadList = panes.slice(
+    panes.indexOf('function DirectThreadList('),
+    panes.indexOf('function ProfileAvatar(')
+  )
+
+  assert.match(panes, /unreadCount\?: number/)
+  assert.match(threadList, /thread\.unreadCount/)
+  assert.match(threadList, /threadUnreadBadge/)
+  assert.match(styles, /\.threadUnreadBadge/)
+})
+
+test('desktop profile avatars render real image snapshots when available', async () => {
+  const panes = await readFile(new URL('../desktop/pane-components.tsx', import.meta.url), 'utf8')
+  const people = await readFile(
+    new URL('../desktop/people-components.tsx', import.meta.url),
+    'utf8'
+  )
+
+  assert.match(panes, /imageUri\?: string/)
+  assert.match(panes, /avatar\?\.imageUri[\s\S]*<img[\s\S]*src=\{avatar\.imageUri\}/)
+  assert.match(people, /imageUri\?: string/)
+  assert.match(people, /avatar\?\.imageUri[\s\S]*<img[\s\S]*src=\{avatar\.imageUri\}/)
 })
 
 test('desktop message rows separate metadata from readable message bodies', async () => {
@@ -644,10 +865,7 @@ test('desktop rail keeps current view accessible', async () => {
     'utf8'
   )
 
-  assert.match(
-    source,
-    /function RailButton\(\{ badgeCount = 0, icon, id, isActive, label, onSelect, title \}\)/
-  )
+  assert.match(source, /function RailButton\(/)
   assert.match(source, /onClick=\{onSelect\}/)
   assert.doesNotMatch(controller, /els\.chatTab\.addEventListener/)
   assert.match(source, /role='tablist'/)
@@ -661,25 +879,22 @@ test('desktop rail keeps current view accessible', async () => {
 
 test('desktop rail surfaces pending direct and people work without changing navigation shape', async () => {
   const app = await readDesktopAppSource()
-  const shell = await readFile(new URL('../desktop/shell-components.jsx', import.meta.url), 'utf8')
+  const shell = await readFile(new URL('../desktop/shell-components.tsx', import.meta.url), 'utf8')
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
 
   assert.match(
     app,
-    /const navBadges = \{[\s\S]*direct: model\.directMessages\.filter\(\(message\) => message\.actions\)\.length,[\s\S]*people: model\.people\.messageRequests\.length[\s\S]*\}/
+    /const navBadges = \{[\s\S]*direct: model\.directMessages\.filter\(\(message\) => message\.actions\)\.length,[\s\S]*people: model\.people\.messageRequests\.length \+ \(model\.people\.outgoingRequests \|\| \[\]\)\.length[\s\S]*\}/
   )
   assert.match(app, /<AppRail[\s\S]*navBadges=\{navBadges\}/)
   assert.match(
     shell,
-    /id='dmTab'[\s\S]*badgeCount=\{navBadges\.direct\}[\s\S]*id='peopleTab'[\s\S]*badgeCount=\{navBadges\.people\}/
+    /id='dmTab'[\s\S]*badgeCount=\{navBadges\.direct\}[\s\S]*id='peopleTab'[\s\S]*badgeCount=\{navBadges\.people\}[\s\S]*id='treeholeTab'/
   )
-  assert.match(
-    shell,
-    /function RailButton\(\{ badgeCount = 0, icon, id, isActive, label, onSelect, title \}\)/
-  )
+  assert.match(shell, /function RailButton\(/)
   assert.match(shell, /aria-label=\{getRailButtonLabel\(label, badgeCount\)\}/)
   assert.doesNotMatch(shell, /className='railLabel'/)
-  assert.match(shell, /function getRailButtonLabel\(label, badgeCount\) \{/)
+  assert.match(shell, /function getRailButtonLabel\(label: string, badgeCount: number\): string \{/)
   assert.match(shell, /return `\$\{label\}, \$\{badgeCount\} pending`/)
   assert.match(
     shell,
@@ -761,14 +976,14 @@ test('desktop treehole composer has an explicit owner-only disabled state', asyn
 
 test('desktop treehole comment composer disables empty comments', async () => {
   const source = await readDesktopUiSource()
-  const panes = await readFile(new URL('../desktop/pane-components.jsx', import.meta.url), 'utf8')
+  const panes = await readFile(new URL('../desktop/pane-components.tsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const bindings = await readFile(
     new URL('../src/desktop-ui-action-bindings.ts', import.meta.url),
     'utf8'
   )
 
-  assert.match(source, /function TreeholePostActions\(\{ actions, post \}\)/)
+  assert.match(source, /function TreeholePostActions\(/)
   assert.match(source, /const \[draft, setDraft\] = useState\(''\)/)
   assert.match(source, /const hasDraft = Boolean\(draft\.trim\(\)\)/)
   assert.match(
@@ -790,9 +1005,29 @@ test('desktop treehole comment composer disables empty comments', async () => {
   )
 })
 
+test('desktop treehole author rows show generated avatars', async () => {
+  const panes = await readFile(new URL('../desktop/pane-components.tsx', import.meta.url), 'utf8')
+  const viewModel = await readFile(
+    new URL('../src/desktop-treehole-view-model.ts', import.meta.url),
+    'utf8'
+  )
+  const treeholeList = panes.slice(
+    panes.indexOf('function TreeholeList('),
+    panes.indexOf('function ListEmptyState(')
+  )
+
+  assert.match(viewModel, /createProfileAvatarViewModel/)
+  assert.match(viewModel, /authorAvatar: createTreeholeAuthorAvatar\(post\)/)
+  assert.match(viewModel, /authorAvatar: createTreeholeAuthorAvatar\(comment\)/)
+  assert.match(treeholeList, /<ProfileAvatar avatar=\{post\.authorAvatar\} \/>/)
+  assert.match(treeholeList, /<ProfileAvatar avatar=\{comment\.authorAvatar\} \/>/)
+  assert.match(treeholeList, /className='postAuthorRow'/)
+  assert.match(treeholeList, /className='commentAuthorRow'/)
+})
+
 test('desktop composers disable unavailable sends', async () => {
   const source = await readDesktopUiSource()
-  const panes = await readFile(new URL('../desktop/pane-components.jsx', import.meta.url), 'utf8')
+  const panes = await readFile(new URL('../desktop/pane-components.tsx', import.meta.url), 'utf8')
   const shared = await readFile(new URL('../desktop/ui-components.tsx', import.meta.url), 'utf8')
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const presenter = await readFile(
@@ -841,7 +1076,7 @@ test('desktop composers disable unavailable sends', async () => {
 test('desktop context actions disable unavailable joins and trust', async () => {
   const source = await readDesktopUiSource()
   const context = await readFile(
-    new URL('../desktop/context-components.jsx', import.meta.url),
+    new URL('../desktop/context-components.tsx', import.meta.url),
     'utf8'
   )
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
@@ -879,7 +1114,7 @@ test('desktop context actions expose a pending lock during blocking commands', a
   )
 
   assert.match(controller, /const BLOCKING_COMMANDS = new Set\(\[/)
-  for (const command of ['joinHome', 'joinHomeUri', 'leaveHome', 'trustProfileUri']) {
+  for (const command of ['joinHome', 'joinHomeUri', 'leaveHome', 'prepareProfileRequestTarget']) {
     assert.match(controller, new RegExp(`'${command}'`), `${command} is not pending-locked`)
   }
   assert.match(controller, /createDesktopCommandDispatcher/)
@@ -903,14 +1138,50 @@ test('desktop context actions expose a pending lock during blocking commands', a
   assert.match(presenter, /canUseTrustProfile: !isActionPending/)
 })
 
-test('desktop UI uses Tailwind and daisyUI through Kepos component boundaries', async () => {
-  const context = await readFile(
-    new URL('../desktop/context-components.jsx', import.meta.url),
+test('desktop direct messages show generated sender avatars', async () => {
+  const panes = await readFile(new URL('../desktop/pane-components.tsx', import.meta.url), 'utf8')
+  const viewModel = await readFile(
+    new URL('../src/desktop-direct-view-model.ts', import.meta.url),
     'utf8'
   )
-  const panes = await readFile(new URL('../desktop/pane-components.jsx', import.meta.url), 'utf8')
+  const directMessageList = panes.slice(
+    panes.indexOf('function DirectMessageList('),
+    panes.indexOf('function DirectContactPicker(')
+  )
+
+  assert.match(viewModel, /createProfileAvatarViewModel/)
+  assert.match(
+    viewModel,
+    /avatar: createDirectMessageAvatar\(message, \{ contactBook, contacts, resolveAvatarMediaUri \}\)/
+  )
+  assert.match(directMessageList, /<ProfileAvatar avatar=\{message\.avatar\} \/>/)
+  assert.match(directMessageList, /className='directMessageContent'/)
+})
+
+test('desktop direct contact picker shows trusted contact avatars', async () => {
+  const panes = await readFile(new URL('../desktop/pane-components.tsx', import.meta.url), 'utf8')
+  const viewModel = await readFile(
+    new URL('../src/desktop-direct-contact-picker-view-model.ts', import.meta.url),
+    'utf8'
+  )
+  const picker = panes.slice(
+    panes.indexOf('function DirectContactPicker('),
+    panes.indexOf('function TreeholeList(')
+  )
+
+  assert.match(viewModel, /createProfileAvatarViewModel/)
+  assert.match(viewModel, /avatarUri: contact\.avatarUriSnapshot/)
+  assert.match(picker, /<ProfileAvatar avatar=\{contact\.avatar\} \/>/)
+})
+
+test('desktop UI uses Tailwind and daisyUI through Kepos component boundaries', async () => {
+  const context = await readFile(
+    new URL('../desktop/context-components.tsx', import.meta.url),
+    'utf8'
+  )
+  const panes = await readFile(new URL('../desktop/pane-components.tsx', import.meta.url), 'utf8')
   const people = await readFile(
-    new URL('../desktop/people-components.jsx', import.meta.url),
+    new URL('../desktop/people-components.tsx', import.meta.url),
     'utf8'
   )
   const shared = await readFile(new URL('../desktop/ui-components.tsx', import.meta.url), 'utf8')
@@ -941,12 +1212,12 @@ test('desktop UI uses Tailwind and daisyUI through Kepos component boundaries', 
 
 test('desktop shell exposes Neo Cozy light and Indie Console dark themes', async () => {
   const source = await readDesktopUiSource()
-  const shell = await readFile(new URL('../desktop/shell-components.jsx', import.meta.url), 'utf8')
+  const shell = await readFile(new URL('../desktop/shell-components.tsx', import.meta.url), 'utf8')
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
 
   assert.match(source, /id='lightThemeButton'/)
   assert.match(source, /id='darkThemeButton'/)
-  assert.match(shell, /function ThemeButton\(\{ active, icon, id, label, onClick, title \}\)/)
+  assert.match(shell, /function ThemeButton\(/)
   assert.match(shell, /className=\{active \? 'themeButton active' : 'themeButton'\}/)
   assert.match(shell, /aria-pressed=\{active\}/)
   assert.match(

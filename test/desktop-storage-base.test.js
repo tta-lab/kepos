@@ -33,7 +33,7 @@ test('desktop electron main and preload expose app-private storage base path', a
   )
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const localProfile = await readFile(
-    new URL('../desktop/local-profile.js', import.meta.url),
+    new URL('../desktop/local-profile.ts', import.meta.url),
     'utf8'
   )
 

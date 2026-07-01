@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
 import { createContactBook, getContact, isContactTrusted } from '../src/contact-book.ts'
-import { applyMobileHomeQrScan, applyMobileProfileQrScan } from '../src/mobile-qr-actions.ts'
+import {
+  applyMobileDebugProfileTrustScan,
+  applyMobileHomeQrScan,
+  readMobileProfileRequestTarget
+} from '../src/mobile-qr-actions.ts'
 import { getScannedQrData } from '../src/mobile-qr-event.ts'
 import {
   createSignedHomeAddressPayload,
@@ -17,7 +21,7 @@ describe('mobile QR scan actions', () => {
     assert.equal(getScannedQrData({ nativeEvent: { data: '   ' } }), null)
   })
 
-  test('profile scan applies only signed profile QR to ContactBook', () => {
+  test('debug profile trust scan applies only signed profile QR to ContactBook', () => {
     const local = createSigningKeyPair()
     const remote = createSigningKeyPair()
     const book = createContactBook({ ownerProfileId: local.publicKey })
@@ -29,7 +33,7 @@ describe('mobile QR scan actions', () => {
       })
     )
 
-    const result = applyMobileProfileQrScan({
+    const result = applyMobileDebugProfileTrustScan({
       alias: 'Ada local',
       book,
       localIdentity: local,
@@ -39,6 +43,25 @@ describe('mobile QR scan actions', () => {
     assert.equal(result.kind, 'trust')
     assert.equal(isContactTrusted(result.book, remote.publicKey), true)
     assert.equal(getContact(result.book, remote.publicKey).proof.signerProfileId, local.publicKey)
+  })
+
+  test('profile scan can read a friend request target without trusting it', () => {
+    const local = createSigningKeyPair()
+    const remote = createSigningKeyPair()
+    const book = createContactBook({ ownerProfileId: local.publicKey })
+    const uri = encodeQrUri(
+      createSignedTrustInvitePayload({
+        createdAt: 1000,
+        displayName: 'Ada',
+        identity: remote
+      })
+    )
+
+    const result = readMobileProfileRequestTarget({ uri })
+
+    assert.equal(result.kind, 'profile_request_target')
+    assert.equal(result.profileId, remote.publicKey)
+    assert.equal(isContactTrusted(book, remote.publicKey), false)
   })
 
   test('profile scan rejects signed home QR', () => {
@@ -53,7 +76,7 @@ describe('mobile QR scan actions', () => {
       })
     )
 
-    assert.throws(() => applyMobileProfileQrScan({ book, uri }), /profile QR is required/i)
+    assert.throws(() => applyMobileDebugProfileTrustScan({ book, uri }), /profile QR is required/i)
   })
 
   test('home scan applies only signed home QR and preserves trust gate result', () => {

@@ -1,4 +1,5 @@
 import { loadContactBookFromStorage, saveContactBookToStorage } from './contact-book-storage.ts'
+import type { AvatarMediaReference } from './avatar-media.ts'
 import type { ContactBook } from './contact-book.ts'
 import { createDmEncryptionKeyPair } from './dm-invite.ts'
 import { getOrCreateLocalProfile } from './local-profile.ts'
@@ -10,13 +11,19 @@ type DesktopLocalStorage = {
 }
 
 export function getDesktopLocalProfile({
+  avatarMedia = null,
+  avatarUri = null,
   displayName = 'Desktop',
   storage = getDefaultStorage()
 }: {
+  avatarMedia?: AvatarMediaReference | null
+  avatarUri?: string | null
   displayName?: string
   storage?: DesktopLocalStorage | null
 } = {}): LocalProfile {
   return getOrCreateLocalProfile({
+    avatarMedia,
+    avatarUri,
     createDmEncryptionKeyPair,
     displayName,
     storage

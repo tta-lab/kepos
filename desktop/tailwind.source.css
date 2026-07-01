@@ -1,6 +1,5 @@
 @import 'tailwindcss';
 
-@source './*.jsx';
 @source './*.tsx';
 
 @plugin 'daisyui' {

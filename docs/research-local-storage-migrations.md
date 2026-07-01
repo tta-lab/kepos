@@ -17,7 +17,7 @@ Use simple versioned JSON documents plus existing Corestore/Autobase directories
 
 - Verified: `src/local-profile.ts` reads/writes `kepos.v1.identity` and `kepos.v1.home` JSON envelopes using `globalThis.localStorage` by default, and imports the legacy keys `kepos.profile.id`, `kepos.identity.publicKey`, `kepos.identity.secretKey`, and `kepos.home.roomKey`.
 - Verified: `src/mobile-profile.ts` reads/writes `identity.json` and `home.json` V1 JSON envelopes under `<baseUri>/kepos/v1`, and imports the earlier text files `profile-id.txt`, `home-room-key.txt`, `identity-public-key.txt`, and `identity-secret-key.txt`.
-- Verified: `mobile/App.jsx` imports `expo-file-system/legacy`, builds a backend storage base at `<documentDirectory>/kepos`, creates it, and passes it as `storageBasePath` to Bare.
+- Verified: `mobile/App.tsx` imports `expo-file-system/legacy`, builds a backend storage base at `<documentDirectory>/kepos`, creates it, and passes it as `storageBasePath` to Bare.
 - Verified: Android first-run identity/home generation uses `expo-crypto` secure random bytes. The React Native UI must not call `hypercore-crypto.keyPair()` or `hypercore-crypto.randomBytes()` without a native-safe seed/source, because that path can throw `No secure random number generator available`.
 - Verified: `backend/backend.mjs` stores treehole Autobase/Corestore data through `createTreeholeStoragePath({ basePath, roomKey, bootstrapKey })` using a React Native-provided app-private storage base on Android.
 - Verified: ContactBook, DM thread metadata, and DM messages now have versioned JSON serializers plus desktop/localStorage-style and Android file-system adapters.
@@ -124,10 +124,10 @@ Corrupt data behavior:
 
 - Local: `src/local-profile.ts` — current desktop/localStorage-shaped V1 identity and home envelope persistence.
 - Local: `src/mobile-profile.ts` — current Android file-based V1 profile, identity, and home envelope persistence.
-- Local: `mobile/App.jsx` — current `expo-file-system/legacy` usage and Bare backend storage base handoff.
+- Local: `mobile/App.tsx` — current `expo-file-system/legacy` usage and Bare backend storage base handoff.
 - Local: `backend/backend.mjs` — current Bare backend treehole storage path usage.
 - Local: `src/treehole-storage.ts` — current normalized treehole Corestore path helper.
-- Local: `src/treehole-base.js` — current Corestore/Autobase storage requirement.
+- Local: `src/treehole-base.ts` — current Corestore/Autobase storage requirement.
 - Local: `src/contact-book-storage.ts`, `src/dm-thread-storage.ts`, and `src/dm-message-storage.ts` — current local trust and DM persistence adapters.
 - Local: `docs/v1.04-tradeoffs.md` — ContactBook adapter direction.
 - Local: `docs/v1.07-architecture-gaps.md` — current schema version, migration, and remaining live-smoke evidence.

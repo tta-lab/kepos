@@ -5,6 +5,7 @@ export interface MobileTabMessage {
 
 export interface MobileTabBadgesInput {
   dmMessages?: readonly MobileTabMessage[]
+  outgoingRequests?: readonly unknown[]
   pendingRequests?: readonly unknown[]
 }
 
@@ -14,13 +15,14 @@ export interface MobileRoomSessionPreview {
 
 export function getMobileTabBadges({
   dmMessages = [],
+  outgoingRequests = [],
   pendingRequests = []
 }: MobileTabBadgesInput) {
   return {
     direct: dmMessages.filter(
       (message) => message?.type === 'kepos.message.request.v1' && message?.direction === 'in'
     ).length,
-    people: pendingRequests.length
+    people: pendingRequests.length + outgoingRequests.length
   }
 }
 

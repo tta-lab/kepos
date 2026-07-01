@@ -19,7 +19,14 @@ test('desktop backend actions compose the complete V1 command action map', () =>
   const calls = []
   const messageActions = createActionGroup(
     'message',
-    ['commentTreehole', 'likeTreehole', 'postTreehole', 'sendDmMessage', 'sendHomeMessage'],
+    [
+      'commentTreehole',
+      'likeTreehole',
+      'markDmThreadRead',
+      'postTreehole',
+      'sendDmMessage',
+      'sendHomeMessage'
+    ],
     calls
   )
   const messageRequestActions = createActionGroup(
@@ -27,9 +34,21 @@ test('desktop backend actions compose the complete V1 command action map', () =>
     ['acceptMessageRequest', 'ignoreMessageRequest'],
     calls
   )
-  const displayNameActions = createActionGroup('display', ['updateDisplayName'], calls)
-  const roomActions = createActionGroup('room', ['joinHome', 'joinHomeUri', 'leaveHome'], calls)
-  const trustActions = createActionGroup('trust', ['revokeContact', 'trustProfileUri'], calls)
+  const displayNameActions = createActionGroup(
+    'display',
+    ['updateAvatarMedia', 'updateAvatarUri', 'updateDisplayName'],
+    calls
+  )
+  const roomActions = createActionGroup(
+    'room',
+    ['enterContactHome', 'joinHome', 'joinHomeUri', 'leaveHome'],
+    calls
+  )
+  const trustActions = createActionGroup(
+    'trust',
+    ['allowContactRequests', 'revokeContact', 'prepareProfileRequestTarget'],
+    calls
+  )
 
   const actions = createDesktopBackendActions({
     displayNameActions,
@@ -43,15 +62,34 @@ test('desktop backend actions compose the complete V1 command action map', () =>
   assert.equal(actions.sendHomeMessage({ text: 'hello' }), 'message:sendHomeMessage')
   assert.equal(actions.acceptMessageRequest({ id: 'request-1' }), 'request:acceptMessageRequest')
   assert.equal(actions.joinHome({ mode: 'host' }), 'room:joinHome')
-  assert.equal(actions.trustProfileUri({ uri: 'kepos://profile' }), 'trust:trustProfileUri')
+  assert.equal(actions.enterContactHome({ profileId: 'profile-a' }), 'room:enterContactHome')
+  assert.equal(
+    actions.prepareProfileRequestTarget({ uri: 'kepos://profile' }),
+    'trust:prepareProfileRequestTarget'
+  )
+  assert.equal(actions.allowContactRequests('profile-b'), 'trust:allowContactRequests')
   assert.equal(actions.sendMessageRequest({ text: 'dm' }), 'message:sendDmMessage')
+  assert.equal(actions.markDmThreadRead({ profileId: 'friend' }), 'message:markDmThreadRead')
+  assert.equal(
+    actions.updateAvatarUri({ avatarUri: 'file:///avatar/me.png' }),
+    'display:updateAvatarUri'
+  )
+  assert.equal(
+    actions.updateAvatarMedia({ bytesBase64: 'aGVsbG8=', mimeType: 'image/png' }),
+    'display:updateAvatarMedia'
+  )
   assert.equal(actions.updateDisplayName({ displayName: 'Ada' }), 'display:updateDisplayName')
   assert.deepEqual(calls, [
     ['message', 'sendHomeMessage', { text: 'hello' }],
     ['request', 'acceptMessageRequest', { id: 'request-1' }],
     ['room', 'joinHome', { mode: 'host' }],
-    ['trust', 'trustProfileUri', { uri: 'kepos://profile' }],
+    ['room', 'enterContactHome', { profileId: 'profile-a' }],
+    ['trust', 'prepareProfileRequestTarget', { uri: 'kepos://profile' }],
+    ['trust', 'allowContactRequests', 'profile-b'],
     ['message', 'sendDmMessage', { text: 'dm' }],
+    ['message', 'markDmThreadRead', { profileId: 'friend' }],
+    ['display', 'updateAvatarUri', { avatarUri: 'file:///avatar/me.png' }],
+    ['display', 'updateAvatarMedia', { bytesBase64: 'aGVsbG8=', mimeType: 'image/png' }],
     ['display', 'updateDisplayName', { displayName: 'Ada' }]
   ])
 })

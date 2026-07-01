@@ -5,21 +5,57 @@ import test from 'node:test'
 async function readDesktopUiSource() {
   const app = await readFile(new URL('../desktop/app.tsx', import.meta.url), 'utf8')
   const appState = await readFile(new URL('../desktop/app-state.ts', import.meta.url), 'utf8')
-  const panes = await readFile(new URL('../desktop/pane-components.jsx', import.meta.url), 'utf8')
-  const shell = await readFile(new URL('../desktop/shell-components.jsx', import.meta.url), 'utf8')
+  const panes = await readFile(new URL('../desktop/pane-components.tsx', import.meta.url), 'utf8')
+  const shell = await readFile(new URL('../desktop/shell-components.tsx', import.meta.url), 'utf8')
   const context = await readFile(
-    new URL('../desktop/context-components.jsx', import.meta.url),
+    new URL('../desktop/context-components.tsx', import.meta.url),
     'utf8'
   )
   const people = await readFile(
-    new URL('../desktop/people-components.jsx', import.meta.url),
+    new URL('../desktop/people-components.tsx', import.meta.url),
     'utf8'
   )
   return `${app}\n${appState}\n${panes}\n${shell}\n${context}\n${people}`
 }
 
+async function readMobileUiSource() {
+  const files = await Promise.all(
+    [
+      '../mobile/App.tsx',
+      '../mobile/action-components.tsx',
+      '../mobile/panel-components.tsx',
+      '../mobile/setup-components.tsx',
+      '../mobile/lobby-components.tsx',
+      '../mobile/people-components.tsx',
+      '../mobile/direct-components.tsx',
+      '../mobile/people-components.tsx',
+      '../mobile/room-components.tsx',
+      '../mobile/message-components.tsx',
+      '../mobile/treehole-components.tsx',
+      '../mobile/thread-components.tsx',
+      '../mobile/request-components.tsx',
+      '../mobile/empty-components.tsx',
+      '../mobile/tab-components.tsx',
+      '../mobile/chrome-components.tsx',
+      '../mobile/form-components.tsx',
+      '../mobile/profile-components.tsx',
+      '../mobile/styles.ts'
+    ].map((path) => readFile(new URL(path, import.meta.url), 'utf8'))
+  )
+
+  return files.join('\n')
+}
+
+function sliceBetween(source, startMarker, endMarker) {
+  const start = source.indexOf(startMarker)
+  if (start === -1) return ''
+
+  const end = source.indexOf(endMarker, start + startMarker.length)
+  return source.slice(start, end === -1 ? undefined : end)
+}
+
 test('Android UI exposes stable hooks for two-device smoke', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const source = await readMobileUiSource()
 
   for (const testID of [
     'join-home-uri-input',
@@ -43,15 +79,15 @@ test('Android UI exposes stable hooks for two-device smoke', async () => {
   }
 })
 
-test('Android lucide icons used in JSX are imported', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
-  const lucideImport = source.match(/import\s+\{([^}]+)\}\s+from 'lucide-react-native'/)
+test('Android lucide icons used in TSX are imported', async () => {
+  const source = await readMobileUiSource()
+  const lucideImports = [...source.matchAll(/import\s+\{([^}]+)\}\s+from 'lucide-react-native'/g)]
 
-  assert.ok(lucideImport, 'lucide-react-native import is missing')
+  assert.ok(lucideImports.length > 0, 'lucide-react-native import is missing')
 
   const importedIcons = new Set(
-    lucideImport[1]
-      .split(',')
+    lucideImports
+      .flatMap((match) => match[1].split(','))
       .map((name) => name.trim())
       .filter(Boolean)
   )
@@ -78,7 +114,7 @@ test('Android lucide icons used in JSX are imported', async () => {
 })
 
 test('Android lobby is scrollable so QR and trust controls are reachable', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const source = await readMobileUiSource()
 
   assert.match(source, /<ScrollView[^>]+testID='lobby-scroll'/)
   assert.match(source, /contentContainerStyle={styles\.lobby}/)
@@ -86,16 +122,16 @@ test('Android lobby is scrollable so QR and trust controls are reachable', async
 })
 
 test('Android lobby uses product action words for QR and trust flows', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const source = await readMobileUiSource()
 
   for (const text of [
-    'Home invite',
-    'Enter a home',
-    'Friend profile',
+    'Home QR',
+    'Enter Home',
+    'Profile QR',
     'Friend name',
-    'Paste invite',
+    'Paste Home QR',
     'Paste Profile QR',
-    'Add trusted friend'
+    'Start request'
   ]) {
     assert.match(source, new RegExp(text), `${text} is missing`)
   }
@@ -103,27 +139,35 @@ test('Android lobby uses product action words for QR and trust flows', async () 
   assert.equal(source.includes('Home URI'), false)
   assert.equal(source.includes('Join Home URI'), false)
   assert.equal(source.includes('Trust Profile'), false)
+  assert.equal(source.includes('Friend profile'), false)
   assert.equal(source.includes("label='Alias'"), false)
   assert.equal(source.includes('Paste Home QR text'), false)
   assert.equal(source.includes('Paste Profile QR text'), false)
 })
 
 test('Android lobby starts with compact product choices', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const source = await readMobileUiSource()
 
   assert.match(source, /function QuickStartPanel\(/)
   assert.match(source, /Start here/)
-  assert.match(source, /<Field label='Name' onChangeText={onNickChange} value={nick} \/>/)
+  assert.match(
+    source,
+    /<Field[\s\S]*label='Name'[\s\S]*onChangeText=\{onNickChange\}[\s\S]*value=\{nick\}/
+  )
   assert.match(source, /Open my home/)
-  assert.match(source, /label='Show invite'[\s\S]*testID='quick-show-home-qr-button'/)
-  assert.match(source, /showQuickHomeQr \? <QrCard value={myHomeQrUri} \/> : null/)
-  assert.match(source, /label='Enter a home'[\s\S]*testID='quick-scan-home-qr-button'/)
+  assert.match(source, /label='Show My QR'[\s\S]*testID='quick-show-my-qr-button'/)
+  assert.match(source, /showQuickProfileQr \? \([\s\S]*<QrCard[\s\S]*value=\{profileQrUri\}/)
+  assert.match(source, /label='Open Contacts'[\s\S]*testID='quick-open-contacts-button'/)
+  assert.doesNotMatch(source, /testID='quick-show-home-qr-button'/)
+  assert.doesNotMatch(source, /testID='quick-scan-home-qr-button'/)
   assert.doesNotMatch(source, /testID='quick-scan-profile-qr-button'/)
-  assert.equal(source.indexOf('Scan invite') > source.indexOf('function PeopleActions'), true)
+  assert.equal(source.indexOf('Scan Home QR') > source.indexOf('function PeopleActions'), true)
   assert.equal(source.indexOf('Scan Profile QR') > source.indexOf('function PeopleActions'), true)
   assert.match(source, /const \[showPeopleSetup, setShowPeopleSetup\] = useState\(false\)/)
   assert.match(source, /testID='people-setup-toggle'/)
-  assert.match(source, /People setup/)
+  assert.match(source, /label='Contacts'[\s\S]*testID='people-setup-toggle'/)
+  assert.equal(source.includes('Contacts setup'), false)
+  assert.equal(source.includes('People setup'), false)
   assert.match(source, /showPeopleSetup \? \(/)
   assert.equal(
     source.indexOf('<QuickStartPanel') < source.indexOf("testID='people-setup-toggle'"),
@@ -134,11 +178,8 @@ test('Android lobby starts with compact product choices', async () => {
 })
 
 test('Android lobby keeps manual join advanced reachable before people setup', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
-  const lobby = source.slice(
-    source.indexOf('function Lobby('),
-    source.indexOf('function ChatRoom(')
-  )
+  const source = await readMobileUiSource()
+  const lobby = sliceBetween(source, 'function Lobby(', 'function ChatRoom(')
 
   assert.equal(
     lobby.indexOf("testID='advanced-join-toggle'") < lobby.indexOf("testID='people-setup-toggle'"),
@@ -157,7 +198,7 @@ test('Android lobby keeps manual join advanced reachable before people setup', a
 })
 
 test('Android manual home join can pass direct guest endpoint to backend', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const source = await readMobileUiSource()
 
   assert.match(
     source,
@@ -172,19 +213,10 @@ test('Android manual home join can pass direct guest endpoint to backend', async
 })
 
 test('Android setup action buttons use icons consistently', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
-  const lobby = source.slice(
-    source.indexOf('function Lobby('),
-    source.indexOf('function ChatRoom(')
-  )
-  const peopleActions = source.slice(
-    source.indexOf('function PeopleActions('),
-    source.indexOf('function DirectPane(')
-  )
-  const directPane = source.slice(
-    source.indexOf('function DirectPane('),
-    source.indexOf('function ContactManager(')
-  )
+  const source = await readMobileUiSource()
+  const lobby = sliceBetween(source, 'function Lobby(', 'function ChatRoom(')
+  const peopleActions = sliceBetween(source, 'function PeopleActions(', 'function DirectPane(')
+  const directPane = sliceBetween(source, 'function DirectPane(', 'function ContactManager(')
 
   assert.match(peopleActions, /icon=\{ArrowRight\}[\s\S]*testID='scan-home-qr-button'/)
   assert.match(peopleActions, /icon=\{Plus\}[\s\S]*testID='scan-profile-qr-button'/)
@@ -194,24 +226,29 @@ test('Android setup action buttons use icons consistently', async () => {
 })
 
 test('Android lobby uses shared task headers for setup panels', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
-  const quickStart = source.slice(
-    source.indexOf('function QuickStartPanel('),
-    source.indexOf('function PeoplePane(')
+  const source = await readMobileUiSource()
+  const panelComponents = await readFile(
+    new URL('../mobile/panel-components.tsx', import.meta.url),
+    'utf8'
   )
-  const peopleActions = source.slice(
-    source.indexOf('function PeopleActions('),
-    source.indexOf('function DirectPane(')
-  )
+  const quickStart = sliceBetween(source, 'function QuickStartPanel(', 'function PeoplePane(')
+  const peopleActions = sliceBetween(source, 'function PeopleActions(', 'function DirectPane(')
 
-  assert.match(source, /function TaskHeader\(\{ eyebrow, title, description \}\)/)
+  assert.match(
+    panelComponents,
+    /function TaskHeader\(\{[\s\S]*description,[\s\S]*eyebrow,[\s\S]*styles,[\s\S]*title[\s\S]*\}/
+  )
   assert.match(quickStart, /<TaskHeader[\s\S]*eyebrow='Start'[\s\S]*title='Start here'/)
   assert.match(
     quickStart,
-    /description=\{[\s\S]*profileReady[\s\S]*\? 'Open your home, share one invite, or enter a trusted home\.'[\s\S]*: 'Setting up your profile\.\.\.'[\s\S]*\}/
+    /description=\{[\s\S]*profileReady[\s\S]*\? 'Open your home, share My QR, or open Contacts\.'[\s\S]*: 'Setting up your profile\.\.\.'[\s\S]*\}/
   )
-  assert.match(peopleActions, /<TaskHeader[\s\S]*eyebrow='Invite'[\s\S]*title='Home invite'/)
-  assert.match(peopleActions, /<TaskHeader[\s\S]*eyebrow='Advanced'[\s\S]*title='Profile trust'/)
+  assert.match(peopleActions, /<TaskHeader[\s\S]*eyebrow='Advanced'[\s\S]*title='Home QR'/)
+  assert.match(
+    peopleActions,
+    /<TaskHeader[\s\S]*description='Paste a Profile QR, then write a request in Messages\.'[\s\S]*eyebrow='Advanced'[\s\S]*title='Profile request'/
+  )
+  assert.equal(peopleActions.includes('trust-only setup'), false)
   assert.match(source, /taskHeader: \{/)
   assert.match(source, /taskEyebrow: \{/)
   assert.match(source, /taskTitle: \{/)
@@ -219,7 +256,7 @@ test('Android lobby uses shared task headers for setup panels', async () => {
 })
 
 test('Android lobby disables profile-dependent actions while profile loads', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const source = await readMobileUiSource()
 
   assert.match(
     source,
@@ -238,12 +275,11 @@ test('Android lobby disables profile-dependent actions while profile loads', asy
 })
 
 test('Android normal UI copy avoids backend and address language', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const source = await readMobileUiSource()
 
   for (const text of [
-    'Open your home or enter a trusted home.',
+    'Open your home, share My QR, or open Contacts.',
     'Open my home',
-    'Open your home, share one invite, or enter a trusted home.',
     'Starting home...',
     'Home connection error.'
   ]) {
@@ -263,7 +299,7 @@ test('Android normal UI copy avoids backend and address language', async () => {
 })
 
 test('Android raw own QR text stays behind advanced people controls', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const source = await readMobileUiSource()
 
   assert.match(source, /const \[showAdvancedShare, setShowAdvancedShare\] = useState\(false\)/)
   assert.match(source, /testID='advanced-share-toggle'/)
@@ -285,16 +321,17 @@ test('Android raw own QR text stays behind advanced people controls', async () =
 })
 
 test('Android own QR cards are reveal actions, not default dashboard blocks', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const source = await readMobileUiSource()
 
   assert.match(source, /const \[showHomeQr, setShowHomeQr\] = useState\(false\)/)
   assert.match(source, /const \[showProfileQr, setShowProfileQr\] = useState\(false\)/)
-  assert.match(source, /Show invite/)
-  assert.match(source, /Show My Profile QR/)
-  assert.match(source, /showHomeQr \? <QrCard value={myHomeQrUri} \/> : null/)
-  assert.match(source, /showProfileQr \? <QrCard value={profileQrUri} \/> : null/)
+  assert.match(source, /Show Home QR/)
+  assert.match(source, /label='Show My QR'[\s\S]*testID='show-profile-qr-button'/)
+  assert.equal(source.includes('Show My Profile QR'), false)
+  assert.match(source, /showHomeQr \? \([\s\S]*<QrCard[\s\S]*value=\{myHomeQrUri\}/)
+  assert.match(source, /showProfileQr \? \([\s\S]*<QrCard[\s\S]*value=\{profileQrUri\}/)
   assert.equal(
-    source.includes('<Text style={styles.panelTitle}>Home invite</Text>\\n        <QrCard'),
+    source.includes('<Text style={styles.panelTitle}>Home QR</Text>\\n        <QrCard'),
     false
   )
   assert.equal(
@@ -304,7 +341,7 @@ test('Android own QR cards are reveal actions, not default dashboard blocks', as
 })
 
 test('Android paste QR fallback stays behind advanced people controls', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const source = await readMobileUiSource()
 
   assert.equal(
     source.indexOf("testID='join-home-uri-input'") > source.indexOf('showAdvancedShare ? ('),
@@ -325,7 +362,7 @@ test('Android paste QR fallback stays behind advanced people controls', async ()
 })
 
 test('DM request copy reads as a social action', async () => {
-  const mobile = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const mobile = await readMobileUiSource()
   const mobileCopy = await readFile(
     new URL('../src/mobile-product-copy.ts', import.meta.url),
     'utf8'
@@ -345,35 +382,35 @@ test('DM request copy reads as a social action', async () => {
     'utf8'
   )
 
-  assert.match(mobile, /formatMobileDirectMessageMeta\(message\)/)
-  assert.match(mobileCopy, /formatMessageRequestTitle\(message\)/)
+  assert.match(mobile, /formatMobileDirectMessageMeta\(message, contacts\)/)
+  assert.match(
+    mobileCopy,
+    /formatMessageRequestTitle\(\{[\s\S]*message,[\s\S]*alias: findMobileContactName/
+  )
   assert.match(desktopDirectViewModel, /formatDesktopMessageRequestTitle/)
-  assert.match(mobileCopy, /wants to start a direct chat/)
-  assert.match(mobileCopy, /You asked someone to start a direct chat/)
-  assert.match(desktopDirectViewModel, /You asked someone to start a direct chat/)
-  assert.match(desktopPeopleViewModel, /wants to start a direct chat/)
+  assert.match(mobileCopy, /sent a friend request/)
+  assert.match(mobileCopy, /You sent a friend request/)
+  assert.match(desktopDirectViewModel, /You sent a friend request/)
+  assert.match(desktopPeopleViewModel, /sent a friend request/)
   assert.match(mobile, /testID='message-request-ignore-button'/)
   assert.match(mobile, /onIgnoreRequest\(message\)/)
-  assert.match(desktopApp, /onClick=\{\(\) => onIgnore\(message\.actions\.ignoreMessage\)\}/)
+  assert.match(desktopApp, /onClick=\{\(\) => onIgnore\(actions\.ignoreMessage\)\}/)
   assert.match(
     desktopBindings,
     /ignoreMessage: \(message\) => dispatchCommand\('ignoreMessageRequest'/
   )
-  assert.match(mobileCopy, /wants to start a direct chat/)
-  assert.match(desktopPeopleViewModel, /wants to start a direct chat/)
+  assert.match(mobileCopy, /sent a friend request/)
+  assert.match(desktopPeopleViewModel, /sent a friend request/)
   assert.equal(mobile.includes('asked Profile'), false)
   assert.equal(desktop.includes('asked Profile'), false)
-  assert.equal(
-    mobile.includes('Profile ${shortenProfileId(peer)} wants to start a direct chat'),
-    false
-  )
-  assert.equal(desktop.includes('Profile ${shorten(peer)} wants to start a direct chat'), false)
+  assert.equal(mobile.includes('Profile ${shortenProfileId(peer)} sent a friend request'), false)
+  assert.equal(desktop.includes('Profile ${shorten(peer)} sent a friend request'), false)
   assert.equal(mobile.includes('request ${outgoing ?'), false)
   assert.equal(desktop.includes('message request ${message.direction'), false)
 })
 
 test('direct message meta avoids DM fallback and raw recipient framing', async () => {
-  const mobile = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const mobile = await readMobileUiSource()
   const mobileCopy = await readFile(
     new URL('../src/mobile-product-copy.ts', import.meta.url),
     'utf8'
@@ -384,12 +421,15 @@ test('direct message meta avoids DM fallback and raw recipient framing', async (
     'utf8'
   )
 
-  assert.match(mobile, /formatMobileDirectMessageMeta\(message\)/)
-  assert.match(mobileCopy, /You to \${displayDirectPeer\(message\?\.toProfileId\)}/)
+  assert.match(mobile, /formatMobileDirectMessageMeta\(message, contacts\)/)
+  assert.match(
+    mobileCopy,
+    /You to \${displayDirectPeer\([\s\S]*message\?\.toProfileId,[\s\S]*findMobileContactName/
+  )
   assert.match(desktopDirectViewModel, /You to \$\{displayDirectPeer\(message\.toProfileId/)
   assert.match(
     mobileCopy,
-    /\${displayDirectPeer\(message\?\.fromProfileId, message\?\.nick\)} to you/
+    /findMobileContactName\(contacts, message\?\.fromProfileId\) \|\| message\?\.nick/
   )
   assert.match(desktopDirectViewModel, /displayDirectPeer\(message\.fromProfileId/)
   assert.equal(mobile.includes("message.nick || 'DM'"), false)
@@ -397,7 +437,7 @@ test('direct message meta avoids DM fallback and raw recipient framing', async (
 })
 
 test('Android message bubbles separate metadata from readable bodies', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const source = await readMobileUiSource()
   const copy = await readFile(new URL('../src/mobile-product-copy.ts', import.meta.url), 'utf8')
 
   assert.match(source, /style=\{styles\.bubbleMetaRow\}/)
@@ -412,27 +452,30 @@ test('Android message bubbles separate metadata from readable bodies', async () 
 })
 
 test('normal error notices avoid raw exception text', async () => {
-  const mobile = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const mobile = await readMobileUiSource()
   const desktop = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
 
   assert.equal(/setNotice\(`[^`]*\$\{error\.message\}/.test(mobile), false)
   assert.equal(/setNotice\(payload\.message/.test(mobile), false)
   assert.equal(/notice: error\.message/.test(desktop), false)
   assert.match(mobile, /Could not join this home\./)
-  assert.match(mobile, /Could not read this invite\./)
+  assert.match(mobile, /Could not read this Home QR\./)
   assert.match(desktop, /Could not join this home\. Trust this friend on this device first\./)
-  assert.match(desktop, /Could not read this invite\./)
+  assert.match(desktop, /Could not read this Home QR\./)
   assert.match(desktop, /Could not read this Profile QR\./)
   assert.match(desktop, /Something went wrong\./)
 })
 
 test('Android keeps raw error detail in room advanced status', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const source = await readMobileUiSource()
 
   assert.match(source, /const \[lastError, setLastError\] = useState\(''\)/)
   assert.match(source, /lastError={lastError}/)
-  assert.match(source, /setLastError\(error\.message\)/)
-  assert.match(source, /setLastError\(payload\.message \|\| 'Home connection error'\)/)
+  assert.match(source, /setLastError\(errorMessage\(error\)\)/)
+  assert.match(
+    source,
+    /setLastError\(asString\(payloadRecord\.message\) \|\| 'Home connection error'\)/
+  )
   assert.equal(source.includes("console.error('Home connection error'"), false)
   assert.match(source, /<Text style={styles\.roomLabel}>Error detail<\/Text>/)
   assert.match(source, /testID='room-error-detail'/)
@@ -442,12 +485,13 @@ test('Android keeps raw error detail in room advanced status', async () => {
 })
 
 test('mobile success notices avoid profile id snippets', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const source = await readMobileUiSource()
 
-  assert.match(source, /setNotice\('Trusted friend added\.'\)/)
-  assert.match(source, /setNotice\('Trust revoked\.'\)/)
-  assert.match(source, /setNotice\('Message request accepted\.'\)/)
-  assert.match(source, /setNotice\('Could not save this direct message\.'\)/)
+  assert.match(source, /chooseProfileRequestTarget\(uri, trustAlias\)/)
+  assert.match(source, /setNotice\('Friend removed\.'\)/)
+  assert.match(source, /setNotice\('Friend request accepted\.'\)/)
+  assert.match(source, /setNotice\('Could not save this message\.'\)/)
+  assert.equal(source.includes('Could not save this direct message.'), false)
   assert.equal(source.includes('Could not save this DM thread.'), false)
   assert.equal(
     source.includes('setNotice(`Trusted ${shortenProfileId(result.profileId)}.`)'),
@@ -481,10 +525,10 @@ test('desktop success notices avoid profile id snippets', async () => {
   )
   const source = `${controller}\n${messageRequestActions}\n${controlActions}\n${trustActions}`
 
-  assert.match(source, /setNotice\('Trusted friend added\.'\)/)
-  assert.match(source, /setNotice\('Message request accepted\.'\)/)
-  assert.match(source, /setNotice\('Direct message ready\.'\)/)
-  assert.match(source, /setNotice\('Trust revoked\.'\)/)
+  assert.match(source, /setNotice\('Friend request target ready\.'\)/)
+  assert.match(source, /setNotice\('Friend request accepted\.'\)/)
+  assert.match(source, /setNotice\('Message thread ready\.'\)/)
+  assert.match(source, /setNotice\('Friend removed\.'\)/)
   assert.equal(source.includes("notice: 'DM invite accepted.'"), false)
   assert.equal(source.includes('notice: `Trusted ${shorten(result.profileId)}.`'), false)
   assert.equal(
@@ -494,7 +538,7 @@ test('desktop success notices avoid profile id snippets', async () => {
 })
 
 test('Android header shows product home status instead of raw peer count', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const source = await readMobileUiSource()
   const copy = await readFile(new URL('../src/mobile-product-copy.ts', import.meta.url), 'utf8')
 
   assert.match(source, /from '\.\.\/src\/mobile-product-copy\.ts'/)
@@ -509,20 +553,20 @@ test('Android header shows product home status instead of raw peer count', async
   assert.match(copy, /Connected/)
   assert.match(copy, /Waiting for friends/)
   assert.match(copy, /Offline/)
-  assert.match(copy, /Treehole ready/)
-  assert.match(copy, /Treehole offline/)
+  assert.match(copy, /My treehole ready/)
+  assert.match(copy, /My treehole offline/)
   assert.equal(source.includes('Looking for peers'), false)
   assert.equal(source.includes('{online} peer'), false)
 })
 
 test('Android backend status notices avoid raw worker status codes', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const source = await readMobileUiSource()
   const copy = await readFile(new URL('../src/mobile-product-copy.ts', import.meta.url), 'utf8')
 
   assert.match(copy, /function getMobileBackendNotice\(status\?: string\)/)
-  assert.match(source, /setNotice\(getMobileBackendNotice\(payload\.status\)\)/)
+  assert.match(source, /setNotice\(getMobileBackendNotice\(asString\(payloadRecord\.status\)\)\)/)
   assert.match(copy, /return 'Starting home\.\.\.'/)
-  assert.match(copy, /return 'Syncing treehole\.\.\.'/)
+  assert.match(copy, /return 'Syncing posts\.\.\.'/)
   assert.match(copy, /return 'Connected\.'/)
   assert.equal(source.includes('setNotice(`Home ${payload.status}.`)'), false)
   assert.equal(source.includes('Home joining-swarm.'), false)
@@ -530,7 +574,7 @@ test('Android backend status notices avoid raw worker status codes', async () =>
 })
 
 test('Android room bar keeps raw home key behind advanced details', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const source = await readMobileUiSource()
   const copy = await readFile(new URL('../src/mobile-product-copy.ts', import.meta.url), 'utf8')
 
   assert.match(source, /const \[showRoomAdvanced, setShowRoomAdvanced\] = useState\(false\)/)
@@ -541,8 +585,14 @@ test('Android room bar keeps raw home key behind advanced details', async () => 
   assert.equal(source.includes('Live session'), false)
   assert.match(source, /showRoomAdvanced \? \(/)
   assert.match(source, /testID='room-transport-debug'/)
-  assert.match(source, /formatTransportDebug\(transportDebug\)/)
-  assert.match(source, /`directReady=\$\{debug\.directReady \? 'yes' : 'no'\}`/)
+  assert.match(
+    source,
+    /formatTransportDebugLabel,[\s\S]*from '\.\.\/src\/transport-debug-label\.ts'/
+  )
+  assert.match(
+    source,
+    /formatTransportDebugLabel\(transportDebug, \{ includeDirectReady: true \}\)/
+  )
   assert.equal(
     source.indexOf("testID='room-home-address'") > source.indexOf('showRoomAdvanced ? ('),
     true
@@ -550,14 +600,12 @@ test('Android room bar keeps raw home key behind advanced details', async () => 
 })
 
 test('Android room advanced action uses an icon like other advanced controls', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
-  const chatRoom = source.slice(
-    source.indexOf('function ChatRoom('),
-    source.indexOf('function TaskHeader(')
-  )
-  const advancedToggle = source.slice(
-    source.indexOf('function MobileAdvancedToggle('),
-    source.indexOf('function QuickStartPanel(')
+  const source = await readMobileUiSource()
+  const chatRoom = sliceBetween(source, 'function ChatRoom(', 'function MobileActionButton(')
+  const advancedToggle = sliceBetween(
+    source,
+    'function MobileAdvancedToggle(',
+    'function QuickStartPanel('
   )
 
   assert.match(chatRoom, /<MobileAdvancedToggle[\s\S]*testID='room-advanced-toggle'/)
@@ -565,14 +613,14 @@ test('Android room advanced action uses an icon like other advanced controls', a
     advancedToggle,
     /style=\{isCompact \? styles\.directAdvancedToggle : styles\.roomAdvancedButton\}/
   )
-  assert.match(advancedToggle, /<Settings color=\{theme\.inkSoft\} size=\{15\} \/>/)
+  assert.match(advancedToggle, /<Settings color=\{iconColor\} size=\{15\} \/>/)
   assert.match(advancedToggle, /<Text style=\{styles\.advancedSummary\}>Advanced<\/Text>/)
 })
 
 test('Android room panes label live and durable surfaces', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const source = await readMobileUiSource()
 
-  for (const text of ['Live home chat', 'Direct messages', 'Durable treehole']) {
+  for (const text of ['Live home chat', 'Messages', 'My treehole']) {
     assert.match(source, new RegExp(text), `${text} is missing`)
   }
 
@@ -581,7 +629,7 @@ test('Android room panes label live and durable surfaces', async () => {
 })
 
 test('Android home chat disables empty sends like other composers', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const source = await readMobileUiSource()
 
   assert.match(source, /testID='chat-send-button'/)
   assert.match(source, /disabled=\{!draft\.trim\(\)\}/)
@@ -590,54 +638,60 @@ test('Android home chat disables empty sends like other composers', async () => 
 })
 
 test('Android icon-only buttons expose accessible labels', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const source = await readMobileUiSource()
 
   for (const label of [
     'Leave home',
     'Send home message',
-    'Send direct message',
-    'Post to treehole',
-    'Send treehole comment'
+    'Send message',
+    'Post to My treehole',
+    'Send comment'
   ]) {
     assert.match(source, new RegExp(`accessibilityLabel=['"]${label}['"]`), `${label} is missing`)
   }
 })
 
 test('Android room tabs use product labels', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const source = await readMobileUiSource()
 
-  assert.match(source, /label='Direct'[\s\S]*testID='dm-tab'/)
+  assert.match(source, /label=\{getProductSurfaceLabel\('dm'\)\}[\s\S]*testID='dm-tab'/)
   assert.equal(source.includes("label='DM'"), false)
 })
 
 test('Android room tabs use icons for main navigation', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
-  const tabs = source.slice(
-    source.indexOf('<View style={styles.tabs}>'),
-    source.indexOf('function TaskHeader(')
-  )
-  const tabButton = source.slice(
-    source.indexOf('function TabButton('),
-    source.indexOf('function ChatPane(')
-  )
+  const source = await readMobileUiSource()
+  const tabs = sliceBetween(source, '<View style={styles.tabs}>', 'function MobileActionButton(')
+  const tabButton = sliceBetween(source, 'function TabButton(', 'function ChatPane(')
 
-  assert.match(tabs, /icon={House}[\s\S]*label='Home'[\s\S]*testID='chat-tab'/)
-  assert.doesNotMatch(tabs, /icon={DoorOpen}[\s\S]*label='Home'[\s\S]*testID='chat-tab'/)
-  assert.match(tabs, /icon={Send}[\s\S]*label='Direct'[\s\S]*testID='dm-tab'/)
-  assert.match(tabs, /icon={Sprout}[\s\S]*label='Treehole'[\s\S]*testID='treehole-tab'/)
-  assert.match(tabs, /icon={Users}[\s\S]*label='People'[\s\S]*testID='people-tab'/)
+  assert.match(
+    tabs,
+    /icon={House}[\s\S]*label=\{getProductSurfaceLabel\('chat'\)\}[\s\S]*testID='chat-tab'/
+  )
+  assert.doesNotMatch(tabs, /icon={DoorOpen}[\s\S]*testID='chat-tab'/)
+  assert.match(
+    tabs,
+    /icon={Send}[\s\S]*label=\{getProductSurfaceLabel\('dm'\)\}[\s\S]*testID='dm-tab'/
+  )
+  assert.match(
+    tabs,
+    /icon={Users}[\s\S]*label=\{getProductSurfaceLabel\('people'\)\}[\s\S]*testID='people-tab'/
+  )
+  assert.match(
+    tabs,
+    /icon={Sprout}[\s\S]*label=\{getProductSurfaceLabel\('treehole'\)\}[\s\S]*testID='treehole-tab'/
+  )
   assert.match(
     tabButton,
-    /function TabButton\(\{ active, badgeCount = 0, icon: Icon, label, onPress, testID \}\)/
+    /function TabButton\(\{[\s\S]*active,[\s\S]*badgeCount = 0,[\s\S]*icon: Icon,[\s\S]*label,[\s\S]*onPress,[\s\S]*testID/
   )
-  assert.match(tabButton, /<Icon[\s\S]*color=\{active \? theme\.surface : theme\.iconMuted\}/)
+  assert.match(tabButton, /<Icon[\s\S]*color=\{active \? selectedIconColor : iconColor\}/)
   assert.doesNotMatch(tabButton, /<Text style=\{\[styles\.tabText/)
   assert.match(tabButton, /badgeCount > 0/)
   assert.match(source, /tabIcon: \{/)
 })
 
 test('Android room tabs are bottom navigation', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const source = await readMobileUiSource()
 
   assert.match(source, /<View style={styles\.roomContent}>/)
   assert.equal(
@@ -650,43 +704,36 @@ test('Android room tabs are bottom navigation', async () => {
 })
 
 test('Android room tabs expose selected accessibility state', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
-  const tabButton = source.slice(
-    source.indexOf('function TabButton('),
-    source.indexOf('function ChatPane(')
-  )
+  const source = await readMobileUiSource()
+  const tabButton = sliceBetween(source, 'function TabButton(', 'function ChatPane(')
 
   assert.match(tabButton, /accessibilityRole='tab'/)
   assert.match(tabButton, /accessibilityState=\{\{ selected: active \}\}/)
 })
 
 test('Android direct message empty state avoids DM shorthand', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const source = await readMobileUiSource()
 
-  assert.match(source, /Choose a trusted friend and send the first message\./)
+  assert.match(source, /Choose a trusted contact and send the first message\./)
   assert.equal(source.includes('send the first DM.'), false)
 })
 
 test('Android message empty states share layout with contextual icons', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
-  const emptyState = source.slice(
-    source.indexOf('function EmptyState('),
-    source.indexOf('function EmptyTreehole(')
+  const source = await readMobileUiSource()
+  const emptyState = sliceBetween(source, 'function EmptyState(', 'function EmptyTreehole(')
+  const emptyMessages = sliceBetween(
+    source,
+    'function EmptyMessages(',
+    'function EmptyDirectMessages('
   )
-  const emptyMessages = source.slice(
-    source.indexOf('function EmptyMessages('),
-    source.indexOf('function EmptyDirectMessages(')
+  const emptyDirectMessages = sliceBetween(
+    source,
+    'function EmptyDirectMessages(',
+    'function DirectBubble('
   )
-  const emptyDirectMessages = source.slice(
-    source.indexOf('function EmptyDirectMessages('),
-    source.indexOf('function DirectBubble(')
-  )
-  const emptyTreehole = source.slice(
-    source.indexOf('function EmptyTreehole('),
-    source.indexOf('function PaneLabel(')
-  )
+  const emptyTreehole = sliceBetween(source, 'function EmptyTreehole(', 'function TreeholePost(')
 
-  assert.match(emptyState, /function EmptyState\(\{\s*copy,\s*icon: Icon,\s*title\s*\}\)/)
+  assert.match(emptyState, /function EmptyState\(\{[\s\S]*copy,[\s\S]*icon: Icon,[\s\S]*title/)
   assert.match(emptyState, /<Icon color=\{theme\.iconMuted\} size=\{34\} \/>/)
   assert.match(emptyMessages, /<EmptyState[\s\S]*icon=\{MessageCircle\}/)
   assert.match(emptyDirectMessages, /<EmptyState[\s\S]*icon=\{Send\}/)
@@ -694,16 +741,26 @@ test('Android message empty states share layout with contextual icons', async ()
 })
 
 test('Android direct message composer keeps revoke in People', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
-  const directPane = source.slice(
-    source.indexOf('function DirectPane('),
-    source.indexOf('function ContactManager(')
+  const directPane = await readFile(
+    new URL('../mobile/direct-components.tsx', import.meta.url),
+    'utf8'
   )
-  const contactChip = source.slice(
-    source.indexOf('function MobileContactChip('),
-    source.indexOf('function QuickStartPanel(')
+  const profileComponents = await readFile(
+    new URL('../mobile/profile-components.tsx', import.meta.url),
+    'utf8'
   )
-  const contactManager = source.slice(source.indexOf('function ContactManager('))
+  const contactChip = sliceBetween(
+    profileComponents,
+    'function MobileContactChip(',
+    'export type ContactProfileDetailView'
+  )
+  const peopleComponents = await readFile(
+    new URL('../mobile/people-components.tsx', import.meta.url),
+    'utf8'
+  )
+  const contactManager = peopleComponents.slice(
+    peopleComponents.indexOf('function ContactManager(')
+  )
 
   assert.match(directPane, /contactOptions\.map/)
   assert.match(directPane, /<MobileContactChip[\s\S]*contact=\{contact\}/)
@@ -711,50 +768,45 @@ test('Android direct message composer keeps revoke in People', async () => {
   assert.equal(directPane.includes('onRevokeContact'), false)
   assert.match(contactChip, /formatMobileTrustedContactName\(contact\)/)
   assert.equal(directPane.includes('{contact.alias}'), false)
-  assert.match(contactManager, /onRevokeContact\(contact\.profileId\)/)
+  assert.match(contactManager, /onRevokeContact\(profile\.profileId\)/)
   assert.match(contactManager, /UserMinus/)
 })
 
 test('Android direct message zero-contact state links to People', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
-  const chatRoom = source.slice(
-    source.indexOf('function ChatRoom('),
-    source.indexOf('function PeoplePane(')
-  )
-  const directPane = source.slice(
-    source.indexOf('function DirectPane('),
-    source.indexOf('function ContactManager(')
-  )
+  const source = await readMobileUiSource()
+  const chatRoom = sliceBetween(source, 'function ChatRoom(', 'function PeoplePane(')
+  const directPane = sliceBetween(source, 'function DirectPane(', 'function ContactManager(')
 
   assert.match(chatRoom, /onOpenPeople=\{\(\) => onTabChange\('people'\)\}/)
   assert.match(directPane, /onOpenPeople/)
   assert.match(directPane, /<PanelEmptyState[\s\S]*icon=\{Users\}/)
-  assert.match(directPane, /No trusted friends yet/)
+  assert.match(directPane, /No contacts yet/)
   assert.match(directPane, /Trust a friend first, then come back here to write privately\./)
   assert.match(directPane, /testID='dm-open-people-button'/)
-  assert.match(directPane, /Trust a friend/)
+  assert.match(directPane, /Open Contacts/)
   assert.match(directPane, /onPress=\{onOpenPeople\}/)
 })
 
 test('Android treehole empty state talks about posts', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const source = await readMobileUiSource()
   const copy = await readFile(new URL('../src/mobile-product-copy.ts', import.meta.url), 'utf8')
 
   assert.match(source, /No posts yet/)
-  assert.match(source, /getMobileTreeholeEmptyCopy\(status\)/)
-  assert.match(copy, /Waiting for the home owner to share the treehole\./)
-  assert.match(copy, /Starting the treehole\./)
+  assert.match(source, /getMobileTreeholeEmptyCopy\(status, \{ canPost \}\)/)
+  assert.match(copy, /Posts from this home will appear here\./)
+  assert.match(copy, /Waiting for the home owner to share posts\./)
+  assert.match(copy, /Starting My treehole\./)
   assert.equal(source.includes('No treeholes yet'), false)
   assert.equal(source.includes('Starting the treehole log.'), false)
   assert.equal(source.includes('Waiting for a home peer to share the treehole log.'), false)
 })
 
 test('Android treehole composer explains owner-only posting', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const source = await readMobileUiSource()
 
   assert.match(source, /const \[treeholeCanPost, setTreeholeCanPost\] = useState\(false\)/)
-  assert.match(source, /Object\.hasOwn\(payload, 'canPost'\)/)
-  assert.match(source, /setTreeholeCanPost\(Boolean\(payload\.canPost\)\)/)
+  assert.match(source, /Object\.hasOwn\(payloadRecord, 'canPost'\)/)
+  assert.match(source, /setTreeholeCanPost\(Boolean\(payloadRecord\.canPost\)\)/)
   assert.equal(
     source.includes('setTreeholeCanPost(Boolean(payload.canPost))\n          return'),
     false
@@ -771,19 +823,13 @@ test('Android treehole composer explains owner-only posting', async () => {
 })
 
 test('Android treehole interactions disable when the profile cannot interact', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
-  const treeholePane = source.slice(
-    source.indexOf('function TreeholePane('),
-    source.indexOf('function EmptyTreehole(')
-  )
-  const treeholePost = source.slice(
-    source.indexOf('function TreeholePost('),
-    source.indexOf('function EmptyMessages(')
-  )
+  const source = await readMobileUiSource()
+  const treeholePane = sliceBetween(source, 'function TreeholePane(', 'function EmptyTreehole(')
+  const treeholePost = sliceBetween(source, 'function TreeholePost(', 'function EmptyMessages(')
 
   assert.match(source, /const \[treeholeCanInteract, setTreeholeCanInteract\] = useState\(false\)/)
-  assert.match(source, /Object\.hasOwn\(payload, 'canInteract'\)/)
-  assert.match(source, /setTreeholeCanInteract\(Boolean\(payload\.canInteract\)\)/)
+  assert.match(source, /Object\.hasOwn\(payloadRecord, 'canInteract'\)/)
+  assert.match(source, /setTreeholeCanInteract\(Boolean\(payloadRecord\.canInteract\)\)/)
   assert.match(source, /canInteract={treeholeCanInteract}/)
   assert.match(treeholePane, /function TreeholePane\(\{\s*canInteract,/)
   assert.match(treeholePane, /<TreeholePost[\s\S]*canInteract=\{canInteract\}/)
@@ -795,28 +841,35 @@ test('Android treehole interactions disable when the profile cannot interact', a
   assert.match(treeholePost, /Only trusted friends can comment or like here\./)
 })
 
-test('Android room has a People tab for QR and trusted contacts', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+test('Android room has a Contacts tab for QR and trusted contacts', async () => {
+  const source = await readMobileUiSource()
 
   assert.match(source, /testID='people-tab'/)
-  assert.match(source, /label='Home'/)
+  assert.match(source, /label=\{getProductSurfaceLabel\('chat'\)\}/)
+  assert.match(source, /label=\{getProductSurfaceLabel\('people'\)\}/)
   assert.match(source, /activeTab === 'people'/)
   assert.match(source, /<PeoplePane/)
-  assert.match(source, /Home invite/)
-  assert.match(source, /Profile trust/)
+  assert.match(source, /Home QR/)
+  assert.match(source, /Profile request/)
   assert.match(source, /ContactManager/)
 })
 
-test('Android people UI uses trusted friends copy', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+test('Android people UI uses profile contacts copy', async () => {
+  const source = await readMobileUiSource()
   const copy = await readFile(new URL('../src/mobile-product-copy.ts', import.meta.url), 'utf8')
 
-  assert.match(source, /Trusted friends/)
-  assert.match(source, /<Text style=\{styles\.trustStatus\}>Trusted<\/Text>/)
-  assert.match(source, /\{formatMobileTrustedContactName\(contact\)\}/)
-  assert.match(source, /`Revoke \$\{formatMobileTrustedContactName\(contact\)\}`/)
-  assert.match(source, /\{formatMobileTrustSource\(contact\.source\)\}/)
-  assert.match(source, /\{formatMobileTrustTime\(contact\.trustedAt\)\}/)
+  assert.match(source, /title='Contacts'/)
+  assert.match(source, /createContactProfileViewModel\(/)
+  assert.match(source, /<Text style=\{styles\.trustStatus\}>\{profile\.statusLabel\}<\/Text>/)
+  assert.match(source, /\{profile\.displayName\}/)
+  assert.match(source, /`Message \$\{profile\.displayName\}`/)
+  assert.match(source, /label=\{profile\.messageLabel\}/)
+  assert.match(source, /`Enter \$\{profile\.displayName\} home`/)
+  assert.match(source, /label=\{profile\.enterHomeLabel\}/)
+  assert.match(source, /profile\.recentTitle/)
+  assert.match(source, /`Remove \$\{profile\.displayName\} as friend`/)
+  assert.match(source, /profile\.sourceLabel/)
+  assert.match(source, /profile\.trustedAtLabel/)
   assert.match(copy, /function formatMobileTrustedContactName\(contact\?: MobileContactLike/)
   assert.match(copy, /function formatMobileTrustSource\(source\?: string \| null\)/)
   assert.match(copy, /if \(source === 'home_room'\) return 'Home'/)
@@ -826,35 +879,49 @@ test('Android people UI uses trusted friends copy', async () => {
 })
 
 test('Android people pane surfaces pending message requests', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
-  const rpcDmMessageHandler = source.slice(
-    source.indexOf('if (req.command === RPC_DM_MESSAGE)'),
-    source.indexOf('if (req.command === RPC_DM_BODY_MESSAGE)')
+  const source = await readMobileUiSource()
+  const rpcDmMessageHandler = sliceBetween(
+    source,
+    'if (req.command === RPC_DM_MESSAGE)',
+    'if (req.command === RPC_DM_BODY_MESSAGE)'
   )
-  const incomingMessageRequestHandler = source.slice(
-    source.indexOf('async function handleIncomingMessageRequest('),
-    source.indexOf('async function persistIncomingMessageRequest(')
+  const incomingMessageRequestHandler = sliceBetween(
+    source,
+    'async function handleIncomingMessageRequest(',
+    'async function persistIncomingMessageRequest('
   )
-  const persistIncomingMessageRequest = source.slice(
-    source.indexOf('async function persistIncomingMessageRequest('),
-    source.indexOf('async function acceptIncomingMessageRequest(')
+  const persistIncomingMessageRequest = sliceBetween(
+    source,
+    'async function persistIncomingMessageRequest(',
+    'async function acceptIncomingMessageRequest('
   )
-  const messageRequestManager = source.slice(
-    source.indexOf('function MessageRequestManager('),
-    source.indexOf('function PeopleActions(')
+  const messageRequestManager = sliceBetween(
+    source,
+    'function MessageRequestManager(',
+    'function PeopleActions('
   )
 
-  assert.match(rpcDmMessageHandler, /handleIncomingMessageRequest\(payload\)/)
+  assert.match(
+    rpcDmMessageHandler,
+    /handleIncomingMessageRequest\(asMessageRequestPayload\(payload\)\)/
+  )
   assert.doesNotMatch(rpcDmMessageHandler, /appendRemoteMessageRequest/)
   assert.match(incomingMessageRequestHandler, /const stored = await persistIncomingMessageRequest/)
   assert.match(incomingMessageRequestHandler, /if \(!stored\)/)
   assert.match(incomingMessageRequestHandler, /appendRemoteMessageRequest\(current, request\)/)
   assert.match(persistIncomingMessageRequest, /return false/)
   assert.match(persistIncomingMessageRequest, /recordMessageRequest\(contactBook/)
+  assert.doesNotMatch(
+    persistIncomingMessageRequest,
+    /alias:\s*shortenProfileId\(request\.fromProfileId\)/
+  )
   assert.match(persistIncomingMessageRequest, /return true/)
   assert.match(source, /pendingRequestsByProfileId\.values\(\)/)
   assert.match(source, /pendingRequests={pendingMessageRequests}/)
-  assert.match(messageRequestManager, /Message requests/)
+  assert.match(messageRequestManager, /Friend requests/)
+  assert.match(messageRequestManager, /No friend requests/)
+  assert.equal(messageRequestManager.includes('Message requests'), false)
+  assert.equal(messageRequestManager.includes('No message requests'), false)
   assert.match(messageRequestManager, /\{formatMessageRequestTitle\(request\)\}/)
   assert.match(messageRequestManager, /\{formatMessageRequestSubtitle\(request\)\}/)
   assert.match(messageRequestManager, /\{formatRequestPreview\(request\.text\)\}/)
@@ -863,9 +930,9 @@ test('Android people pane surfaces pending message requests', async () => {
   assert.match(messageRequestManager, /testID='people-message-request-accept-button'/)
   assert.match(messageRequestManager, /testID='people-message-request-ignore-button'/)
   assert.match(messageRequestManager, /Ignore/)
-  assert.match(source, /function ignoreIncomingMessageRequest\(request\)/)
+  assert.match(source, /function ignoreIncomingMessageRequest\(requestInput: unknown\)/)
   assert.match(source, /ignoreMessageRequest\(contactBook, \{/)
-  assert.match(source, /function syncTreeholePolicy\(nextPolicy\)/)
+  assert.match(source, /function syncTreeholePolicy\(nextPolicy: TreeholePolicy \| null\)/)
   assert.match(source, /RPC_TREEHOLE_POLICY/)
   assert.match(source, /syncTreeholePolicy\(nextPolicy\)/)
   assert.match(source, /syncTreeholePolicy\(result\.treeholePolicy\)/)
@@ -877,8 +944,20 @@ test('Android people pane surfaces pending message requests', async () => {
   )
 })
 
+test('Android sent requests copy uses Contacts language', async () => {
+  const source = await readMobileUiSource()
+  const outgoingRequestManager = sliceBetween(
+    source,
+    'function OutgoingRequestManager(',
+    'function MessageRequestManager('
+  )
+
+  assert.match(outgoingRequestManager, /Friend requests you send stay here until accepted\./)
+  assert.equal(outgoingRequestManager.includes('People you asked to trust you'), false)
+})
+
 test('Android restores and saves direct request session messages', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const source = await readMobileUiSource()
 
   assert.match(source, /restoreDirectMessageSession/)
   assert.match(source, /loadDmSessionMessagesFromFileSystem/)
@@ -890,81 +969,94 @@ test('Android restores and saves direct request session messages', async () => {
 })
 
 test('Android people pane keeps visible empty states', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
-  const messageRequestManager = source.slice(
-    source.indexOf('function MessageRequestManager('),
-    source.indexOf('function PeopleActions(')
+  const source = await readMobileUiSource()
+  const requestComponents = await readFile(
+    new URL('../mobile/request-components.tsx', import.meta.url),
+    'utf8'
   )
-  const contactManager = source.slice(
-    source.indexOf('function ContactManager('),
-    source.indexOf('function TabButton(')
+  const peopleComponents = await readFile(
+    new URL('../mobile/people-components.tsx', import.meta.url),
+    'utf8'
+  )
+  const messageRequestManager = sliceBetween(
+    requestComponents,
+    'function MessageRequestManager(',
+    'export type MessageRequestManagerProps'
+  )
+  const contactManager = sliceBetween(
+    peopleComponents,
+    'function ContactManager(',
+    'function toRequestTargetProfileInput('
+  )
+  const contactProfileDetail = sliceBetween(
+    source,
+    'function ContactProfileDetail(',
+    'function TabButton('
   )
 
-  assert.match(messageRequestManager, /No message requests/)
-  assert.match(messageRequestManager, /New requests from friends will appear here\./)
-  assert.equal(messageRequestManager.includes('return null'), false)
-  assert.match(contactManager, /No trusted friends yet/)
-  assert.match(contactManager, /Trust a friend to unlock home access and direct messages\./)
-  assert.equal(contactManager.includes('return null'), false)
+  assert.match(messageRequestManager, /No friend requests/)
+  assert.match(messageRequestManager, /Friend requests you receive will appear here\./)
+  assert.equal(/return null/.test(messageRequestManager), false)
+  assert.match(contactManager, /No contacts yet/)
+  assert.match(contactManager, /Accepted friends will appear here as contacts\./)
+  assert.equal(/return null/.test(contactManager), false)
+  assert.match(source, /from '\.\.\/src\/request-target-profile-view-model\.ts'/)
+  assert.doesNotMatch(source, /function createRequestTargetProfileViewModel\(/)
+  assert.match(contactProfileDetail, /if \(!profile\) return null/)
 })
 
 test('Android people empty panels share layout with contextual icons', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
-  const panelEmptyState = source.slice(
-    source.indexOf('function PanelEmptyState('),
-    source.indexOf('function PeopleActions(')
+  const source = await readMobileUiSource()
+  const panelComponents = await readFile(
+    new URL('../mobile/panel-components.tsx', import.meta.url),
+    'utf8'
   )
-  const messageRequestManager = source.slice(
-    source.indexOf('function MessageRequestManager('),
-    source.indexOf('function PeopleActions(')
+  const messageRequestManager = sliceBetween(
+    source,
+    'function MessageRequestManager(',
+    'function PeopleActions('
   )
-  const contactManager = source.slice(
-    source.indexOf('function ContactManager('),
-    source.indexOf('function TabButton(')
-  )
+  const contactManager = sliceBetween(source, 'function ContactManager(', 'function TabButton(')
 
-  assert.match(panelEmptyState, /function PanelEmptyState\(\{\s*copy,\s*icon: Icon,\s*title\s*\}\)/)
-  assert.match(panelEmptyState, /<Icon color=\{theme\.iconMuted\} size=\{24\} \/>/)
+  assert.match(panelComponents, /function PanelEmptyState\(\{[\s\S]*copy,[\s\S]*icon: Icon/)
+  assert.match(panelComponents, /<Icon color=\{iconColor\} size=\{24\} \/>/)
   assert.match(messageRequestManager, /<PanelEmptyState[\s\S]*icon=\{MessageCircle\}/)
+  assert.match(messageRequestManager, /iconColor=\{theme\.iconMuted\}/)
   assert.match(contactManager, /<PanelEmptyState[\s\S]*icon=\{Users\}/)
+  assert.match(contactManager, /iconColor=\{theme\.iconMuted\}/)
 })
 
 test('Android people management panels use shared task headers', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
-  const messageRequestManager = source.slice(
-    source.indexOf('function MessageRequestManager('),
-    source.indexOf('function PeopleActions(')
+  const source = await readMobileUiSource()
+  const messageRequestManager = sliceBetween(
+    source,
+    'function MessageRequestManager(',
+    'function PeopleActions('
   )
-  const contactManager = source.slice(
-    source.indexOf('function ContactManager('),
-    source.indexOf('function TabButton(')
-  )
+  const contactManager = sliceBetween(source, 'function ContactManager(', 'function TabButton(')
 
   assert.match(
     messageRequestManager,
-    /<TaskHeader[\s\S]*eyebrow='Requests'[\s\S]*title='Message requests'/
+    /<TaskHeader[\s\S]*eyebrow='Requests'[\s\S]*title='Friend requests'/
   )
   assert.match(
     messageRequestManager,
-    /description='Accept only the people you want to talk with privately\.'/
+    /description='Accept only contacts you want to message privately\.'/
   )
-  assert.match(contactManager, /<TaskHeader[\s\S]*eyebrow='Trust'[\s\S]*title='Trusted friends'/)
+  assert.match(contactManager, /<TaskHeader[\s\S]*eyebrow='Profiles'[\s\S]*title='Contacts'/)
   assert.match(
     contactManager,
-    /description='Manage who can enter your home and send direct messages\.'/
+    /description='Open a profile, message a trusted contact, or enter when Home access is saved\.'/
   )
   assert.equal(
     messageRequestManager.includes('<Text style={styles.panelTitle}>Message requests</Text>'),
     false
   )
-  assert.equal(
-    contactManager.includes('<Text style={styles.panelTitle}>Trusted friends</Text>'),
-    false
-  )
+  assert.equal(contactManager.includes('<Text style={styles.panelTitle}>Contacts</Text>'), false)
 })
 
 test('Android lobby and room reuse the same people action UI', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const source = await readMobileUiSource()
 
   assert.match(source, /function PeopleActions\(/)
   assert.match(source, /function Lobby[\s\S]*<PeopleActions/)
@@ -972,19 +1064,10 @@ test('Android lobby and room reuse the same people action UI', async () => {
 })
 
 test('Android room people pane does not offer joining another home', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
-  const lobby = source.slice(
-    source.indexOf('function Lobby('),
-    source.indexOf('function ChatRoom(')
-  )
-  const peoplePane = source.slice(
-    source.indexOf('function PeoplePane('),
-    source.indexOf('function MessageRequestManager(')
-  )
-  const peopleActions = source.slice(
-    source.indexOf('function PeopleActions('),
-    source.indexOf('function DirectPane(')
-  )
+  const source = await readMobileUiSource()
+  const lobby = sliceBetween(source, 'function Lobby(', 'function ChatRoom(')
+  const peoplePane = sliceBetween(source, 'function PeoplePane(', 'function MessageRequestManager(')
+  const peopleActions = sliceBetween(source, 'function PeopleActions(', 'function DirectPane(')
 
   assert.match(lobby, /canJoinHome=\{true\}/)
   assert.match(peoplePane, /canJoinHome=\{false\}/)
@@ -995,7 +1078,7 @@ test('Android room people pane does not offer joining another home', async () =>
 })
 
 test('Android QR scanner keeps the camera preview visible', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const source = await readMobileUiSource()
 
   assert.match(source, /scannerCamera: \{\s*flex: 1,/)
   assert.match(source, /scannerControls: \{/)
@@ -1004,7 +1087,7 @@ test('Android QR scanner keeps the camera preview visible', async () => {
 })
 
 test('Android QR scanner has an in-flow permission denied state', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const source = await readMobileUiSource()
 
   assert.match(source, /const \[scannerPermissionDenied, setScannerPermissionDenied\]/)
   assert.match(source, /permissionDenied={scannerPermissionDenied}/)
@@ -1016,7 +1099,7 @@ test('Android QR scanner has an in-flow permission denied state', async () => {
 })
 
 test('Android supports Neo Cozy light and Indie Console dark themes', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const source = await readMobileUiSource()
   const tokens = await readFile(new URL('../src/mobile-theme-tokens.ts', import.meta.url), 'utf8')
 
   assert.match(source, /useColorScheme/)
@@ -1024,7 +1107,7 @@ test('Android supports Neo Cozy light and Indie Console dark themes', async () =
   assert.match(tokens, /const mobileThemes[:\w\s<>,]*= \{/)
   assert.match(tokens, /neoCozy/)
   assert.match(tokens, /indieConsole/)
-  assert.match(source, /function createMobileStyles\(theme\)/)
+  assert.match(source, /function createMobileStyles\(theme: MobileThemeTokens\)/)
   assert.match(source, /MobileThemeContext\.Provider/)
   assert.match(source, /StatusBar barStyle=\{theme\.statusBar\}/)
   assert.match(source, /backgroundColor: theme\.surface/)
@@ -1033,7 +1116,7 @@ test('Android supports Neo Cozy light and Indie Console dark themes', async () =
 })
 
 test('Android theme styles are passed through context instead of mutable module state', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const source = await readMobileUiSource()
 
   assert.match(source, /const fallbackMobileStyles = createMobileStyles\(mobileThemes\.neoCozy\)/)
   assert.match(source, /const theme = getMobileThemeForScheme\(colorScheme\)/)
@@ -1042,7 +1125,7 @@ test('Android theme styles are passed through context instead of mutable module 
     /const themedStyles = useMemo\(\(\) => createMobileStyles\(theme\), \[theme\]\)/
   )
   assert.match(source, /MobileThemeContext\.Provider value=\{\{ styles: themedStyles, theme \}\}/)
-  assert.match(source, /const \{ styles, theme \} = useMobileTheme\(\)/)
+  assert.match(source, /styles=\{styles\}[\s\S]*theme=\{theme\}/)
   assert.doesNotMatch(source, /let styles = createMobileStyles/)
   assert.doesNotMatch(source, /styles = useMemo/)
 })
@@ -1112,7 +1195,7 @@ test('desktop large QR dialog is keyboard reachable', async () => {
   assert.match(app, /actions\.showLargeProfileQr\(\{ returnFocus: event\.currentTarget \}\)/)
   assert.match(
     bindings,
-    /showLargeHomeQr: \(\{ returnFocus \}\) =>[\s\S]*qrActions[\s\S]*\.showLargeQr\(\{[\s\S]*title: 'Home invite'/
+    /showLargeHomeQr: \(\{ returnFocus \}\) =>[\s\S]*qrActions[\s\S]*\.showLargeQr\(\{[\s\S]*title: 'Home QR'/
   )
   assert.match(
     bindings,
@@ -1189,6 +1272,8 @@ test('debug two-device smoke covers live DM exchange and restart persistence', a
     'sendDesktopDmBody',
     'restartBothAppsAndRejoin',
     'verifyDmPersistsAfterRestart',
+    'waitForAndroidRecentPostText',
+    'desktop treehole post appears in Android trusted profile recent posts',
     'revokeDesktopContact',
     'verifyDesktopDmClosedAfterRevoke',
     'MaestroDriverStartupException',
@@ -1211,12 +1296,30 @@ test('debug two-device smoke covers live DM exchange and restart persistence', a
 })
 
 test('Android records accepted DM threads in UI state before async storage completes', async () => {
-  const source = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const source = await readMobileUiSource()
 
-  assert.match(source, /import \{ upsertDmThread \} from '\.\.\/src\/dm-thread-list\.ts'/)
   assert.match(
     source,
-    /if \(req\.command === RPC_DM_THREAD\) \{[\s\S]*setDmThreads\(\(current\) => upsertDmThread\(current, payload\)\)/
+    /import \{[\s\S]*createDmThreadListView,[\s\S]*filterDirectMessagesForProfile,[\s\S]*upsertDmThread[\s\S]*\} from '\.\.\/src\/dm-thread-list\.ts'/
+  )
+  assert.match(
+    source,
+    /if \(req\.command === RPC_DM_THREAD\) \{[\s\S]*setDmThreads\(\(current\) => upsertDmThread\(current, threadPayload\)\)/
+  )
+})
+
+test('Android accepted request invites update local trust state', async () => {
+  const source = await readMobileUiSource()
+
+  assert.match(source, /acceptOutgoingFriendRequest/)
+  assert.match(source, /recordOutgoingFriendRequest/)
+  assert.match(
+    source,
+    /if \(req\.command === RPC_DM_THREAD\) \{[\s\S]*acceptOutgoingFriendRequest\([\s\S]*profileId: threadPayload\.remoteProfileId/
+  )
+  assert.match(
+    source,
+    /function sendMessageRequest\(\) \{[\s\S]*recordOutgoingFriendRequest\([\s\S]*requestId: message\.requestId/
   )
 })
 
@@ -1227,6 +1330,8 @@ test('debug two-device smoke resets Android throwaway storage before exercising 
   )
 
   assert.match(source, /resetAndroidSmokeData\(\)/)
+  assert.match(source, /markSmokeStorage\(userDataDir\)/)
+  assert.match(source, /markSmokeStorage\(workDir\)/)
   assert.match(source, /rm -rf files\/kepos\/dm files\/kepos\/kepos\/dm/)
   assert.match(source, /files\/kepos\/kepos-treehole-\*/)
 })

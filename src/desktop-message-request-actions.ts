@@ -82,7 +82,7 @@ export function createDesktopMessageRequestActions({
 
     context.saveContactBook(result.book)
     homeRuntime.broadcastControl(result.invite)
-    setNotice('Message request accepted.')
+    setNotice('Friend request accepted.')
     onChanged()
   }
 
@@ -108,7 +108,7 @@ export function createDesktopMessageRequestActions({
       getDmRuntime().dismissMessage({ id: result.dismissedMessageId })
     }
 
-    setNotice('Message request ignored.')
+    setNotice('Friend request ignored.')
     onChanged()
   }
 

@@ -46,7 +46,11 @@ export function loadDmSessionMessagesFromStorage({
 
   if (!stored) return []
 
-  return deserializeDmSessionMessages(stored)
+  try {
+    return deserializeDmSessionMessages(stored)
+  } catch {
+    return []
+  }
 }
 
 export function saveDmSessionMessagesToStorage({
@@ -73,14 +77,20 @@ export async function loadDmSessionMessagesFromFileSystem({
   fileSystem: AsyncFileSystem
   ownerProfileId: string
 }): Promise<PersistedDmSessionMessage[]> {
+  let stored: string
+
   try {
-    return deserializeDmSessionMessages(
-      await fileSystem.readAsStringAsync(dmSessionMessagesPath(baseUri, ownerProfileId))
-    )
+    stored = await fileSystem.readAsStringAsync(dmSessionMessagesPath(baseUri, ownerProfileId))
   } catch (error) {
     if (isMissingFileError(error)) return []
 
     throw new Error('Corrupt DM session message storage', { cause: error })
+  }
+
+  try {
+    return deserializeDmSessionMessages(stored)
+  } catch {
+    return []
   }
 }
 

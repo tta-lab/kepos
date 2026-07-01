@@ -5,12 +5,12 @@ import test from 'node:test'
 test('desktop exposes contact revoke controls that update trust and DM threads', async () => {
   const app = await readFile(new URL('../desktop/app.tsx', import.meta.url), 'utf8')
   const people = await readFile(
-    new URL('../desktop/people-components.jsx', import.meta.url),
+    new URL('../desktop/people-components.tsx', import.meta.url),
     'utf8'
   )
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const session = await readFile(
-    new URL('../src/desktop-backend-session.js', import.meta.url),
+    new URL('../src/desktop-backend-session.ts', import.meta.url),
     'utf8'
   )
   const backendActions = await readFile(
@@ -33,7 +33,8 @@ test('desktop exposes contact revoke controls that update trust and DM threads',
 })
 
 test('android exposes contact revoke controls and notifies Bare backend', async () => {
-  const app = await readFile(new URL('../mobile/App.jsx', import.meta.url), 'utf8')
+  const app = await readFile(new URL('../mobile/App.tsx', import.meta.url), 'utf8')
+  const people = await readFile(new URL('../mobile/people-components.tsx', import.meta.url), 'utf8')
   const backend = await readFile(new URL('../backend/backend.mjs', import.meta.url), 'utf8')
   const rpc = await readFile(new URL('../rpc-commands.mjs', import.meta.url), 'utf8')
 
@@ -42,7 +43,7 @@ test('android exposes contact revoke controls and notifies Bare backend', async 
   assert.match(app, /revokeTrustedContact/)
   assert.match(app, /RPC_DM_REVOKE/)
   assert.match(app, /syncTreeholePolicy\(result\.treeholePolicy\)/)
-  assert.match(app, /UserMinus/)
+  assert.match(people, /UserMinus/)
   assert.match(backend, /revokeDmByProfile/)
   assert.match(backend, /RPC_TREEHOLE_POLICY/)
   assert.match(backend, /updateTreeholePolicy\(payload\)/)

@@ -1,4 +1,4 @@
 import { registerRootComponent } from 'expo'
-import App from './mobile/App.jsx'
+import App from './mobile/App.tsx'
 
 registerRootComponent(App)

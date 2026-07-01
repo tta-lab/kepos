@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import test from 'node:test'
+import { createAvatarMediaReference } from '../src/avatar-media.ts'
 import { upsertContact } from '../src/contact-book.ts'
 import {
   createDesktopFileProfileContext,
@@ -19,9 +20,14 @@ function createMemoryStorage() {
 
 test('desktop profile context loads profile and matching contact book', () => {
   const storage = createMemoryStorage()
-  const context = createDesktopProfileContext({ displayName: 'Desktop', storage })
+  const context = createDesktopProfileContext({
+    avatarUri: ' file:///avatar/me.png ',
+    displayName: 'Desktop',
+    storage
+  })
 
   assert.equal(context.profile.displayName, 'Desktop')
+  assert.equal(context.profile.avatarUri, 'file:///avatar/me.png')
   assert.equal(context.contactBook.ownerProfileId, context.profile.id)
 })
 
@@ -39,6 +45,29 @@ test('desktop profile context saves contact book through the same storage', () =
   const restored = createDesktopProfileContext({ displayName: 'Desktop', storage })
 
   assert.equal(restored.contactBook.contactsByProfileId.get('b'.repeat(64))?.alias, 'Friend')
+})
+
+test('desktop profile context persists local avatar media reference', () => {
+  const storage = createMemoryStorage()
+  const avatarMedia = createAvatarMediaReference({
+    bytes: Uint8Array.from([1, 2, 3]),
+    createdAt: 1234,
+    mimeType: 'image/png',
+    sha256Hex: () => 'a'.repeat(64)
+  })
+
+  const context = createDesktopProfileContext({
+    avatarMedia,
+    avatarUri: avatarMedia.uri,
+    displayName: 'Desktop',
+    storage
+  })
+  const restored = createDesktopProfileContext({ displayName: 'Desktop', storage })
+
+  assert.deepEqual(context.profile.avatarMedia, avatarMedia)
+  assert.equal(context.profile.avatarUri, avatarMedia.uri)
+  assert.deepEqual(restored.profile.avatarMedia, avatarMedia)
+  assert.equal(restored.profile.avatarUri, avatarMedia.uri)
 })
 
 test('desktop file profile context persists profile and contacts outside localStorage', () => {
@@ -70,7 +99,7 @@ test('desktop file profile context persists profile and contacts outside localSt
 test('desktop controller uses profile context instead of direct local adapters', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const localProfile = await readFile(
-    new URL('../desktop/local-profile.js', import.meta.url),
+    new URL('../desktop/local-profile.ts', import.meta.url),
     'utf8'
   )
 
@@ -87,15 +116,22 @@ test('desktop controller uses profile context instead of direct local adapters',
 test('desktop controller uses file-backed profile context when a storage base path exists', async () => {
   const source = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
   const localProfile = await readFile(
-    new URL('../desktop/local-profile.js', import.meta.url),
+    new URL('../desktop/local-profile.ts', import.meta.url),
     'utf8'
   )
 
   assert.match(source, /getLocalProfileApi\(\)\.createProfileContext/)
   assert.doesNotMatch(source, /import \{ getDesktopStorageBasePath \}/)
   assert.match(localProfile, /const storageBasePath = getDesktopStorageBasePath\(\)/)
-  assert.match(localProfile, /if \(storageBasePath\) return createDesktopFileProfileContext/)
-  assert.match(localProfile, /return createDesktopProfileContext\(\{ displayName \}\)/)
+  assert.match(localProfile, /if \(storageBasePath\) \{/)
+  assert.match(
+    localProfile,
+    /return createDesktopFileProfileContext\(\{ avatarMedia, avatarUri, displayName, storageBasePath \}\)/
+  )
+  assert.match(
+    localProfile,
+    /return createDesktopProfileContext\(\{ avatarMedia, avatarUri, displayName \}\)/
+  )
 })
 
 function createMemoryFs(files) {
