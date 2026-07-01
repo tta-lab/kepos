@@ -48,7 +48,7 @@ This read is based on the repository docs, source, and tests as of 2026-07-01.
 Verified locally:
 
 - `npm run v1:gate` has passed for the current V1 source shape, including
-  lint, typecheck, 897 Node tests, TypeScript compatibility probes, desktop
+  lint, typecheck, 898 Node tests, TypeScript compatibility probes, desktop
   bundle generation, Bare Android bundle checks, Expo Android export, and APK
   native-library alignment.
 - V1 model smoke ties signed Profile QR friend requests, trusted Home access,
