@@ -88,6 +88,20 @@ test('final V1 proof checker rejects dirty worktree proof', () => {
   assert.match(result.failures.join('\n'), /worktree state must be clean/)
 })
 
+test('final V1 proof checker rejects nonzero Home peer count evidence', () => {
+  const packet = completedPacket()
+    .replace('- Home peer count at request receipt: 0', '- Home peer count at request receipt: 1')
+    .replace(
+      '- Home peer count at accept/invite return: 0 desktop, 0 Android',
+      '- Home peer count at accept/invite return: 0 desktop, 1 Android'
+    )
+  const result = validateFinalV1ProofPacket(packet)
+
+  assert.equal(result.ok, false)
+  assert.match(result.failures.join('\n'), /request receipt must be recorded as zero/)
+  assert.match(result.failures.join('\n'), /accept\/invite return must be recorded as zero/)
+})
+
 test('final V1 proof checker parses file argument defensively', () => {
   assert.equal(readFinalV1ProofCheckPath([]), 'tmp/final-v1-proof.md')
   assert.equal(readFinalV1ProofCheckPath(['--file', 'tmp/custom-proof.md']), 'tmp/custom-proof.md')
@@ -109,5 +123,6 @@ test('package and docs expose the final V1 proof checker', async () => {
   )
   assert.match(recipe, /npm run v1:proof:check/)
   assert.match(recipe, /fails if any checklist item remains unchecked/)
+  assert.match(recipe, /Home peer counts are not recorded as zero/)
   assert.match(recipe, /worktree state is not clean/)
 })
