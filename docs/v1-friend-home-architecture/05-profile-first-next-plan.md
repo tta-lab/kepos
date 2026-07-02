@@ -106,6 +106,12 @@ Still open:
 - remove or quarantine the temporary Home-control request and invite compatibility paths after profile delivery is proven in cross-device smoke
 - add an explicit receiver acknowledgement before showing `delivered`
 
+Current execution note:
+
+- The next focused plan is `07-v1-friendship-delivery-next-plan.md`.
+- `05` records the route decision; `07` owns the immediate cleanup and proof
+  work from the current implementation state.
+
 The current product behavior is intentionally honest: a request can be queued or searching locally without claiming the other side received it.
 
 ### Phase 1: Stop Treating Home As Friend Request Delivery

@@ -11,6 +11,7 @@ Use these docs as the current architecture map for Kepos.
 - `docs/v1.10-qr-code-matching.md`: QR payloads and matching flows for profile trust, home entry, and message requests.
 - `docs/v1.16-final-mlp-ui-ux-refactor.md`: final V1 MLP person-first UI/UX refactor target: friend request, mutual trust, profile, contacts, messages, recent posts, and explicit home entry.
 - `docs/v1.17-ready-im-completion-plan.md`: canonical V1 completion evidence checklist and self-review for a ready private IM product on top of P2P infra.
+- `docs/v1-friend-home-architecture/07-v1-friendship-delivery-next-plan.md`: current next V1 execution plan for profile-level friend request/accept delivery and Home-control fallback quarantine.
 - `docs/v1.07-architecture-gaps.md`: remaining architecture gaps for V1 after identity and QR design.
 - `docs/v1.03-limitations.md`: explicit V1 limitations, non-goals, and success bar.
 - `docs/v1.04-tradeoffs.md`: accepted V1 tradeoffs, rejected options, risks, and future escape hatches.
@@ -40,6 +41,9 @@ Use these docs as the current architecture map for Kepos.
 - Room chat is ephemeral.
 - DM is durable, pairwise, and separate from home room traffic.
 - Trust has one V1 scope: `home`.
+- Production friend bootstrap must use profile-to-profile P2P delivery. Home
+  control request/invite handling is debug fallback or legacy compatibility,
+  not the normal path.
 - Revoke blocks future access but does not delete already replicated data.
 - Manual raw key entry is debug or support UX, not normal product UX.
 

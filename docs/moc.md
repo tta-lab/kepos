@@ -41,7 +41,8 @@ This is the map of content for Kepos architecture docs.
    - Use this when friend request and Home entry feel coupled or confusing.
 
    Route decision: `docs/v1-friend-home-architecture/05-profile-first-next-plan.md`.
-   Next implementation plan: `docs/v1-friend-home-architecture/06-v1-profile-first-implementation-plan.md`.
+   Full implementation plan: `docs/v1-friend-home-architecture/06-v1-profile-first-implementation-plan.md`.
+   Current next plan: `docs/v1-friend-home-architecture/07-v1-friendship-delivery-next-plan.md`.
 
 10. `docs/v1.17-ready-im-completion-plan.md`
 

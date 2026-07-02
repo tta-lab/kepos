@@ -110,6 +110,10 @@ The next implementation block is proof and cleanup:
 - quarantine or remove Home-control request and invite compatibility paths after that proof
 - add an acknowledgement frame only when there is a real receiver ack, not before
 
+The current focused next plan is
+`07-v1-friendship-delivery-next-plan.md`. Use this document for the complete
+V1 scope; use `07` for the immediate execution order.
+
 ### Phase 1: Lock The Shared Model
 
 Finish and test:

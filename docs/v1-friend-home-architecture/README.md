@@ -35,7 +35,11 @@ The short version:
 
 6. `06-v1-profile-first-implementation-plan.md`
    - Concrete execution plan for finishing V1 person-first IM: shared model, desktop, Android, UI, and cross-device proof.
-   - Use this as the next coding plan.
+   - Use this as the full V1 implementation plan.
+
+7. `07-v1-friendship-delivery-next-plan.md`
+   - Current next execution plan after profile-level request and invite delivery landed.
+   - Use this before touching Home-control friend bootstrap, request accept, DM invite return, or smoke proof.
 
 ## Core Principle
 
