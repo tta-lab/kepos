@@ -20,6 +20,15 @@ This fixes a real bug:
 
 But it is still not the clean target architecture.
 
+Smoke result:
+
+- Android showed "You sent a friend request".
+- Desktop showed no incoming request.
+- Both sides showed zero Home peers.
+- Therefore the request was locally recorded but had no working profile-level delivery path.
+
+This confirms the architecture problem. The fix is not direct host:port. The fix is removing Home from friend request delivery.
+
 ## Why It Feels Wrong
 
 Because the implementation path says:
@@ -30,7 +39,7 @@ The product model should say:
 
 > To add B as a friend, A sends B a signed friend request.
 
-The Home join is only one possible packet route. When the packet route leaks into UI copy, tests, and docs, the product becomes hard to reason about.
+The Home join is the wrong packet route for production. When that packet route leaks into UI copy, tests, and docs, the product becomes hard to reason about.
 
 ## Target Rule
 
@@ -38,15 +47,16 @@ No primary UI flow should require the user to understand Home as part of adding 
 
 Allowed internal implementation:
 
-- use Home descriptor from Profile QR as a temporary delivery path
-- use Home control channel as a fallback transport
-- open a short-lived background transport if required
+- use profile-level P2P topics, inboxes, feeds, or request channels
+- keep local pending/retry state
+- use signed records for request, accept, and DM invite
 
 Not allowed as product semantics:
 
 - "join Home to become friends"
 - "Home QR is the normal add-friend path"
 - "trust means currently inside a Home"
+- "type this host:port to become friends"
 
 ## Refactor Direction
 
@@ -61,7 +71,7 @@ Keep transport names where they are true, but product-facing modules should say:
 
 Current helper names like `enterRequestTargetHome` are honest about the implementation, but they should stay private and should not spread.
 
-### Step 2: Create A Friend Request Delivery Service
+### Step 2: Create A Profile-Level Friend Request Delivery Service
 
 Introduce a small service boundary:
 
@@ -75,12 +85,11 @@ sendFriendRequest({
 
 `deliveryHints` may include:
 
-- Home descriptor
-- direct endpoint
-- cached peer route
-- future profile inbox route
+- profile inbox topic/feed
+- cached P2P peer route
+- future relay/bootstrap hints
 
-The caller should not care which transport succeeds.
+The caller should not care which P2P route succeeds. Home and direct host:port should not be part of the production delivery contract.
 
 ### Step 3: Make Delivery State Explicit
 
@@ -96,19 +105,18 @@ Separate these states:
 
 Current V1 can implement only a subset, but the model should be explicit.
 
-### Step 4: Move Home Transport Behind An Adapter
+### Step 4: Remove Home Transport From Friend Request Delivery
 
-Friend request delivery over Home should become one adapter:
+Delete or quarantine this shape:
 
 ```ts
 homeControlFriendRequestTransport.deliver(request, homeDescriptor)
 ```
 
-Then later V1/V2 can add:
+Replace it with:
 
 ```ts
-profileInboxFriendRequestTransport.deliver(request, profileId)
-directPeerFriendRequestTransport.deliver(request, endpoint)
+profileFriendRequestTransport.deliver(request, targetProfileId)
 ```
 
 The product flow remains stable.
@@ -138,16 +146,18 @@ The V1 architecture is clean enough when these statements are true:
 - Adding a friend is documented and tested as a person-first flow.
 - Home entry is documented and tested as an explicit session action.
 - Friend request delivery is not named or presented as Home entry.
-- Home control delivery is an adapter, not the friend request model.
+- Home control delivery is not used for friend request production flow.
+- Direct host:port is not used for friend request production flow.
 - A request cannot silently appear sent if there is no viable delivery path.
 - Desktop and Android share the same product state machine as much as the platform allows.
 
 ## Short-Term Practical Decision
 
-Do not throw away the recent reliability fix.
+Do not extend the recent Home-based reliability fix.
 
-It is useful because it prevents silent loss. But treat it as a bridge:
+It was useful because it proved the silent-loss class of bug. But it should be treated as evidence for the refactor:
 
-- keep it until the friend request delivery service exists
-- hide Home transport from primary UX
-- refactor toward a dedicated delivery boundary before adding more friend/profile features
+- stop adding features to Home-based friend request delivery
+- do not add direct endpoint to Profile QR
+- implement profile-level P2P request delivery next
+- then remove the Home join step from the add-friend path

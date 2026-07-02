@@ -21,9 +21,9 @@ A friend is a profile that this device trusts.
 
 Product meaning:
 
-- can enter my trusted-only Home
-- can read and interact with my Treehole, subject to policy
 - can have accepted durable DM threads with me
+- can read and interact with my Treehole, subject to policy
+- can enter my trusted-only Home if I choose to open a live Home
 - can be revoked locally
 
 Friendship should be presented as a social relation, not as "Home access setup".
@@ -36,10 +36,10 @@ Product meaning:
 
 - live room chat
 - live presence
-- transport path for owner-shared state
 - explicit entry point to view that friend's current space
+- activity/session surface after trust
 
-Home is not the friend relation itself. It is the place you can enter after trust exists.
+Home is not the friend relation itself. It is not the bootstrap path for friendship. It is a live space you can enter after trust exists.
 
 ### Treehole
 
@@ -49,7 +49,7 @@ Product meaning:
 
 - owner posts
 - trusted friends can read, comment, and like
-- current V1 shows recent posts after entering a profile's Home
+- profile pages can show cached recent posts
 
 Treehole permissions are derived from trust, not from "I happen to know a Home key".
 
@@ -70,11 +70,13 @@ Target meaning:
 
 1. A scans B's Profile QR.
 2. A sends B a friend request.
-3. B accepts.
-4. Both sides store mutual trust.
-5. A and B now appear in each other's Contacts.
+3. Kepos delivers the request over profile-to-profile P2P.
+4. B accepts.
+5. Both sides store mutual trust.
+6. A and B now appear in each other's Contacts.
 
 The user should not need to understand Home transport for this.
+Home should not be opened, joined, or mentioned as part of this path.
 
 ### Enter Home
 
@@ -93,9 +95,9 @@ Target meaning:
 
 1. A opens B's profile.
 2. A sees cached recent posts if available.
-3. If A enters B's Home, Kepos can sync fresher Treehole state.
+3. Kepos can refresh posts through profile-level replication when available.
 
-V1 can keep this simple, but the user should see it as "view B's profile", not "join a replication room".
+V1 can keep this simple, but the user should see it as "view B's profile", not "join a replication room" or "enter Home".
 
 ### Invite To Activity
 
@@ -114,3 +116,4 @@ This is not a trust invite. It is an activity invite between trusted profiles.
 - No separate "Home QR is the normal way to become friends" product path.
 - No confusing "trust Home" language in primary UX.
 - No requirement that users understand P2P rooms, keys, or control channels.
+- No direct host:port path in the production product model.

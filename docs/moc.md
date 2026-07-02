@@ -37,8 +37,10 @@ This is the map of content for Kepos architecture docs.
    - Use this before changing QR, trust, navigation, profile, contacts, messages, or treehole UX.
 
 9. `docs/v1-friend-home-architecture/README.md`
-   - Fresh V1 model for friends, Home, DM, Treehole, QR, and transport.
+   - Fresh V1 model for friends, Home, DM, Treehole, QR, and transport. Home is not part of add-friend bootstrap.
    - Use this when friend request and Home entry feel coupled or confusing.
+
+   Next implementation plan: `docs/v1-friend-home-architecture/05-profile-first-next-plan.md`.
 
 10. `docs/v1.17-ready-im-completion-plan.md`
 

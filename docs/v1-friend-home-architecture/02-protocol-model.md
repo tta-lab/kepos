@@ -26,14 +26,34 @@ It should carry:
 - profile id
 - display name snapshot
 - avatar snapshot or avatar media reference when available
-- signed Home descriptor when available
+- profile-level delivery hints when available
 
 Important distinction:
 
 - The Profile QR is a person card.
-- The Home descriptor inside it is a transport hint, not the product meaning of the QR.
+- Delivery hints inside it are transport hints, not the product meaning of the QR.
 
 The UI should say "Add friend" or "My QR", not "join this Home to request friendship".
+
+Profile QR should not require a Home descriptor for friend request delivery.
+
+## Profile Delivery Hints
+
+Profile delivery hints describe how to reach a profile over P2P.
+
+They can include:
+
+- profile id
+- request inbox topic or feed discovery key
+- relay/bootstrap hints if the underlying P2P stack needs them
+- expiry, when supported
+- proof/signature
+
+They should not include direct host:port as a production path.
+
+The key protocol requirement:
+
+> A friend request is routed to a profile, not to a Home.
 
 ## Home Descriptor
 
@@ -51,6 +71,8 @@ It can include:
 Home descriptor is a capability hint plus signed ownership proof. It is not the trust relation itself.
 
 Knowing a Home descriptor should not imply durable authorization. Authorization still comes from trust policy and signed grants.
+
+Home descriptor should not be needed for adding a friend. It is for explicit Home entry after trust or activity/session invites.
 
 ## Friend Request
 
@@ -73,11 +95,13 @@ Current V1 gap:
 - Android currently sends friend requests over the Home control channel.
 - The backend now caches pending outgoing requests and resends them to new peers.
 - This improves reliability, but it is still a transport shortcut.
+- Smoke showed the failure plainly: if Home peers are `online=0`, the request never reaches desktop.
 
 Target direction:
 
-- Friend requests should be routed by a dedicated person/contact bootstrap channel, or by a small durable inbox/feed keyed by the target profile.
-- Home can remain one transport path, but not the semantic owner of friend requests.
+- Friend requests must be routed by a dedicated profile/contact bootstrap channel, or by a small durable inbox/feed keyed by the target profile.
+- Home should not be a friend request transport in the production path.
+- Direct host:port should not be a production path.
 
 ## Trust Grant
 
@@ -111,7 +135,7 @@ It should include:
 - recipient encryption public key reference or encrypted payload
 - signature
 
-The DM invite can be delivered over any available transport, but its validity should be checked by signature and request linkage.
+The DM invite should use the same profile-level P2P delivery model as friend request acceptance. Its validity should be checked by signature and request linkage.
 
 ## Home Control Channel
 
@@ -121,9 +145,8 @@ Home control channel is useful for live session messages:
 - Treehole bootstrap
 - avatar media sync
 - activity invites
-- current V1 friend request delivery
 
-But it should not be treated as the only way to establish trust.
+It should not be used to establish trust.
 
 If a control message matters after reconnect, it needs either:
 
@@ -132,3 +155,16 @@ If a control message matters after reconnect, it needs either:
 - an acknowledgement protocol
 
 Best-effort broadcast is not enough for friend requests.
+
+## Direct Host:Port
+
+Direct host:port is not a production path.
+
+It may prove that local code can move bytes, but it violates the product shape:
+
+- users must know IP and port
+- LAN and firewall assumptions leak into UX
+- it does not solve cross-region P2P
+- it competes with the core Kepos bet
+
+The production bar is P2P without requiring a public IP or manual network coordinates.

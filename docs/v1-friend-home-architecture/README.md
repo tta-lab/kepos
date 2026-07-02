@@ -6,8 +6,10 @@ The short version:
 
 - Adding a friend is a social and authorization action.
 - Entering a Home is a session and transport action.
-- They are related by permission, but they are not the same product action.
-- Current V1 code still leaks transport details into the friend flow. That should be treated as transitional, not the target architecture.
+- Home should have no role in adding a friend.
+- Profile, Contacts, DM, and Treehole are the main product axis.
+- Home is only a live space after trust, not the social bootstrap.
+- Current V1 code still leaks Home transport into the friend flow. That should be treated as wrong direction, not a production path.
 
 ## Read Order
 
@@ -27,6 +29,10 @@ The short version:
    - Where current V1 differs from the target model and how to unwind it.
    - Use this before touching the current Android/desktop request flow.
 
+5. `05-profile-first-next-plan.md`
+   - Concrete next implementation plan for moving from Home-centric bootstrap to profile-first P2P request delivery.
+   - Use this as the next coding plan.
+
 ## Core Principle
 
 Product semantics must not depend on the current transport shortcut.
@@ -35,8 +41,8 @@ If a user taps "Add friend", the product should mean:
 
 > I want to create mutual trust with this person.
 
-It should not mean:
+It must not mean:
 
 > I want to join their Home room.
 
-Joining a Home may be one way to deliver the request in the current build, but that is an implementation detail. The UI, docs, tests, and architecture should keep those layers separate.
+Joining a Home should not be used to deliver the request in the target architecture. Friend request delivery must be profile-to-profile P2P.
