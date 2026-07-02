@@ -669,6 +669,64 @@ test('mobile Home startup and RPC store avatar media byte controls', async () =>
   assert.match(dmThreadHandler, /saveContactBookToFileSystem/)
 })
 
+test('mobile ContactBook direct writes keep the runtime ref in sync', async () => {
+  const source = await readMobileSource()
+  const syncContactBook = source.slice(
+    source.indexOf('function syncContactBook('),
+    source.indexOf('useEffect(() => {\n    profileIdRef.current = profileId')
+  )
+  const profileLoad = source.slice(
+    source.indexOf('.then(async (profile) => {'),
+    source.indexOf('async function joinHomeQr(')
+  )
+  const revokeTrustedContact = source.slice(
+    source.indexOf('async function revokeTrustedContact('),
+    source.indexOf('async function allowRequestsFromContact(')
+  )
+  const allowRequestsFromContact = source.slice(
+    source.indexOf('async function allowRequestsFromContact('),
+    source.indexOf('function markMobileThreadRead(')
+  )
+  const sendMessageRequest = source.slice(
+    source.indexOf('function sendMessageRequest()'),
+    source.indexOf('function retryOutgoingMessageRequest(')
+  )
+  const retryOutgoingMessageRequest = source.slice(
+    source.indexOf('function retryOutgoingMessageRequest('),
+    source.indexOf('function startProfileBackend(')
+  )
+  const persistIncomingMessageRequest = source.slice(
+    source.indexOf('async function persistIncomingMessageRequest('),
+    source.indexOf('async function acceptIncomingMessageRequest(')
+  )
+  const acceptIncomingMessageRequest = source.slice(
+    source.indexOf('async function acceptIncomingMessageRequest('),
+    source.indexOf('async function ignoreIncomingMessageRequest(')
+  )
+  const ignoreIncomingMessageRequest = source.slice(
+    source.indexOf('async function ignoreIncomingMessageRequest('),
+    source.indexOf('async function restoreMobileDirectMessageSession(')
+  )
+
+  assert.match(
+    syncContactBook,
+    /contactBookRef\.current = nextBook[\s\S]*setContactBook\(nextBook\)/
+  )
+  assert.match(profileLoad, /syncContactBook\(profile\.contactBook\)/)
+  assert.match(revokeTrustedContact, /syncContactBook\(result\.book\)[\s\S]*RPC_DM_REVOKE/)
+  assert.match(allowRequestsFromContact, /syncContactBook\(nextBook\)/)
+  assert.match(sendMessageRequest, /syncContactBook\(nextBook\)[\s\S]*RPC_PROFILE_REQUEST_SEND/)
+  assert.match(
+    retryOutgoingMessageRequest,
+    /syncContactBook\(nextBook\)[\s\S]*RPC_PROFILE_REQUEST_SEND/
+  )
+  assert.match(persistIncomingMessageRequest, /syncContactBook\(nextBook\)/)
+  assert.match(acceptIncomingMessageRequest, /syncContactBook\(nextBook\)[\s\S]*RPC_DM_ACCEPT/)
+  assert.match(ignoreIncomingMessageRequest, /syncContactBook\(nextBook\)/)
+  assert.doesNotMatch(retryOutgoingMessageRequest, /contactBookRef\.current = nextBook/)
+  assert.doesNotMatch(persistIncomingMessageRequest, /contactBookRef\.current = nextBook/)
+})
+
 test('mobile direct contact chips and revoke actions expose trust state', async () => {
   const source = await readMobileSource()
   const lobbyComponents = await readMobileLobbyComponentsSource()

@@ -306,6 +306,11 @@ export default function App() {
     contactBookRef.current = contactBook
   }, [contactBook])
 
+  function syncContactBook(nextBook: ContactBook) {
+    contactBookRef.current = nextBook
+    setContactBook(nextBook)
+  }
+
   useEffect(() => {
     profileIdRef.current = profileId
   }, [profileId])
@@ -376,7 +381,7 @@ export default function App() {
           setLocalAvatarUri(profile.avatarUri || '')
           setIdentity(profile.identity)
           setHomeRoomKey(profile.homeRoomKey)
-          setContactBook(profile.contactBook)
+          syncContactBook(profile.contactBook)
           setDmSession(nextDmSession)
           setDmMessages(nextDmSession.messages)
           setDmThreads(profile.dmThreads)
@@ -593,7 +598,7 @@ export default function App() {
           book: result.book,
           fileSystem: FileSystem
         })
-        setContactBook(result.book)
+        syncContactBook(result.book)
       }
 
       const storageBasePath = await getMobileBackendStorageBasePath({ fileSystem: FileSystem })
@@ -742,7 +747,7 @@ export default function App() {
       threads: result.nextThreads
     })
 
-    setContactBook(result.book)
+    syncContactBook(result.book)
     setTreeholePolicy(result.treeholePolicy)
     syncTreeholePolicy(result.treeholePolicy)
     setDmThreads(result.nextThreads)
@@ -773,7 +778,7 @@ export default function App() {
       fileSystem: FileSystem
     })
 
-    setContactBook(nextBook)
+    syncContactBook(nextBook)
     setTreeholePolicy(nextPolicy)
     syncTreeholePolicy(nextPolicy)
     setNotice('Requests allowed again.')
@@ -961,7 +966,7 @@ export default function App() {
         text: message.text
       })
 
-      setContactBook(nextBook)
+      syncContactBook(nextBook)
       saveContactBookToFileSystem({
         baseUri: getRequiredMobileDocumentDirectory(FileSystem),
         book: nextBook,
@@ -1021,8 +1026,7 @@ export default function App() {
     })
 
     if (nextBook !== contactBook) {
-      contactBookRef.current = nextBook
-      setContactBook(nextBook)
+      syncContactBook(nextBook)
       saveContactBookToFileSystem({
         baseUri: getRequiredMobileDocumentDirectory(FileSystem),
         book: nextBook,
@@ -1413,8 +1417,7 @@ export default function App() {
       book: nextBook,
       fileSystem: FileSystem
     })
-    contactBookRef.current = nextBook
-    setContactBook(nextBook)
+    syncContactBook(nextBook)
     return true
   }
 
@@ -1441,7 +1444,7 @@ export default function App() {
       book: nextBook,
       fileSystem: FileSystem
     })
-    setContactBook(nextBook)
+    syncContactBook(nextBook)
     setTreeholePolicy(nextPolicy)
     syncTreeholePolicy(nextPolicy)
     activeRpc.request(RPC_DM_ACCEPT).send(
@@ -1470,7 +1473,7 @@ export default function App() {
       book: nextBook,
       fileSystem: FileSystem
     })
-    setContactBook(nextBook)
+    syncContactBook(nextBook)
     setDmSession((current) => {
       if (!current || !request.id) {
         return current
