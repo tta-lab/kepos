@@ -30,7 +30,7 @@ test('physical QR smoke stages desktop QR dialogs and Android scanners', async (
     'scan-profile-qr-button',
     'scan-home-qr-button',
     'qr-scanner-camera',
-    'Write a message below to send the request.',
+    'Write an intro in Chat to send a friend request.',
     'Connected.',
     'page.bringToFront()',
     'markSmokeStorage(userDataDir)',

@@ -791,7 +791,7 @@ test('desktop panes label live and durable surfaces', async () => {
   assert.match(source, /id='profileRequestTargetCard'/)
   assert.match(source, /<ProfileAvatar avatar=\{requestTarget\.avatar\} \/>/)
   assert.match(source, /Friend request/)
-  assert.match(source, /Write a message below to send the request\./)
+  assert.match(source, /Write an intro in Chat to send a friend request\./)
   assert.match(source, /onClick=\{\(\) => onOpenProfile\(requestTarget\.profileId\)\}/)
   assert.match(source, /<DirectThreadList[\s\S]*onOpenProfile=\{onOpenProfile\}/)
   assert.match(source, /<DirectThreadList[\s\S]*threads=\{threads\}/)

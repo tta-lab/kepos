@@ -53,7 +53,7 @@ try {
   console.log('Point the Android camera at the desktop Profile QR.')
   await waitForAndroidTextWithDiagnostics(
     page,
-    'Write a message below to send the request.',
+    'Write an intro in Chat to send a friend request.',
     'profile',
     {
       timeoutMs: 180000

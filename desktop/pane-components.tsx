@@ -329,7 +329,7 @@ function ProfileRequestTargetCard({
           />
         </div>
         <p className='text-xs font-semibold text-base-content/65'>
-          {requestTarget.copy || 'Write a message below to send the request.'}
+          {requestTarget.copy || 'Write an intro in Chat to send a friend request.'}
         </p>
       </div>
     </section>

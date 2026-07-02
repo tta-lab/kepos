@@ -8,7 +8,7 @@ test('request target profile view model formats a limited untrusted profile', ()
   assert.deepEqual(
     createRequestTargetProfileViewModel({
       requestTarget: {
-        copy: 'Write a message below to send the request.',
+        copy: 'Write an intro in Chat to send a friend request.',
         displayName: 'Ada',
         avatar: createProfileAvatarViewModel({
           avatarUri: 'kepos://avatar/ada',

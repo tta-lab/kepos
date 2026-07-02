@@ -141,7 +141,7 @@ export function createFriendRequestTargetViewModel({
     avatarMediaSnapshot,
     avatarUri,
     canSendRequest: true,
-    copy: 'Write a message below to send the request.',
+    copy: 'Write an intro in Chat to send a friend request.',
     displayName,
     relationshipState: 'new',
     shortProfileId: shortenProfileId(target.profileId),

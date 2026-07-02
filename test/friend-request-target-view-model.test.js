@@ -32,7 +32,7 @@ test('friend request target view model marks a new profile as sendable', () => {
   assert.deepEqual(view(book), {
     canOpenProfile: true,
     canSendRequest: true,
-    copy: 'Write a message below to send the request.',
+    copy: 'Write an intro in Chat to send a friend request.',
     displayName: 'Ada',
     avatar: createProfileAvatarViewModel({
       avatarUri: 'kepos://avatar/ada',
