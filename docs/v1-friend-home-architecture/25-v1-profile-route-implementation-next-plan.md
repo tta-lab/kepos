@@ -67,6 +67,23 @@ model, not add more paths.
 
 ## Work Order
 
+## Current Low-Cost Evidence
+
+As of 2026-07-03 on the active V1 branch, the non-device release gate passes:
+
+```sh
+npm run v1:gate
+```
+
+This proves lint, typecheck, all Node tests, TypeScript compatibility probes,
+desktop bundles, Android backend Bare bundle, Expo Android export, and Android
+APK native-library checks for the current source shape.
+
+It does not replace the final physical proof. V1 is still not complete until
+`../v1.21-cross-device-smoke.md` records a real desktop/Android Profile QR
+request, accept/invite return with Home peer counts at zero, durable Chat,
+restart persistence, Treehole persistence, explicit Enter Home, and revoke.
+
 ### 1. Route Audit
 
 Search source and tests for any normal path that still treats Home as the
