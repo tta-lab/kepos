@@ -16,7 +16,7 @@ export const FINAL_V1_PREFLIGHT_STEPS = [
 
 export const FINAL_V1_PROOF_STEPS = [
   'Start desktop and Android from clean enough state.',
-  'Desktop opens its Home and shows My QR.',
+  'Desktop shows My QR from Start or Contacts without entering Home.',
   'Android scans the desktop Profile QR through the camera.',
   'Android sends a friend request from the scanned profile target.',
   'Android shows the request as Request pending before acceptance.',

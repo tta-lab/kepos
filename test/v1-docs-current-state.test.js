@@ -827,6 +827,8 @@ test('V1 smoke guide uses Chat product language for user steps', async () => {
   assert.match(dependencyOrder, /trusted contacts as Chat recipient options/)
   assert.match(crossDevice, /Chat setup and body traffic stay separate from room chat/)
   assert.match(crossDevice, /durable Chat messages survive restart/)
+  assert.match(crossDevice, /Desktop shows My QR from Start or Contacts without entering Home/)
+  assert.doesNotMatch(crossDevice, /Desktop opens its Home and shows My QR/)
   assert.match(crossDevice, /Android shows the request as Request pending before acceptance/)
   assert.match(
     crossDevice,

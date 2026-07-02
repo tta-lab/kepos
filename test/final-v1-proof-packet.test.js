@@ -54,6 +54,8 @@ test('final V1 proof packet prints the normal product-path checklist', () => {
   assert.match(packet, /commit first or explicitly mark the proof as dirty-local evidence/)
   assert.match(packet, /Android screen is unlocked and focused on Kepos/)
   assert.match(packet, /npm run storage:cleanup/)
+  assert.match(packet, /Desktop shows My QR from Start or Contacts without entering Home/)
+  assert.doesNotMatch(packet, /Desktop opens its Home and shows My QR/)
   assert.match(packet, /Android scans the desktop Profile QR through the camera/)
   assert.match(packet, /Android sends a friend request/)
   assert.match(packet, /Android shows the request as Request pending before acceptance/)
@@ -150,6 +152,11 @@ test('final V1 proof packet constants cover the documented release proof', () =>
   assert.ok(FINAL_V1_PREFLIGHT_STEPS.some((step) => step.includes('v1:gate')))
   assert.ok(FINAL_V1_PREFLIGHT_STEPS.some((step) => step.includes('dirty-local evidence')))
   assert.ok(FINAL_V1_PREFLIGHT_STEPS.some((step) => step.includes('unlocked')))
+  assert.ok(FINAL_V1_PROOF_STEPS.some((step) => step.includes('without entering Home')))
+  assert.equal(
+    FINAL_V1_PROOF_STEPS.some((step) => step.includes('opens its Home and shows My QR')),
+    false
+  )
   assert.ok(FINAL_V1_PROOF_STEPS.some((step) => step.includes('friend request')))
   assert.ok(FINAL_V1_PROOF_STEPS.some((step) => step.includes('Request pending')))
   assert.ok(FINAL_V1_PROOF_STEPS.some((step) => step.includes('Home peer count')))
