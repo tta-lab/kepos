@@ -43,12 +43,12 @@ redefine them.
 
 ## Current Evidence
 
-This read is based on the repository docs, source, and tests as of 2026-07-02.
+This read is based on the repository docs, source, and tests as of 2026-07-03.
 
 Verified locally:
 
 - `npm run v1:gate` has passed for the current V1 source shape, including
-  lint, typecheck, 902 Node tests, TypeScript compatibility probes, desktop
+  lint, typecheck, 958 Node tests, TypeScript compatibility probes, desktop
   bundle generation, Bare Android bundle checks, Expo Android export, and APK
   native-library alignment.
 - `npm run android:assemble:release` has passed for the standalone Android
