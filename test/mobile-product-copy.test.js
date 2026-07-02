@@ -57,6 +57,7 @@ test('mobile product copy formats people and request labels', () => {
   assert.equal(formatMobileTrustSource('person_qr'), 'Profile QR')
   assert.equal(formatMobileTrustSource('home_room'), 'Home')
   assert.equal(formatMobileTrustSource('message_request'), 'Friend request')
+  assert.equal(formatMobileTrustSource('profile_request'), 'Friend request')
   assert.equal(formatMobileTrustSource('manual'), 'This device')
   assert.equal(formatMobileTrustTime(Number.NaN), 'recently')
   assert.equal(

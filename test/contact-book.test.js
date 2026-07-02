@@ -21,6 +21,7 @@ import {
   revokeContact,
   serializeContactBook,
   trustContact,
+  updateOutgoingFriendRequestDeliveryState,
   upsertContact
 } from '../src/contact-book.ts'
 
@@ -368,6 +369,35 @@ describe('contact book', () => {
         text: 'let me in'
       }
     ])
+  })
+
+  test('outgoing friend request delivery state updates only the matching request', () => {
+    const requested = recordOutgoingFriendRequest(
+      createContactBook({ ownerProfileId: 'owner-a' }),
+      {
+        alias: 'Ada',
+        deliveryState: 'searching',
+        profileId: 'profile-b',
+        requestedAt: 1000,
+        requestId: 'request-1',
+        source: 'profile_qr',
+        text: 'let me in'
+      }
+    )
+    const sent = updateOutgoingFriendRequestDeliveryState(requested, {
+      deliveryState: 'sent',
+      profileId: 'profile-b',
+      requestId: 'request-1'
+    })
+    const ignored = updateOutgoingFriendRequestDeliveryState(sent, {
+      deliveryState: 'delivered',
+      profileId: 'profile-b',
+      requestId: 'other-request'
+    })
+
+    assert.equal(sent.outgoingRequestsByProfileId.get('profile-b').deliveryState, 'sent')
+    assert.equal(ignored.outgoingRequestsByProfileId.get('profile-b').deliveryState, 'sent')
+    assert.equal(requested.outgoingRequestsByProfileId.get('profile-b').deliveryState, 'searching')
   })
 
   test('accepting an outgoing friend request creates the requester side of mutual trust', () => {

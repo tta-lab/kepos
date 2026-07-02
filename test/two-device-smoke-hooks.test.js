@@ -909,7 +909,9 @@ test('Android people pane surfaces pending message requests', async () => {
   assert.match(incomingMessageRequestHandler, /if \(!stored\)/)
   assert.match(incomingMessageRequestHandler, /appendRemoteMessageRequest\(current, request\)/)
   assert.match(persistIncomingMessageRequest, /return false/)
-  assert.match(persistIncomingMessageRequest, /recordMessageRequest\(contactBook/)
+  assert.match(persistIncomingMessageRequest, /contactBookRef\.current/)
+  assert.match(persistIncomingMessageRequest, /recordMessageRequest\(currentBook/)
+  assert.match(persistIncomingMessageRequest, /source: 'profile_request'/)
   assert.doesNotMatch(
     persistIncomingMessageRequest,
     /alias:\s*shortenProfileId\(request\.fromProfileId\)/

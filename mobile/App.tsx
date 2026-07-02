@@ -66,7 +66,8 @@ import {
   listBlockedContacts,
   listTrustedContacts,
   recordOutgoingFriendRequest,
-  recordMessageRequest
+  recordMessageRequest,
+  updateOutgoingFriendRequestDeliveryState
 } from '../src/contact-book.ts'
 import type { ContactBook } from '../src/contact-book.ts'
 import {
@@ -145,6 +146,9 @@ import {
   RPC_LEAVE,
   RPC_MESSAGE,
   RPC_PEER_COUNT,
+  RPC_PROFILE_REQUEST_SEND,
+  RPC_PROFILE_REQUEST_STATE,
+  RPC_PROFILE_START,
   RPC_AVATAR_MEDIA_BYTES,
   RPC_ROOM_DEBUG,
   RPC_SEND,
@@ -174,6 +178,11 @@ type RpcClient = {
 type BackendStartResult = {
   joined: Promise<boolean>
   rpc: RpcClient
+}
+type ProfileRequestDeliveryPayload = {
+  requestId?: string
+  state?: string
+  toProfileId?: string
 }
 type WorkletHandle = {
   IPC: unknown
@@ -277,13 +286,26 @@ export default function App() {
   const [lastError, setLastError] = useState('')
   const [peerCount, setPeerCount] = useState(0)
   const [transportDebug, setTransportDebug] = useState<TransportDebugLabelState | null>(null)
-  const [rpc, setRpc] = useState<RpcClient | null>(null)
+  const [, setRpc] = useState<RpcClient | null>(null)
   const [scanTarget, setScanTarget] = useState<ScanTarget>(null)
   const [scannerPermissionDenied, setScannerPermissionDenied] = useState(false)
   const [showAdvancedJoin, setShowAdvancedJoin] = useState(false)
   const [cameraPermission, requestCameraPermission] = useCameraPermissions()
   const scanLockRef = useRef(false)
+  const rpcRef = useRef<RpcClient | null>(null)
   const workletRef = useRef<WorkletHandle | null>(null)
+  const contactBookRef = useRef<ContactBook | null>(null)
+  const profileIdRef = useRef<string | null>(null)
+  const backendTreeholeOwnerProfileIdRef = useRef('')
+  const resolveHomeJoinedRef = useRef<((ready: boolean) => void) | null>(null)
+
+  useEffect(() => {
+    contactBookRef.current = contactBook
+  }, [contactBook])
+
+  useEffect(() => {
+    profileIdRef.current = profileId
+  }, [profileId])
 
   const canJoin = ROOM_KEY_PATTERN.test(roomKey.trim())
   const shareQrPayloads = useMemo(() => {
@@ -343,6 +365,7 @@ export default function App() {
           messages,
           nick
         })
+        const storageBasePath = await getMobileBackendStorageBasePath({ fileSystem: FileSystem })
 
         if (!cancelled) {
           setProfileId(profile.profileId)
@@ -356,6 +379,13 @@ export default function App() {
           setDmThreads(profile.dmThreads)
           setProfileRecentPostCache(profile.profileRecentPostCache)
           setTreeholePolicy(profile.treeholePolicy)
+          startProfileBackend({
+            identity: profile.identity,
+            nick,
+            profileId: profile.profileId,
+            storageBasePath,
+            treeholePolicy: profile.treeholePolicy
+          })
         }
       })
       .catch((error: unknown) => {
@@ -713,7 +743,7 @@ export default function App() {
       setDmRecipient('')
     }
 
-    rpc?.request(RPC_DM_REVOKE).send(
+    rpcRef.current?.request(RPC_DM_REVOKE).send(
       JSON.stringify({
         profileId: contactProfileId,
         revokedAt: result.revokedAt
@@ -770,7 +800,7 @@ export default function App() {
   }
 
   function syncTreeholePolicy(nextPolicy: TreeholePolicy | null) {
-    rpc?.request(RPC_TREEHOLE_POLICY).send(
+    rpcRef.current?.request(RPC_TREEHOLE_POLICY).send(
       JSON.stringify({
         treeholePolicy: nextPolicy
       })
@@ -817,13 +847,11 @@ export default function App() {
   }
 
   function leaveRoom() {
-    rpc?.request(RPC_LEAVE).send(JSON.stringify({}))
+    rpcRef.current?.request(RPC_LEAVE).send(JSON.stringify({}))
     setSession(null)
     setActiveHomeOwnerProfileId('')
-    setDmSession(null)
     setDraft('')
     setDmDraft('')
-    setDmMessages([])
     setProfileRequestTarget(null)
     setTreeholeDraft('')
     setTreeholeCanInteract(false)
@@ -832,8 +860,6 @@ export default function App() {
     setTreeholeStatus('idle')
     setActiveTab('chat')
     setPeerCount(0)
-    setRpc(null)
-    workletRef.current = null
     setNotice('Left home.')
   }
 
@@ -853,7 +879,7 @@ export default function App() {
     }
 
     setSession(appendLocalMessage(session, message.text, message))
-    rpc?.request(RPC_SEND).send(JSON.stringify(message))
+    rpcRef.current?.request(RPC_SEND).send(JSON.stringify(message))
     setDraft('')
   }
 
@@ -883,7 +909,7 @@ export default function App() {
     )
 
     if (thread) {
-      rpc?.request(RPC_DM_BODY_SEND).send(
+      rpcRef.current?.request(RPC_DM_BODY_SEND).send(
         JSON.stringify({
           createdAt: message.createdAt,
           messageId: message.requestId,
@@ -938,6 +964,14 @@ export default function App() {
 
     setDmSession(nextSession)
     setDmMessages(nextSession.messages)
+    rpcRef.current?.request(RPC_PROFILE_REQUEST_SEND).send(
+      JSON.stringify({
+        at: message.createdAt,
+        id: message.requestId,
+        text: message.text,
+        toProfileId: message.toProfileId
+      })
+    )
     saveMobileDmSessionMessages(nextSession.messages).catch((error: unknown) => {
       console.error('DM session storage unavailable', error)
       setLastError(errorMessage(error))
@@ -954,7 +988,7 @@ export default function App() {
       return
     }
 
-    rpc?.request(RPC_TREEHOLE_POST).send(
+    rpcRef.current?.request(RPC_TREEHOLE_POST).send(
       JSON.stringify({
         id: createMobileMessageId({
           randomBytes: Crypto.getRandomBytes,
@@ -973,7 +1007,7 @@ export default function App() {
       return
     }
 
-    rpc?.request(RPC_TREEHOLE_COMMENT).send(
+    rpcRef.current?.request(RPC_TREEHOLE_COMMENT).send(
       JSON.stringify({
         createdAt: Date.now(),
         id: createMobileMessageId({
@@ -991,7 +1025,7 @@ export default function App() {
       return
     }
 
-    rpc?.request(RPC_TREEHOLE_LIKE).send(
+    rpcRef.current?.request(RPC_TREEHOLE_LIKE).send(
       JSON.stringify({
         createdAt: Date.now(),
         postId
@@ -999,13 +1033,246 @@ export default function App() {
     )
   }
 
+  function startProfileBackend(payload: {
+    identity: SigningIdentity
+    nick: string
+    profileId: string
+    storageBasePath: string
+    treeholePolicy: TreeholePolicy | null
+  }) {
+    try {
+      const nextRpc = getOrCreateBackendRpc()
+      nextRpc.request(RPC_PROFILE_START).send(JSON.stringify(payload))
+      setRpc(nextRpc)
+      setNotice('Profile ready.')
+    } catch (error) {
+      console.error('Could not start profile service', error)
+      setLastError(errorMessage(error))
+      setNotice('Could not start profile services.')
+    }
+  }
+
+  function getOrCreateBackendRpc(): RpcClient {
+    if (rpcRef.current) return rpcRef.current
+
+    const worklet = new Worklet() as WorkletHandle
+    worklet.start('/app.bundle', bundle, [])
+    workletRef.current = worklet
+
+    const RpcConstructor = RPC as unknown as new (
+      ipc: unknown,
+      onrequest: (req: RpcRequest) => void
+    ) => RpcClient
+    const nextRpc = new RpcConstructor(worklet.IPC, handleBackendRequest)
+
+    rpcRef.current = nextRpc
+    return nextRpc
+  }
+
+  function handleBackendRequest(req: RpcRequest) {
+    const payload = readRpcPayload(req)
+    const payloadRecord = asRecord(payload)
+
+    if (req.command === RPC_MESSAGE) {
+      setSession((current) =>
+        current ? appendRemoteMessage(current, payloadRecord as ChatMessage) : current
+      )
+      return
+    }
+
+    if (req.command === RPC_DM_MESSAGE) {
+      handleIncomingMessageRequest(asMessageRequestPayload(payload)).catch((error: unknown) => {
+        console.error('Message request unavailable', error)
+        setLastError(errorMessage(error))
+        setNotice('Could not save this friend request.')
+      })
+      return
+    }
+
+    if (req.command === RPC_PROFILE_REQUEST_STATE) {
+      applyProfileRequestDeliveryState(payloadRecord as ProfileRequestDeliveryPayload)
+      return
+    }
+
+    if (req.command === RPC_DM_BODY_MESSAGE) {
+      setDmSession((current) => {
+        if (!current) {
+          return current
+        }
+
+        const next =
+          payloadRecord.direction === 'out'
+            ? appendLocalSignedDirectMessage(current, payloadRecord, {
+                remoteProfileId: asString(payloadRecord.remoteProfileId) || ''
+              })
+            : appendRemoteSignedDirectMessage(current, payloadRecord)
+        setDmMessages(next.messages)
+        saveMobileDmSessionMessages(next.messages).catch((error: unknown) => {
+          console.error('DM session storage unavailable', error)
+          setLastError(errorMessage(error))
+          setNotice('Could not save this message.')
+        })
+        return next
+      })
+      return
+    }
+
+    if (req.command === RPC_DM_THREAD) {
+      const threadPayload = payloadRecord as DmThread
+      setDmThreads((current) => upsertDmThread(current, threadPayload))
+      setContactBook((current) => {
+        if (!current?.outgoingRequestsByProfileId?.has(threadPayload.remoteProfileId)) {
+          return current
+        }
+
+        const nextBook = acceptOutgoingFriendRequest(current, {
+          acceptedAt: threadPayload.acceptedAt || Date.now(),
+          profileId: threadPayload.remoteProfileId
+        })
+        const nextPolicy = createTreeholePolicyFromContactBook(nextBook)
+
+        contactBookRef.current = nextBook
+        setTreeholePolicy(nextPolicy)
+        syncTreeholePolicy(nextPolicy)
+        saveContactBookToFileSystem({
+          baseUri: getRequiredMobileDocumentDirectory(FileSystem),
+          book: nextBook,
+          fileSystem: FileSystem
+        }).catch((error: unknown) => {
+          console.error('Contact book storage unavailable', error)
+          setLastError(errorMessage(error))
+          setNotice('Could not save this contact.')
+        })
+        return nextBook
+      })
+      saveMobileDmThread(threadPayload).catch((error: unknown) => {
+        console.error('DM thread unavailable', error)
+        setLastError(errorMessage(error))
+        setNotice('Could not save this message.')
+      })
+      return
+    }
+
+    if (req.command === RPC_PEER_COUNT) {
+      setPeerCount(asNumber(payloadRecord.count) || 0)
+      return
+    }
+
+    if (req.command === RPC_ROOM_DEBUG) {
+      setTransportDebug(payloadRecord as TransportDebugLabelState)
+      return
+    }
+
+    if (req.command === RPC_AVATAR_MEDIA_BYTES) {
+      storeMobileAvatarMediaBytesControl({
+        baseUri: getRequiredMobileDocumentDirectory(FileSystem),
+        book: contactBookRef.current,
+        fileSystem: FileSystem,
+        message: payloadRecord,
+        sha256Hex: createMobileSha256Hex
+      })
+        .then((result) => {
+          if (result) setNotice('Profile image received.')
+        })
+        .catch((error: unknown) => {
+          console.error('Profile image unavailable', error)
+          setLastError(errorMessage(error))
+          setNotice('Could not save this profile image.')
+        })
+      return
+    }
+
+    if (req.command === RPC_STATUS) {
+      const status = asString(payloadRecord.status)
+      if (status !== 'opening-dm') {
+        setNotice(getMobileBackendNotice(status))
+      }
+      if (status === 'joined') {
+        resolveHomeJoinedRef.current?.(true)
+        resolveHomeJoinedRef.current = null
+      }
+      return
+    }
+
+    if (req.command === RPC_TREEHOLE_STATUS) {
+      setTreeholeStatus(asString(payloadRecord.status) || 'idle')
+      if (Object.hasOwn(payloadRecord, 'canInteract')) {
+        setTreeholeCanInteract(Boolean(payloadRecord.canInteract))
+      }
+      if (Object.hasOwn(payloadRecord, 'canPost')) {
+        setTreeholeCanPost(Boolean(payloadRecord.canPost))
+      }
+      return
+    }
+
+    if (req.command === RPC_TREEHOLE_STATE) {
+      const nextPosts = Array.isArray(payloadRecord.posts)
+        ? (payloadRecord.posts as MobileTreeholePost[])
+        : []
+      setTreeholePosts(nextPosts)
+      const ownerProfileId = backendTreeholeOwnerProfileIdRef.current
+      if (ownerProfileId && nextPosts.length > 0) {
+        setProfileRecentPostCache((current) => {
+          const nextCache = updateProfileRecentPostCache(current, {
+            ownerProfileId,
+            posts: nextPosts
+          })
+          saveProfileRecentPostCacheToFileSystem({
+            baseUri: getRequiredMobileDocumentDirectory(FileSystem),
+            cache: nextCache,
+            fileSystem: FileSystem
+          }).catch((error) => {
+            console.warn('Recent posts cache unavailable', error)
+          })
+          return nextCache
+        })
+      }
+      return
+    }
+
+    if (req.command === RPC_ERROR) {
+      resolveHomeJoinedRef.current?.(false)
+      resolveHomeJoinedRef.current = null
+      setLastError(asString(payloadRecord.message) || 'Home connection error')
+      setNotice('Home connection error.')
+    }
+  }
+
+  function applyProfileRequestDeliveryState(delivery: ProfileRequestDeliveryPayload) {
+    if (!delivery.toProfileId || !delivery.requestId || !delivery.state) {
+      return
+    }
+
+    setContactBook((current) => {
+      if (!current) return current
+
+      const nextBook = updateOutgoingFriendRequestDeliveryState(current, {
+        deliveryState: delivery.state || 'queued',
+        profileId: delivery.toProfileId || '',
+        requestId: delivery.requestId || ''
+      })
+
+      if (nextBook === current) return current
+
+      contactBookRef.current = nextBook
+      saveContactBookToFileSystem({
+        baseUri: getRequiredMobileDocumentDirectory(FileSystem),
+        book: nextBook,
+        fileSystem: FileSystem
+      }).catch((error: unknown) => {
+        console.error('Contact book storage unavailable', error)
+        setLastError(errorMessage(error))
+        setNotice('Could not save this contact.')
+      })
+      return nextBook
+    })
+  }
+
   function startBackend(
     nextSession: HomeJoinSession & Record<string, unknown>
   ): BackendStartResult | null {
     try {
-      const worklet = new Worklet() as WorkletHandle
-      worklet.start('/app.bundle', bundle, [])
-      workletRef.current = worklet
+      const nextRpc = getOrCreateBackendRpc()
 
       let joinedSettled = false
       let joinedTimeout: ReturnType<typeof setTimeout> | null = null
@@ -1021,165 +1288,8 @@ export default function App() {
       }
       joinedTimeout = setTimeout(() => resolveHomeJoined(false), 10000)
 
-      const RpcConstructor = RPC as unknown as new (
-        ipc: unknown,
-        onrequest: (req: RpcRequest) => void
-      ) => RpcClient
-      const nextRpc = new RpcConstructor(worklet.IPC, (req) => {
-        const payload = readRpcPayload(req)
-        const payloadRecord = asRecord(payload)
-
-        if (req.command === RPC_MESSAGE) {
-          setSession((current) =>
-            current ? appendRemoteMessage(current, payloadRecord as ChatMessage) : current
-          )
-          return
-        }
-
-        if (req.command === RPC_DM_MESSAGE) {
-          handleIncomingMessageRequest(asMessageRequestPayload(payload)).catch((error: unknown) => {
-            console.error('Message request unavailable', error)
-            setLastError(errorMessage(error))
-            setNotice('Could not save this friend request.')
-          })
-          return
-        }
-
-        if (req.command === RPC_DM_BODY_MESSAGE) {
-          setDmSession((current) => {
-            if (!current) {
-              return current
-            }
-
-            const next =
-              payloadRecord.direction === 'out'
-                ? appendLocalSignedDirectMessage(current, payloadRecord, {
-                    remoteProfileId: asString(payloadRecord.remoteProfileId) || ''
-                  })
-                : appendRemoteSignedDirectMessage(current, payloadRecord)
-            setDmMessages(next.messages)
-            saveMobileDmSessionMessages(next.messages).catch((error: unknown) => {
-              console.error('DM session storage unavailable', error)
-              setLastError(errorMessage(error))
-              setNotice('Could not save this message.')
-            })
-            return next
-          })
-          return
-        }
-
-        if (req.command === RPC_DM_THREAD) {
-          const threadPayload = payloadRecord as DmThread
-          setDmThreads((current) => upsertDmThread(current, threadPayload))
-          if (contactBook?.outgoingRequestsByProfileId?.has(threadPayload.remoteProfileId)) {
-            const nextBook = acceptOutgoingFriendRequest(contactBook, {
-              acceptedAt: threadPayload.acceptedAt || Date.now(),
-              profileId: threadPayload.remoteProfileId
-            })
-            const nextPolicy = createTreeholePolicyFromContactBook(nextBook)
-
-            setContactBook(nextBook)
-            setTreeholePolicy(nextPolicy)
-            syncTreeholePolicy(nextPolicy)
-            saveContactBookToFileSystem({
-              baseUri: getRequiredMobileDocumentDirectory(FileSystem),
-              book: nextBook,
-              fileSystem: FileSystem
-            }).catch((error: unknown) => {
-              console.error('Contact book storage unavailable', error)
-              setLastError(errorMessage(error))
-              setNotice('Could not save this contact.')
-            })
-          }
-          saveMobileDmThread(threadPayload).catch((error: unknown) => {
-            console.error('DM thread unavailable', error)
-            setLastError(errorMessage(error))
-            setNotice('Could not save this message.')
-          })
-          return
-        }
-
-        if (req.command === RPC_PEER_COUNT) {
-          setPeerCount(asNumber(payloadRecord.count) || 0)
-          return
-        }
-
-        if (req.command === RPC_ROOM_DEBUG) {
-          setTransportDebug(payloadRecord as TransportDebugLabelState)
-          return
-        }
-
-        if (req.command === RPC_AVATAR_MEDIA_BYTES) {
-          storeMobileAvatarMediaBytesControl({
-            baseUri: getRequiredMobileDocumentDirectory(FileSystem),
-            book: contactBook,
-            fileSystem: FileSystem,
-            message: payloadRecord,
-            sha256Hex: createMobileSha256Hex
-          })
-            .then((result) => {
-              if (result) setNotice('Profile image received.')
-            })
-            .catch((error: unknown) => {
-              console.error('Profile image unavailable', error)
-              setLastError(errorMessage(error))
-              setNotice('Could not save this profile image.')
-            })
-          return
-        }
-
-        if (req.command === RPC_STATUS) {
-          const status = asString(payloadRecord.status)
-          setNotice(getMobileBackendNotice(status))
-          if (status === 'joined') {
-            resolveHomeJoined(true)
-          }
-          return
-        }
-
-        if (req.command === RPC_TREEHOLE_STATUS) {
-          setTreeholeStatus(asString(payloadRecord.status) || 'idle')
-          if (Object.hasOwn(payloadRecord, 'canInteract')) {
-            setTreeholeCanInteract(Boolean(payloadRecord.canInteract))
-          }
-          if (Object.hasOwn(payloadRecord, 'canPost')) {
-            setTreeholeCanPost(Boolean(payloadRecord.canPost))
-          }
-          return
-        }
-
-        if (req.command === RPC_TREEHOLE_STATE) {
-          const nextPosts = Array.isArray(payloadRecord.posts)
-            ? (payloadRecord.posts as MobileTreeholePost[])
-            : []
-          setTreeholePosts(nextPosts)
-          const ownerProfileId = nextSession.ownerProfileId || ''
-          if (ownerProfileId && nextPosts.length > 0) {
-            setProfileRecentPostCache((current) => {
-              const nextCache = updateProfileRecentPostCache(current, {
-                ownerProfileId,
-                posts: nextPosts
-              })
-              saveProfileRecentPostCacheToFileSystem({
-                baseUri: getRequiredMobileDocumentDirectory(FileSystem),
-                cache: nextCache,
-                fileSystem: FileSystem
-              }).catch((error) => {
-                console.warn('Recent posts cache unavailable', error)
-              })
-              return nextCache
-            })
-          }
-          return
-        }
-
-        if (req.command === RPC_ERROR) {
-          resolveHomeJoined(false)
-          setLastError(asString(payloadRecord.message) || 'Home connection error')
-          setNotice('Home connection error.')
-        }
-      })
-
+      resolveHomeJoinedRef.current = resolveHomeJoined
+      backendTreeholeOwnerProfileIdRef.current = asString(nextSession.ownerProfileId) || ''
       nextRpc.request(RPC_JOIN).send(JSON.stringify(nextSession))
       setRpc(nextRpc)
       setNotice('Starting home...')
@@ -1215,16 +1325,18 @@ export default function App() {
   }
 
   async function persistIncomingMessageRequest(request: MessageRequestPayload) {
-    if (!contactBook || request.toProfileId !== profileId) {
+    const currentBook = contactBookRef.current
+    const currentProfileId = profileIdRef.current
+    if (!currentBook || request.toProfileId !== currentProfileId) {
       return false
     }
 
-    const nextBook = recordMessageRequest(contactBook, {
+    const nextBook = recordMessageRequest(currentBook, {
       profileId: request.fromProfileId,
       requestedAt: request.createdAt,
       requestId: request.requestId,
       senderEncryptionPublicKey: request.senderEncryptionPublicKey,
-      source: 'home_room',
+      source: 'profile_request',
       text: request.text
     })
 
@@ -1233,13 +1345,15 @@ export default function App() {
       book: nextBook,
       fileSystem: FileSystem
     })
+    contactBookRef.current = nextBook
     setContactBook(nextBook)
     return true
   }
 
   async function acceptIncomingMessageRequest(requestInput: unknown) {
     const request = asMessageRequestPayload(requestInput)
-    if (!contactBook || !identity || !rpc) {
+    const activeRpc = rpcRef.current
+    if (!contactBook || !identity || !activeRpc) {
       return
     }
 
@@ -1262,7 +1376,7 @@ export default function App() {
     setContactBook(nextBook)
     setTreeholePolicy(nextPolicy)
     syncTreeholePolicy(nextPolicy)
-    rpc.request(RPC_DM_ACCEPT).send(
+    activeRpc.request(RPC_DM_ACCEPT).send(
       JSON.stringify({
         acceptedAt,
         request,

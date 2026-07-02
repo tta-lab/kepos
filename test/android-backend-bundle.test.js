@@ -64,6 +64,11 @@ test('android backend trims outgoing text at the RPC boundary', () => {
     'function sendMessageRequest',
     'async function acceptMessageRequest'
   )
+  const sendProfileMessageRequest = sliceBetween(
+    source,
+    'async function sendProfileMessageRequest',
+    'async function acceptMessageRequest'
+  )
   const resendOutgoingMessageRequests = sliceBetween(
     source,
     'function resendOutgoingMessageRequests',
@@ -84,7 +89,11 @@ test('android backend trims outgoing text at the RPC boundary', () => {
     'function canAcceptIncomingDmInvite',
     'function sendDmBody'
   )
-  const leaveRoom = sliceBetween(source, 'async function leaveRoom', 'function openTreehole')
+  const leaveRoom = sliceBetween(
+    source,
+    'async function leaveRoom',
+    'async function startProfileService'
+  )
   const rpcTreeholePolicy = sliceBetween(
     source,
     'if (req.command === RPC_TREEHOLE_POLICY)',
@@ -99,7 +108,13 @@ test('android backend trims outgoing text at the RPC boundary', () => {
 
   assert.match(source, /let allowHomeDmBodyFallback = false/)
   assert.match(source, /const outgoingMessageRequestsByProfileId = new Map\(\)/)
-  assert.match(leaveRoom, /outgoingMessageRequestsByProfileId\.clear\(\)/)
+  assert.doesNotMatch(leaveRoom, /profileRequestRuntime\?\.close\(\)/)
+  assert.doesNotMatch(leaveRoom, /dmRuntime\?\.closeAll\(\)/)
+  assert.doesNotMatch(leaveRoom, /outgoingMessageRequestsByProfileId\.clear\(\)/)
+  assert.match(source, /RPC_PROFILE_START/)
+  assert.match(source, /RPC_PROFILE_REQUEST_SEND/)
+  assert.match(source, /RPC_PROFILE_REQUEST_STATE/)
+  assert.match(source, /createProfileFriendRequestRuntime\(/)
   assert.match(joinRoom, /resendOutgoingMessageRequests\(peer\)/)
   assert.match(resendOutgoingMessageRequests, /outgoingMessageRequestsByProfileId\.values\(\)/)
   assert.match(resendOutgoingMessageRequests, /room\.sendControl\(peer, request\)/)
@@ -120,6 +135,9 @@ test('android backend trims outgoing text at the RPC boundary', () => {
   assert.match(postTreehole, /const text = cleanRequiredText\(payload\.text\)/)
   assert.match(commentTreehole, /const text = cleanRequiredText\(payload\.text\)/)
   assert.match(sendMessageRequest, /const text = cleanRequiredText\(payload\.text\)/)
+  assert.match(sendProfileMessageRequest, /const text = cleanRequiredText\(payload\.text\)/)
+  assert.match(sendProfileMessageRequest, /profileRequestRuntime\.send\(request\)/)
+  assert.match(sendProfileMessageRequest, /sendToUI\(RPC_PROFILE_REQUEST_STATE/)
   assert.match(
     sendMessageRequest,
     /outgoingMessageRequestsByProfileId\.set\(request\.toProfileId, request\)/

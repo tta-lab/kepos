@@ -570,9 +570,9 @@ test('mobile local avatar uri can be edited and restored before sharing Profile 
 
 test('mobile Home startup and RPC store avatar media byte controls', async () => {
   const source = await readMobileSource()
-  const startBackend = source.slice(
-    source.indexOf('function startBackend('),
-    source.indexOf('async function handleIncomingMessageRequest')
+  const backendRequestHandler = source.slice(
+    source.indexOf('function handleBackendRequest('),
+    source.indexOf('function applyProfileRequestDeliveryState')
   )
 
   assert.match(
@@ -580,13 +580,19 @@ test('mobile Home startup and RPC store avatar media byte controls', async () =>
     /import \{[\s\S]*createMobileLocalAvatarMediaControl,[\s\S]*storeMobileAvatarMediaBytesControl[\s\S]*\} from '\.\.\/src\/mobile-avatar-media-sync\.ts'/
   )
   assert.match(source, /RPC_AVATAR_MEDIA_BYTES/)
+  assert.match(source, /RPC_PROFILE_START/)
+  assert.match(source, /RPC_PROFILE_REQUEST_SEND/)
+  assert.match(source, /RPC_PROFILE_REQUEST_STATE/)
   assert.match(source, /async function createHomeSessionPayload\(/)
   assert.match(source, /localAvatarMediaControl: await createMobileLocalAvatarMediaControl\(/)
-  assert.match(startBackend, /if \(req\.command === RPC_AVATAR_MEDIA_BYTES\)/)
-  assert.match(startBackend, /storeMobileAvatarMediaBytesControl\(/)
-  assert.match(startBackend, /book: contactBook/)
-  assert.match(startBackend, /sha256Hex: createMobileSha256Hex/)
-  assert.match(startBackend, /setNotice\('Profile image received\.'\)/)
+  assert.match(source, /function startProfileBackend\(/)
+  assert.match(source, /nextRpc\.request\(RPC_PROFILE_START\)\.send\(JSON\.stringify\(payload\)\)/)
+  assert.match(backendRequestHandler, /if \(req\.command === RPC_AVATAR_MEDIA_BYTES\)/)
+  assert.match(backendRequestHandler, /if \(req\.command === RPC_PROFILE_REQUEST_STATE\)/)
+  assert.match(backendRequestHandler, /storeMobileAvatarMediaBytesControl\(/)
+  assert.match(backendRequestHandler, /book: contactBookRef\.current/)
+  assert.match(backendRequestHandler, /sha256Hex: createMobileSha256Hex/)
+  assert.match(backendRequestHandler, /setNotice\('Profile image received\.'\)/)
 })
 
 test('mobile direct contact chips and revoke actions expose trust state', async () => {
@@ -1354,6 +1360,7 @@ test('mobile composer sends trimmed text payloads', async () => {
   assert.doesNotMatch(sendMessageRequest, /requestRpc/)
   assert.doesNotMatch(sendMessageRequest, /RPC_DM_SEND/)
   assert.doesNotMatch(sendMessageRequest, /homeDescriptor/)
+  assert.match(sendMessageRequest, /rpcRef\.current\?\.request\(RPC_PROFILE_REQUEST_SEND\)/)
   assert.match(sendMessageRequest, /avatarMediaSnapshot: requestTargetView\.avatarMediaSnapshot/)
   assert.match(sendMessageRequest, /avatarUriSnapshot: requestTargetView\.avatarUri/)
   assert.match(sendMessageRequest, /displayNameSnapshot: requestTargetView\.displayName/)

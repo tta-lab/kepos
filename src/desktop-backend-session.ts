@@ -8,6 +8,14 @@ import { createDesktopRoomActions } from './desktop-room-actions.ts'
 import { createDesktopTrustActions } from './desktop-trust-actions.ts'
 import { createDirectRoomTransport } from './direct-room-transport.ts'
 import {
+  createProfileFriendRequestRuntime,
+  type ProfileFriendRequestDeliveryState,
+  type ProfileFriendRequestRuntime
+} from './profile-friend-request-transport.ts'
+import { updateOutgoingFriendRequestDeliveryState, type ContactBook } from './contact-book.ts'
+import type { MessageRequest } from './message-request.ts'
+import type { LocalProfile } from './profile.ts'
+import {
   createSha256Hex,
   importDesktopProfileAvatarMedia,
   readDesktopAvatarBytes,
@@ -21,6 +29,7 @@ export function createDesktopBackendSession({
   controllerState,
   createDirectTransport = createDesktopDirectRoomTransport,
   createId,
+  createProfileRequestRuntime = createProfileFriendRequestRuntime as ProfileRequestRuntimeFactory,
   env = (globalThis as { process?: { env?: DesktopBackendSessionEnv } }).process?.env || {},
   createLocalBackendHost = createDesktopLocalBackendHost as unknown as DesktopLocalBackendHostFactory,
   getCurrentDisplayName,
@@ -38,6 +47,7 @@ export function createDesktopBackendSession({
   let backendRuntime: DesktopBackendRuntime
   let dmRuntime: DesktopDmRuntime
   let homeRuntime: DesktopHomeRuntime
+  let profileRequestRuntime: ProfileFriendRequestRuntime | null = null
   let treeholeRuntime: DesktopTreeholeRuntime
   const allowHomeDmBodyFallback = env.KEPOS_ALLOW_HOME_DM_BODY_FALLBACK === '1'
   let profileRequestTarget: unknown = null
@@ -81,6 +91,7 @@ export function createDesktopBackendSession({
     getContactBook: () => getProfileContext().contactBook,
     getDmRuntime: () => dmRuntime,
     getDmSession: () => controllerState.getDmSession(),
+    getFriendRequestTransport: () => profileRequestRuntime,
     getHomeRuntime: () => homeRuntime,
     getLocalProfile: () => {
       const context = getProfileContext() as {
@@ -145,7 +156,7 @@ export function createDesktopBackendSession({
     setNotice
   } as never)
   const roomActions = createDesktopRoomActions({
-    closeAll: () => backendRuntime.closeAll(),
+    closeAll: () => closeAllRuntimes(),
     configureTreeholeRuntime,
     getDirectTransportConfig: ({ mode }: { mode?: string } = {}) =>
       getDesktopDirectTransportConfig({ env, mode }),
@@ -245,7 +256,40 @@ export function createDesktopBackendSession({
 
     if (!dmRuntime) throw new Error('Desktop DM runtime is unavailable')
     controllerState.setDmSession(await dmRuntime.start({ nick, profile, storage }))
+    await startProfileRequestRuntime(profile)
     onChanged()
+  }
+
+  async function startProfileRequestRuntime(profile: { id?: string }): Promise<void> {
+    if (!profile.id) return
+
+    await profileRequestRuntime?.close()
+    profileRequestRuntime = createProfileRequestRuntime({
+      localProfileId: profile.id,
+      onDeliveryState: ({ requestId, state, toProfileId }) => {
+        const context = getProfileContext()
+        const nextBook = updateOutgoingFriendRequestDeliveryState(context.contactBook, {
+          deliveryState: state,
+          profileId: toProfileId,
+          requestId
+        })
+        if (nextBook === context.contactBook) return
+
+        context.saveContactBook(nextBook)
+        onChanged()
+      },
+      onDiscoveryError: onError,
+      onRequest: (request) => {
+        controlActions.handleControl(request as Record<string, unknown>).catch(onError)
+      }
+    })
+    await profileRequestRuntime.open()
+  }
+
+  async function closeAllRuntimes(): Promise<unknown[]> {
+    await profileRequestRuntime?.close()
+    profileRequestRuntime = null
+    return await Promise.all([backendRuntime.closeAll()])
   }
 
   async function openTreehole(bootstrapKey: string | null = null) {
@@ -292,6 +336,7 @@ type DesktopBackendSessionOptions = {
   controllerState: DesktopControllerState
   createDirectTransport?: (options: DirectRoomTransportOptions) => unknown
   createId: () => string
+  createProfileRequestRuntime?: ProfileRequestRuntimeFactory
   env?: DesktopBackendSessionEnv
   createLocalBackendHost?: DesktopLocalBackendHostFactory
   getCurrentDisplayName: () => string
@@ -346,11 +391,22 @@ type DesktopControllerState = {
 }
 
 type DesktopProfileContext = {
-  contactBook: unknown
-  profile: unknown
+  contactBook: ContactBook
+  profile: LocalProfile
   saveContactBook: (book: unknown) => unknown
   storage?: unknown
 }
+
+type ProfileRequestRuntimeFactory = (options: {
+  localProfileId: string
+  onDeliveryState?: (delivery: {
+    requestId: string
+    state: ProfileFriendRequestDeliveryState
+    toProfileId: string
+  }) => void
+  onDiscoveryError?: (error: Error) => void
+  onRequest?: (request: MessageRequest) => void
+}) => ProfileFriendRequestRuntime
 
 type DesktopLocalBackendHostLike = {
   backendHost?: unknown

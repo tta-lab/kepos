@@ -40,7 +40,8 @@ This is the map of content for Kepos architecture docs.
    - Fresh V1 model for friends, Home, DM, Treehole, QR, and transport. Home is not part of add-friend bootstrap.
    - Use this when friend request and Home entry feel coupled or confusing.
 
-   Next implementation plan: `docs/v1-friend-home-architecture/05-profile-first-next-plan.md`.
+   Route decision: `docs/v1-friend-home-architecture/05-profile-first-next-plan.md`.
+   Next implementation plan: `docs/v1-friend-home-architecture/06-v1-profile-first-implementation-plan.md`.
 
 10. `docs/v1.17-ready-im-completion-plan.md`
 

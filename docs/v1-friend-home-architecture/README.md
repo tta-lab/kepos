@@ -31,6 +31,10 @@ The short version:
 
 5. `05-profile-first-next-plan.md`
    - Concrete next implementation plan for moving from Home-centric bootstrap to profile-first P2P request delivery.
+   - Use this for the route decision and product/transport separation.
+
+6. `06-v1-profile-first-implementation-plan.md`
+   - Concrete execution plan for finishing V1 person-first IM: shared model, desktop, Android, UI, and cross-device proof.
    - Use this as the next coding plan.
 
 ## Core Principle

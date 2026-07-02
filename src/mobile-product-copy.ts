@@ -110,7 +110,7 @@ export function getMobileRoomSurface(activeTab?: string) {
 export function formatMobileTrustSource(source?: string | null) {
   if (source === 'profile_qr' || source === 'person_qr') return 'Profile QR'
   if (source === 'home_room') return 'Home'
-  if (source === 'message_request') return 'Friend request'
+  if (source === 'message_request' || source === 'profile_request') return 'Friend request'
   return 'This device'
 }
 

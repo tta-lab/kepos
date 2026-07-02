@@ -17,6 +17,7 @@ import { acceptDmThread, createDmThread, revokeDmThread } from '../src/dm-thread
 import { createDmThreadRuntime } from '../src/dm-thread-runtime.js'
 import { loadDmThreadsFromFileSystem, saveDmThreadsToFileSystem } from '../src/dm-thread-storage.ts'
 import { createMessageRequest, verifyMessageRequest } from '../src/message-request.ts'
+import { createProfileFriendRequestRuntime } from '../src/profile-friend-request-transport.ts'
 import { createDirectRoomTransport } from '../src/direct-room-transport.ts'
 import { createP2PRoom } from '../src/p2p-room.ts'
 import { createHomeHello, verifyHomeHello } from '../src/home-presence.ts'
@@ -46,6 +47,9 @@ import {
   RPC_MESSAGE,
   RPC_PEER_COUNT,
   RPC_AVATAR_MEDIA_BYTES,
+  RPC_PROFILE_REQUEST_SEND,
+  RPC_PROFILE_REQUEST_STATE,
+  RPC_PROFILE_START,
   RPC_ROOM_DEBUG,
   RPC_SEND,
   RPC_STATUS,
@@ -79,6 +83,7 @@ let profileId = null
 let identity = null
 let dmEncryptionKeyPair = null
 let dmRuntime = null
+let profileRequestRuntime = null
 let treeholePolicy = null
 let allowHomeDmBodyFallback = false
 let localAvatarMediaControl = null
@@ -90,6 +95,18 @@ async function handleRequest(req) {
 
   if (req.command === RPC_JOIN) {
     await joinRoom(payload)
+    req.reply?.(b4a.from(JSON.stringify({ ok: true })))
+    return
+  }
+
+  if (req.command === RPC_PROFILE_START) {
+    await startProfileService(payload)
+    req.reply?.(b4a.from(JSON.stringify({ ok: true })))
+    return
+  }
+
+  if (req.command === RPC_PROFILE_REQUEST_SEND) {
+    await sendProfileMessageRequest(payload)
     req.reply?.(b4a.from(JSON.stringify({ ok: true })))
     return
   }
@@ -175,25 +192,8 @@ async function joinRoom(payload) {
   identity = payload.identity || null
   allowHomeDmBodyFallback = payload.allowHomeDmBodyFallback === true
   localAvatarMediaControl = payload.localAvatarMediaControl || null
-  dmEncryptionKeyPair = await getOrCreateBackendDmEncryptionKeyPair({
-    basePath: treeholeStorageBasePath,
-    createKeyPair: createDmEncryptionKeyPair,
-    fs
-  })
   treeholePolicy = payload.treeholePolicy || null
-  dmRuntime = createDmThreadRuntime({
-    identity,
-    loadMessages: (thread) => loadBackendDmMessages(thread),
-    localProfileId: profileId,
-    onMessage: (thread, message, direction) => {
-      sendToUI(RPC_DM_BODY_MESSAGE, {
-        ...message,
-        direction,
-        remoteProfileId: thread.remoteProfileId
-      })
-    },
-    saveMessages: (thread, messages) => saveBackendDmMessages(thread, messages)
-  })
+  await startProfileService(payload)
 
   room = createP2PRoom({
     createDirectTransport: payload.directTransport
@@ -228,9 +228,6 @@ async function joinRoom(payload) {
     roomKey,
     nick
   })
-  sendToUI(RPC_STATUS, { status: 'opening-dm' })
-  await openBackendDmThreads()
-
   if (payload.createTreehole) {
     sendToUI(RPC_STATUS, { status: 'opening-treehole' })
     await openTreehole()
@@ -248,8 +245,6 @@ async function joinRoom(payload) {
 }
 
 async function leaveRoom() {
-  await dmRuntime?.closeAll()
-  dmRuntime = null
   await room?.leave()
   room = null
   await closeTreehole()
@@ -257,16 +252,57 @@ async function leaveRoom() {
   homeAddress = null
   homeOwnerProfileId = null
   homePolicy = 'trusted_only'
-  treeholeStorageBasePath = null
   remoteTreeholeSnapshot = null
-  profileId = null
-  identity = null
-  dmEncryptionKeyPair = null
-  treeholePolicy = null
   allowHomeDmBodyFallback = false
   localAvatarMediaControl = null
   addedWriters.clear()
-  outgoingMessageRequestsByProfileId.clear()
+}
+
+async function startProfileService(payload) {
+  profileId = payload.profileId?.trim() || profileId
+  identity = payload.identity || identity
+  nick = payload.nick?.trim() || nick
+  treeholeStorageBasePath = payload.storageBasePath || treeholeStorageBasePath
+  treeholePolicy = payload.treeholePolicy || treeholePolicy
+
+  if (!profileId || !identity || !treeholeStorageBasePath) {
+    throw new Error('Profile is not ready')
+  }
+
+  dmEncryptionKeyPair = await getOrCreateBackendDmEncryptionKeyPair({
+    basePath: treeholeStorageBasePath,
+    createKeyPair: createDmEncryptionKeyPair,
+    fs
+  })
+
+  if (!dmRuntime) {
+    dmRuntime = createDmThreadRuntime({
+      identity,
+      loadMessages: (thread) => loadBackendDmMessages(thread),
+      localProfileId: profileId,
+      onMessage: (thread, message, direction) => {
+        sendToUI(RPC_DM_BODY_MESSAGE, {
+          ...message,
+          direction,
+          remoteProfileId: thread.remoteProfileId
+        })
+      },
+      saveMessages: (thread, messages) => saveBackendDmMessages(thread, messages)
+    })
+    sendToUI(RPC_STATUS, { status: 'opening-dm' })
+    await openBackendDmThreads()
+  }
+
+  await profileRequestRuntime?.close()
+  profileRequestRuntime = createProfileFriendRequestRuntime({
+    localProfileId: profileId,
+    onDeliveryState: (delivery) => sendToUI(RPC_PROFILE_REQUEST_STATE, delivery),
+    onDiscoveryError: (error) => {
+      sendToUI(RPC_ERROR, { message: `Profile request discovery unavailable: ${error.message}` })
+    },
+    onRequest: (request) => sendToUI(RPC_DM_MESSAGE, request)
+  })
+  await profileRequestRuntime.open()
 }
 
 function openTreehole(bootstrapKey = null) {
@@ -600,6 +636,29 @@ function sendMessageRequest(payload) {
   })
   outgoingMessageRequestsByProfileId.set(request.toProfileId, request)
   room.broadcastControl(request)
+}
+
+async function sendProfileMessageRequest(payload) {
+  if (!identity || !profileId || !dmEncryptionKeyPair || !profileRequestRuntime) {
+    throw new Error('Profile request service is not ready')
+  }
+
+  const text = cleanRequiredText(payload.text)
+  const request = createMessageRequest({
+    createdAt: payload.at || Date.now(),
+    fromIdentity: identity,
+    requestId: payload.id,
+    senderEncryptionPublicKey: dmEncryptionKeyPair.publicKey,
+    text,
+    toProfileId: payload.toProfileId
+  })
+  outgoingMessageRequestsByProfileId.set(request.toProfileId, request)
+  const delivery = await profileRequestRuntime.send(request)
+  sendToUI(RPC_PROFILE_REQUEST_STATE, {
+    requestId: request.requestId,
+    state: delivery.state,
+    toProfileId: request.toProfileId
+  })
 }
 
 async function acceptMessageRequest(payload) {

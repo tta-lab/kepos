@@ -2,14 +2,19 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 import { createDesktopBackendSession } from '../src/desktop-backend-session.ts'
+import { createDmEncryptionKeyPair } from '../src/dm-invite.ts'
+import { createMessageRequest } from '../src/message-request.ts'
+import { createSigningKeyPair } from '../src/signed-record.ts'
 
 test('desktop backend session composes actions and runtime host behind one boundary', () => {
   const createdHosts = []
   const controllerState = createControllerState()
   const changes = []
+  const profileRequestRuntimeFactory = createFakeProfileRequestRuntimeFactory()
   const session = createDesktopBackendSession({
     controllerState,
     createId: () => 'id-1',
+    createProfileRequestRuntime: profileRequestRuntimeFactory,
     createLocalBackendHost: (options) => {
       createdHosts.push(options)
       return {
@@ -58,10 +63,12 @@ test('desktop backend session wires configured direct transport into room action
   const controllerState = createControllerState()
   const createdHosts = []
   const homeJoins = []
+  const profileRequestRuntimeFactory = createFakeProfileRequestRuntimeFactory()
 
   createDesktopBackendSession({
     controllerState,
     createId: () => 'id-1',
+    createProfileRequestRuntime: profileRequestRuntimeFactory,
     createLocalBackendHost: (options) => {
       createdHosts.push(options)
       return {
@@ -123,10 +130,12 @@ test('desktop backend session starts direct messages before joining a home', asy
   const controllerState = createControllerState()
   const changes = []
   const starts = []
+  const profileRequestRuntimes = []
 
   createDesktopBackendSession({
     controllerState,
     createId: () => 'id-1',
+    createProfileRequestRuntime: createFakeProfileRequestRuntimeFactory(profileRequestRuntimes),
     createLocalBackendHost: () => ({
       bridge: { label: 'bridge' },
       dmRuntime: {
@@ -154,9 +163,11 @@ test('desktop backend session starts direct messages before joining a home', asy
     storageBasePath: '/user-data/kepos/v1',
     updateState: (updater) => controllerState.updateState(updater)
   })
-  await Promise.resolve()
+  await flushAsync()
 
   assert.equal(controllerState.getDmSession().id, 'restored-dm-session')
+  assert.equal(profileRequestRuntimes[0].opened, true)
+  assert.equal(profileRequestRuntimes[0].options.localProfileId, 'a'.repeat(64))
   assert.deepEqual(starts, [
     {
       nick: 'Desktop',
@@ -171,10 +182,12 @@ test('desktop backend session keeps runtime DM changes in controller state', () 
   const controllerState = createControllerState()
   const changes = []
   const createdHosts = []
+  const profileRequestRuntimeFactory = createFakeProfileRequestRuntimeFactory()
 
   createDesktopBackendSession({
     controllerState,
     createId: () => 'id-1',
+    createProfileRequestRuntime: profileRequestRuntimeFactory,
     createLocalBackendHost: (options) => {
       createdHosts.push(options)
       return {
@@ -217,6 +230,7 @@ test('desktop backend session persists outgoing friend requests from message act
   const createdHosts = []
   const savedBooks = []
   const context = createProfileContext()
+  const profileRequestRuntimes = []
   context.contactBook = {
     contactsByProfileId: new Map(),
     outgoingRequestsByProfileId: new Map(),
@@ -231,6 +245,7 @@ test('desktop backend session persists outgoing friend requests from message act
       let id = 0
       return () => `id-${id++}`
     })(),
+    createProfileRequestRuntime: createFakeProfileRequestRuntimeFactory(profileRequestRuntimes),
     createLocalBackendHost: (options) => {
       createdHosts.push(options)
       return {
@@ -275,7 +290,7 @@ test('desktop backend session persists outgoing friend requests from message act
     storageBasePath: '/user-data/kepos/v1',
     updateState: (updater) => controllerState.updateState(updater)
   })
-  await Promise.resolve()
+  await flushAsync()
 
   await createdHosts[0].actions.sendDmMessage({
     text: 'hello',
@@ -284,16 +299,89 @@ test('desktop backend session persists outgoing friend requests from message act
 
   assert.equal(savedBooks.length, 1)
   assert.equal(savedBooks[0].outgoingRequestsByProfileId.get('b'.repeat(64)).requestId, 'id-1')
+  assert.equal(profileRequestRuntimes[0].sent[0].requestId, 'id-1')
+})
+
+test('desktop backend session records incoming profile-level friend requests', async () => {
+  const controllerState = createControllerState()
+  const savedBooks = []
+  const incomingRequests = []
+  const context = createProfileContext()
+  const profileRequestRuntimes = []
+  const remote = createSigningKeyPair()
+  const request = createMessageRequest({
+    createdAt: 1000,
+    fromIdentity: remote,
+    requestId: 'request-1',
+    senderEncryptionPublicKey: createDmEncryptionKeyPair().publicKey,
+    text: 'hello',
+    toProfileId: 'a'.repeat(64)
+  })
+  context.contactBook = {
+    contactsByProfileId: new Map(),
+    outgoingRequestsByProfileId: new Map(),
+    ownerProfileId: 'a'.repeat(64),
+    pendingRequestsByProfileId: new Map()
+  }
+  context.saveContactBook = (book) => savedBooks.push(book)
+
+  createDesktopBackendSession({
+    controllerState,
+    createId: () => 'id-1',
+    createProfileRequestRuntime: createFakeProfileRequestRuntimeFactory(profileRequestRuntimes),
+    createLocalBackendHost: () => ({
+      bridge: { label: 'bridge' },
+      dmRuntime: {
+        appendIncomingRequest: (nextRequest) => incomingRequests.push(nextRequest),
+        getSession: () => controllerState.getDmSession(),
+        loadThreads: () => [],
+        replaceThreads: () => {},
+        start: () => ({ id: 'restored-dm-session', localProfileId: 'a'.repeat(64), messages: [] })
+      },
+      homeRuntime: {
+        broadcastControl() {},
+        isJoined: () => false,
+        sendControl() {}
+      },
+      runtime: {
+        closeAll: () => Promise.resolve(),
+        configure: () => {}
+      },
+      treeholeRuntime: { canPost: () => false }
+    }),
+    getCurrentDisplayName: () => 'Desktop',
+    getProfileContext: () => context,
+    onChanged: () => {},
+    setContextFormDraft: () => {},
+    setDirectComposerRecipient: () => {},
+    setNotice: () => {},
+    shortenProfileId: (value) => value.slice(0, 8),
+    storageBasePath: '/user-data/kepos/v1',
+    updateState: (updater) => controllerState.updateState(updater)
+  })
+  await flushAsync()
+
+  profileRequestRuntimes[0].options.onRequest(request)
+  await flushAsync()
+
+  assert.equal(savedBooks.length, 1)
+  assert.deepEqual(
+    savedBooks[0].pendingRequestsByProfileId.get(remote.publicKey).requestId,
+    'request-1'
+  )
+  assert.deepEqual(incomingRequests, [request])
 })
 
 test('desktop backend session keeps runtime transport debug in controller state', () => {
   const controllerState = createControllerState()
   const changes = []
   const createdHosts = []
+  const profileRequestRuntimeFactory = createFakeProfileRequestRuntimeFactory()
 
   createDesktopBackendSession({
     controllerState,
     createId: () => 'id-1',
+    createProfileRequestRuntime: profileRequestRuntimeFactory,
     createLocalBackendHost: (options) => {
       createdHosts.push(options)
       return {
@@ -373,6 +461,38 @@ test('desktop backend session keeps Home DM body fallback debug-only', async () 
   assert.match(source, /allowHomeDmBodyFallback,\s*\n\s*createId/)
   assert.match(source, /allowHomeDmBodyFallback,\s*\n\s*configureTreeholeRuntime/)
 })
+
+function createFakeProfileRequestRuntimeFactory(runtimes = []) {
+  return (options) => {
+    const runtime = {
+      closed: false,
+      opened: false,
+      options,
+      sent: [],
+      async close() {
+        runtime.closed = true
+      },
+      async open() {
+        runtime.opened = true
+      },
+      send(request) {
+        runtime.sent.push(request)
+        options.onDeliveryState?.({
+          requestId: request.requestId,
+          state: 'sent',
+          toProfileId: request.toProfileId
+        })
+        return { state: 'sent' }
+      }
+    }
+    runtimes.push(runtime)
+    return runtime
+  }
+}
+
+function flushAsync() {
+  return new Promise((resolve) => setTimeout(resolve, 0))
+}
 
 function createControllerState() {
   let state = {

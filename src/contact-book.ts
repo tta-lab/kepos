@@ -680,6 +680,34 @@ export function acceptOutgoingFriendRequest(
   })
 }
 
+export function updateOutgoingFriendRequestDeliveryState(
+  book: ContactBook,
+  {
+    deliveryState,
+    profileId,
+    requestId
+  }: {
+    deliveryState: string
+    profileId: string
+    requestId: string
+  }
+): ContactBook {
+  const cleanProfileId = cleanRequiredString(profileId, 'Contact profile id is required')
+  const cleanRequestId = cleanRequiredString(requestId, 'Request id is required')
+  const request = book?.outgoingRequestsByProfileId?.get(cleanProfileId)
+
+  if (!request || request.requestId !== cleanRequestId) {
+    return book
+  }
+
+  const nextBook = cloneContactBook(book)
+  nextBook.outgoingRequestsByProfileId.set(cleanProfileId, {
+    ...request,
+    deliveryState: cleanRequiredString(deliveryState, 'Delivery state is required')
+  })
+  return nextBook
+}
+
 export function acceptMessageRequest(
   book: ContactBook,
   { profileId, alias, acceptedAt }: { acceptedAt: number; alias?: string; profileId: string }

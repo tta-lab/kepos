@@ -22,3 +22,6 @@ export const RPC_DM_REVOKE = 20
 export const RPC_ROOM_DEBUG = 21
 export const RPC_TREEHOLE_POLICY = 22
 export const RPC_AVATAR_MEDIA_BYTES = 23
+export const RPC_PROFILE_START = 24
+export const RPC_PROFILE_REQUEST_SEND = 25
+export const RPC_PROFILE_REQUEST_STATE = 26

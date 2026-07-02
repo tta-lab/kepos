@@ -1,4 +1,4 @@
-# Profile-First Next Plan
+# Profile-First P2P Delivery Plan
 
 This is the next implementation plan after the failed Profile QR friend request smoke.
 
@@ -64,27 +64,48 @@ Home should not be:
 - the first thing users must understand
 - the main tab driving the whole app
 
+## Core Architecture Rule
+
+Friendship, DM bootstrap, and Home entry are three separate product facts.
+
+- Friendship is a trust relation between profiles.
+- DM bootstrap is the durable private-chat route created from that trust flow.
+- Home entry is an explicit live-room action after trust or activity invite.
+
+The transport implementation can reuse low-level P2P primitives, but it must not make these product facts depend on each other.
+
+In particular:
+
+- adding a friend must not require joining a Home
+- accepting a friend must not mean entering a Home
+- Home QR must not become the normal add-friend path
+- direct host:port must not become the production fallback
+- delivery must be based on profile identity and signed records
+
 ## Implementation Plan
 
 ## Current Implementation Status
 
-Phase 1 and the boundary part of Phase 2 are implemented:
+Phase 1, Phase 2, and the first request-delivery part of Phase 3 are implemented in the current branch:
 
 - mobile Profile QR friend request sending no longer calls `enterRequestTargetHome`
 - mobile friend requests no longer send `RPC_DM_SEND` through the Home backend
 - desktop message request sending no longer requires `homeRuntime.isJoined()`
 - desktop message request sending no longer forwards new requests through Home control
 - `src/profile-friend-request-transport.ts` owns the profile-to-profile delivery boundary
-- outgoing requests are recorded as `queued` and shown as "Request pending" until a real transport accepts or acknowledges them
+- desktop starts a profile request listener when the local profile starts
+- Android starts a profile request listener after profile load, before Home entry
+- outgoing requests are recorded as `queued`, then updated to `searching` or `sent` from transport callbacks
+- leaving Home no longer shuts down Android profile request delivery
 
 Still open:
 
-- connect the profile-level P2P route
-- update delivery state after transport progress
-- add receiver-side profile request listening
-- remove the temporary Home-control request path after the profile route handles real delivery
+- move accept / DM invite delivery off the Home control channel
+- keep DM request/accept logic fully based on profile identity, not Home membership
+- remove or quarantine the temporary Home-control request path after profile request delivery is proven in cross-device smoke
+- add an explicit receiver acknowledgement before showing `delivered`
 
-The current product behavior is intentionally honest: a request can be queued locally without claiming the other side received it.
+The current product behavior is intentionally honest: a request can be queued or searching locally without claiming the other side received it.
 
 ### Phase 1: Stop Treating Home As Friend Request Delivery
 
@@ -128,22 +149,30 @@ Suggested states:
 
 ### Phase 3: Choose The P2P Route
 
-Use a profile-level P2P route. Candidate shapes:
+Use a profile-level P2P route.
+
+V1 choice:
 
 1. Profile request topic
    - deterministic topic from target profile public key and protocol salt
-   - receiver listens on its profile request topic
-   - sender connects and writes signed request
+   - receiver listens on its own profile request topic
+   - sender joins the target profile request topic
+   - sender writes signed request frames
+   - receiver verifies signature, target profile id, and duplicate request id before showing the request
+
+Rejected for current V1:
 
 2. Profile inbox feed
    - target advertises an inbox discovery key in Profile QR
    - sender appends or sends encrypted request
    - receiver syncs inbox
+   - useful later if we want offline-ish request persistence, but it is more state to design now
 
 3. DM-bootstrap-like request channel
    - QR carries enough signed bootstrap material
    - sender and receiver derive a request channel
    - accept returns DM invite
+   - likely a good future shape after the request topic path proves the product model
 
 The route must satisfy:
 
@@ -191,7 +220,27 @@ After profile-level delivery works:
 - delete automatic `enterRequestTargetHome` from request sending
 - remove Home descriptor requirement for friend requests
 - keep Home descriptor only for explicit Enter Home
+- remove `RPC_DM_SEND` or Home-control request delivery from the normal add-friend path
 - update smoke to check Profile QR request delivery without Home peer connection
+
+## What This Means For Home
+
+Home stays in V1, but its importance is reduced.
+
+Home should be:
+
+- a live room owned by the profile
+- a place for room chat, presence, and later activities
+- entered from a trusted contact/profile page
+
+Home should not be:
+
+- required for scanning a profile
+- required for sending a friend request
+- required for seeing a contact in the list
+- the mental model for DM
+
+This keeps the product closer to private IM plus personal space, not a room-join tool.
 
 ## Smoke Bar After Refactor
 
