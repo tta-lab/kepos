@@ -184,7 +184,7 @@ export function DirectPane({
         onMarkThreadRead={onMarkThreadRead}
         onOpenProfile={onOpenProfile}
         onOpenPeople={onOpenPeople}
-        onSelectThread={(thread) => onRecipientChange(thread.remoteProfileId)}
+        onSelectThread={onRecipientChange}
         outgoingRequests={outgoingRequests}
         ownerProfileId={ownerProfileId}
         pendingRequests={pendingRequests}

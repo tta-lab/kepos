@@ -1001,8 +1001,9 @@ test('mobile messages can show thread rows and scanned profile request targets',
   assert.match(checkedThreadRow, /thread\.unreadLabel/)
   assert.match(
     checkedThreadRow,
-    /onPress=\{\(\) => \{[\s\S]*onSelectThread\(\{ remoteProfileId: thread\.profileId \}\)[\s\S]*onMarkThreadRead\(thread\.profileId\)[\s\S]*\}\}/
+    /onPress=\{\(\) => \{[\s\S]*onSelectThread\(thread\.profileId\)[\s\S]*onMarkThreadRead\(thread\.profileId\)[\s\S]*\}\}/
   )
+  assert.match(directPane, /<MessageThreadList[\s\S]*onSelectThread=\{onRecipientChange\}/)
   assert.match(checkedThreadHeader, /accessibilityLabel=\{`Open \$\{thread\.label\} profile`\}/)
   assert.match(checkedThreadHeader, /onPress=\{\(\) => onOpenProfile\(thread\.profileId\)\}/)
   assert.match(checkedThreadRow, /const requestActions = thread\.requestActions/)

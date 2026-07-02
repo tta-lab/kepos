@@ -84,7 +84,7 @@ export type MessageThreadListProps = {
   onMarkThreadRead(profileId: string): void
   onOpenPeople(): void
   onOpenProfile(profileId: string): void
-  onSelectThread(thread: { remoteProfileId: string }): void
+  onSelectThread(profileId: string): void
   outgoingRequests?: {
     alias?: string | null
     deliveryState?: string | null
@@ -199,7 +199,7 @@ function ThreadRow({
   onIgnoreRequest(message: MessageThreadMessage): Promise<unknown>
   onMarkThreadRead(profileId: string): void
   onOpenProfile(profileId: string): void
-  onSelectThread(thread: { remoteProfileId: string }): void
+  onSelectThread(profileId: string): void
   selected: boolean
   styles: MessageThreadStyles
   theme: MessageThreadTheme
@@ -214,7 +214,7 @@ function ThreadRow({
       accessibilityRole='button'
       accessibilityState={{ selected }}
       onPress={() => {
-        onSelectThread({ remoteProfileId: thread.profileId })
+        onSelectThread(thread.profileId)
         onMarkThreadRead(thread.profileId)
       }}
       style={[styles.threadRow, selected && styles.activeThreadRow]}

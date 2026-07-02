@@ -330,6 +330,9 @@ Already landed before this plan:
   legacy `RPC_DM_SEND`, or profile request send
 - Android backend DM body send uses `dmRuntime.sendMessage`; Home-carried DM
   body broadcast remains gated by the explicit debug fallback flag
+- Android Chat thread rows now select threads by profile id directly and mark
+  that profile's durable thread read, avoiding legacy `remoteProfileId` wrapper
+  semantics in the UI callback
 
 Still open:
 
