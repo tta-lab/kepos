@@ -204,6 +204,8 @@ test('V1 active profile P2P release plan owns final release work', async () => {
     /Android request acceptance now sends the local Home descriptor only to the\s+requester profile/
   )
   assert.match(plan, /no longer sends a duplicate descriptor to the local\s+acceptor profile/)
+  assert.match(plan, /Android request send now requires `profileId` and ContactBook/)
+  assert.match(plan, /The guard does not require a Home key/)
   assert.match(plan, /Make Desktop And Android Product Logic Match/)
   assert.match(plan, /Keep Debug Surfaces Out Of Onboarding/)
   assert.match(plan, /advanced\/manual Home entry buttons now use `Enter Home`/)

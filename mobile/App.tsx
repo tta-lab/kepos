@@ -912,6 +912,11 @@ export default function App() {
       return
     }
 
+    if (!profileId || !contactBook) {
+      setNotice('Profile is still loading.')
+      return
+    }
+
     const message = {
       createdAt: Date.now(),
       fromProfileId: profileId,

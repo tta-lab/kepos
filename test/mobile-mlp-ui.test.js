@@ -1714,6 +1714,16 @@ test('mobile composer sends trimmed text payloads', async () => {
   assert.match(sendMessageRequest, /const cleanText = normalizeComposerText\(dmDraft\)/)
   assert.match(
     sendMessageRequest,
+    /if \(!profileId \|\| !contactBook\) \{[\s\S]*setNotice\('Profile is still loading\.'\)[\s\S]*return[\s\S]*\}/
+  )
+  assert.ok(
+    sendMessageRequest.indexOf('if (!profileId || !contactBook)') <
+      sendMessageRequest.indexOf('const message = {'),
+    'mobile request send should require profile identity before creating local request state'
+  )
+  assert.doesNotMatch(sendMessageRequest, /!homeRoomKey/)
+  assert.match(
+    sendMessageRequest,
     /if \(thread\) \{[\s\S]*rpcRef\.current\?\.request\(RPC_DM_BODY_SEND\)/
   )
   assert.match(

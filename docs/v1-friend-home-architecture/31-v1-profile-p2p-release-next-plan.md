@@ -89,6 +89,9 @@ Evidence:
 - Android request acceptance now sends the local Home descriptor only to the
   requester profile. It no longer sends a duplicate descriptor to the local
   acceptor profile through `invite.fromProfileId`.
+- Android request send now requires `profileId` and ContactBook before creating
+  local outgoing request state. The guard does not require a Home key, so the
+  social route remains profile-first while avoiding ownerless local requests.
 
 ### 2. Make Desktop And Android Product Logic Match
 
