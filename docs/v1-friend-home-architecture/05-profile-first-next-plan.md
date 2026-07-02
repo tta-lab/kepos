@@ -6,6 +6,8 @@ The current execution path is:
 - `12-v1-profile-first-implementation-next-plan.md` for source-level
   implementation order and low-cost proof
 - `13-v1-home-decoupling-next-plan.md` for the current Home decoupling plan
+- `14-v1-product-logic-unification-next-plan.md` for the next desktop/Android
+  product-logic unification pass
 - `../v1.21-cross-device-smoke.md` for the final desktop/Android release proof
 
 ## Decision
@@ -146,6 +148,7 @@ Current execution note:
 - `11` records the current V1 profile-first IM product model.
 - `12` owns the active V1 profile-first implementation plan.
 - `13` owns the current Home decoupling next plan.
+- `14` owns the next desktop/Android product-logic unification plan.
 - `../v1.21-cross-device-smoke.md` owns the final release proof packet.
 
 The current product behavior is intentionally honest: a request can be queued or searching locally without claiming the other side received it.

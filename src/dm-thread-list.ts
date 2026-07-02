@@ -1,5 +1,5 @@
 import type { ContactBook, MessageRequestContact } from './contact-book.ts'
-import { formatProfileFriendRequestDeliveryState } from './profile-friend-request-transport.ts'
+import { formatProfileFriendRequestDeliveryState } from './profile-friend-request-delivery.ts'
 import { getLatestProfileSnapshot, type ProfileSnapshot } from './profile-snapshot.ts'
 import {
   createProfileAvatarViewModel,

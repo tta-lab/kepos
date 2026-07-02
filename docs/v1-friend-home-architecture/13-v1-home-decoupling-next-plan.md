@@ -3,6 +3,11 @@
 This is the next plan after we decided that Home should be weaker in the
 product model.
 
+The follow-up execution plan is
+`14-v1-product-logic-unification-next-plan.md`. Use that document when the work
+is about making desktop and Android behave like the same profile-first IM
+product.
+
 The rule is:
 
 ```text

@@ -9,9 +9,9 @@ import { createDesktopTrustActions } from './desktop-trust-actions.ts'
 import { createDirectRoomTransport } from './direct-room-transport.ts'
 import {
   createProfileFriendRequestRuntime,
-  type ProfileFriendRequestDeliveryState,
   type ProfileFriendRequestRuntime
 } from './profile-friend-request-transport.ts'
+import type { ProfileFriendRequestDeliveryState } from './profile-friend-request-delivery.ts'
 import { updateOutgoingFriendRequestDeliveryState, type ContactBook } from './contact-book.ts'
 import type { MessageRequest } from './message-request.ts'
 import type { DmInvite } from './dm-invite.ts'

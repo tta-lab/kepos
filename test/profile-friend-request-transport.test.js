@@ -6,9 +6,9 @@ import {
   createProfileFriendRequestRuntime,
   createQueuedProfileFriendRequestTransport,
   deriveProfileFriendRequestTopic,
-  formatProfileFriendRequestDeliveryState,
   sendProfileFriendRequest
 } from '../src/profile-friend-request-transport.ts'
+import { formatProfileFriendRequestDeliveryState } from '../src/profile-friend-request-delivery.ts'
 import { createSigningKeyPair } from '../src/signed-record.ts'
 
 test('profile friend request transport validates profile-to-profile request shape', async () => {

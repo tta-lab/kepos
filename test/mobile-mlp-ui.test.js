@@ -793,6 +793,8 @@ test('mobile direct contact chips and revoke actions expose trust state', async 
   assert.doesNotMatch(source, /function MessageRequestManager\(/)
   assert.match(requestComponents, /export type OutgoingRequestManagerProps = \{/)
   assert.match(requestComponents, /onOpenProfile\?\(profileId: string\): void/)
+  assert.match(requestComponents, /profile-friend-request-delivery/)
+  assert.doesNotMatch(requestComponents, /profile-friend-request-transport/)
   assert.match(outgoingRequestManager, /title='Sent requests'/)
   assert.match(outgoingRequestManager, /formatProfileFriendRequestDeliveryState/)
   assert.match(outgoingRequestManager, /formatOutgoingRequestTitle\(request\)/)

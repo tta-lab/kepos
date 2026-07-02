@@ -7,7 +7,7 @@ import {
   formatOutgoingRequestTitle,
   formatRequestPreview
 } from '../src/mobile-product-copy.ts'
-import { formatProfileFriendRequestDeliveryState } from '../src/profile-friend-request-transport.ts'
+import { formatProfileFriendRequestDeliveryState } from '../src/profile-friend-request-delivery.ts'
 import {
   MobileSmallActionButton,
   MobileRequestActionButton,

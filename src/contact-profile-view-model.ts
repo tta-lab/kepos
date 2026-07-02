@@ -1,6 +1,8 @@
 import type { ContactBookContact } from './contact-book.ts'
-import type { ProfileFriendRequestDeliveryState } from './profile-friend-request-transport.ts'
-import { formatProfileFriendRequestDeliveryState } from './profile-friend-request-transport.ts'
+import {
+  formatProfileFriendRequestDeliveryState,
+  type ProfileFriendRequestDeliveryState
+} from './profile-friend-request-delivery.ts'
 import {
   createProfileAvatarViewModel,
   type ProfileAvatarViewModel,

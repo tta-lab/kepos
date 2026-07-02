@@ -460,6 +460,8 @@ test('desktop people pane surfaces pending message requests', async () => {
   assert.match(source, /id='outgoingRequestList'/)
   assert.match(source, /Sent requests/)
   assert.match(peopleViewModel, /formatProfileFriendRequestDeliveryState/)
+  assert.match(peopleViewModel, /profile-friend-request-delivery/)
+  assert.doesNotMatch(peopleViewModel, /profile-friend-request-transport/)
   assert.match(presenter, /createDesktopPeopleViewModel/)
   assert.match(source, /messageRequests=\{model\.people\.messageRequests\}/)
   assert.match(source, /outgoingRequests=\{model\.people\.outgoingRequests\}/)

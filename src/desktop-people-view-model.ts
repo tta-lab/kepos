@@ -2,7 +2,7 @@ import type { ContactBook, ContactBookContact, MessageRequestContact } from './c
 import { getBlockedContactCopy } from './blocked-contact-copy.ts'
 import { isContactTrusted, listBlockedContacts } from './contact-book.ts'
 import { createContactProfileViewModel } from './contact-profile-view-model.ts'
-import { formatProfileFriendRequestDeliveryState } from './profile-friend-request-transport.ts'
+import { formatProfileFriendRequestDeliveryState } from './profile-friend-request-delivery.ts'
 import type { ProfileAvatarViewModel } from './profile-avatar-view-model.ts'
 
 type ShortenProfileId = (profileId: string) => string

@@ -5,17 +5,10 @@ import type { DmInvite } from './dm-invite.ts'
 import { verifyDmInvite } from './dm-invite.ts'
 import type { MessageRequest } from './message-request.ts'
 import { verifyMessageRequest } from './message-request.ts'
+import type { ProfileFriendRequestDeliveryState } from './profile-friend-request-delivery.ts'
 import type { SigningIdentity } from './signed-record.ts'
 
 const PROFILE_FRIEND_REQUEST_TOPIC_PREFIX = 'kepos-profile-request:v1:'
-
-export type ProfileFriendRequestDeliveryState =
-  | 'queued'
-  | 'searching'
-  | 'sent'
-  | 'delivered'
-  | 'accepted'
-  | 'failed'
 
 export type ProfileFriendRequestDeliveryResult = {
   reason?: string
@@ -387,17 +380,6 @@ function createProfileFriendRequestAck(frame: ProfileFriendRequestFrame): Profil
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value))
-}
-
-export function formatProfileFriendRequestDeliveryState(
-  state?: ProfileFriendRequestDeliveryState | string | null
-): string {
-  if (state === 'sent') return 'Request sent'
-  if (state === 'delivered') return 'Request delivered'
-  if (state === 'accepted') return 'Request accepted'
-  if (state === 'failed') return 'Request failed'
-  if (state === 'searching') return 'Looking for profile'
-  return 'Request pending'
 }
 
 function cleanProfileId(value: unknown, message: string): string {

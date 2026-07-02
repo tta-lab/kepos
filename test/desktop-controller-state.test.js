@@ -26,7 +26,7 @@ test('desktop controller state owns active desktop state updates', () => {
     })
   )
 
-  assert.equal(controllerState.getState().activeTab, 'people')
+  assert.equal(controllerState.getState().activeTab, 'chat')
   assert.equal(controllerState.getState().view, 'room')
   assert.equal(controllerState.getState().peers, 1)
 })
