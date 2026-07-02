@@ -108,15 +108,17 @@ describe('manual key debug UI boundary', () => {
     assert.equal(peopleActions.includes('<Text style={styles.panelTitle}>QR details</Text>'), false)
   })
 
-  test('manual home key buttons still use product join copy', async () => {
+  test('manual home key buttons use explicit Enter Home product copy', async () => {
     const desktop = await readDesktopUiSource()
     const mobile = await readFile(
       new URL('../mobile/lobby-components.tsx', import.meta.url),
       'utf8'
     )
 
-    assert.match(desktop, /Join home/)
-    assert.match(mobile, /Join home/)
+    assert.match(desktop, /Enter Home/)
+    assert.match(mobile, /Enter Home/)
+    assert.equal(desktop.includes('Join home'), false)
+    assert.equal(mobile.includes('Join home'), false)
     assert.equal(desktop.includes('Join Home'), false)
     assert.equal(mobile.includes('Join Home'), false)
   })

@@ -104,6 +104,15 @@ Required UX rule:
 - direct host/port is not presented as production reachability
 - Home QR is not shown as the main way to become friends
 
+Status: in progress.
+
+Evidence:
+
+- Desktop and Android advanced/manual Home entry buttons now use `Enter Home`
+  instead of `Join home`, matching the explicit live-room product action used
+  from trusted profile detail. The old `Join home` and `Join Home` labels are
+  rejected by UI source tests.
+
 ### 4. Produce Low-Cost Release Evidence
 
 Before any physical phone proof, run:

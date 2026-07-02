@@ -198,6 +198,8 @@ test('V1 active profile P2P release plan owns final release work', async () => {
   assert.match(plan, /Close Remaining Product-Route Leaks/)
   assert.match(plan, /Make Desktop And Android Product Logic Match/)
   assert.match(plan, /Keep Debug Surfaces Out Of Onboarding/)
+  assert.match(plan, /advanced\/manual Home entry buttons now use `Enter Home`/)
+  assert.match(plan, /old `Join home` and `Join Home` labels are\s+rejected by UI source tests/)
   assert.match(plan, /Produce The Final Physical Proof Packet/)
   assert.match(plan, /npm run v1:proof:check -- --file tmp\/final-v1-proof\.md/)
   assert.match(plan, /No physical desktop\/Android smoke has been run/)

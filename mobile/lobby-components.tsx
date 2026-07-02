@@ -131,7 +131,7 @@ export function HomeStartupPane({
             styles={styles}
             disabled={!canJoin}
             icon={ArrowRight}
-            label='Join home'
+            label='Enter Home'
             onPress={onJoinRoom}
             testID='manual-home-join-button'
           />

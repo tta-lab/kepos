@@ -269,7 +269,7 @@ export function ContextPanel({
               disabled={!canJoinManualHome}
               icon={<LogOut size={17} />}
               id='joinButton'
-              label='Join home'
+              label='Enter Home'
               type='submit'
             />
           </details>
@@ -328,7 +328,7 @@ export function ContextPanel({
               disabled={!canJoinHomeQr}
               icon={<LogOut size={17} />}
               id='joinHomeQrButton'
-              label='Join home'
+              label='Enter Home'
               type='submit'
             />
           </form>
