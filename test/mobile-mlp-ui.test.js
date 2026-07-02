@@ -1036,6 +1036,81 @@ test('mobile messages can show thread rows and scanned profile request targets',
   assert.match(peopleComponents, /createRequestTargetProfileViewModel\(/)
 })
 
+test('mobile Chat and Contacts share one profile detail route', async () => {
+  const source = await readMobileSource()
+  const roomComponents = await readMobileRoomComponentsSource()
+  const directComponents = await readMobileDirectComponentsSource()
+  const peopleComponents = await readMobilePeopleComponentsSource()
+  const profileComponents = await readMobileProfileComponentsSource()
+  const threadComponents = await readMobileThreadComponentsSource()
+  const directPane = directComponents.slice(directComponents.indexOf('function DirectPane('))
+  const messageThreadList = threadComponents.slice(
+    threadComponents.indexOf('function MessageThreadList('),
+    threadComponents.indexOf('function ThreadRow(')
+  )
+  const threadRow = threadComponents.slice(
+    threadComponents.indexOf('function ThreadRow('),
+    threadComponents.indexOf('export type DirectThreadHeaderProps')
+  )
+  const threadHeader = threadComponents.slice(
+    threadComponents.indexOf('function DirectThreadHeader('),
+    threadComponents.indexOf('export function formatMobileThreadTime')
+  )
+  const peoplePane = peopleComponents.slice(
+    peopleComponents.indexOf('export function PeoplePane('),
+    peopleComponents.indexOf('export type PeopleActionsProps')
+  )
+  const peopleActions = peopleComponents.slice(
+    peopleComponents.indexOf('export function PeopleActions('),
+    peopleComponents.indexOf('export type ContactManagerProps')
+  )
+  const contactManager = peopleComponents.slice(
+    peopleComponents.indexOf('function ContactManager('),
+    peopleComponents.indexOf('function createMobileRequestProfile(')
+  )
+  const contactProfileDetail = profileComponents.slice(
+    profileComponents.indexOf('function ContactProfileDetail('),
+    profileComponents.indexOf('function getMobileAvatarToneStyle(')
+  )
+
+  assert.match(
+    source,
+    /const \[contactProfileTargetId, setContactProfileTargetId\] = useState<string \| null>\(null\)/
+  )
+  assert.match(source, /onContactProfileTargetChange=\{setContactProfileTargetId\}/)
+  assert.match(directPane, /<DirectThreadHeader[\s\S]*onOpenProfile=\{onOpenProfile\}/)
+  assert.match(directPane, /<MessageThreadList[\s\S]*onOpenProfile=\{onOpenProfile\}/)
+  assert.match(messageThreadList, /<ThreadRow[\s\S]*onOpenProfile=\{onOpenProfile\}/)
+  assert.match(threadRow, /onPress=\{\(\) => onOpenProfile\(thread\.profileId\)\}/)
+  assert.match(threadHeader, /onPress=\{\(\) => onOpenProfile\(thread\.profileId\)\}/)
+  assert.match(
+    roomComponents,
+    /onOpenProfile=\{\(contactProfileId\) => \{[\s\S]*onContactProfileTargetChange\(contactProfileId\)[\s\S]*onTabChange\('people'\)/
+  )
+  assert.match(peoplePane, /<PeopleActions[\s\S]*selectedProfileId=\{selectedProfileId\}/)
+  assert.match(
+    peoplePane,
+    /<PeopleActions[\s\S]*onSelectedProfileChange=\{onSelectedProfileChange\}/
+  )
+  assert.match(peopleActions, /<ContactManager[\s\S]*selectedProfileId=\{selectedProfileId\}/)
+  assert.match(
+    peopleActions,
+    /<ContactManager[\s\S]*onSelectedProfileChange=\{onSelectedProfileChange\}/
+  )
+  assert.match(contactManager, /const selectedContact = \(contacts \|\| \[\]\)\.find/)
+  assert.match(contactManager, /const selectedPendingRequest = \(pendingRequests \|\| \[\]\)\.find/)
+  assert.match(
+    contactManager,
+    /const selectedOutgoingRequest = \(outgoingRequests \|\| \[\]\)\.find/
+  )
+  assert.match(contactManager, /const selectedBlockedContact = \(blockedContacts \|\| \[\]\)\.find/)
+  assert.match(contactManager, /<ContactProfileDetail[\s\S]*profile=\{selectedProfile\}/)
+  assert.match(contactProfileDetail, /label=\{profile\.messageLabel\}/)
+  assert.match(contactProfileDetail, /label=\{profile\.enterHomeLabel\}/)
+  assert.match(contactProfileDetail, /profile\.recentTitle/)
+  assert.match(contactProfileDetail, /label='Remove friend'/)
+})
+
 test('mobile small trust and treehole actions share one icon button component', async () => {
   const source = await readMobileSource()
   const roomComponents = await readMobileRoomComponentsSource()

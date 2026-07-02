@@ -12,8 +12,10 @@ The current execution path is:
   evidence baseline
 - `19-v1-profile-social-delivery-next-plan.md` for the profile-social product
   model
-- `20-v1-profile-social-completion-next-plan.md` for the active implementation
-  and proof plan
+- `20-v1-profile-social-completion-next-plan.md` for the low-cost completion
+  evidence
+- `21-v1-profile-social-release-next-plan.md` for the active implementation
+  and release proof plan
 - `../v1.21-cross-device-smoke.md` for the final desktop/Android release proof
 
 ## Decision

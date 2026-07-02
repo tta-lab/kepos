@@ -105,8 +105,12 @@ The short version:
     - Use this for the product model before the completion plan.
 
 20. `20-v1-profile-social-completion-next-plan.md`
-    - Active V1 plan: finish accept, DM bootstrap, shared product logic, and
+    - Previous V1 plan: finish accept, DM bootstrap, shared product logic, and
       final proof on the profile-social route.
+    - Use this for the current low-cost completion evidence.
+
+21. `21-v1-profile-social-release-next-plan.md`
+    - Active V1 plan: finish release proof for the profile-social IM product.
     - Use this as the current implementation and proof plan.
 
 ## Core Principle

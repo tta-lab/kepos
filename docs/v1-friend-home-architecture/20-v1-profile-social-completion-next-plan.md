@@ -1,7 +1,11 @@
 # V1 Profile Social Completion Next Plan
 
-This is the active next plan after request retry became a desktop and Android
+This was the active next plan after request retry became a desktop and Android
 product affordance.
+
+The current next plan is
+`21-v1-profile-social-release-next-plan.md`. Use `21` for new V1 work. Use this
+document for the completion evidence gathered so far.
 
 The V1 rule remains:
 
@@ -43,6 +47,17 @@ Already true or partly proven:
   after restart.
 - Chat and Contacts are the intended trusted-person surfaces.
 - Home is documented as a live room, not the way to add friends.
+- Desktop and Android navigation use the same four product surfaces: Home,
+  Chat, Contacts, and Treehole.
+- Home QR, raw room key, and direct endpoint controls are behind Advanced/debug
+  surfaces instead of the normal add-friend path.
+- Desktop Chat rows can open the same profile detail route as Contacts.
+- Android Chat rows and the direct-thread header open Contacts with the selected
+  profile id, then `PeopleActions` and `ContactManager` resolve the selected
+  contact, pending request, outgoing request, blocked contact, or scanned
+  profile target into one `ContactProfileDetail`.
+- The shared trusted profile view model defines Message, Recent posts, Enter
+  Home, and Remove friend actions.
 
 ## What Is Still Not Good Enough
 
@@ -113,8 +128,13 @@ Required behavior:
 - trusted profile actions are Message, Recent posts, Enter Home, and Remove
   friend
 
-Done when source-level checks and screenshots show one product model instead of
-desktop being the real app and Android being a partial older flow.
+Low-cost status: complete for source and model proof. Tests prove shared
+navigation nouns, Advanced/debug Home QR placement, desktop profile opening
+from Chat, Android Chat and Contacts sharing one profile detail route, and
+trusted profile actions.
+
+Remaining proof: physical screenshots/manual proof still need to show the same
+model on both clients in the real cross-device path.
 
 ## Phase 4: Final Low-Cost Gates
 
