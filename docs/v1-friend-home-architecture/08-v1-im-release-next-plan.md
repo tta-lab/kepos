@@ -3,6 +3,11 @@
 This is the current V1 plan after profile-level friend request delivery, invite
 return, Home fallback quarantine, and receiver acknowledgements landed.
 
+The next implementation doc is `09-v1-profile-dm-delivery-next-plan.md`. It
+narrows the remaining work around one production rule: Profile/DM delivery is
+the social path, Home is explicit live-room entry, and direct host:port is debug
+only.
+
 The goal is no longer to prove that Home should not own friendship. That
 decision is made. The goal now is to make V1 feel like a ready private IM
 product on top of P2P.

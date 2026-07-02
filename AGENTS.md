@@ -13,6 +13,7 @@ Use these docs as the current architecture map for Kepos.
 - `docs/v1.17-ready-im-completion-plan.md`: canonical V1 completion evidence checklist and self-review for a ready private IM product on top of P2P infra.
 - `docs/v1-friend-home-architecture/07-v1-friendship-delivery-next-plan.md`: prior V1 execution plan for profile-level friend request/accept delivery and Home-control fallback quarantine.
 - `docs/v1-friend-home-architecture/08-v1-im-release-next-plan.md`: current V1 plan for finishing Kepos as a ready private IM product.
+- `docs/v1-friend-home-architecture/09-v1-profile-dm-delivery-next-plan.md`: current delivery and UX next plan; Profile/DM are the production social path, Home is explicit live-room entry, and direct host:port is debug only.
 - `docs/v1.07-architecture-gaps.md`: remaining architecture gaps for V1 after identity and QR design.
 - `docs/v1.03-limitations.md`: explicit V1 limitations, non-goals, and success bar.
 - `docs/v1.04-tradeoffs.md`: accepted V1 tradeoffs, rejected options, risks, and future escape hatches.
@@ -45,6 +46,9 @@ Use these docs as the current architecture map for Kepos.
 - Production friend bootstrap must use profile-to-profile P2P delivery. Home
   control request/invite handling is debug fallback or legacy compatibility,
   not the normal path.
+- Production private delivery must be Profile/DM oriented. Home entry is a
+  separate live-room action after trust. Direct host:port is diagnostics only,
+  not a production fallback.
 - Revoke blocks future access but does not delete already replicated data.
 - Manual raw key entry is debug or support UX, not normal product UX.
 

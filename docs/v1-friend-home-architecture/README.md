@@ -46,6 +46,10 @@ The short version:
    - Current next plan for finishing V1 as a ready private IM product.
    - Use this before changing Chat, Contacts, Profile, Treehole, Home entry, debug surfaces, or final V1 proof.
 
+9. `09-v1-profile-dm-delivery-next-plan.md`
+   - Current delivery and UX plan: Profile/DM are the production social path; Home is explicit live-room entry; direct host:port is debug only.
+   - Use this before changing friend request delivery, DM delivery, Home entry, direct connection UI, or platform parity.
+
 ## Core Principle
 
 Product semantics must not depend on the current transport shortcut.
@@ -58,4 +62,4 @@ It must not mean:
 
 > I want to join their Home room.
 
-Joining a Home should not be used to deliver the request in the target architecture. Friend request delivery must be profile-to-profile P2P.
+Joining a Home should not be used to deliver the request in the target architecture. Friend request and DM delivery must be profile-to-profile P2P.
