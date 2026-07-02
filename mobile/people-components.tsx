@@ -277,10 +277,10 @@ export function PeopleActions({
       {showAdvancedShare ? (
         <View style={styles.panel}>
           <TaskHeader
-            description='Connection details for trusted friends; trust still controls entry.'
+            description='Debug home descriptor for explicit live-room entry; it does not create friendship.'
             eyebrow='Advanced'
             styles={styles}
-            title='Home QR'
+            title='Debug Home QR'
           />
           <MobileActionButton
             accentColor={theme.accentStrong}
@@ -312,7 +312,7 @@ export function PeopleActions({
             <Text style={styles.panelCopy}>Leave this home before joining another one.</Text>
           ) : null}
           <TaskHeader
-            description='Paste or copy raw QR payloads for debug flows.'
+            description='Paste or copy raw QR payloads for advanced diagnostics.'
             eyebrow='Advanced'
             styles={styles}
             title='QR details'

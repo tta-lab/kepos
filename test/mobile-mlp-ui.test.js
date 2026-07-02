@@ -516,6 +516,20 @@ test('mobile Profile QR includes the local profile avatar uri when present', asy
   assert.match(source, /const myHomeQrUri = shareQrPayloads \? shareQrPayloads\.debugHomeUri : ''/)
 })
 
+test('mobile advanced Home QR copy is marked as debug live-room entry', async () => {
+  const peopleComponents = await readMobilePeopleComponentsSource()
+
+  assert.match(peopleComponents, /title='Debug Home QR'/)
+  assert.match(
+    peopleComponents,
+    /description='Debug home descriptor for explicit live-room entry; it does not create friendship\.'/
+  )
+  assert.doesNotMatch(
+    peopleComponents,
+    /description='Connection details for trusted friends; trust still controls entry\.'/
+  )
+})
+
 test('mobile local avatar uri can be edited and restored before sharing Profile QR', async () => {
   const source = await readMobileSource()
   const pkg = await readFile(new URL('../package.json', import.meta.url), 'utf8')
@@ -1029,7 +1043,7 @@ test('mobile Contacts hides QR transport controls behind Advanced', async () => 
   )
   const advancedToggleIndex = peopleActions.indexOf("testID='advanced-share-toggle'")
   const advancedPanelIndex = peopleActions.indexOf('showAdvancedShare ? (')
-  const homeQrIndex = peopleActions.indexOf("title='Home QR'")
+  const homeQrIndex = peopleActions.indexOf("title='Debug Home QR'")
   const addFriendIndex = peopleActions.indexOf("title='Add friend'")
   const rawQrIndex = peopleActions.indexOf("title='QR details'")
 
@@ -1038,6 +1052,7 @@ test('mobile Contacts hides QR transport controls behind Advanced', async () => 
   assert.ok(homeQrIndex > advancedPanelIndex)
   assert.ok(addFriendIndex < advancedToggleIndex)
   assert.ok(rawQrIndex > advancedPanelIndex)
+  assert.equal(peopleActions.includes("title='Home QR'"), false)
   assert.match(
     peopleActions,
     /description='Scan a Profile QR, then write a request in Chat\.'[\s\S]*title='Add friend'/

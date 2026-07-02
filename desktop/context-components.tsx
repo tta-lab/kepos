@@ -216,8 +216,8 @@ export function ContextPanel({
           >
             <PanelHeader
               eyebrow='Advanced'
-              title='Home QR'
-              description='Connection details for trusted friends; trust still controls entry.'
+              title='Debug Home QR'
+              description='Debug home descriptor for explicit live-room entry; it does not create friendship.'
             />
             <div className='actions'>
               <ActionButton
@@ -276,8 +276,8 @@ export function ContextPanel({
           onSubmit={handleProfileRequestTarget}
         >
           <PanelHeader
-            eyebrow='Advanced'
-            title='Profile request'
+            eyebrow='Contacts'
+            title='Add friend'
             description='Paste a Profile QR, then write a request in Chat.'
           />
           <div className='actions'>
