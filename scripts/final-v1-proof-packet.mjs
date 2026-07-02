@@ -57,7 +57,7 @@ export const FINAL_V1_EVIDENCE_BOUNDARIES = [
   'Desktop self-run smoke and Pear smoke prove desktop app paths; they do not prove Android camera, Android persistence, or cross-device trust UX.',
   'Android self-run smoke proves local Android create/open/post/restart behavior; it does not prove desktop-to-Android friend request and Chat flow.',
   'Debug two-device smoke proves live transport and persistence sub-paths; it does not replace the normal Profile QR -> request -> ignore -> allow -> request -> accept release path.',
-  'Profile-level request delivery must be proved with Home peer count allowed to stay at zero through request receipt and accept; Enter Home is a separate post-trust step.',
+  'Profile-level request delivery must be proved with Home peer count allowed to stay at zero through request receipt and accept; record the observed peer counts from desktop #peerLabel and Android room-transport-debug when available; Enter Home is a separate post-trust step.',
   'V1 ready requires one recorded normal cross-device run where every product-path checklist item below is checked.'
 ]
 
@@ -93,6 +93,7 @@ export function createFinalV1ProofPacket({
     '- Advanced Home QR scan (optional transport descriptor, not the trust path): <pass/fail/not run>',
     '- Home peer count at request receipt: <number observed on desktop>',
     '- Home peer count at accept/invite return: <number observed on desktop and Android>',
+    '- Home peer count evidence source: <desktop #peerLabel; Android room-transport-debug after Advanced is opened; screenshot/log path>',
     '- Evidence: <screenshots/log paths or notes>',
     '',
     '## Preflight',

@@ -53,6 +53,10 @@ test('final V1 proof packet prints the normal product-path checklist', () => {
     packet,
     /Home peer count at accept\/invite return: <number observed on desktop and Android>/
   )
+  assert.match(
+    packet,
+    /Home peer count evidence source: <desktop #peerLabel; Android room-transport-debug after Advanced is opened; screenshot\/log path>/
+  )
   assert.doesNotMatch(packet, /Physical Home QR scan: <pass\/fail>/)
   assert.match(packet, /## Preflight/)
   assert.match(packet, /`npm run v1:gate` passed on the same commit and worktree state/)
@@ -89,6 +93,8 @@ test('final V1 proof packet prints the normal product-path checklist', () => {
     /does not replace the normal Profile QR -> request -> ignore -> allow -> request -> accept/
   )
   assert.match(packet, /Home peer count allowed to stay at zero/)
+  assert.match(packet, /desktop #peerLabel/)
+  assert.match(packet, /Android room-transport-debug/)
   assert.match(packet, /V1 ready requires one recorded normal cross-device run/)
   assert.match(packet, /Do not mark V1 ready/)
   assert.equal((packet.match(/^- \[ \]/gm) || []).length, 38)
