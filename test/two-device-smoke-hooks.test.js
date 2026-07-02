@@ -125,11 +125,11 @@ test('Android lobby uses product action words for QR and trust flows', async () 
   const source = await readMobileUiSource()
 
   for (const text of [
-    'Home QR',
+    'Debug Home QR',
     'Enter Home',
     'Profile QR',
     'Friend name',
-    'Paste Home QR',
+    'Paste Debug Home QR',
     'Paste Profile QR',
     'Start request'
   ]) {
@@ -161,7 +161,10 @@ test('Android lobby starts with compact product choices', async () => {
   assert.doesNotMatch(source, /testID='quick-show-home-qr-button'/)
   assert.doesNotMatch(source, /testID='quick-scan-home-qr-button'/)
   assert.doesNotMatch(source, /testID='quick-scan-profile-qr-button'/)
-  assert.equal(source.indexOf('Scan Home QR') > source.indexOf('function PeopleActions'), true)
+  assert.equal(
+    source.indexOf('Scan Debug Home QR') > source.indexOf('function PeopleActions'),
+    true
+  )
   assert.equal(source.indexOf("label='Scan QR'") > source.indexOf('function PeopleActions'), true)
   assert.doesNotMatch(source, /showPeopleSetup/)
   assert.doesNotMatch(source, /testID='people-setup-toggle'/)
@@ -297,7 +300,7 @@ test('Android raw own QR text stays behind advanced people controls', async () =
   assert.match(source, /testID='advanced-share-toggle'/)
   assert.match(source, /showAdvancedShare \? \(/)
   assert.match(source, /<TaskHeader[\s\S]*eyebrow='Advanced'[\s\S]*title='QR details'/)
-  assert.match(source, /placeholder='Home QR details'/)
+  assert.match(source, /placeholder='Debug Home QR details'/)
   assert.match(source, /placeholder='Profile QR details'/)
   assert.equal(
     source.indexOf("testID='home-address-uri'") > source.indexOf('showAdvancedShare ? ('),
@@ -317,7 +320,7 @@ test('Android own QR cards are reveal actions, not default dashboard blocks', as
 
   assert.match(source, /const \[showHomeQr, setShowHomeQr\] = useState\(false\)/)
   assert.match(source, /const \[showQuickProfileQr, setShowQuickProfileQr\] = useState\(false\)/)
-  assert.match(source, /Show Home QR/)
+  assert.match(source, /Show Debug Home QR/)
   assert.match(source, /label='Show My QR'[\s\S]*testID='quick-show-my-qr-button'/)
   assert.equal(source.includes('Show My Profile QR'), false)
   assert.match(source, /showHomeQr \? \([\s\S]*<QrCard[\s\S]*value=\{myHomeQrUri\}/)

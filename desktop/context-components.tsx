@@ -223,22 +223,22 @@ export function ContextPanel({
               <ActionButton
                 icon={<QrCode size={17} />}
                 id='showLargeHomeQrButton'
-                label='Show Home QR'
+                label='Show Debug Home QR'
                 onClick={(event) => actions.showLargeHomeQr({ returnFocus: event.currentTarget })}
               />
               <ActionButton
                 icon={<Copy size={17} />}
                 id='copyHomeQrButton'
-                label='Copy Home QR'
+                label='Copy Debug Home QR'
                 onClick={() => actions.copyHomeQr()}
               />
             </div>
             <QrShareOutput
               detailsId='advancedHomeShare'
-              label='Home QR details'
+              label='Debug Home QR details'
               outputId='homeQrOutput'
               qrId='homeQrCode'
-              qrLabel='My home QR code'
+              qrLabel='My debug home QR code'
               svg={shareQrOutputs.homeSvg}
               uri={shareQrOutputs.homeUri}
             />
@@ -247,7 +247,7 @@ export function ContextPanel({
               <textarea
                 id='homeQrInput'
                 className='textarea textarea-bordered compactArea min-h-16 w-full resize-y bg-base-100 text-sm normal-case text-base-content'
-                placeholder='Paste Home QR'
+                placeholder='Paste Debug Home QR'
                 spellCheck='false'
                 value={form.homeQrUri}
                 onChange={(event) => updateForm({ homeQrUri: event.target.value })}

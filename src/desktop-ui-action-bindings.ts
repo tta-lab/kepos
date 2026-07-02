@@ -136,7 +136,10 @@ export function createDesktopUiActionBindings({
   ui?.setContextFormActions({
     copyHomeQr: () =>
       qrActions
-        .copyQrValue({ notice: 'Home QR copied.', value: qrActions.getShareQrOutputs().homeUri })
+        .copyQrValue({
+          notice: 'Debug Home QR copied.',
+          value: qrActions.getShareQrOutputs().homeUri
+        })
         .catch(onError),
     copyProfileQr: () =>
       qrActions

@@ -315,7 +315,7 @@ export function PeopleActions({
             accessibilityState={{ expanded: showHomeQr }}
             disabled={!profileReady}
             icon={QrCode}
-            label='Show Home QR'
+            label='Show Debug Home QR'
             onPress={() => setShowHomeQr((value) => !value)}
             testID='show-home-qr-button'
           />
@@ -329,7 +329,7 @@ export function PeopleActions({
             styles={styles}
             disabled={!canUseHomeJoin}
             icon={ArrowRight}
-            label='Scan Home QR'
+            label='Scan Debug Home QR'
             onPress={onScanHomeQr}
             testID='scan-home-qr-button'
           />
@@ -348,7 +348,7 @@ export function PeopleActions({
             autoCorrect={false}
             multiline
             onChangeText={onHomeQrChange}
-            placeholder='Paste Home QR'
+            placeholder='Paste Debug Home QR'
             placeholderTextColor={theme.placeholder}
             style={styles.keyInput}
             testID='join-home-uri-input'
@@ -400,7 +400,7 @@ export function PeopleActions({
             autoCorrect={false}
             editable={false}
             multiline
-            placeholder='Home QR details'
+            placeholder='Debug Home QR details'
             placeholderTextColor={theme.placeholder}
             style={styles.keyInput}
             testID='home-address-uri'

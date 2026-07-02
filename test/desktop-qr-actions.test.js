@@ -111,12 +111,12 @@ test('desktop QR actions open and hide large QR with focus restoration', async (
 test('desktop QR actions copy QR values and set notice', async () => {
   const { actions, calls } = createHarness()
 
-  await actions.copyQrValue({ notice: 'Home QR copied.', value: ' kepos://home/local ' })
+  await actions.copyQrValue({ notice: 'Debug Home QR copied.', value: ' kepos://home/local ' })
   await actions.copyQrValue({ notice: 'Ignored.', value: '   ' })
 
   assert.deepEqual(calls, [
     ['clipboard.writeText', ' kepos://home/local '],
-    ['notice', 'Home QR copied.'],
+    ['notice', 'Debug Home QR copied.'],
     ['render']
   ])
 })

@@ -114,9 +114,15 @@ The short version:
     - Use this for the release-proof context before `22`.
 
 22. `22-v1-profile-p2p-delivery-next-plan.md`
-    - Active V1 plan: finish production profile-to-profile P2P delivery while
+    - Previous V1 plan: finish production profile-to-profile P2P delivery while
       keeping Home out of add friend, accept, DM bootstrap, and private Chat.
-    - Use this as the current implementation and proof plan.
+    - Use this as profile P2P delivery evidence context.
+
+23. `23-v1-social-delivery-release-plan.md`
+    - Active V1 plan: finish the private IM release path on profile-social P2P.
+      Profile QR is the normal add-friend path; Debug Home QR is only an
+      advanced live-room transport descriptor.
+    - Use this as the current implementation and release-proof plan.
 
 ## Core Principle
 

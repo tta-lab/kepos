@@ -1,6 +1,10 @@
-# V1 Profile P2P Delivery Next Plan
+# V1 Profile P2P Delivery Evidence
 
-This is the active V1 next plan after we rechecked the product rule:
+This was the V1 next plan after we rechecked the product rule.
+
+The current next plan is
+`23-v1-social-delivery-release-plan.md`. Use `23` for new V1 work. Use this
+document as profile P2P delivery evidence context.
 
 ```text
 Home has no role in adding friends.

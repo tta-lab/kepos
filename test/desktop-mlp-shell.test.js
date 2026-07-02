@@ -77,10 +77,10 @@ test('desktop context panel uses product actions for home and people flows', asy
     /id='showMyQrButton'[\s\S]*actions\.showLargeProfileQr\(\{ returnFocus: event\.currentTarget \}\)/
   )
   assert.equal(source.indexOf("id='showMyQrButton'") < source.indexOf("id='homeQrForm'"), true)
-  assert.match(source, /Show Home QR/)
-  assert.match(source, /Copy Home QR/)
+  assert.match(source, /Show Debug Home QR/)
+  assert.match(source, /Copy Debug Home QR/)
   assert.match(source, /Enter Home/)
-  assert.match(source, /placeholder='Paste Home QR'/)
+  assert.match(source, /placeholder='Paste Debug Home QR'/)
   assert.match(source, /Profile QR details/)
   assert.match(source, /id='showLargeProfileQrButton'[\s\S]*label='Show My QR'/)
   assert.match(source, /Copy Profile QR/)
@@ -508,7 +508,7 @@ test('desktop people pane surfaces pending message requests', async () => {
 test('desktop keeps inline QR codes as advanced share detail', async () => {
   const source = await readDesktopUiSource()
 
-  assert.match(source, /id='copyHomeQrButton'[\s\S]*Copy Home QR/)
+  assert.match(source, /id='copyHomeQrButton'[\s\S]*Copy Debug Home QR/)
   assert.match(source, /id='copyProfileQrButton'[\s\S]*Copy Profile QR/)
   assert.equal(
     source.indexOf("qrId='homeQrCode'") > source.indexOf("detailsId='advancedHomeShare'"),
@@ -526,7 +526,7 @@ test('desktop keeps inline QR codes as advanced share detail', async () => {
     source.indexOf("id='showLargeProfileQrButton'") < source.indexOf("qrId='profileQrCode'"),
     true
   )
-  assert.match(source, /Home QR details/)
+  assert.match(source, /Debug Home QR details/)
   assert.match(source, /Profile QR details/)
   assert.equal(source.includes('My home URI'), false)
   assert.equal(source.includes('My profile URI'), false)
@@ -544,7 +544,7 @@ test('desktop QR sharing exposes copy actions without surfacing raw URI copy', a
     'utf8'
   )
 
-  assert.match(source, /Copy Home QR/)
+  assert.match(source, /Copy Debug Home QR/)
   assert.match(source, /Copy Profile QR/)
   assert.match(context, /<ActionButton[\s\S]*id='copyHomeQrButton'[\s\S]*actions\.copyHomeQr\(\)/)
   assert.match(
@@ -554,7 +554,7 @@ test('desktop QR sharing exposes copy actions without surfacing raw URI copy', a
   assert.match(bindings, /copyHomeQr: \(\) =>/)
   assert.match(bindings, /copyProfileQr: \(\) =>/)
   assert.match(controller, /navigator\.clipboard\.writeText\(value\)/)
-  assert.match(bindings, /notice: 'Home QR copied\.'/)
+  assert.match(bindings, /notice: 'Debug Home QR copied\.'/)
   assert.match(bindings, /notice: 'Profile QR copied\.'/)
   assert.match(controller, /setNotice\(notice\)/)
   assert.equal(source.includes('Copy URI'), false)

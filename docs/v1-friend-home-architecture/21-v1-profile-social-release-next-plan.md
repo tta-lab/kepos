@@ -4,7 +4,7 @@ This was the V1 release plan after the low-cost accept, DM bootstrap, and
 shared product-logic proof.
 
 The current next plan is
-`22-v1-profile-p2p-delivery-next-plan.md`. Use `22` for new V1 work. Use this
+`23-v1-social-delivery-release-plan.md`. Use `23` for new V1 work. Use this
 document as release-evidence context.
 
 The rule stays strict:

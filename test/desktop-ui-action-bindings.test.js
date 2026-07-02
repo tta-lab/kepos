@@ -134,7 +134,7 @@ test('desktop UI action bindings route renderer actions to command payloads', as
       { alias: 'Ada', displayName: 'Me', uri: 'kepos://profile' }
     ],
     ['setTab', 'dm'],
-    ['copyQrValue', { notice: 'Home QR copied.', value: 'kepos://home' }],
+    ['copyQrValue', { notice: 'Debug Home QR copied.', value: 'kepos://home' }],
     ['copyQrValue', { notice: 'Profile QR copied.', value: 'kepos://profile' }],
     ['showLargeQr', { returnFocus: 'home-button', title: 'Debug Home QR', uri: 'kepos://home' }],
     ['showLargeQr', { returnFocus: 'profile-button', title: 'Profile QR', uri: 'kepos://profile' }],

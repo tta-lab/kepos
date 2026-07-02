@@ -4,7 +4,7 @@ This was the active V1 next plan after the Home/add-friend model was corrected
 again.
 
 The current next plan is
-`22-v1-profile-p2p-delivery-next-plan.md`. Use `22` for new V1 work. Use
+`23-v1-social-delivery-release-plan.md`. Use `23` for new V1 work. Use
 this document for the product model and social-delivery context.
 
 The product rule is now stricter:
