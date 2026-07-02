@@ -88,6 +88,17 @@ test('final V1 proof checker rejects dirty worktree proof', () => {
   assert.match(result.failures.join('\n'), /worktree state must be clean/)
 })
 
+test('final V1 proof checker rejects failed physical Profile QR proof', () => {
+  const packet = completedPacket().replace(
+    '- Physical Profile QR scan: passed',
+    '- Physical Profile QR scan: failed'
+  )
+  const result = validateFinalV1ProofPacket(packet)
+
+  assert.equal(result.ok, false)
+  assert.match(result.failures.join('\n'), /Physical Profile QR scan must be recorded as passed/)
+})
+
 test('final V1 proof checker rejects packets missing required checked items', () => {
   const packet = completedPacket()
     .replace(
@@ -112,8 +123,25 @@ test('final V1 proof checker rejects nonzero Home peer count evidence', () => {
   const result = validateFinalV1ProofPacket(packet)
 
   assert.equal(result.ok, false)
-  assert.match(result.failures.join('\n'), /request receipt must be recorded as zero/)
-  assert.match(result.failures.join('\n'), /accept\/invite return must be recorded as zero/)
+  assert.match(result.failures.join('\n'), /request receipt must be recorded as numeric zero/)
+  assert.match(result.failures.join('\n'), /accept\/invite return must be recorded as numeric zero/)
+})
+
+test('final V1 proof checker rejects vague Home peer count wording', () => {
+  const packet = completedPacket()
+    .replace(
+      '- Home peer count at request receipt: 0',
+      '- Home peer count at request receipt: zero'
+    )
+    .replace(
+      '- Home peer count at accept/invite return: 0 desktop, 0 Android',
+      '- Home peer count at accept/invite return: zero on both'
+    )
+  const result = validateFinalV1ProofPacket(packet)
+
+  assert.equal(result.ok, false)
+  assert.match(result.failures.join('\n'), /request receipt must be recorded as numeric zero/)
+  assert.match(result.failures.join('\n'), /accept\/invite return must be recorded as numeric zero/)
 })
 
 test('final V1 proof checker parses file argument defensively', () => {
@@ -138,6 +166,7 @@ test('package and docs expose the final V1 proof checker', async () => {
   assert.match(recipe, /npm run v1:proof:check/)
   assert.match(recipe, /fails if required checklist items/)
   assert.match(recipe, /items are missing or still unchecked/)
-  assert.match(recipe, /Home peer counts are not recorded as zero/)
+  assert.match(recipe, /physical Profile QR scan was not recorded as passing/)
+  assert.match(recipe, /Home peer counts are not recorded as numeric zero/)
   assert.match(recipe, /worktree state is not clean/)
 })

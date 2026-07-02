@@ -28,6 +28,7 @@ export function validateFinalV1ProofPacket(contents) {
   const placeholders = contents.match(/<[^>\n]+>/g) || []
   const worktreeState = contents.match(/^- Worktree state: (.+)$/m)?.[1]?.trim() || ''
   const v1Gate = contents.match(/^- `npm run v1:gate`: (.+)$/m)?.[1]?.trim() || ''
+  const physicalProfileQr = contents.match(/^- Physical Profile QR scan: (.+)$/m)?.[1]?.trim() || ''
   const requestPeerCount =
     contents.match(/^- Home peer count at request receipt: (.+)$/m)?.[1]?.trim() || ''
   const acceptPeerCount =
@@ -70,12 +71,20 @@ export function validateFinalV1ProofPacket(contents) {
     failures.push('`npm run v1:gate` must be recorded as passed')
   }
 
+  if (
+    !physicalProfileQr ||
+    physicalProfileQr.includes('<') ||
+    !/\bpass(?:ed)?\b/i.test(physicalProfileQr)
+  ) {
+    failures.push('Physical Profile QR scan must be recorded as passed')
+  }
+
   if (!isZeroPeerCountEvidence(requestPeerCount)) {
-    failures.push('Home peer count at request receipt must be recorded as zero')
+    failures.push('Home peer count at request receipt must be recorded as numeric zero')
   }
 
   if (!isZeroPeerCountEvidence(acceptPeerCount)) {
-    failures.push('Home peer count at accept/invite return must be recorded as zero')
+    failures.push('Home peer count at accept/invite return must be recorded as numeric zero')
   }
 
   return {
@@ -90,11 +99,7 @@ function isZeroPeerCountEvidence(value) {
   if (!value || value.includes('<')) return false
 
   const numbers = value.match(/\d+/g) || []
-  if (numbers.length > 0) {
-    return numbers.every((number) => Number(number) === 0)
-  }
-
-  return /\bzero\b/i.test(value)
+  return numbers.length > 0 && numbers.every((number) => Number(number) === 0)
 }
 
 export function readFinalV1ProofCheckPath(args) {
@@ -139,8 +144,9 @@ function printHelp() {
 Checks the recorded Final V1 Release Proof Packet after a manual cross-device run.
 This helper is non-invasive: it only reads the packet and fails if required proof
 items are missing or still unchecked, placeholders remain, the worktree was not
-clean, \`npm run v1:gate\` was not recorded as passed, or Home peer count was
-not recorded as zero during request receipt and accept/invite return.`)
+clean, \`npm run v1:gate\` was not recorded as passed, physical Profile QR scan
+was not recorded as passed, or Home peer count was not recorded as numeric zero
+during request receipt and accept/invite return.`)
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
