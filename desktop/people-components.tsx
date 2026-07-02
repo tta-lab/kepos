@@ -77,6 +77,7 @@ export type TrustedContactView = {
   }[]
   recentTitle: string
   relationshipState: string
+  revokeActionLabel?: string
   shortProfileId: string
   sourceLabel: string
   statusLabel: string
@@ -324,7 +325,7 @@ export function PeopleLists({
                     ariaLabel={`Remove ${contact.alias} as friend`}
                     className='smallButton dangerButton'
                     icon={<UserX size={15} />}
-                    label='Remove friend'
+                    label={contact.revokeActionLabel || 'Remove friend'}
                     onClick={() => actions.revokeContact(contact.profileId)}
                   />
                 </div>
@@ -486,7 +487,7 @@ function ContactProfileDetail({
             ariaLabel={`Remove ${profile.alias} as friend`}
             className='smallButton dangerButton'
             icon={<UserX size={15} />}
-            label='Remove friend'
+            label={profile.revokeActionLabel || 'Remove friend'}
             onClick={() => actions.revokeContact(profile.profileId)}
           />
         ) : null}

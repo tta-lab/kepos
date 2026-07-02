@@ -41,6 +41,7 @@ test('desktop people view model formats trusted contacts for rendering', () => {
       recentCopy: 'Recent posts from this profile will appear here when available.',
       recentTitle: 'Recent posts',
       relationshipState: 'trusted',
+      revokeActionLabel: 'Remove friend',
       shortProfileId: `short:${profileId}`,
       sourceLabel: 'From Profile QR',
       statusLabel: 'Trusted',

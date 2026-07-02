@@ -120,6 +120,7 @@ export type ContactProfileDetailView = {
   recentPosts?: ContactProfileRecentPost[]
   recentTitle?: string
   relationshipState?: string
+  revokeLabel?: string
   shortProfileId?: string
   sourceLabel?: string
   statusLabel?: string
@@ -371,7 +372,7 @@ export function ContactProfileDetail({
             styles={styles}
             accessibilityLabel={`Remove ${profile.displayName} as friend`}
             icon={UserMinus}
-            label='Remove friend'
+            label={profile.revokeLabel || 'Remove friend'}
             onPress={() => onRevokeContact(profile.profileId)}
             variant='danger'
           />

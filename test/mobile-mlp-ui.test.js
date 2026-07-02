@@ -789,7 +789,7 @@ test('mobile direct contact chips and revoke actions expose trust state', async 
     /accessibilityLabel=\{`Remove \$\{profile\.displayName\} as friend`\}/
   )
   assert.match(contactProfileDetail, /icon=\{UserMinus\}/)
-  assert.match(contactProfileDetail, /label='Remove friend'/)
+  assert.match(contactProfileDetail, /label=\{profile\.revokeLabel \|\| 'Remove friend'\}/)
   assert.match(contactProfileDetail, /variant='danger'/)
   assert.match(contactProfileDetail, /profile\.relationshipState === 'incoming_request'/)
   assert.match(
@@ -1107,7 +1107,7 @@ test('mobile Chat and Contacts share one profile detail route', async () => {
   assert.match(contactProfileDetail, /label=\{profile\.messageLabel\}/)
   assert.match(contactProfileDetail, /label=\{profile\.enterHomeLabel\}/)
   assert.match(contactProfileDetail, /profile\.recentTitle/)
-  assert.match(contactProfileDetail, /label='Remove friend'/)
+  assert.match(contactProfileDetail, /label=\{profile\.revokeLabel \|\| 'Remove friend'\}/)
 })
 
 test('mobile small trust and treehole actions share one icon button component', async () => {

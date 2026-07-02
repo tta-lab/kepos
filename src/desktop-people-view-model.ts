@@ -38,6 +38,7 @@ export type DesktopTrustedContactViewModel = {
   recentCopy?: string
   recentTitle: string
   relationshipState: string
+  revokeActionLabel: string
   shortProfileId: string
   sourceLabel: string
   statusLabel: string
@@ -196,6 +197,7 @@ function createTrustedContactViewModel({
     recentCopy: profile.recentCopy,
     recentTitle: profile.recentTitle,
     relationshipState: profile.relationshipState,
+    revokeActionLabel: profile.revokeLabel,
     shortProfileId: profile.shortProfileId,
     sourceLabel: profile.sourceLabel,
     statusLabel: profile.statusLabel,
@@ -242,6 +244,7 @@ function createRequestProfileViewModel({
     recentCopy: profile.recentCopy,
     recentTitle: profile.recentTitle,
     relationshipState: profile.relationshipState,
+    revokeActionLabel: profile.revokeLabel,
     shortProfileId: profile.shortProfileId,
     sourceLabel: profile.sourceLabel,
     statusLabel: profile.statusLabel,
@@ -276,6 +279,7 @@ function createBlockedProfileViewModel({
     recentCopy: profile.recentCopy,
     recentTitle: profile.recentTitle,
     relationshipState: profile.relationshipState,
+    revokeActionLabel: profile.revokeLabel,
     shortProfileId: profile.shortProfileId,
     sourceLabel: profile.sourceLabel,
     statusLabel: profile.statusLabel,
