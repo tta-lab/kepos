@@ -36,6 +36,16 @@ export type FriendRequestTargetViewModel = {
   statusLabel: string
 }
 
+export function shouldBlockChatSendForFriendRequestTarget({
+  relationshipState
+}: Pick<FriendRequestTargetViewModel, 'relationshipState'>): boolean {
+  return (
+    relationshipState === 'blocked' ||
+    relationshipState === 'incoming_request' ||
+    relationshipState === 'outgoing_request'
+  )
+}
+
 export function createFriendRequestTargetViewModel({
   contactBook,
   resolveAvatarMediaUri = null,

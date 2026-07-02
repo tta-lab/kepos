@@ -9,7 +9,10 @@ import {
   revokeContact,
   trustContact
 } from '../src/contact-book.ts'
-import { createFriendRequestTargetViewModel } from '../src/friend-request-target-view-model.ts'
+import {
+  createFriendRequestTargetViewModel,
+  shouldBlockChatSendForFriendRequestTarget
+} from '../src/friend-request-target-view-model.ts'
 import { createProfileAvatarViewModel } from '../src/profile-avatar-view-model.ts'
 
 const target = {
@@ -177,4 +180,18 @@ test('friend request target view model stops requests for ignored and removed co
     view(revoked).copy,
     'You removed this friend. Use Allow requests from Contacts before sending again.'
   )
+})
+
+test('friend request target view model identifies states that block Chat sends', () => {
+  assert.equal(shouldBlockChatSendForFriendRequestTarget({ relationshipState: 'blocked' }), true)
+  assert.equal(
+    shouldBlockChatSendForFriendRequestTarget({ relationshipState: 'incoming_request' }),
+    true
+  )
+  assert.equal(
+    shouldBlockChatSendForFriendRequestTarget({ relationshipState: 'outgoing_request' }),
+    true
+  )
+  assert.equal(shouldBlockChatSendForFriendRequestTarget({ relationshipState: 'new' }), false)
+  assert.equal(shouldBlockChatSendForFriendRequestTarget({ relationshipState: 'trusted' }), false)
 })

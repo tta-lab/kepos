@@ -2,7 +2,10 @@ import {
   recordOutgoingFriendRequest,
   updateOutgoingFriendRequestDeliveryState
 } from './contact-book.ts'
-import { createFriendRequestTargetViewModel } from './friend-request-target-view-model.ts'
+import {
+  createFriendRequestTargetViewModel,
+  shouldBlockChatSendForFriendRequestTarget
+} from './friend-request-target-view-model.ts'
 import { formatProfileFriendRequestDeliveryState } from './profile-friend-request-delivery.ts'
 import {
   createQueuedProfileFriendRequestTransport,
@@ -210,11 +213,7 @@ export function createDesktopMessageActions({
               : { profileId: toProfileId }
         })
 
-        if (
-          requestTarget.relationshipState === 'blocked' ||
-          requestTarget.relationshipState === 'incoming_request' ||
-          requestTarget.relationshipState === 'outgoing_request'
-        ) {
+        if (shouldBlockChatSendForFriendRequestTarget(requestTarget)) {
           setNotice(requestTarget.copy)
           return
         }

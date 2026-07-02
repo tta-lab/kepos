@@ -45,6 +45,7 @@ import { markDmThreadRead, type DmThread } from '../src/dm-thread.ts'
 import { createContactProfileViewModel } from '../src/contact-profile-view-model.ts'
 import {
   createFriendRequestTargetViewModel,
+  shouldBlockChatSendForFriendRequestTarget,
   type FriendRequestTargetViewModel
 } from '../src/friend-request-target-view-model.ts'
 import { createMobileTreeholeAuthorAvatar } from '../src/mobile-avatar-view-model.ts'
@@ -913,6 +914,18 @@ export default function App() {
         entry.state === 'accepted' &&
         entry.revokedAt === undefined
     )
+    const requestTargetView = createFriendRequestTargetViewModel({
+      contactBook,
+      shortenProfileId,
+      target:
+        profileRequestTarget?.profileId === cleanRecipient
+          ? profileRequestTarget
+          : { profileId: cleanRecipient }
+    })
+    if (shouldBlockChatSendForFriendRequestTarget(requestTargetView)) {
+      setNotice(requestTargetView.copy)
+      return
+    }
 
     if (thread) {
       rpcRef.current?.request(RPC_DM_BODY_SEND).send(
@@ -928,14 +941,6 @@ export default function App() {
       return
     }
 
-    const requestTargetView = createFriendRequestTargetViewModel({
-      contactBook,
-      shortenProfileId,
-      target:
-        profileRequestTarget?.profileId === cleanRecipient
-          ? profileRequestTarget
-          : { profileId: cleanRecipient }
-    })
     if (!requestTargetView.canSendRequest) {
       setNotice(requestTargetView.copy)
       return
