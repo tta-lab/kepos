@@ -88,7 +88,7 @@ test('desktop QR actions open and hide large QR with focus restoration', async (
 
   await harness.actions.showLargeQr({
     returnFocus: harness.returnFocus,
-    title: 'Home QR',
+    title: 'Debug Home QR',
     uri: 'kepos://home/local'
   })
   harness.actions.hideLargeQr()
@@ -100,7 +100,7 @@ test('desktop QR actions open and hide large QR with focus restoration', async (
       {
         isOpen: true,
         svg: '<svg>kepos://home/local:640:4</svg>',
-        title: 'Home QR'
+        title: 'Debug Home QR'
       }
     ],
     ['largeQr', { isOpen: false, svg: '', title: '' }],

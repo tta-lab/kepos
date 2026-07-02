@@ -193,6 +193,7 @@ function createTrustedContactViewModel({
     messageActionEnabled: profile.messageEnabled,
     messageActionLabel: profile.messageLabel,
     profileId: profile.profileId,
+    recentCopy: profile.recentCopy,
     recentTitle: profile.recentTitle,
     relationshipState: profile.relationshipState,
     shortProfileId: profile.shortProfileId,

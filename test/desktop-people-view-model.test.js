@@ -38,6 +38,7 @@ test('desktop people view model formats trusted contacts for rendering', () => {
       messageActionEnabled: true,
       messageActionLabel: 'Message',
       profileId,
+      recentCopy: 'Recent posts from this profile will appear here when available.',
       recentTitle: 'Recent posts',
       relationshipState: 'trusted',
       shortProfileId: `short:${profileId}`,
