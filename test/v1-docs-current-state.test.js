@@ -1218,11 +1218,24 @@ test('V1 active plan records source-level profile-social hardening as closed', a
   assert.match(plan, /allowHomeTrustFallback/)
   assert.match(plan, /normal Home peer connection is not a hidden social\s+delivery route/)
   assert.match(plan, /profileRequestRuntime/)
+  assert.match(plan, /Make Product Parity Honest/)
+  assert.match(plan, /Desktop `PeoplePane` exposes Friend requests, Sent requests, Profiles/)
+  assert.match(
+    plan,
+    /Android `PeoplePane` exposes the same request, contact, removed \/ ignored,\s+and selected-profile detail route/
+  )
+  assert.match(
+    plan,
+    /profile details expose Message, Recent posts, explicit\s+Enter Home, Remove friend, request accept \/ ignore, and Allow requests/
+  )
+  assert.match(plan, /Chat thread rows on desktop and Android can open the same profile detail/)
+  assert.match(plan, /Home remains an explicit live-room action, not the friend system/)
   assert.match(
     plan,
     /remaining blocker is proving the normal\s+product path on real desktop plus physical Android/
   )
   assert.doesNotMatch(plan, /remaining blocker is\s+closing stale-state edges/)
+  assert.doesNotMatch(plan, /If mobile lacks a normal button that desktop has/)
 })
 
 test('V1 previous release proof plan names the final readiness bar', async () => {

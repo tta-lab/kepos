@@ -124,6 +124,8 @@ Current evidence:
 
 ### 3. Make Product Parity Honest
 
+Status: source-level low-cost closure is done.
+
 Desktop and Android do not need identical layouts, but they must expose the same
 V1 product facts:
 
@@ -134,8 +136,25 @@ V1 product facts:
 - Treehole writes local owner posts
 - Home shows the active owner and does not pretend to be the friend system
 
-If mobile lacks a normal button that desktop has, add it or explain why it is
-debug-only.
+Current evidence:
+
+- `src/contact-profile-view-model.ts` is the shared profile-detail model for
+  trusted, incoming-request, outgoing-request, ignored, and removed states.
+- Desktop `PeoplePane` exposes Friend requests, Sent requests, Profiles, and
+  Removed / ignored sections; each row can open the same profile detail surface.
+- Android `PeoplePane` exposes the same request, contact, removed / ignored,
+  and selected-profile detail route through typed TSX component slices.
+- Desktop and Android profile details expose Message, Recent posts, explicit
+  Enter Home, Remove friend, request accept / ignore, and Allow requests only
+  when the relationship state permits those actions.
+- Chat thread rows on desktop and Android can open the same profile detail
+  route as Contacts.
+- Home owner bars on desktop and Android show the current Home owner context;
+  Home remains an explicit live-room action, not the friend system.
+- `test/mobile-mlp-ui.test.js`, `test/desktop-mlp-shell.test.js`,
+  `test/desktop-people-view-model.test.js`, and
+  `test/contact-profile-view-model.test.js` pin these source-level parity
+  surfaces.
 
 ### 4. Run Low-Cost Proof Before Phone Smoke
 
