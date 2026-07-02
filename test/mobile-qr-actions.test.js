@@ -102,4 +102,27 @@ describe('mobile QR scan actions', () => {
     assert.equal(result.ownerProfileId, owner.publicKey)
     assert.equal(result.canEnter, false)
   })
+
+  test('home scan asks for Debug Home QR when given a profile QR', () => {
+    const local = createSigningKeyPair()
+    const remote = createSigningKeyPair()
+    const book = createContactBook({ ownerProfileId: local.publicKey })
+    const uri = encodeQrUri(
+      createSignedTrustInvitePayload({
+        createdAt: 1000,
+        displayName: 'Ada',
+        identity: remote
+      })
+    )
+
+    assert.throws(
+      () =>
+        applyMobileHomeQrScan({
+          book,
+          localProfileId: local.publicKey,
+          uri
+        }),
+      /Debug Home QR is required/
+    )
+  })
 })

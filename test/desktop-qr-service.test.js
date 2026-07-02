@@ -146,6 +146,29 @@ test('desktop QR service rejects untrusted home QR before join', () => {
   )
 })
 
+test('desktop QR service asks for Debug Home QR when given a profile QR', () => {
+  const localIdentity = createSigningKeyPair()
+  const remoteIdentity = createSigningKeyPair()
+  const book = createContactBook({ ownerProfileId: localIdentity.publicKey })
+  const uri = encodeQrUri(
+    createSignedTrustInvitePayload({
+      createdAt: 1000,
+      displayName: 'Ada',
+      identity: remoteIdentity
+    })
+  )
+
+  assert.throws(
+    () =>
+      applyDesktopHomeQr({
+        book,
+        localProfileId: localIdentity.publicKey,
+        uri
+      }),
+    /Debug Home QR is required/
+  )
+})
+
 test('desktop QR service creates signed profile and home share QR outputs', async () => {
   const identity = createSigningKeyPair()
 

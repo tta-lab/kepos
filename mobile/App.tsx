@@ -628,9 +628,9 @@ export default function App() {
         })
       )
     } catch (error) {
-      console.error('Could not read Home QR', error)
+      console.error('Could not read Debug Home QR', error)
       setLastError(errorMessage(error))
-      setNotice('Could not read this Home QR.')
+      setNotice('Could not read this Debug Home QR.')
     }
   }
 

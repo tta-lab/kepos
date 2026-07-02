@@ -193,8 +193,12 @@ function getDesktopErrorNotice(error) {
     return 'Could not join this home. Trust this friend on this device first.'
   }
 
-  if (message.includes('Home QR is required') || message.includes('Invalid signed home QR')) {
-    return 'Could not read this Home QR.'
+  if (
+    message.includes('Debug Home QR is required') ||
+    message.includes('Home QR is required') ||
+    message.includes('Invalid signed home QR')
+  ) {
+    return 'Could not read this Debug Home QR.'
   }
 
   if (message.includes('Profile QR is required') || message.includes('Invalid signed profile QR')) {

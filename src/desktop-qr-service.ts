@@ -62,7 +62,7 @@ export function applyDesktopHomeQr({
   })
 
   if (result.kind !== 'home') {
-    throw new Error('Home QR is required')
+    throw new Error('Debug Home QR is required')
   }
 
   if (!result.canEnter) {
