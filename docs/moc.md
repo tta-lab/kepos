@@ -36,15 +36,20 @@ This is the map of content for Kepos architecture docs.
    - Final V1 MLP person-first UI/UX refactor target: friend request, mutual trust, profile, contacts, messages, recent posts, and explicit home entry.
    - Use this before changing QR, trust, navigation, profile, contacts, messages, or treehole UX.
 
-9. `docs/v1.17-ready-im-completion-plan.md`
-   - Canonical V1 completion evidence plan and self-review for a ready private IM product on top of P2P infra.
-   - Use this as the checklist before starting V2 or calling V1 ready.
+9. `docs/v1-friend-home-architecture/README.md`
+   - Fresh V1 model for friends, Home, DM, Treehole, QR, and transport.
+   - Use this when friend request and Home entry feel coupled or confusing.
 
-10. `docs/v1.20-smoke-guide.md`
+10. `docs/v1.17-ready-im-completion-plan.md`
+
+- Canonical V1 completion evidence plan and self-review for a ready private IM product on top of P2P infra.
+- Use this as the checklist before starting V2 or calling V1 ready.
+
+11. `docs/v1.20-smoke-guide.md`
     - Desktop and Android manual smoke checklist for V1 parity.
     - Use this before calling V1 ready.
 
-11. `docs/v1.21-cross-device-smoke.md`
+12. `docs/v1.21-cross-device-smoke.md`
     - Agent recipe for validating desktop/Android product paths, including the final V1 release proof packet.
     - Use this before reporting cross-device work as ready or generating `tmp/final-v1-proof.md`.
 
