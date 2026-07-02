@@ -8,6 +8,7 @@ import {
   revokeContact,
   trustContact
 } from '../src/contact-book.ts'
+import { createContactProfileViewModel } from '../src/contact-profile-view-model.ts'
 import { createDesktopPeopleViewModel } from '../src/desktop-people-view-model.ts'
 
 test('desktop people view model formats trusted contacts for rendering', () => {
@@ -48,6 +49,39 @@ test('desktop people view model formats trusted contacts for rendering', () => {
       trustedAtLabel: 'Trusted Jan 1, 1970'
     }
   ])
+})
+
+test('desktop people view model preserves shared profile action labels', () => {
+  const profileId = 'b'.repeat(64)
+  const contact = {
+    alias: 'Ada',
+    homeAddress: 'c'.repeat(64),
+    homeExpiresAt: 9999999999999,
+    homeRoomKey: 'd'.repeat(64),
+    profileId,
+    proof: { signature: 'owner-proof' },
+    source: 'profile_qr',
+    trustedAt: 2000
+  }
+  const book = trustContact(createContactBook({ ownerProfileId: 'owner-a' }), contact)
+  const sharedProfile = createContactProfileViewModel({
+    contact,
+    formatDate: () => 'Jan 1, 1970',
+    shortenProfileId: (profileId) => `short:${profileId}`
+  })
+
+  const viewModel = createDesktopPeopleViewModel({
+    contactBook: book,
+    formatDate: () => 'Jan 1, 1970',
+    shortenProfileId: (profileId) => `short:${profileId}`
+  })
+  const desktopProfile = viewModel.trustedContacts[0]
+
+  assert.equal(desktopProfile.homeActionLabel, sharedProfile.enterHomeLabel)
+  assert.equal(desktopProfile.messageActionLabel, sharedProfile.messageLabel)
+  assert.equal(desktopProfile.recentCopy, sharedProfile.recentCopy)
+  assert.equal(desktopProfile.recentTitle, sharedProfile.recentTitle)
+  assert.equal(desktopProfile.revokeActionLabel, sharedProfile.revokeLabel)
 })
 
 test('desktop people view model uses product copy for home-sourced trust', () => {
