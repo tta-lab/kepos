@@ -48,6 +48,11 @@ test('final V1 proof packet prints the normal product-path checklist', () => {
     packet,
     /Advanced Home QR scan \(optional transport descriptor, not the trust path\)/
   )
+  assert.match(packet, /Home peer count at request receipt: <number observed on desktop>/)
+  assert.match(
+    packet,
+    /Home peer count at accept\/invite return: <number observed on desktop and Android>/
+  )
   assert.doesNotMatch(packet, /Physical Home QR scan: <pass\/fail>/)
   assert.match(packet, /## Preflight/)
   assert.match(packet, /`npm run v1:gate` passed on the same commit and worktree state/)

@@ -91,6 +91,8 @@ export function createFinalV1ProofPacket({
     '- Android runtime: <Metro/dev-client | installed debug APK | installed release APK>',
     '- Physical Profile QR scan: <pass/fail>',
     '- Advanced Home QR scan (optional transport descriptor, not the trust path): <pass/fail/not run>',
+    '- Home peer count at request receipt: <number observed on desktop>',
+    '- Home peer count at accept/invite return: <number observed on desktop and Android>',
     '- Evidence: <screenshots/log paths or notes>',
     '',
     '## Preflight',
