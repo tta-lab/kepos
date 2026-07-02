@@ -168,7 +168,7 @@ export function ContextPanel({
               disabled={!controls.canCreateHome}
               icon={<Home size={17} />}
               id='createButton'
-              label='Open my home'
+              label='Open Home'
               onClick={() => actions.createHome({ displayName })}
             />
             <ActionButton

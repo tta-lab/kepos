@@ -154,10 +154,10 @@ test('Android lobby starts with compact product choices', async () => {
     source,
     /<Field[\s\S]*label='Name'[\s\S]*onChangeText=\{onNickChange\}[\s\S]*value=\{nick\}/
   )
-  assert.match(source, /Open my home/)
+  assert.match(source, /Open Home/)
   assert.match(source, /label='Show My QR'[\s\S]*testID='quick-show-my-qr-button'/)
+  assert.match(source, /label='Add friend'[\s\S]*testID='quick-open-contacts-button'/)
   assert.match(source, /showQuickProfileQr \? \([\s\S]*<QrCard[\s\S]*value=\{profileQrUri\}/)
-  assert.doesNotMatch(source, /testID='quick-open-contacts-button'/)
   assert.doesNotMatch(source, /testID='quick-show-home-qr-button'/)
   assert.doesNotMatch(source, /testID='quick-scan-home-qr-button'/)
   assert.doesNotMatch(source, /testID='quick-scan-profile-qr-button'/)
@@ -274,7 +274,7 @@ test('Android normal UI copy avoids backend and address language', async () => {
   for (const text of [
     'Show My QR or scan a profile.',
     'Show My QR or add a friend.',
-    'Open my home',
+    'Open Home',
     'Starting home...',
     'Home connection error.'
   ]) {

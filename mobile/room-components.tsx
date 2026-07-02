@@ -308,6 +308,7 @@ export function ChatRoom({
               onJoinRoom={onJoinRoom}
               onLocalAvatarUriChange={onLocalAvatarUriChange}
               onNickChange={onNickChange}
+              onOpenContacts={() => onTabChange('people')}
               onRoomKeyChange={onRoomKeyChange}
               onToggleAdvancedJoin={onToggleAdvancedJoin}
               profileQrUri={profileQrUri}

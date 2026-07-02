@@ -640,7 +640,7 @@ test('desktop normal UI copy avoids raw home address language', async () => {
   const state = await readFile(new URL('../src/desktop-state.ts', import.meta.url), 'utf8')
   const desktopCopy = `${source}\n${controller}\n${roomActions}\n${state}`
 
-  assert.match(source, /Open my home/)
+  assert.match(source, /Open Home/)
   assert.match(desktopCopy, /Show My QR or add a friend\./)
   assert.match(desktopCopy, /Joining home\.\.\./)
   assert.match(source, /<p className='label'>Home<\/p>/)

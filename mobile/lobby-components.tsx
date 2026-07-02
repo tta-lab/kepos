@@ -31,6 +31,7 @@ export type HomeStartupPaneProps = {
   onJoinRoom(): void
   onLocalAvatarUriChange: QuickStartPanelProps['onLocalAvatarUriChange']
   onNickChange: QuickStartPanelProps['onNickChange']
+  onOpenContacts: QuickStartPanelProps['onOpenContacts']
   onRoomKeyChange(value: string): void
   onToggleAdvancedJoin(): void
   profileQrUri: string
@@ -52,6 +53,7 @@ export function HomeStartupPane({
   onJoinRoom,
   onLocalAvatarUriChange,
   onNickChange,
+  onOpenContacts,
   onRoomKeyChange,
   onToggleAdvancedJoin,
   profileReady,
@@ -75,6 +77,7 @@ export function HomeStartupPane({
         onChooseLocalAvatarImage={onChooseLocalAvatarImage}
         onLocalAvatarUriChange={onLocalAvatarUriChange}
         onNickChange={onNickChange}
+        onOpenContacts={onOpenContacts}
         profileQrUri={profileQrUri}
         profileReady={profileReady}
         styles={styles}

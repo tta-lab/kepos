@@ -186,6 +186,11 @@ Evidence added after the descriptor race fix:
   regression test now locks that behavior.
 - Desktop and Android still keep explicit Enter Home as a separate action from
   Profile QR, request send, request accept, and Chat open.
+- Android first-run Quick Start now makes Profile QR and Add friend the primary
+  actions; Open Home remains available but is no longer the primary onboarding
+  action.
+- Desktop and Android copy now says `Open Home` for the live-room action,
+  avoiding `Open my home` as onboarding language.
 
 ### 3. Remove Or Quarantine Legacy Product Paths
 

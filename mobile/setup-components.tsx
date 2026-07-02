@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { StyleProp, ViewStyle } from 'react-native'
 import { View } from 'react-native'
-import { Image, Plus, QrCode } from 'lucide-react-native'
+import { House, Image, QrCode, UserPlus } from 'lucide-react-native'
 import { MobileActionButton, type MobileActionButtonStyles } from './action-components.tsx'
 import { QrCard } from './chrome-components.tsx'
 import { Field, type FieldStyles } from './form-components.tsx'
@@ -26,6 +26,7 @@ export type QuickStartPanelProps = {
   localAvatarUri?: string
   nick?: string
   onCreateRoom(): void
+  onOpenContacts(): void
   onChooseLocalAvatarImage(): void
   onLocalAvatarUriChange(value: string): void
   onNickChange(value: string): void
@@ -39,6 +40,7 @@ export function QuickStartPanel({
   localAvatarUri,
   nick,
   onCreateRoom,
+  onOpenContacts,
   onChooseLocalAvatarImage,
   onLocalAvatarUriChange,
   onNickChange,
@@ -81,28 +83,39 @@ export function QuickStartPanel({
           disabledContentColor={theme.placeholder}
           primaryContentColor={theme.surface}
           styles={styles}
-          disabled={!profileReady}
-          icon={Plus}
-          label='Open my home'
-          onPress={onCreateRoom}
-          testID='create-home-button'
-          variant='primary'
-        />
-        <MobileActionButton
-          accentColor={theme.accentStrong}
-          disabledContentColor={theme.placeholder}
-          primaryContentColor={theme.surface}
-          styles={styles}
           accessibilityState={{ expanded: showQuickProfileQr }}
           disabled={!profileReady}
           icon={QrCode}
           label='Show My QR'
           onPress={() => setShowQuickProfileQr((value) => !value)}
           testID='quick-show-my-qr-button'
+          variant='primary'
         />
         {showQuickProfileQr ? (
           <QrCard backgroundColor={theme.raised} styles={styles} value={profileQrUri} />
         ) : null}
+        <MobileActionButton
+          accentColor={theme.accentStrong}
+          disabledContentColor={theme.placeholder}
+          primaryContentColor={theme.surface}
+          styles={styles}
+          disabled={!profileReady}
+          icon={UserPlus}
+          label='Add friend'
+          onPress={onOpenContacts}
+          testID='quick-open-contacts-button'
+        />
+        <MobileActionButton
+          accentColor={theme.accentStrong}
+          disabledContentColor={theme.placeholder}
+          primaryContentColor={theme.surface}
+          styles={styles}
+          disabled={!profileReady}
+          icon={House}
+          label='Open Home'
+          onPress={onCreateRoom}
+          testID='create-home-button'
+        />
       </View>
     </View>
   )
