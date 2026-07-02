@@ -1,8 +1,8 @@
 # V1 Profile-First IM Next Plan
 
 This is the V1 product model after the Home/add-friend model was rechecked.
-The active implementation plan is
-`12-v1-profile-first-implementation-next-plan.md`.
+The current active implementation plan is
+`22-v1-profile-p2p-delivery-next-plan.md`.
 
 The decision is:
 

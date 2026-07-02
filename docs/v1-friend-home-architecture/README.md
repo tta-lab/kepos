@@ -110,7 +110,12 @@ The short version:
     - Use this for the current low-cost completion evidence.
 
 21. `21-v1-profile-social-release-next-plan.md`
-    - Active V1 plan: finish release proof for the profile-social IM product.
+    - Previous V1 plan: release evidence for the profile-social IM product.
+    - Use this for the release-proof context before `22`.
+
+22. `22-v1-profile-p2p-delivery-next-plan.md`
+    - Active V1 plan: finish production profile-to-profile P2P delivery while
+      keeping Home out of add friend, accept, DM bootstrap, and private Chat.
     - Use this as the current implementation and proof plan.
 
 ## Core Principle

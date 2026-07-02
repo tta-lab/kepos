@@ -4,7 +4,7 @@ This was the active next plan after request retry became a desktop and Android
 product affordance.
 
 The current next plan is
-`21-v1-profile-social-release-next-plan.md`. Use `21` for new V1 work. Use this
+`22-v1-profile-p2p-delivery-next-plan.md`. Use `22` for new V1 work. Use this
 document for the completion evidence gathered so far.
 
 The V1 rule remains:

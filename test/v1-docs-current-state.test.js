@@ -108,6 +108,7 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
     'docs/v1-friend-home-architecture/19-v1-profile-social-delivery-next-plan.md',
     'docs/v1-friend-home-architecture/20-v1-profile-social-completion-next-plan.md',
     'docs/v1-friend-home-architecture/21-v1-profile-social-release-next-plan.md',
+    'docs/v1-friend-home-architecture/22-v1-profile-p2p-delivery-next-plan.md',
     'docs/v1.20-smoke-guide.md',
     'docs/v1.21-cross-device-smoke.md'
   ]) {
@@ -130,7 +131,8 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
   assert.match(docs, /Previous V1 profile P2P hardening next plan/)
   assert.match(docs, /Previous V1 profile social delivery next plan/)
   assert.match(docs, /Previous V1 profile social completion next plan/)
-  assert.match(docs, /Active V1 profile social release next plan/)
+  assert.match(docs, /Previous V1 profile social release evidence/)
+  assert.match(docs, /Active V1 profile P2P delivery next plan/)
   assert.match(docs, /profile-routed private IM/)
   assert.match(docs, /profile-to-profile P2P route/)
   assert.match(docs, /Profile is the social address/)
@@ -142,6 +144,7 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
   assert.match(profileFirst, /19-v1-profile-social-delivery-next-plan\.md/)
   assert.match(profileFirst, /20-v1-profile-social-completion-next-plan\.md/)
   assert.match(profileFirst, /21-v1-profile-social-release-next-plan\.md/)
+  assert.match(profileFirst, /22-v1-profile-p2p-delivery-next-plan\.md/)
   assert.match(profileFirst, /\.\.\/v1\.21-cross-device-smoke\.md/)
   assert.match(moc, /Prior product-logic unification next plan/)
   assert.doesNotMatch(
@@ -1143,7 +1146,7 @@ test('V1 docs use Remove friend as the normal user-facing revoke action', async 
   assert.doesNotMatch(docs, /Revoke trust, delete/)
 })
 
-test('V1 active release plan records honest delivery state proof', async () => {
+test('V1 release evidence records honest delivery state proof', async () => {
   const releasePlan = await readText(
     '../docs/v1-friend-home-architecture/21-v1-profile-social-release-next-plan.md'
   )
@@ -1164,6 +1167,26 @@ test('V1 active release plan records honest delivery state proof', async () => {
   assert.match(releasePlan, /instead of Home or room transport/)
   assert.match(releasePlan, /final physical cross-device packet/)
   assert.doesNotMatch(releasePlan, /Do not hide P2P uncertainty behind optimistic UI\.\s*$/)
+})
+
+test('V1 active profile P2P plan keeps Home out of social delivery', async () => {
+  const activePlan = await readText(
+    '../docs/v1-friend-home-architecture/22-v1-profile-p2p-delivery-next-plan.md'
+  )
+
+  assert.match(activePlan, /Home has no role in adding friends/)
+  assert.match(activePlan, /Profile is the social address/)
+  assert.match(activePlan, /Production delivery is profile-to-profile P2P/)
+  assert.match(activePlan, /Direct host:port is diagnostics only/)
+  assert.match(activePlan, /friend request/)
+  assert.match(activePlan, /request accept/)
+  assert.match(activePlan, /DM bootstrap/)
+  assert.match(activePlan, /private message/)
+  assert.match(activePlan, /send request does not call Home entry code/)
+  assert.match(activePlan, /accept does not require Home peers/)
+  assert.match(activePlan, /DM bootstrap does not require Home peers/)
+  assert.match(activePlan, /Do not use Home control traffic as the production friend-request route/)
+  assert.match(activePlan, /Do not run physical phone smoke unless the user asks for it/)
 })
 
 test('V1 normal UX docs use Chat and Treehole product labels', async () => {

@@ -14,8 +14,9 @@ The current execution path is:
   model
 - `20-v1-profile-social-completion-next-plan.md` for the low-cost completion
   evidence
-- `21-v1-profile-social-release-next-plan.md` for the active implementation
-  and release proof plan
+- `21-v1-profile-social-release-next-plan.md` for the release evidence context
+- `22-v1-profile-p2p-delivery-next-plan.md` for the active profile P2P
+  delivery next plan
 - `../v1.21-cross-device-smoke.md` for the final desktop/Android release proof
 
 ## Decision

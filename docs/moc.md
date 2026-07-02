@@ -56,7 +56,8 @@ This is the map of content for Kepos architecture docs.
    Previous V1 profile P2P hardening next plan: `docs/v1-friend-home-architecture/18-v1-profile-p2p-hardening-next-plan.md`.
    Previous V1 profile social delivery next plan: `docs/v1-friend-home-architecture/19-v1-profile-social-delivery-next-plan.md`.
    Previous V1 profile social completion next plan: `docs/v1-friend-home-architecture/20-v1-profile-social-completion-next-plan.md`.
-   Active V1 profile social release next plan: `docs/v1-friend-home-architecture/21-v1-profile-social-release-next-plan.md`.
+   Previous V1 profile social release evidence: `docs/v1-friend-home-architecture/21-v1-profile-social-release-next-plan.md`.
+   Active V1 profile P2P delivery next plan: `docs/v1-friend-home-architecture/22-v1-profile-p2p-delivery-next-plan.md`.
 
 10. `docs/v1.17-ready-im-completion-plan.md`
     - Canonical V1 completion evidence plan and self-review for a ready private IM product on top of P2P infra.
@@ -72,114 +73,123 @@ This is the map of content for Kepos architecture docs.
 
 ## V1 Architecture
 
-1. `docs/v1-friend-home-architecture/21-v1-profile-social-release-next-plan.md`
-   - Active V1 plan: finish release proof for the profile-to-profile social IM
+1. `docs/v1-friend-home-architecture/22-v1-profile-p2p-delivery-next-plan.md`
+   - Active V1 plan: finish production profile-to-profile P2P delivery for the
+     private IM product. Profile is the social address; Chat and Contacts are
+     the main social surfaces; Home is only an explicit live room after trust;
+     direct host:port is diagnostics only.
+   - Use this before changing request delivery, accept delivery, DM bootstrap,
+     Chat/Profile UX, Treehole/Profile context, Home entry, or cross-device
+     smoke.
+
+2. `docs/v1-friend-home-architecture/21-v1-profile-social-release-next-plan.md`
+   - Previous V1 plan: release evidence for the profile-to-profile social IM
      product. Profile is the social address; Chat and Contacts are the main
      social surfaces; Home is only an explicit live room after trust.
    - Use this before changing release criteria, final proof, Chat/Profile UX,
      Treehole/Profile context, Home entry, or cross-device smoke.
 
-2. `docs/v1-friend-home-architecture/20-v1-profile-social-completion-next-plan.md`
+3. `docs/v1-friend-home-architecture/20-v1-profile-social-completion-next-plan.md`
    - Previous V1 plan: finish accept, DM bootstrap, shared product logic, and
      final proof on the profile-to-profile social route. Profile is the social
      address; Home is only an explicit live room after trust.
    - Use this before changing accept delivery, DM bootstrap, Chat/Profile UX,
      Treehole/Profile context, Home entry, or final V1 proof.
 
-3. `docs/v1-friend-home-architecture/19-v1-profile-social-delivery-next-plan.md`
+4. `docs/v1-friend-home-architecture/19-v1-profile-social-delivery-next-plan.md`
    - Previous V1 plan: finish profile-social delivery on the profile-to-profile
      P2P route. Profile is the social address; friend requests, accepts, DM
      bootstrap, durable Chat, and profile context use profile delivery; Home is
      only an explicit live room after trust.
    - Use this for the product model before the completion plan.
 
-4. `docs/v1-friend-home-architecture/18-v1-profile-p2p-hardening-next-plan.md`
+5. `docs/v1-friend-home-architecture/18-v1-profile-p2p-hardening-next-plan.md`
    - Previous plan: harden the profile-to-profile P2P production route.
    - Use this for the evidence baseline and route-hardening context before
      `19`.
 
-5. `docs/v1-friend-home-architecture/17-v1-profile-routed-im-next-plan.md`
+6. `docs/v1-friend-home-architecture/17-v1-profile-routed-im-next-plan.md`
    - Previous plan: finish Kepos as a profile-routed private IM. Friendship,
      requests, Chat, and profile posts are profile-routed; Home is an optional
      live room after trust.
    - Use this for the product model locked before `18`.
 
-6. `docs/v1-friend-home-architecture/16-v1-profile-delivery-next-plan.md`
+7. `docs/v1-friend-home-architecture/16-v1-profile-delivery-next-plan.md`
    - Previous plan: production friend request, accept, and durable DM delivery
      use profile-level P2P only; Home is explicit live-room entry after trust.
    - Use this for the previous profile-delivery cleanup context.
 
-7. `docs/v1-friend-home-architecture/15-v1-ready-product-next-plan.md`
+8. `docs/v1-friend-home-architecture/15-v1-ready-product-next-plan.md`
    - Previous plan: finish V1 as a profile-first private IM product before
      more V2/V3 work. Lock desktop/Android parity, make Chat the primary trust
      result, keep Treehole personal, demote Home to explicit live room, and run
      the release proof.
    - Use this for the previous ready-product plan and release proof context.
 
-8. `docs/v1-friend-home-architecture/14-v1-product-logic-unification-next-plan.md`
+9. `docs/v1-friend-home-architecture/14-v1-product-logic-unification-next-plan.md`
    - Prior plan: make desktop and Android share one profile-first IM
      product model, with Home only as explicit live-room entry.
    - Use this before changing Android parity, desktop navigation semantics,
      request state copy, Chat/Profile actions, or Home advanced controls.
 
-9. `docs/v1-friend-home-architecture/13-v1-home-decoupling-next-plan.md`
-   - Prior plan: Profile/DM own friendship, request delivery, accept,
-     durable Chat, and profile posts; Home is explicit live room after trust.
-   - Use this before changing add-friend delivery, DM bootstrap, profile hub,
-     or Home entry behavior.
+10. `docs/v1-friend-home-architecture/13-v1-home-decoupling-next-plan.md`
+    - Prior plan: Profile/DM own friendship, request delivery, accept,
+      durable Chat, and profile posts; Home is explicit live room after trust.
+    - Use this before changing add-friend delivery, DM bootstrap, profile hub,
+      or Home entry behavior.
 
-10. `docs/v1-friend-home-architecture/12-v1-profile-first-implementation-next-plan.md`
+11. `docs/v1-friend-home-architecture/12-v1-profile-first-implementation-next-plan.md`
     - Prior V1 implementation next plan: profile-first private IM, Home as
       explicit live room, production P2P delivery, low-cost proof, and final
       release evidence.
     - Use this before changing friend request delivery, Chat/Contacts/Profile
       UX, Home entry, or release proof.
 
-11. `docs/v1-friend-home-architecture/11-v1-profile-first-im-next-plan.md`
+12. `docs/v1-friend-home-architecture/11-v1-profile-first-im-next-plan.md`
     - V1 product model: friendship is profile-to-profile, DM is durable private
       Chat, and Home is only an explicit live room after trust.
     - Use this when the product nouns or flow semantics are unclear.
 
-12. `docs/v1.02-research-backlog.md`
+13. `docs/v1.02-research-backlog.md`
     - Research work that must be complete before implementation.
     - Use this to track library selection and architecture blockers.
 
-13. `docs/v1.03-limitations.md`
+14. `docs/v1.03-limitations.md`
     - What V1 deliberately does not solve.
     - Use this to avoid accidentally expanding scope.
 
-14. `docs/v1.04-tradeoffs.md`
+15. `docs/v1.04-tradeoffs.md`
     - Decisions, rejected options, risks, and future escape hatches.
     - Use this when a design choice is debated.
 
-15. `docs/v1.05-typescript-boundary.md`
+16. `docs/v1.05-typescript-boundary.md`
     - TypeScript boundary for V1 protocol/domain modules versus platform
       runtime glue.
     - Use this before adding new shared protocol code.
 
-16. `docs/v1.06-identity-security.md`
+17. `docs/v1.06-identity-security.md`
     - Identity, signing, trust, device model, and Keet-grade target.
     - V1 requires real identity signing and verification.
     - V1 does not require seed phrase, device attestation, or multi-device
       linking.
 
-17. `docs/v1.07-architecture-gaps.md`
+18. `docs/v1.07-architecture-gaps.md`
     - Architecture gaps still blocking V1.
     - Use this as the issue list before implementation.
 
-18. `docs/v1.08-dm-bootstrap-security.md`
+19. `docs/v1.08-dm-bootstrap-security.md`
     - DM invite model, message requests, durable thread, revoke, and bootstrap
       security.
     - Explicit signed/encrypted invite is the target.
 
-19. `docs/v1.09-treehole-authorization.md`
+20. `docs/v1.09-treehole-authorization.md`
     - Treehole signed events, writer grants, reducer policy, tombstones, and
       owner/trust rules.
 
-20. `docs/v1.10-qr-code-matching.md`
+21. `docs/v1.10-qr-code-matching.md`
     - QR envelope, profile/home/message request payloads, and matching flows.
 
-21. `docs/v1.30-kepos-features.html`
+22. `docs/v1.30-kepos-features.html`
     - Local HTML feature overview.
     - Useful for smoke testing and explaining current features.
 

@@ -4,7 +4,7 @@ This was the active next plan after deciding that Home should have no role in
 friendship delivery.
 
 The current next plan is
-`20-v1-profile-social-completion-next-plan.md`. Use `20` for new V1 work. Use
+`22-v1-profile-p2p-delivery-next-plan.md`. Use `22` for new V1 work. Use
 this document for the evidence baseline and route-hardening context that led to
 the profile-social completion plan.
 
