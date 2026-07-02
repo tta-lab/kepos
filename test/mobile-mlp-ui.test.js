@@ -518,21 +518,33 @@ test('mobile task headers live in checked TSX panel components', async () => {
   assert.match(panelComponents, /function TaskHeader\(/)
 })
 
-test('mobile Profile QR includes the local profile avatar uri when present', async () => {
+test('mobile Profile QR includes profile fields and stays independent from Home', async () => {
   const source = await readMobileSource()
   const profileQr = source.slice(
-    source.indexOf('const shareQrPayloads = useMemo('),
-    source.indexOf('const profileQrUri = shareQrPayloads')
+    source.indexOf('const profileShareQrPayloads = useMemo('),
+    source.indexOf('const homeShareQrPayloads = useMemo(')
+  )
+  const homeQr = source.slice(
+    source.indexOf('const homeShareQrPayloads = useMemo('),
+    source.indexOf('const profileQrUri = profileShareQrPayloads')
   )
 
   assert.match(source, /import \{ createShareQrPayloads \} from '\.\.\/src\/share-qr-service\.ts'/)
   assert.match(profileQr, /createShareQrPayloads\(/)
   assert.match(profileQr, /avatarMedia: localAvatarMedia/)
   assert.match(profileQr, /avatarUri: localAvatarUri/)
-  assert.match(profileQr, /homeRoom: homeRoomKey/)
-  assert.match(profileQr, /\[homeRoomKey, identity, localAvatarMedia, localAvatarUri, nick\]/)
-  assert.match(source, /const profileQrUri = shareQrPayloads \? shareQrPayloads\.primaryUri : ''/)
-  assert.match(source, /const myHomeQrUri = shareQrPayloads \? shareQrPayloads\.debugHomeUri : ''/)
+  assert.doesNotMatch(profileQr, /homeRoom|homeRoomKey/)
+  assert.match(profileQr, /\[identity, localAvatarMedia, localAvatarUri, nick\]/)
+  assert.match(homeQr, /homeRoom: homeRoomKey/)
+  assert.match(homeQr, /\[homeRoomKey, identity, localAvatarMedia, localAvatarUri, nick\]/)
+  assert.match(
+    source,
+    /const profileQrUri = profileShareQrPayloads \? profileShareQrPayloads\.primaryUri : ''/
+  )
+  assert.match(
+    source,
+    /const myHomeQrUri = homeShareQrPayloads \? homeShareQrPayloads\.debugHomeUri : ''/
+  )
 })
 
 test('mobile advanced Home QR copy is marked as debug live-room entry', async () => {
@@ -746,6 +758,8 @@ test('mobile ContactBook direct writes keep the runtime ref in sync', async () =
   )
   assert.match(persistIncomingMessageRequest, /syncContactBook\(nextBook\)/)
   assert.match(acceptIncomingMessageRequest, /syncContactBook\(nextBook\)[\s\S]*RPC_DM_ACCEPT/)
+  assert.match(acceptIncomingMessageRequest, /const activeRpc = rpcRef\.current/)
+  assert.doesNotMatch(acceptIncomingMessageRequest, /homeRoomKey|homeReady|session/)
   assert.match(ignoreIncomingMessageRequest, /syncContactBook\(nextBook\)/)
   assert.doesNotMatch(retryOutgoingMessageRequest, /contactBookRef\.current = nextBook/)
   assert.doesNotMatch(persistIncomingMessageRequest, /contactBookRef\.current = nextBook/)

@@ -324,7 +324,16 @@ export default function App() {
   }, [profileId])
 
   const canJoin = ROOM_KEY_PATTERN.test(roomKey.trim())
-  const shareQrPayloads = useMemo(() => {
+  const profileShareQrPayloads = useMemo(() => {
+    if (!identity) return ''
+    return createShareQrPayloads({
+      avatarMedia: localAvatarMedia,
+      avatarUri: localAvatarUri,
+      displayName: nick,
+      identity
+    })
+  }, [identity, localAvatarMedia, localAvatarUri, nick])
+  const homeShareQrPayloads = useMemo(() => {
     if (!identity) return ''
     return createShareQrPayloads({
       avatarMedia: localAvatarMedia,
@@ -340,8 +349,8 @@ export default function App() {
       identity
     })
   }, [homeRoomKey, identity, localAvatarMedia, localAvatarUri, nick])
-  const profileQrUri = shareQrPayloads ? shareQrPayloads.primaryUri : ''
-  const myHomeQrUri = shareQrPayloads ? shareQrPayloads.debugHomeUri : ''
+  const profileQrUri = profileShareQrPayloads ? profileShareQrPayloads.primaryUri : ''
+  const myHomeQrUri = homeShareQrPayloads ? homeShareQrPayloads.debugHomeUri : ''
   const dmContactOptions = useMemo(
     () => (contactBook ? listTrustedContacts(contactBook) : []),
     [contactBook]

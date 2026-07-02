@@ -200,6 +200,9 @@ Already implemented before this plan:
 - Desktop profile/DM startup configures and opens the owner profile-scoped
   Treehole without Home join.
 - Desktop Treehole runtime tracks `profile` and `home` scopes separately.
+- Android Profile QR and Debug Home QR are now computed separately. The normal
+  Profile QR calculation does not pass `homeRoom` or depend on `homeRoomKey`;
+  only the advanced Debug Home QR calculation receives Home data.
 
 Still open:
 

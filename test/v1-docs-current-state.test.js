@@ -213,6 +213,8 @@ test('V1 active profile and DM only social plan keeps Home out of normal social 
   assert.match(plan, /Keep Home Descriptor Delivery Post-Trust/)
   assert.match(plan, /Run Final Physical Proof Last/)
   assert.match(plan, /source-level route increasingly clean; release proof still open/)
+  assert.match(plan, /Android Profile QR and Debug Home QR are now computed separately/)
+  assert.match(plan, /does not pass `homeRoom` or depend on `homeRoomKey`/)
 })
 
 test('V1 previous profile and DM first release plan demotes Home from social delivery', async () => {
