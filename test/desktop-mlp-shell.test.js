@@ -224,7 +224,10 @@ test('desktop people UI uses trusted friends copy', async () => {
   assert.match(source, /<ActionButton[\s\S]*ariaLabel=\{`Remove \$\{contact\.alias\} as friend`\}/)
   assert.match(source, /<ActionButton[\s\S]*className='smallButton dangerButton'/)
   assert.match(source, /<ActionButton[\s\S]*icon=\{<UserX size=\{15\} \/>\}/)
-  assert.match(source, /<ActionButton[\s\S]*label='Remove friend'/)
+  assert.match(
+    source,
+    /<ActionButton[\s\S]*label=\{contact\.revokeActionLabel \|\| 'Remove friend'\}/
+  )
   assert.match(presenter, /ui\?\.setPeople\(/)
   assert.match(
     bindings,
@@ -590,7 +593,7 @@ test('desktop request and QR dialog actions use clear icons', async () => {
   )
   assert.match(
     people,
-    /<ActionButton[\s\S]*icon=\{<UserX size=\{15\} \/>\}[\s\S]*label='Remove friend'[\s\S]*actions\.revokeContact\(contact\.profileId\)/
+    /<ActionButton[\s\S]*icon=\{<UserX size=\{15\} \/>\}[\s\S]*label=\{contact\.revokeActionLabel \|\| 'Remove friend'\}[\s\S]*actions\.revokeContact\(contact\.profileId\)/
   )
   assert.match(
     people,
@@ -612,7 +615,10 @@ test('desktop request and QR dialog actions use clear icons', async () => {
     people,
     /<ActionButton[\s\S]*ariaLabel=\{`Allow requests from \$\{profile\.alias\}`\}[\s\S]*icon=\{<UserPlus size=\{15\} \/>\}[\s\S]*label='Allow requests'[\s\S]*actions\.allowContactRequests\(profile\.profileId\)/
   )
-  assert.match(source, /import \{ Heart, MessageCircle, Send, Sprout, User, UserPlus \}/)
+  assert.match(
+    source,
+    /import \{[\s\S]*Heart,[\s\S]*MessageCircle,[\s\S]*Send,[\s\S]*Sprout,[\s\S]*User,[\s\S]*UserPlus,[\s\S]*UserX/
+  )
   assert.match(
     panes,
     /<RequestActionButton[\s\S]*ariaLabel='Ignore friend request'[\s\S]*onIgnore\(actions\.ignoreMessage\)[\s\S]*variant='ignore'/

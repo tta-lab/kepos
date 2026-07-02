@@ -159,6 +159,40 @@ test('creates Chat rows from trusted contacts without saved DM threads', () => {
   )
 })
 
+test('selects synthetic trusted-contact Chat rows by profile id', () => {
+  const friendProfileId = 'b'.repeat(64)
+  const book = trustContact(createContactBook({ ownerProfileId: 'a'.repeat(64) }), {
+    alias: 'Mina',
+    profileId: friendProfileId,
+    trustedAt: 1000
+  })
+  const rows = createDmThreadListView({
+    contactBook: book,
+    formatTime: (value) => `t:${value}`,
+    shortenProfileId: (value) => `${value.slice(0, 4)}...`,
+    threads: []
+  })
+
+  assert.deepEqual(
+    findSelectedDmThreadView({ selectedProfileId: friendProfileId, threads: rows }),
+    {
+      avatar: {
+        initials: 'M',
+        label: 'Mina avatar',
+        tone: 'avatarTone3'
+      },
+      label: 'Mina',
+      preview: 'No messages yet',
+      profileId: friendProfileId,
+      statusLabel: 'Accepted thread',
+      threadId: `contact:${friendProfileId}`,
+      timeLabel: 't:1000',
+      unreadCount: 0,
+      unreadLabel: ''
+    }
+  )
+})
+
 test('creates Chat rows from trusted contact arrays without saved DM threads', () => {
   const friendProfileId = 'b'.repeat(64)
 
