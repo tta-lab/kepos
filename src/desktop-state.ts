@@ -24,7 +24,7 @@ export type DesktopState = {
 
 export function createDesktopState(): DesktopState {
   return {
-    activeTab: 'chat',
+    activeTab: 'people',
     activeHomeOwnerProfileId: '',
     messages: [],
     lastError: '',
@@ -53,6 +53,7 @@ export function setDesktopRoom(
 ): DesktopState {
   return {
     ...state,
+    activeTab: 'chat',
     activeHomeOwnerProfileId: room.ownerProfileId || '',
     mode: room.mode ?? state.mode,
     nick: room.nick?.trim() || 'Desktop',

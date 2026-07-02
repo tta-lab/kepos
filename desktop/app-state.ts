@@ -415,7 +415,7 @@ const desktopUiBridge: DesktopUiBridge = {
 export function useDesktopAppModel() {
   const [activeHomeOwnerProfileId, setActiveHomeOwnerProfileId] = useState('')
   const activeHomeOwnerProfileIdRef = useRef('')
-  const [activeTab, setActiveTab] = useState<ActiveTab>('chat')
+  const [activeTab, setActiveTab] = useState<ActiveTab>('people')
   const [contextForm, setContextForm] = useState(DEFAULT_CONTEXT_FORM)
   const [contextFormActions, setContextFormActions] = useState<ContextFormActions>(
     DEFAULT_CONTEXT_FORM_ACTIONS

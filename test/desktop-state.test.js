@@ -10,11 +10,11 @@ import {
 } from '../src/desktop-state.ts'
 
 describe('desktop state', () => {
-  test('starts in the lobby with chat selected', () => {
+  test('starts in the lobby with Contacts selected', () => {
     const state = createDesktopState()
 
     assert.equal(state.view, 'lobby')
-    assert.equal(state.activeTab, 'chat')
+    assert.equal(state.activeTab, 'people')
     assert.equal(state.notice, 'Show My QR or add a friend.')
     assert.deepEqual(state.messages, [])
     assert.deepEqual(state.treeholePosts, [])
@@ -31,6 +31,7 @@ describe('desktop state', () => {
     })
 
     assert.equal(state.view, 'room')
+    assert.equal(state.activeTab, 'chat')
     assert.equal(state.mode, 'host')
     assert.equal(state.roomKey, 'a'.repeat(64))
     assert.equal(state.nick, 'Neil')

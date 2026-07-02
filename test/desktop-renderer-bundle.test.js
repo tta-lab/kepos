@@ -260,7 +260,7 @@ test('desktop React owns tab and pane active state', async () => {
 
   assert.match(source, /setActiveTab\(tab = 'chat'\)/)
   assert.match(source, /setShellActions\(actions = DEFAULT_SHELL_ACTIONS\)/)
-  assert.match(source, /const \[activeTab, setActiveTab\] = useState<ActiveTab>\('chat'\)/)
+  assert.match(source, /const \[activeTab, setActiveTab\] = useState<ActiveTab>\('people'\)/)
   assert.match(
     source,
     /const \[shellActions, setShellActions\] = useState<ShellActions>\(DEFAULT_SHELL_ACTIONS\)/
