@@ -34,7 +34,8 @@ Use these docs as the current architecture map for Kepos.
 - `docs/v1-friend-home-architecture/27-v1-profile-social-finalization-next-plan.md`: previous V1 plan; profile-social finalization and final physical proof packet owner.
 - `docs/v1-friend-home-architecture/28-v1-profile-delivery-home-independent-next-plan.md`: previous V1 plan; Profile QR no longer carries or stores Home descriptors.
 - `docs/v1-friend-home-architecture/29-v1-profile-delivery-home-demotion-next-plan.md`: previous V1 plan; profile delivery owns social delivery, and Home is only explicit post-trust live room/activity space.
-- `docs/v1-friend-home-architecture/30-v1-profile-only-social-route-next-plan.md`: active V1 plan; profile-to-profile P2P is the only production social route, Home has no role in adding friends, and direct host:port is diagnostics only.
+- `docs/v1-friend-home-architecture/30-v1-profile-only-social-route-next-plan.md`: previous V1 plan; profile-to-profile P2P is the only production social route, Home has no role in adding friends, and direct host:port is diagnostics only.
+- `docs/v1-friend-home-architecture/31-v1-profile-p2p-release-next-plan.md`: active V1 plan; close remaining product-route leaks, align desktop and Android product logic, keep debug surfaces out of onboarding, and produce final release proof.
 - `docs/v1.07-architecture-gaps.md`: remaining architecture gaps for V1 after identity and QR design.
 - `docs/v1.03-limitations.md`: explicit V1 limitations, non-goals, and success bar.
 - `docs/v1.04-tradeoffs.md`: accepted V1 tradeoffs, rejected options, risks, and future escape hatches.

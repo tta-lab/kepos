@@ -151,7 +151,7 @@ test('desktop control actions ignore Home-control message requests by default', 
 })
 
 test('desktop control actions can receive debug Home-control message requests explicitly', async () => {
-  const { actions, calls } = createHarness({ allowHomeTrustFallback: true })
+  const { actions, calls } = createHarness({ allowDebugHomeTrustFallback: true })
   const message = {
     fromProfileId: 'friend',
     id: 'request-1',
@@ -376,7 +376,7 @@ test('desktop control actions ignore signed DM body Home fallback frames by defa
 })
 
 test('desktop control actions can receive debug signed DM body fallback frames explicitly', async () => {
-  const { actions, calls } = createHarness({ allowHomeDmBodyFallback: true })
+  const { actions, calls } = createHarness({ allowDebugHomeDmBodyFallback: true })
   const message = {
     messageId: 'message-1',
     threadId: 'thread-1'

@@ -51,8 +51,8 @@ As of 2026-07-03, the source has moved close to the target model:
 - Chat send is gated by the current ContactBook request state on desktop and
   Android
 - Android Home-peer resend of outgoing friend requests is debug-only behind
-  `allowHomeTrustFallback`; normal Home peer connection is not a hidden social
-  delivery route
+  `allowDebugHomeTrustFallback`; normal Home peer connection is not a hidden
+  social delivery route
 - local Treehole posts persist
 - Home entry is exposed as an explicit trusted-profile action
 - the current non-device `npm run v1:gate` passed on commit

@@ -21,16 +21,18 @@ The current execution path is:
 - `24-v1-release-proof-next-plan.md` for the final release-proof bar
 - `25-v1-profile-route-implementation-next-plan.md` for the previous route and
   UI parity implementation pass
-- `26-v1-readiness-closure-next-plan.md` for the active V1 readiness closure
+- `26-v1-readiness-closure-next-plan.md` for the previous V1 readiness closure
   plan
-- `27-v1-profile-social-finalization-next-plan.md` for the active V1 final
+- `27-v1-profile-social-finalization-next-plan.md` for the previous V1 final
   implementation and proof plan
 - `28-v1-profile-delivery-home-independent-next-plan.md` for the previous V1
   Home-independent profile delivery plan
 - `29-v1-profile-delivery-home-demotion-next-plan.md` for the previous V1
   profile delivery and Home demotion plan
-- `30-v1-profile-only-social-route-next-plan.md` for the active V1
+- `30-v1-profile-only-social-route-next-plan.md` for the previous V1
   profile-only social route plan
+- `31-v1-profile-p2p-release-next-plan.md` for the active V1 profile P2P
+  release plan
 - `../v1.21-cross-device-smoke.md` for the final desktop/Android release proof
 
 ## Decision
@@ -181,10 +183,11 @@ Current execution note:
 - `24` owns the final release-proof bar.
 - `25` owns the profile-route implementation pass.
 - `26` owns the V1 readiness closure context.
-- `27` owns the active V1 final implementation and proof plan.
+- `27` owns the previous V1 final implementation and proof plan.
 - `28` owns the previous V1 Home-independent profile delivery and proof plan.
 - `29` owns the previous V1 profile delivery and Home demotion plan.
-- `30` owns the active V1 profile-only social route plan.
+- `30` owns the previous V1 profile-only social route plan.
+- `31` owns the active V1 profile P2P release plan.
 - `../v1.21-cross-device-smoke.md` owns the final release proof packet.
 
 The current product behavior is intentionally honest: a request can be queued or searching locally without claiming the other side received it.

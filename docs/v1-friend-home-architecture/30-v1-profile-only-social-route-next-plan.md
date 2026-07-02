@@ -207,6 +207,15 @@ Audit normal user actions and tests for hidden fallback:
 If legacy compatibility remains, it must be named as compatibility or debug in
 code and tests.
 
+Status: in progress.
+
+Evidence:
+
+- Desktop and Android Home-control fallback switches now use explicit
+  `allowDebugHomeTrustFallback` and `allowDebugHomeDmBodyFallback` names in
+  source and tests. The old non-debug `allowHome*Fallback` names are no longer
+  accepted as the normal code vocabulary.
+
 ### 4. Prove The Profile-Only Route With Low-Cost Gates
 
 Use focused proof before physical smoke:

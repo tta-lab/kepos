@@ -158,9 +158,15 @@ The short version:
     - Use this for Home demotion context before `30`.
 
 30. `30-v1-profile-only-social-route-next-plan.md`
-    - Active V1 plan: profile-to-profile P2P is the only production social
+    - Previous V1 plan: profile-to-profile P2P is the only production social
       route. Home has no role in adding friends, direct host:port is diagnostics
       only, and Home entry is explicit after trust.
+    - Use this for the route decision before `31`.
+
+31. `31-v1-profile-p2p-release-next-plan.md`
+    - Active V1 plan: close remaining product-route leaks, align desktop and
+      Android product logic, keep debug surfaces out of onboarding, and produce
+      final release proof for the profile-to-profile P2P private IM.
     - Use this for current V1 work before starting V2.
 
 ## Core Principle

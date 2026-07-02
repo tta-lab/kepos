@@ -82,7 +82,7 @@ export type DesktopMessageActions = {
 }
 
 export function createDesktopMessageActions({
-  allowHomeDmBodyFallback = false,
+  allowDebugHomeDmBodyFallback = false,
   createId = createDefaultSecureId,
   getContactBook = () => null,
   getDmRuntime = () => null,
@@ -100,7 +100,7 @@ export function createDesktopMessageActions({
   setNotice = () => {},
   setSession = () => {}
 }: {
-  allowHomeDmBodyFallback?: boolean
+  allowDebugHomeDmBodyFallback?: boolean
   createId?: () => string
   getContactBook?: () => ContactBook | null
   getDmRuntime?: () => DmRuntime | null
@@ -243,7 +243,7 @@ export function createDesktopMessageActions({
           )
         }
       }
-      if (allowHomeDmBodyFallback && result.kind === 'message') {
+      if (allowDebugHomeDmBodyFallback && result.kind === 'message') {
         getHomeRuntime()?.broadcastControl({
           message: result.message,
           type: 'kepos.dm.body.v1'

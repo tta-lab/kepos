@@ -426,7 +426,7 @@ test('desktop message actions can enable debug Home DM body fallback explicitly'
     type: 'kepos.dm.message.v1'
   }
   const actions = createDesktopMessageActions({
-    allowHomeDmBodyFallback: true,
+    allowDebugHomeDmBodyFallback: true,
     createId: () => 'id',
     getDmRuntime: () => ({
       sendMessageOrRequest() {

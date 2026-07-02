@@ -711,12 +711,14 @@ test('desktop backend session keeps Home DM body fallback debug-only', async () 
     'utf8'
   )
 
-  assert.match(source, /KEPOS_ALLOW_HOME_DM_BODY_FALLBACK/)
-  assert.match(source, /KEPOS_ALLOW_HOME_TRUST_FALLBACK/)
-  assert.match(source, /allowHomeDmBodyFallback,\s*\n\s*createId/)
+  assert.match(source, /KEPOS_ALLOW_DEBUG_HOME_DM_BODY_FALLBACK/)
+  assert.match(source, /KEPOS_ALLOW_DEBUG_HOME_TRUST_FALLBACK/)
+  assert.doesNotMatch(source, /KEPOS_ALLOW_HOME_DM_BODY_FALLBACK/)
+  assert.doesNotMatch(source, /KEPOS_ALLOW_HOME_TRUST_FALLBACK/)
+  assert.match(source, /allowDebugHomeDmBodyFallback,\s*\n\s*createId/)
   assert.match(
     source,
-    /allowHomeDmBodyFallback,\s*\n\s*allowHomeTrustFallback,\s*\n\s*configureTreeholeRuntime/
+    /allowDebugHomeDmBodyFallback,\s*\n\s*allowDebugHomeTrustFallback,\s*\n\s*configureTreeholeRuntime/
   )
   assert.match(source, /source: 'profile'/)
 })

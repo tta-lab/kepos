@@ -83,8 +83,8 @@ export type DesktopControlActions = {
 }
 
 export function createDesktopControlActions({
-  allowHomeDmBodyFallback = false,
-  allowHomeTrustFallback = false,
+  allowDebugHomeDmBodyFallback = false,
+  allowDebugHomeTrustFallback = false,
   configureTreeholeRuntime,
   createControlMessageResult = createDesktopControlMessageResult as unknown as ControlMessageResultFactory,
   createTreeholeControlSendResult = createDesktopTreeholeControlSendResult as unknown as TreeholeControlSendResultFactory,
@@ -101,8 +101,8 @@ export function createDesktopControlActions({
   storeAvatarMediaBytesControl = storeAvatarMediaBytesControlDefault as unknown as AvatarMediaBytesControlStore,
   shortenProfileId
 }: {
-  allowHomeDmBodyFallback?: boolean
-  allowHomeTrustFallback?: boolean
+  allowDebugHomeDmBodyFallback?: boolean
+  allowDebugHomeTrustFallback?: boolean
   configureTreeholeRuntime: () => void
   createControlMessageResult?: ControlMessageResultFactory
   createTreeholeControlSendResult?: TreeholeControlSendResultFactory
@@ -145,7 +145,7 @@ export function createDesktopControlActions({
     }
 
     if (message.type === 'kepos.message.request.v1') {
-      if (!isProfileSource && !allowHomeTrustFallback) return
+      if (!isProfileSource && !allowDebugHomeTrustFallback) return
 
       const context = getProfileContext()
       const dmRuntime = getDmRuntime()
@@ -167,7 +167,7 @@ export function createDesktopControlActions({
     }
 
     if (message.type === 'kepos.dm.invite.v1') {
-      if (!isProfileSource && !allowHomeTrustFallback) return
+      if (!isProfileSource && !allowDebugHomeTrustFallback) return
 
       const { contactBook, profile } = getProfileContext()
       const result = await createControlMessageResult({
@@ -212,7 +212,7 @@ export function createDesktopControlActions({
     }
 
     if (message.type === 'kepos.dm.body.v1') {
-      if (!allowHomeDmBodyFallback) return
+      if (!allowDebugHomeDmBodyFallback) return
 
       if (getDmRuntime().receiveMessage?.(message.message)) {
         onChanged()

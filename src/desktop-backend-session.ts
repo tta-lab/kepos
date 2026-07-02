@@ -53,8 +53,8 @@ export function createDesktopBackendSession({
   let homeRuntime: DesktopHomeRuntime
   let profileRequestRuntime: ProfileFriendRequestRuntime | null = null
   let treeholeRuntime: DesktopTreeholeRuntime
-  const allowHomeDmBodyFallback = env.KEPOS_ALLOW_HOME_DM_BODY_FALLBACK === '1'
-  const allowHomeTrustFallback = env.KEPOS_ALLOW_HOME_TRUST_FALLBACK === '1'
+  const allowDebugHomeDmBodyFallback = env.KEPOS_ALLOW_DEBUG_HOME_DM_BODY_FALLBACK === '1'
+  const allowDebugHomeTrustFallback = env.KEPOS_ALLOW_DEBUG_HOME_TRUST_FALLBACK === '1'
   let profileRequestTarget: unknown = null
   const publishProfileRequestTarget = (target: unknown): void => {
     profileRequestTarget = target || null
@@ -91,7 +91,7 @@ export function createDesktopBackendSession({
     }
   }
   const messageActions = createDesktopMessageActions({
-    allowHomeDmBodyFallback,
+    allowDebugHomeDmBodyFallback,
     createId,
     getContactBook: () => getProfileContext().contactBook,
     getDmRuntime: () => dmRuntime,
@@ -126,8 +126,8 @@ export function createDesktopBackendSession({
     setNotice
   } as never)
   const controlActions = createDesktopControlActions({
-    allowHomeDmBodyFallback,
-    allowHomeTrustFallback,
+    allowDebugHomeDmBodyFallback,
+    allowDebugHomeTrustFallback,
     configureTreeholeRuntime,
     getDmRuntime: () => dmRuntime,
     getHomeJoinDetails: () => controllerState.getHomeJoinDetails(),
@@ -396,8 +396,8 @@ type DesktopLocalBackendHostFactory = (options: {
 }) => DesktopLocalBackendHostLike
 
 type DesktopBackendSessionEnv = {
-  KEPOS_ALLOW_HOME_DM_BODY_FALLBACK?: string
-  KEPOS_ALLOW_HOME_TRUST_FALLBACK?: string
+  KEPOS_ALLOW_DEBUG_HOME_DM_BODY_FALLBACK?: string
+  KEPOS_ALLOW_DEBUG_HOME_TRUST_FALLBACK?: string
   KEPOS_DIRECT_ADVERTISED_HOST?: string
   KEPOS_DIRECT_LISTEN_HOST?: string
 }

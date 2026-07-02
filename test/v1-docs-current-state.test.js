@@ -117,6 +117,7 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
     'docs/v1-friend-home-architecture/28-v1-profile-delivery-home-independent-next-plan.md',
     'docs/v1-friend-home-architecture/29-v1-profile-delivery-home-demotion-next-plan.md',
     'docs/v1-friend-home-architecture/30-v1-profile-only-social-route-next-plan.md',
+    'docs/v1-friend-home-architecture/31-v1-profile-p2p-release-next-plan.md',
     'docs/v1.20-smoke-guide.md',
     'docs/v1.21-cross-device-smoke.md'
   ]) {
@@ -150,7 +151,8 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
   assert.match(docs, /Previous V1 profile-social finalization plan/)
   assert.match(docs, /Previous V1 Home-independent profile delivery plan/)
   assert.match(docs, /Previous V1 profile delivery and Home demotion plan/)
-  assert.match(docs, /Active V1 profile-only social route plan/)
+  assert.match(docs, /Previous V1 profile-only social route plan/)
+  assert.match(docs, /Active V1 profile P2P release plan/)
   assert.match(docs, /profile-routed private IM/)
   assert.match(docs, /profile-to-profile P2P route/)
   assert.match(docs, /Profile is the social address/)
@@ -171,6 +173,7 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
   assert.match(profileFirst, /28-v1-profile-delivery-home-independent-next-plan\.md/)
   assert.match(profileFirst, /29-v1-profile-delivery-home-demotion-next-plan\.md/)
   assert.match(profileFirst, /30-v1-profile-only-social-route-next-plan\.md/)
+  assert.match(profileFirst, /31-v1-profile-p2p-release-next-plan\.md/)
   assert.match(profileFirst, /\.\.\/v1\.21-cross-device-smoke\.md/)
   assert.match(moc, /Prior product-logic unification next plan/)
   assert.doesNotMatch(
@@ -178,6 +181,26 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
     /current execution plan has moved on to `08-v1-im-release-next-plan\.md`/
   )
   assert.doesNotMatch(profileFirst, /evidence packet described in `08`/)
+})
+
+test('V1 active profile P2P release plan owns final release work', async () => {
+  const plan = await readText(
+    '../docs/v1-friend-home-architecture/31-v1-profile-p2p-release-next-plan.md'
+  )
+
+  assert.match(plan, /Profile QR -> friend request -> accept/)
+  assert.match(plan, /Home -> explicit live room after trust/)
+  assert.match(plan, /Home is not the friend system/)
+  assert.match(plan, /profile-to-profile P2P/)
+  assert.match(plan, /allowDebugHomeTrustFallback/)
+  assert.match(plan, /allowDebugHomeDmBodyFallback/)
+  assert.match(plan, /old non-debug `allowHome\*Fallback` names are rejected by tests/)
+  assert.match(plan, /Close Remaining Product-Route Leaks/)
+  assert.match(plan, /Make Desktop And Android Product Logic Match/)
+  assert.match(plan, /Keep Debug Surfaces Out Of Onboarding/)
+  assert.match(plan, /Produce The Final Physical Proof Packet/)
+  assert.match(plan, /npm run v1:proof:check -- --file tmp\/final-v1-proof\.md/)
+  assert.match(plan, /No physical desktop\/Android smoke has been run/)
 })
 
 test('V1 active profile-only social route plan keeps Home out of social delivery', async () => {
@@ -1250,8 +1273,8 @@ test('V1 active plan records source-level profile-social hardening as closed', a
   assert.match(plan, /Android APK\s+native-library checks/)
   assert.match(plan, /syncContactBook\(\)/)
   assert.match(plan, /contactBookRef\.current/)
-  assert.match(plan, /allowHomeTrustFallback/)
-  assert.match(plan, /normal Home peer connection is not a hidden social\s+delivery route/)
+  assert.match(plan, /allowDebugHomeTrustFallback/)
+  assert.match(plan, /normal Home peer connection is not a hidden\s+social delivery route/)
   assert.match(plan, /profileRequestRuntime/)
   assert.match(plan, /Make Product Parity Honest/)
   assert.match(plan, /Desktop `PeoplePane` exposes Friend requests, Sent requests, Profiles/)

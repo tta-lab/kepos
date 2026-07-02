@@ -37,14 +37,14 @@ test('Android backend preserves remote treehole snapshots across local empty ref
 test('Android backend gates debug signed DM body Home fallback frames', async () => {
   const source = await readFile(new URL('../backend/backend.mjs', import.meta.url), 'utf8')
 
-  assert.match(source, /let allowHomeDmBodyFallback = false/)
+  assert.match(source, /let allowDebugHomeDmBodyFallback = false/)
   assert.match(source, /type: 'kepos\.dm\.body\.v1'/)
   assert.match(
     source,
-    /if \(allowHomeDmBodyFallback\) \{[\s\S]*room\?\.broadcastControl\(\{[\s\S]*message,[\s\S]*type: 'kepos\.dm\.body\.v1'/
+    /if \(allowDebugHomeDmBodyFallback\) \{[\s\S]*room\?\.broadcastControl\(\{[\s\S]*message,[\s\S]*type: 'kepos\.dm\.body\.v1'/
   )
   assert.match(
     source,
-    /if \(message\.type === 'kepos\.dm\.body\.v1'\) \{[\s\S]*if \(!allowHomeDmBodyFallback\)/
+    /if \(message\.type === 'kepos\.dm\.body\.v1'\) \{[\s\S]*if \(!allowDebugHomeDmBodyFallback\)/
   )
 })

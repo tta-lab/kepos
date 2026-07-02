@@ -106,8 +106,10 @@ test('android backend trims outgoing text at the RPC boundary', () => {
   )
   const sendDmBody = sliceBetween(source, 'function sendDmBody', 'async function revokeDmByProfile')
 
-  assert.match(source, /let allowHomeDmBodyFallback = false/)
-  assert.match(source, /let allowHomeTrustFallback = false/)
+  assert.match(source, /let allowDebugHomeDmBodyFallback = false/)
+  assert.match(source, /let allowDebugHomeTrustFallback = false/)
+  assert.doesNotMatch(source, /allowHomeDmBodyFallback/)
+  assert.doesNotMatch(source, /allowHomeTrustFallback/)
   assert.match(source, /const outgoingMessageRequestsByProfileId = new Map\(\)/)
   assert.doesNotMatch(leaveRoom, /profileRequestRuntime\?\.close\(\)/)
   assert.doesNotMatch(leaveRoom, /dmRuntime\?\.closeAll\(\)/)
@@ -121,7 +123,7 @@ test('android backend trims outgoing text at the RPC boundary', () => {
   assert.match(joinRoom, /resendOutgoingMessageRequests\(peer\)/)
   assert.match(
     resendOutgoingMessageRequests,
-    /if \(!allowHomeTrustFallback \|\| !room \|\| !peer\)/
+    /if \(!allowDebugHomeTrustFallback \|\| !room \|\| !peer\)/
   )
   assert.match(resendOutgoingMessageRequests, /outgoingMessageRequestsByProfileId\.values\(\)/)
   assert.match(resendOutgoingMessageRequests, /room\.sendControl\(peer, request\)/)
@@ -130,10 +132,16 @@ test('android backend trims outgoing text at the RPC boundary', () => {
   assert.match(source, /async function updateTreeholePolicy\(payload\)/)
   assert.match(source, /treeholePolicy = payload\.treeholePolicy \|\| null/)
   assert.match(source, /treehole\?\.updateTreeholePolicy\?\.\(treeholePolicy\)/)
-  assert.match(source, /allowHomeDmBodyFallback = payload\.allowHomeDmBodyFallback === true/)
-  assert.match(source, /allowHomeTrustFallback = payload\.allowHomeTrustFallback === true/)
-  assert.match(source, /allowHomeDmBodyFallback = false/)
-  assert.match(source, /allowHomeTrustFallback = false/)
+  assert.match(
+    source,
+    /allowDebugHomeDmBodyFallback = payload\.allowDebugHomeDmBodyFallback === true/
+  )
+  assert.match(
+    source,
+    /allowDebugHomeTrustFallback = payload\.allowDebugHomeTrustFallback === true/
+  )
+  assert.match(source, /allowDebugHomeDmBodyFallback = false/)
+  assert.match(source, /allowDebugHomeTrustFallback = false/)
   assert.match(source, /function cleanRequiredText\(text\)/)
   assert.match(source, /throw new Error\('Text is required'\)/)
   assert.match(rpcSend, /sendHomeMessage\(payload\)/)
@@ -144,7 +152,7 @@ test('android backend trims outgoing text at the RPC boundary', () => {
   assert.match(postTreehole, /const text = cleanRequiredText\(payload\.text\)/)
   assert.match(commentTreehole, /const text = cleanRequiredText\(payload\.text\)/)
   assert.match(sendMessageRequest, /const text = cleanRequiredText\(payload\.text\)/)
-  assert.match(sendMessageRequest, /if \(!allowHomeTrustFallback\)/)
+  assert.match(sendMessageRequest, /if \(!allowDebugHomeTrustFallback\)/)
   assert.match(sendMessageRequest, /Home trust fallback is not enabled/)
   assert.match(sendProfileMessageRequest, /const text = cleanRequiredText\(payload\.text\)/)
   assert.match(sendProfileMessageRequest, /profileRequestRuntime\.send\(request\)/)
@@ -186,8 +194,8 @@ test('android backend trims outgoing text at the RPC boundary', () => {
   assert.match(sendDmBody, /const text = cleanRequiredText\(payload\.text\)/)
   assert.match(sendDmBody, /const message = dmRuntime\.sendMessage\(\{/)
   assert.match(sendDmBody, /threadId: payload\.threadId/)
-  assert.match(handleControlDmBody, /if \(!allowHomeDmBodyFallback\)/)
-  assert.match(sendDmBody, /if \(allowHomeDmBodyFallback\)/)
+  assert.match(handleControlDmBody, /if \(!allowDebugHomeDmBodyFallback\)/)
+  assert.match(sendDmBody, /if \(allowDebugHomeDmBodyFallback\)/)
   assert.doesNotMatch(sendDmBody, /room\.send\(/)
   assert.doesNotMatch(sendDmBody, /room\.broadcastControl\(message\)/)
   assert.doesNotMatch(postTreehole, /text: payload\.text/)
@@ -219,13 +227,13 @@ test('android backend keeps Home-control friend bootstrap debug-only', () => {
     'async function acceptMessageRequest'
   )
 
-  assert.match(handleMessageRequest, /if \(!allowHomeTrustFallback\)/)
+  assert.match(handleMessageRequest, /if \(!allowDebugHomeTrustFallback\)/)
   assert.match(handleMessageRequest, /verifyMessageRequest\(message\)/)
-  assert.match(handleDmInvite, /if \(!allowHomeTrustFallback\)/)
+  assert.match(handleDmInvite, /if \(!allowDebugHomeTrustFallback\)/)
   assert.match(handleDmInvite, /await acceptDmInvite\(message\)/)
-  assert.match(sendMessageRequest, /if \(!allowHomeTrustFallback\)/)
+  assert.match(sendMessageRequest, /if \(!allowDebugHomeTrustFallback\)/)
   assert.match(sendProfileMessageRequest, /profileRequestRuntime\.send\(request\)/)
-  assert.doesNotMatch(sendProfileMessageRequest, /allowHomeTrustFallback/)
+  assert.doesNotMatch(sendProfileMessageRequest, /allowDebugHomeTrustFallback/)
 })
 
 test('android backend starts profile request service without Home join', () => {
@@ -255,7 +263,7 @@ test('android backend starts profile request service without Home join', () => {
   assert.doesNotMatch(startProfileService, /room\.join/)
   assert.match(sendProfileMessageRequest, /profileRequestRuntime\.send\(request\)/)
   assert.doesNotMatch(sendProfileMessageRequest, /room/)
-  assert.doesNotMatch(sendProfileMessageRequest, /allowHomeTrustFallback/)
+  assert.doesNotMatch(sendProfileMessageRequest, /allowDebugHomeTrustFallback/)
 })
 
 test('android backend accepts requests and opens DM threads without Home', () => {
@@ -284,7 +292,7 @@ test('android backend accepts requests and opens DM threads without Home', () =>
   assert.match(acceptMessageRequest, /await saveBackendDmThread\(thread\)/)
   assert.match(acceptMessageRequest, /await dmRuntime\?\.openThread\(thread\)/)
   assert.match(acceptMessageRequest, /sendToUI\(RPC_DM_THREAD, thread\)/)
-  assert.doesNotMatch(acceptMessageRequest, /allowHomeTrustFallback/)
+  assert.doesNotMatch(acceptMessageRequest, /allowDebugHomeTrustFallback/)
   assert.doesNotMatch(acceptMessageRequest, /broadcastControl/)
   assert.doesNotMatch(acceptMessageRequest, /sendControl/)
 })

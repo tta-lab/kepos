@@ -93,8 +93,8 @@ let dmEncryptionKeyPair = null
 let dmRuntime = null
 let profileRequestRuntime = null
 let treeholePolicy = null
-let allowHomeDmBodyFallback = false
-let allowHomeTrustFallback = false
+let allowDebugHomeDmBodyFallback = false
+let allowDebugHomeTrustFallback = false
 let localAvatarMediaControl = null
 const addedWriters = new Set()
 const outgoingMessageRequestsByProfileId = new Map()
@@ -202,8 +202,8 @@ async function joinRoom(payload) {
   nick = payload.nick?.trim() || 'anon'
   profileId = payload.profileId?.trim() || null
   identity = payload.identity || null
-  allowHomeDmBodyFallback = payload.allowHomeDmBodyFallback === true
-  allowHomeTrustFallback = payload.allowHomeTrustFallback === true
+  allowDebugHomeDmBodyFallback = payload.allowDebugHomeDmBodyFallback === true
+  allowDebugHomeTrustFallback = payload.allowDebugHomeTrustFallback === true
   localAvatarMediaControl = payload.localAvatarMediaControl || null
   treeholePolicy = payload.treeholePolicy || null
   await startProfileService(payload)
@@ -266,8 +266,8 @@ async function leaveRoom() {
   homeOwnerProfileId = null
   homePolicy = 'trusted_only'
   remoteTreeholeSnapshot = null
-  allowHomeDmBodyFallback = false
-  allowHomeTrustFallback = false
+  allowDebugHomeDmBodyFallback = false
+  allowDebugHomeTrustFallback = false
   localAvatarMediaControl = null
   addedWriters.clear()
 }
@@ -423,7 +423,7 @@ async function handleControl(message, peer) {
   }
 
   if (message.type === 'kepos.message.request.v1') {
-    if (!allowHomeTrustFallback) {
+    if (!allowDebugHomeTrustFallback) {
       return
     }
 
@@ -435,7 +435,7 @@ async function handleControl(message, peer) {
   }
 
   if (message.type === 'kepos.dm.invite.v1') {
-    if (!allowHomeTrustFallback) {
+    if (!allowDebugHomeTrustFallback) {
       return
     }
 
@@ -448,7 +448,7 @@ async function handleControl(message, peer) {
   }
 
   if (message.type === 'kepos.dm.body.v1') {
-    if (!allowHomeDmBodyFallback) {
+    if (!allowDebugHomeDmBodyFallback) {
       return
     }
 
@@ -528,7 +528,7 @@ function requestHomeHello(peer = null) {
 }
 
 function resendOutgoingMessageRequests(peer) {
-  if (!allowHomeTrustFallback || !room || !peer) {
+  if (!allowDebugHomeTrustFallback || !room || !peer) {
     return
   }
 
@@ -648,7 +648,7 @@ async function likeTreehole(payload) {
 }
 
 function sendMessageRequest(payload) {
-  if (!allowHomeTrustFallback) {
+  if (!allowDebugHomeTrustFallback) {
     throw new Error('Home trust fallback is not enabled')
   }
 
@@ -844,7 +844,7 @@ function sendDmBody(payload) {
     threadId: payload.threadId
   })
 
-  if (allowHomeDmBodyFallback) {
+  if (allowDebugHomeDmBodyFallback) {
     room?.broadcastControl({
       message,
       type: 'kepos.dm.body.v1'
