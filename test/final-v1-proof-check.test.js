@@ -88,6 +88,20 @@ test('final V1 proof checker rejects dirty worktree proof', () => {
   assert.match(result.failures.join('\n'), /worktree state must be clean/)
 })
 
+test('final V1 proof checker rejects packets missing required checked items', () => {
+  const packet = completedPacket()
+    .replace(
+      '- [x] 3. Android scans the desktop Profile QR through the camera.',
+      '- [x] 3. Android scans something else.'
+    )
+    .replace('- [x] Chat messages are durable across restart', '')
+  const result = validateFinalV1ProofPacket(packet)
+
+  assert.equal(result.ok, false)
+  assert.match(result.failures.join('\n'), /missing required checked release items/)
+  assert.match(result.failures.join('\n'), /Android scans the desktop Profile QR/)
+})
+
 test('final V1 proof checker rejects nonzero Home peer count evidence', () => {
   const packet = completedPacket()
     .replace('- Home peer count at request receipt: 0', '- Home peer count at request receipt: 1')
@@ -122,7 +136,8 @@ test('package and docs expose the final V1 proof checker', async () => {
     'node scripts/check-final-v1-proof-packet.mjs'
   )
   assert.match(recipe, /npm run v1:proof:check/)
-  assert.match(recipe, /fails if any checklist item remains unchecked/)
+  assert.match(recipe, /fails if required checklist items/)
+  assert.match(recipe, /items are missing or still unchecked/)
   assert.match(recipe, /Home peer counts are not recorded as zero/)
   assert.match(recipe, /worktree state is not clean/)
 })

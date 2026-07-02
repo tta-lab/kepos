@@ -11,12 +11,20 @@ import {
 const DEFAULT_PROOF_PACKET_PATH = 'tmp/final-v1-proof.md'
 const EXPECTED_CHECKED_ITEMS =
   FINAL_V1_PREFLIGHT_STEPS.length + FINAL_V1_PROOF_STEPS.length + FINAL_V1_PASSING_CRITERIA.length
+const REQUIRED_CHECKED_ITEM_TEXT = [
+  ...FINAL_V1_PREFLIGHT_STEPS,
+  ...FINAL_V1_PROOF_STEPS.map((step, index) => `${index + 1}. ${step}`),
+  ...FINAL_V1_PASSING_CRITERIA
+]
 
 export function validateFinalV1ProofPacket(contents) {
   const failures = []
   const lines = contents.split(/\r?\n/)
   const uncheckedItems = lines.filter((line) => /^- \[ \]/.test(line))
   const checkedItems = lines.filter((line) => /^- \[[xX]\]/.test(line))
+  const checkedItemText = new Set(
+    checkedItems.map((line) => line.replace(/^- \[[xX]\]\s*/, '').trim())
+  )
   const placeholders = contents.match(/<[^>\n]+>/g) || []
   const worktreeState = contents.match(/^- Worktree state: (.+)$/m)?.[1]?.trim() || ''
   const v1Gate = contents.match(/^- `npm run v1:gate`: (.+)$/m)?.[1]?.trim() || ''
@@ -32,6 +40,17 @@ export function validateFinalV1ProofPacket(contents) {
   if (checkedItems.length < EXPECTED_CHECKED_ITEMS) {
     failures.push(
       `expected at least ${EXPECTED_CHECKED_ITEMS} checked release items, found ${checkedItems.length}`
+    )
+  }
+
+  const missingRequiredItems = REQUIRED_CHECKED_ITEM_TEXT.filter(
+    (item) => !checkedItemText.has(item)
+  )
+  if (missingRequiredItems.length > 0) {
+    failures.push(
+      `missing required checked release items: ${missingRequiredItems.slice(0, 3).join('; ')}${
+        missingRequiredItems.length > 3 ? '; ...' : ''
+      }`
     )
   }
 
@@ -119,9 +138,9 @@ function printHelp() {
 
 Checks the recorded Final V1 Release Proof Packet after a manual cross-device run.
 This helper is non-invasive: it only reads the packet and fails if required proof
-items are still unchecked, placeholders remain, the worktree was not clean,
-\`npm run v1:gate\` was not recorded as passed, or Home peer count was not
-recorded as zero during request receipt and accept/invite return.`)
+items are missing or still unchecked, placeholders remain, the worktree was not
+clean, \`npm run v1:gate\` was not recorded as passed, or Home peer count was
+not recorded as zero during request receipt and accept/invite return.`)
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
