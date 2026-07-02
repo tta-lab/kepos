@@ -150,6 +150,8 @@ Already landed:
   removed, and ignored states.
 - Android Contacts request cards can open the same profile detail for incoming
   and outgoing requests.
+- Android startup copy points to `Show My QR` and adding friends instead of
+  presenting Home as the bootstrap path.
 
 ## Remaining V1 Work
 
