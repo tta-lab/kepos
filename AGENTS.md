@@ -22,7 +22,8 @@ Use these docs as the current architecture map for Kepos.
 - `docs/v1-friend-home-architecture/15-v1-ready-product-next-plan.md`: prior plan for V1 ready-product completion.
 - `docs/v1-friend-home-architecture/16-v1-profile-delivery-next-plan.md`: previous profile-delivery plan after phone smoke clarified that Home is not part of add-friend bootstrap.
 - `docs/v1-friend-home-architecture/17-v1-profile-routed-im-next-plan.md`: previous V1 plan that locked the profile-routed IM product model.
-- `docs/v1-friend-home-architecture/18-v1-profile-p2p-hardening-next-plan.md`: active V1 plan; harden the profile-to-profile P2P route for requests, accepts, DM bootstrap, Chat, profile posts, and explicit Home entry.
+- `docs/v1-friend-home-architecture/18-v1-profile-p2p-hardening-next-plan.md`: previous V1 plan; route-hardening context for profile-to-profile P2P.
+- `docs/v1-friend-home-architecture/19-v1-profile-social-delivery-next-plan.md`: active V1 plan; finish profile-social delivery on the profile-to-profile P2P route where Profile is the social address and Home is only an explicit live room after trust.
 - `docs/v1.07-architecture-gaps.md`: remaining architecture gaps for V1 after identity and QR design.
 - `docs/v1.03-limitations.md`: explicit V1 limitations, non-goals, and success bar.
 - `docs/v1.04-tradeoffs.md`: accepted V1 tradeoffs, rejected options, risks, and future escape hatches.
@@ -45,6 +46,9 @@ Use these docs as the current architecture map for Kepos.
 - Home is not part of add-friend bootstrap. It is an explicit live-room action
   after trust, not authorization, not friend request delivery, and not the main
   DM route.
+- There is one normal add-friend path: scan Profile QR, send request over the
+  profile route, accept, then Chat/Profile work. Home QR is advanced/debug and
+  must not appear as a parallel primary invite model.
 - Profile-to-profile P2P is the only production social delivery route for
   friend requests, accepts, and DM bootstrap. Direct host:port is diagnostics
   only, not a product fallback.

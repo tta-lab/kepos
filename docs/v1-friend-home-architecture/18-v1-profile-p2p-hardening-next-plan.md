@@ -1,7 +1,12 @@
 # V1 Profile P2P Hardening Next Plan
 
-This is the active next plan after deciding that Home should have no role in
+This was the active next plan after deciding that Home should have no role in
 friendship delivery.
+
+The current next plan is
+`19-v1-profile-social-delivery-next-plan.md`. Use `19` for new V1 work. Use
+this document for the evidence baseline and route-hardening context that led to
+that plan.
 
 The V1 product rule is:
 

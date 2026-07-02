@@ -105,6 +105,7 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
     'docs/v1-friend-home-architecture/14-v1-product-logic-unification-next-plan.md',
     'docs/v1-friend-home-architecture/17-v1-profile-routed-im-next-plan.md',
     'docs/v1-friend-home-architecture/18-v1-profile-p2p-hardening-next-plan.md',
+    'docs/v1-friend-home-architecture/19-v1-profile-social-delivery-next-plan.md',
     'docs/v1.20-smoke-guide.md',
     'docs/v1.21-cross-device-smoke.md'
   ]) {
@@ -124,14 +125,17 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
   assert.match(moc, /tmp\/final-v1-proof\.md/)
   assert.match(docs, /Use this as the checklist before starting V2 or calling V1 ready/)
   assert.match(docs, /Previous V1 profile-routed IM next plan/)
-  assert.match(docs, /Active V1 profile P2P hardening next plan/)
+  assert.match(docs, /Previous V1 profile P2P hardening next plan/)
+  assert.match(docs, /Active V1 profile social delivery next plan/)
   assert.match(docs, /profile-routed private IM/)
   assert.match(docs, /profile-to-profile P2P route/)
+  assert.match(docs, /Profile is the social address/)
   assert.match(docs, /low-cost proof/)
   assert.match(profileFirst, /12-v1-profile-first-implementation-next-plan\.md/)
   assert.match(profileFirst, /13-v1-home-decoupling-next-plan\.md/)
   assert.match(profileFirst, /14-v1-product-logic-unification-next-plan\.md/)
   assert.match(profileFirst, /18-v1-profile-p2p-hardening-next-plan\.md/)
+  assert.match(profileFirst, /19-v1-profile-social-delivery-next-plan\.md/)
   assert.match(profileFirst, /\.\.\/v1\.21-cross-device-smoke\.md/)
   assert.match(moc, /Prior product-logic unification next plan/)
   assert.doesNotMatch(
