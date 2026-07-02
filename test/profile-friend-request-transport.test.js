@@ -69,6 +69,17 @@ test('profile friend request transport defaults to queued without a connected P2
   assert.equal(formatProfileFriendRequestDeliveryState(result.state), 'Request pending')
 })
 
+test('profile friend request delivery state copy stays transport-specific', () => {
+  assert.equal(formatProfileFriendRequestDeliveryState('queued'), 'Request pending')
+  assert.equal(formatProfileFriendRequestDeliveryState('searching'), 'Looking for profile')
+  assert.equal(formatProfileFriendRequestDeliveryState('sent'), 'Request sent')
+  assert.equal(formatProfileFriendRequestDeliveryState('delivered'), 'Request delivered')
+  assert.equal(formatProfileFriendRequestDeliveryState('accepted'), 'Request accepted')
+  assert.equal(formatProfileFriendRequestDeliveryState('failed'), 'Request failed')
+  assert.equal(formatProfileFriendRequestDeliveryState('unknown'), 'Request pending')
+  assert.equal(formatProfileFriendRequestDeliveryState(null), 'Request pending')
+})
+
 test('profile friend request transport rejects Home-style mismatched targets', async () => {
   const from = createSigningKeyPair()
   const to = createSigningKeyPair()

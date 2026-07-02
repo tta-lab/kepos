@@ -394,9 +394,9 @@ export function formatProfileFriendRequestDeliveryState(
 ): string {
   if (state === 'sent') return 'Request sent'
   if (state === 'delivered') return 'Request delivered'
-  if (state === 'accepted') return 'Friend'
+  if (state === 'accepted') return 'Request accepted'
   if (state === 'failed') return 'Request failed'
-  if (state === 'searching') return 'Request searching'
+  if (state === 'searching') return 'Looking for profile'
   return 'Request pending'
 }
 
