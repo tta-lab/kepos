@@ -66,7 +66,7 @@ try {
   await page.bringToFront()
   await openAndroidPeopleSetup()
   await openAndroidScanner('scan-home-qr-button')
-  console.log('Point the Android camera at the desktop Home QR.')
+  console.log('Point the Android camera at the desktop Debug Home QR.')
   await waitForAndroidTextWithDiagnostics(page, 'Connected.', 'home', { timeoutMs: 180000 })
   await page.click('#largeQrCloseButton')
 
@@ -87,8 +87,8 @@ try {
         verified: [
           'desktop Large Profile QR scans through the Android camera',
           'Profile QR creates Android trust through the normal scanner path',
-          'desktop Large Home QR scans through the Android camera',
-          'Home QR joins the trusted-only home after local trust exists'
+          'desktop Large Debug Home QR scans through the Android camera',
+          'Debug Home QR joins the trusted-only home after local trust exists'
         ]
       },
       null,

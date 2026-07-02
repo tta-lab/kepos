@@ -71,7 +71,7 @@ test('cross-device recipe defines the final V1 normal product proof packet', asy
   assert.match(recipe, /desktop mode: normal Electron; optionally record Pear\/Bare worker/)
   assert.match(recipe, /Android device model and `ANDROID_SERIAL`/)
   assert.match(recipe, /whether physical Profile QR scan passed/)
-  assert.match(recipe, /Advanced Home QR scan passed as a transport-descriptor check/)
+  assert.match(recipe, /Advanced Debug Home QR scan passed as a transport-descriptor check/)
   assert.doesNotMatch(recipe, /Profile QR and Home QR scan both passed/)
   assert.match(recipe, /Android scans the desktop Profile QR through the camera/)
   assert.match(recipe, /Android sends a friend request/)

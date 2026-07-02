@@ -46,7 +46,7 @@ test('final V1 proof packet prints the normal product-path checklist', () => {
   assert.match(packet, /Physical Profile QR scan: <pass\/fail>/)
   assert.match(
     packet,
-    /Advanced Home QR scan \(optional transport descriptor, not the trust path\)/
+    /Advanced Debug Home QR scan \(optional transport descriptor, not the trust path\)/
   )
   assert.match(packet, /Home peer count at request receipt: <number observed on desktop>/)
   assert.match(
@@ -221,7 +221,7 @@ test('package and docs expose the final V1 proof packet helper', async () => {
   assert.match(recipe, /worktree state: clean, dirty-local, or unknown/)
   assert.match(recipe, /commit, worktree state, and Android metadata/)
   assert.match(recipe, /same commit and worktree state being proved/)
-  assert.match(recipe, /Advanced Home QR scan passed as a transport-descriptor check/)
+  assert.match(recipe, /Advanced Debug Home QR scan passed as a transport-descriptor check/)
   assert.doesNotMatch(recipe, /Profile QR and Home QR scan both passed/)
   assert.match(recipe, /Evidence boundaries/)
   assert.match(recipe, /not final release proof by itself/)
