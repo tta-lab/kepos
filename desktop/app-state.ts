@@ -204,7 +204,7 @@ const THEME_STORAGE_KEY = 'kepos.desktop.theme'
 const DEFAULT_STATUS = {
   errorDetailLabel: 'none',
   homeStatusLabel: 'Offline',
-  noticeLabel: 'Create or join a home.',
+  noticeLabel: 'Show My QR or add a friend.',
   peerLabel: '0',
   profileIdLabel: 'not ready',
   roomKeyLabel: 'not joined',

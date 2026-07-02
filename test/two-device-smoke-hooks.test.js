@@ -269,6 +269,7 @@ test('Android normal UI copy avoids backend and address language', async () => {
   const source = await readMobileUiSource()
 
   for (const text of [
+    'Show My QR or scan a profile.',
     'Show My QR or open your home.',
     'Open my home',
     'Starting home...',

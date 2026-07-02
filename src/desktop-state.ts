@@ -30,7 +30,7 @@ export function createDesktopState(): DesktopState {
     lastError: '',
     mode: null,
     nick: 'Desktop',
-    notice: 'Create or join a home.',
+    notice: 'Show My QR or add a friend.',
     peers: 0,
     roomKey: '',
     transportDebug: null,

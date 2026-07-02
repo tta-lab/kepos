@@ -15,7 +15,7 @@ describe('desktop state', () => {
 
     assert.equal(state.view, 'lobby')
     assert.equal(state.activeTab, 'chat')
-    assert.equal(state.notice, 'Create or join a home.')
+    assert.equal(state.notice, 'Show My QR or add a friend.')
     assert.deepEqual(state.messages, [])
     assert.deepEqual(state.treeholePosts, [])
     assert.equal(state.activeHomeOwnerProfileId, '')

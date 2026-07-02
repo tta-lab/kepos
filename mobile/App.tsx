@@ -282,7 +282,7 @@ export default function App() {
   const [activeHomeOwnerProfileId, setActiveHomeOwnerProfileId] = useState('')
   const [activeTab, setActiveTab] = useState('chat')
   const [session, setSession] = useState<ChatSession | null>(null)
-  const [notice, setNotice] = useState('Open your home or enter a trusted home.')
+  const [notice, setNotice] = useState('Show My QR or scan a profile.')
   const [lastError, setLastError] = useState('')
   const [peerCount, setPeerCount] = useState(0)
   const [transportDebug, setTransportDebug] = useState<TransportDebugLabelState | null>(null)

@@ -7,7 +7,7 @@ test('desktop status view model formats the default lobby status', () => {
   assert.deepEqual(createDesktopStatusViewModel({ state: createDesktopState() }), {
     errorDetailLabel: 'none',
     homeStatusLabel: 'Offline',
-    noticeLabel: 'Create or join a home.',
+    noticeLabel: 'Show My QR or add a friend.',
     peerLabel: '0',
     profileIdLabel: 'not ready',
     roomKeyLabel: 'not joined',

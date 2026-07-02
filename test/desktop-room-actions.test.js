@@ -313,7 +313,7 @@ test('desktop room actions reject contact Home entry without a saved descriptor'
 
 test('desktop room actions leave home and reset local state', async () => {
   const harness = createHarness({
-    createInitialState: () => ({ notice: 'Create or join a home.', view: 'lobby' })
+    createInitialState: () => ({ notice: 'Show My QR or add a friend.', view: 'lobby' })
   })
 
   await harness.actions.leaveHome()
@@ -321,6 +321,6 @@ test('desktop room actions leave home and reset local state', async () => {
   assert.equal(harness.session, null)
   assert.equal(harness.dmSession, null)
   assert.equal(harness.homeJoinDetails, null)
-  assert.deepEqual(harness.state, { notice: 'Create or join a home.', view: 'lobby' })
+  assert.deepEqual(harness.state, { notice: 'Show My QR or add a friend.', view: 'lobby' })
   assert.deepEqual(harness.calls, [['runtime.closeAll'], ['treehole.configure'], ['render']])
 })

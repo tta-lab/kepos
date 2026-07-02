@@ -609,11 +609,12 @@ test('desktop normal UI copy avoids raw home address language', async () => {
   const desktopCopy = `${source}\n${controller}\n${roomActions}\n${state}`
 
   assert.match(source, /Open my home/)
-  assert.match(desktopCopy, /Create or join a home\./)
+  assert.match(desktopCopy, /Show My QR or add a friend\./)
   assert.match(desktopCopy, /Joining home\.\.\./)
   assert.match(source, /<p className='label'>Home<\/p>/)
   assert.equal(source.includes('Create Home'), false)
   assert.equal(source.includes("<p className='label'>Home address</p>"), false)
+  assert.equal(desktopCopy.includes('Create or join a home.'), false)
   assert.equal(desktopCopy.includes('Create or join a room.'), false)
   assert.equal(desktopCopy.includes('Joining home room...'), false)
 })
