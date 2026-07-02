@@ -1299,6 +1299,7 @@ test('mobile setup actions share one icon button component', async () => {
   assert.doesNotMatch(startupPane, /people-setup-toggle/)
   assert.match(quickStart, /<MobileActionButton[\s\S]*variant='primary'/)
   assert.match(quickStart, /<MobileActionButton[\s\S]*testID='quick-show-my-qr-button'/)
+  assert.match(quickStart, /Show My QR or open your home\./)
   assert.doesNotMatch(quickStart, /quick-open-contacts-button/)
   assert.match(peopleActions, /<MobileActionButton[\s\S]*testID='scan-profile-qr-button'/)
   assert.match(peopleActions, /<MobileActionButton[\s\S]*testID='advanced-share-toggle'/)

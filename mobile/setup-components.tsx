@@ -52,7 +52,7 @@ export function QuickStartPanel({
   return (
     <View style={styles.quickStartPanel}>
       <TaskHeader
-        description={profileReady ? 'Open your home or show My QR.' : 'Setting up your profile...'}
+        description={profileReady ? 'Show My QR or open your home.' : 'Setting up your profile...'}
         eyebrow='Start'
         styles={styles}
         title='Start here'
