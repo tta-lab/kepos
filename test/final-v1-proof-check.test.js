@@ -39,12 +39,20 @@ function completedPacket() {
       '- Advanced Debug Home QR scan (optional transport descriptor, not the trust path): not run'
     )
     .replace(
-      '- Home peer count at request receipt: <number observed on desktop>',
-      '- Home peer count at request receipt: 0'
+      '- Home peer count at request receipt (desktop): <number observed on desktop>',
+      '- Home peer count at request receipt (desktop): 0'
     )
     .replace(
-      '- Home peer count at accept/invite return: <number observed on desktop and Android>',
-      '- Home peer count at accept/invite return: 0 desktop, 0 Android'
+      '- Home peer count at request receipt (Android): <number observed on Android>',
+      '- Home peer count at request receipt (Android): 0'
+    )
+    .replace(
+      '- Home peer count at accept/invite return (desktop): <number observed on desktop>',
+      '- Home peer count at accept/invite return (desktop): 0'
+    )
+    .replace(
+      '- Home peer count at accept/invite return (Android): <number observed on Android>',
+      '- Home peer count at accept/invite return (Android): 0'
     )
     .replace(
       '- Home peer count evidence source: <desktop #peerLabel; Android room-transport-debug after Advanced is opened; screenshot/log path>',
@@ -126,33 +134,36 @@ test('final V1 proof checker rejects packets missing required checked items', ()
 
 test('final V1 proof checker rejects nonzero Home peer count evidence', () => {
   const packet = completedPacket()
-    .replace('- Home peer count at request receipt: 0', '- Home peer count at request receipt: 1')
     .replace(
-      '- Home peer count at accept/invite return: 0 desktop, 0 Android',
-      '- Home peer count at accept/invite return: 0 desktop, 1 Android'
+      '- Home peer count at request receipt (desktop): 0',
+      '- Home peer count at request receipt (desktop): 1'
+    )
+    .replace(
+      '- Home peer count at accept/invite return (Android): 0',
+      '- Home peer count at accept/invite return (Android): 1'
     )
   const result = validateFinalV1ProofPacket(packet)
 
   assert.equal(result.ok, false)
-  assert.match(result.failures.join('\n'), /request receipt must be recorded as numeric zero/)
-  assert.match(result.failures.join('\n'), /accept\/invite return must be recorded as numeric zero/)
+  assert.match(result.failures.join('\n'), /request receipt on desktop must be recorded/)
+  assert.match(result.failures.join('\n'), /accept\/invite return on Android must be recorded/)
 })
 
 test('final V1 proof checker rejects vague Home peer count wording', () => {
   const packet = completedPacket()
     .replace(
-      '- Home peer count at request receipt: 0',
-      '- Home peer count at request receipt: zero'
+      '- Home peer count at request receipt (Android): 0',
+      '- Home peer count at request receipt (Android): zero'
     )
     .replace(
-      '- Home peer count at accept/invite return: 0 desktop, 0 Android',
-      '- Home peer count at accept/invite return: zero on both'
+      '- Home peer count at accept/invite return (desktop): 0',
+      '- Home peer count at accept/invite return (desktop): zero'
     )
   const result = validateFinalV1ProofPacket(packet)
 
   assert.equal(result.ok, false)
-  assert.match(result.failures.join('\n'), /request receipt must be recorded as numeric zero/)
-  assert.match(result.failures.join('\n'), /accept\/invite return must be recorded as numeric zero/)
+  assert.match(result.failures.join('\n'), /request receipt on Android must be recorded/)
+  assert.match(result.failures.join('\n'), /accept\/invite return on desktop must be recorded/)
 })
 
 test('final V1 proof checker parses file argument defensively', () => {
@@ -178,6 +189,6 @@ test('package and docs expose the final V1 proof checker', async () => {
   assert.match(recipe, /fails if required checklist items/)
   assert.match(recipe, /items are missing or still unchecked/)
   assert.match(recipe, /physical Profile QR scan was not recorded as passing/)
-  assert.match(recipe, /Home peer counts are not recorded as numeric zero/)
+  assert.match(recipe, /desktop and Android Home peer counts are not each recorded as numeric zero/)
   assert.match(recipe, /worktree state is not clean/)
 })

@@ -29,10 +29,18 @@ export function validateFinalV1ProofPacket(contents) {
   const worktreeState = contents.match(/^- Worktree state: (.+)$/m)?.[1]?.trim() || ''
   const v1Gate = contents.match(/^- `npm run v1:gate`: (.+)$/m)?.[1]?.trim() || ''
   const physicalProfileQr = contents.match(/^- Physical Profile QR scan: (.+)$/m)?.[1]?.trim() || ''
-  const requestPeerCount =
-    contents.match(/^- Home peer count at request receipt: (.+)$/m)?.[1]?.trim() || ''
-  const acceptPeerCount =
-    contents.match(/^- Home peer count at accept\/invite return: (.+)$/m)?.[1]?.trim() || ''
+  const requestPeerCountDesktop =
+    contents.match(/^- Home peer count at request receipt \(desktop\): (.+)$/m)?.[1]?.trim() || ''
+  const requestPeerCountAndroid =
+    contents.match(/^- Home peer count at request receipt \(Android\): (.+)$/m)?.[1]?.trim() || ''
+  const acceptPeerCountDesktop =
+    contents
+      .match(/^- Home peer count at accept\/invite return \(desktop\): (.+)$/m)?.[1]
+      ?.trim() || ''
+  const acceptPeerCountAndroid =
+    contents
+      .match(/^- Home peer count at accept\/invite return \(Android\): (.+)$/m)?.[1]
+      ?.trim() || ''
 
   if (!contents.includes('# Final V1 Release Proof Packet')) {
     failures.push('missing final V1 proof packet title')
@@ -75,12 +83,24 @@ export function validateFinalV1ProofPacket(contents) {
     failures.push('Physical Profile QR scan must be recorded as passed')
   }
 
-  if (!isZeroPeerCountEvidence(requestPeerCount)) {
-    failures.push('Home peer count at request receipt must be recorded as numeric zero')
+  if (!isZeroPeerCountEvidence(requestPeerCountDesktop)) {
+    failures.push('Home peer count at request receipt on desktop must be recorded as numeric zero')
   }
 
-  if (!isZeroPeerCountEvidence(acceptPeerCount)) {
-    failures.push('Home peer count at accept/invite return must be recorded as numeric zero')
+  if (!isZeroPeerCountEvidence(requestPeerCountAndroid)) {
+    failures.push('Home peer count at request receipt on Android must be recorded as numeric zero')
+  }
+
+  if (!isZeroPeerCountEvidence(acceptPeerCountDesktop)) {
+    failures.push(
+      'Home peer count at accept/invite return on desktop must be recorded as numeric zero'
+    )
+  }
+
+  if (!isZeroPeerCountEvidence(acceptPeerCountAndroid)) {
+    failures.push(
+      'Home peer count at accept/invite return on Android must be recorded as numeric zero'
+    )
   }
 
   return {

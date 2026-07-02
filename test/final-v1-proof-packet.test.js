@@ -48,10 +48,21 @@ test('final V1 proof packet prints the normal product-path checklist', () => {
     packet,
     /Advanced Debug Home QR scan \(optional transport descriptor, not the trust path\)/
   )
-  assert.match(packet, /Home peer count at request receipt: <number observed on desktop>/)
   assert.match(
     packet,
-    /Home peer count at accept\/invite return: <number observed on desktop and Android>/
+    /Home peer count at request receipt \(desktop\): <number observed on desktop>/
+  )
+  assert.match(
+    packet,
+    /Home peer count at request receipt \(Android\): <number observed on Android>/
+  )
+  assert.match(
+    packet,
+    /Home peer count at accept\/invite return \(desktop\): <number observed on desktop>/
+  )
+  assert.match(
+    packet,
+    /Home peer count at accept\/invite return \(Android\): <number observed on Android>/
   )
   assert.match(
     packet,
@@ -218,6 +229,8 @@ test('package and docs expose the final V1 proof packet helper', async () => {
   assert.match(recipe, /non-invasive/)
   assert.match(recipe, /does not\s+launch apps, run smoke, reset storage, or touch device state/)
   assert.match(recipe, /whether physical Profile QR scan passed/)
+  assert.match(recipe, /observed Home peer count on desktop when the desktop receives/)
+  assert.match(recipe, /observed Home peer count on Android when the desktop receives/)
   assert.match(recipe, /worktree state: clean, dirty-local, or unknown/)
   assert.match(recipe, /commit, worktree state, and Android metadata/)
   assert.match(recipe, /same commit and worktree state being proved/)
