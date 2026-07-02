@@ -67,15 +67,11 @@ export function validateFinalV1ProofPacket(contents) {
     failures.push(`worktree state must be clean, found ${worktreeState || 'missing'}`)
   }
 
-  if (!v1Gate || v1Gate.includes('<') || !/\bpass(?:ed)?\b/i.test(v1Gate)) {
+  if (!isPassedEvidence(v1Gate)) {
     failures.push('`npm run v1:gate` must be recorded as passed')
   }
 
-  if (
-    !physicalProfileQr ||
-    physicalProfileQr.includes('<') ||
-    !/\bpass(?:ed)?\b/i.test(physicalProfileQr)
-  ) {
+  if (!isPassedEvidence(physicalProfileQr)) {
     failures.push('Physical Profile QR scan must be recorded as passed')
   }
 
@@ -100,6 +96,12 @@ function isZeroPeerCountEvidence(value) {
 
   const numbers = value.match(/\d+/g) || []
   return numbers.length > 0 && numbers.every((number) => Number(number) === 0)
+}
+
+function isPassedEvidence(value) {
+  if (!value || value.includes('<')) return false
+  if (/\b(?:fail(?:ed)?|not\s+pass(?:ed)?|not\s+run|skip(?:ped)?)\b/i.test(value)) return false
+  return /\bpass(?:ed)?\b/i.test(value)
 }
 
 export function readFinalV1ProofCheckPath(args) {

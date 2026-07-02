@@ -99,6 +99,17 @@ test('final V1 proof checker rejects failed physical Profile QR proof', () => {
   assert.match(result.failures.join('\n'), /Physical Profile QR scan must be recorded as passed/)
 })
 
+test('final V1 proof checker rejects negated pass wording', () => {
+  const packet = completedPacket()
+    .replace('- `npm run v1:gate`: passed', '- `npm run v1:gate`: not passed')
+    .replace('- Physical Profile QR scan: passed', '- Physical Profile QR scan: not passed')
+  const result = validateFinalV1ProofPacket(packet)
+
+  assert.equal(result.ok, false)
+  assert.match(result.failures.join('\n'), /v1:gate/)
+  assert.match(result.failures.join('\n'), /Physical Profile QR scan/)
+})
+
 test('final V1 proof checker rejects packets missing required checked items', () => {
   const packet = completedPacket()
     .replace(
