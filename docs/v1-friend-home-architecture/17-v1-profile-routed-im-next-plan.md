@@ -324,10 +324,15 @@ Already landed before this plan:
 - empty trusted-contact Chat rows show `No messages yet`
 - existing DM thread snapshots and request rows take priority over synthetic
   trusted-contact rows
+- desktop accepted DM sends use the DM runtime without reading Home runtime in
+  the normal path
+- Android accepted-thread DM sends dispatch `RPC_DM_BODY_SEND`, not Home chat,
+  legacy `RPC_DM_SEND`, or profile request send
+- Android backend DM body send uses `dmRuntime.sendMessage`; Home-carried DM
+  body broadcast remains gated by the explicit debug fallback flag
 
 Still open:
 
-- prove normal desktop and Android DM sends stay off Home room chat
 - finish physical Android/Desktop smoke for Profile QR request and accept
 - fix any mobile UI parity gaps found during that smoke
 - record the final proof packet before calling V1 ready

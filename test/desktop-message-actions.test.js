@@ -310,6 +310,30 @@ test('desktop message actions do not broadcast signed DM bodies over Home by def
   assert.deepEqual(broadcasts, [])
 })
 
+test('desktop message actions send accepted direct messages without reading Home runtime', async () => {
+  const signedMessage = {
+    fromProfileId: 'local',
+    messageId: 'message-1',
+    threadId: 'thread-1',
+    type: 'kepos.dm.message.v1'
+  }
+  const actions = createDesktopMessageActions({
+    createId: () => 'id',
+    getDmRuntime: () => ({
+      sendMessageOrRequest() {
+        return { kind: 'message', message: signedMessage }
+      }
+    }),
+    getDmSession: () => ({ messages: [] }),
+    getHomeRuntime: () => {
+      throw new Error('Home runtime should not be read for accepted direct messages')
+    },
+    now: () => 456
+  })
+
+  await actions.sendDmMessage({ text: 'dm', toProfileId: 'friend' })
+})
+
 test('desktop message actions can enable debug Home DM body fallback explicitly', () => {
   const broadcasts = []
   const signedMessage = {

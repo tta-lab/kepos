@@ -164,8 +164,12 @@ test('android backend trims outgoing text at the RPC boundary', () => {
     /outgoingMessageRequestsByProfileId\.get\(fromProfileId\)\?\.requestId === invite\?\.requestId\?\.trim\(\)/
   )
   assert.match(sendDmBody, /const text = cleanRequiredText\(payload\.text\)/)
+  assert.match(sendDmBody, /const message = dmRuntime\.sendMessage\(\{/)
+  assert.match(sendDmBody, /threadId: payload\.threadId/)
   assert.match(handleControlDmBody, /if \(!allowHomeDmBodyFallback\)/)
   assert.match(sendDmBody, /if \(allowHomeDmBodyFallback\)/)
+  assert.doesNotMatch(sendDmBody, /room\.send\(/)
+  assert.doesNotMatch(sendDmBody, /room\.broadcastControl\(message\)/)
   assert.doesNotMatch(postTreehole, /text: payload\.text/)
   assert.doesNotMatch(commentTreehole, /text: payload\.text/)
   assert.doesNotMatch(sendMessageRequest, /text: payload\.text/)

@@ -1484,6 +1484,22 @@ test('mobile composer sends trimmed text payloads', async () => {
   assert.match(sendMessage, /text: cleanText/)
   assert.doesNotMatch(sendMessage, /text: draft/)
   assert.match(sendMessageRequest, /const cleanText = normalizeComposerText\(dmDraft\)/)
+  assert.match(
+    sendMessageRequest,
+    /if \(thread\) \{[\s\S]*rpcRef\.current\?\.request\(RPC_DM_BODY_SEND\)/
+  )
+  assert.match(
+    sendMessageRequest,
+    /if \(thread\) \{[\s\S]*messageId: message\.requestId,[\s\S]*text: message\.text,[\s\S]*threadId: thread\.threadId/
+  )
+  assert.match(sendMessageRequest, /if \(thread\) \{[\s\S]*return\s*\}/)
+  const acceptedThreadBranch = sendMessageRequest.slice(
+    sendMessageRequest.indexOf('if (thread)'),
+    sendMessageRequest.indexOf('const requestTargetView')
+  )
+  assert.doesNotMatch(acceptedThreadBranch, /RPC_SEND/)
+  assert.doesNotMatch(acceptedThreadBranch, /RPC_DM_SEND/)
+  assert.doesNotMatch(acceptedThreadBranch, /RPC_PROFILE_REQUEST_SEND/)
   assert.match(sendMessageRequest, /createFriendRequestTargetViewModel\(/)
   assert.match(sendMessageRequest, /if \(!requestTargetView\.canSendRequest\)/)
   assert.doesNotMatch(sendMessageRequest, /enterRequestTargetHome\(/)
