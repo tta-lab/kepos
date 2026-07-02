@@ -111,6 +111,7 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
     'docs/v1-friend-home-architecture/22-v1-profile-p2p-delivery-next-plan.md',
     'docs/v1-friend-home-architecture/23-v1-social-delivery-release-plan.md',
     'docs/v1-friend-home-architecture/24-v1-release-proof-next-plan.md',
+    'docs/v1-friend-home-architecture/25-v1-profile-route-implementation-next-plan.md',
     'docs/v1.20-smoke-guide.md',
     'docs/v1.21-cross-device-smoke.md'
   ]) {
@@ -138,7 +139,8 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
   assert.match(docs, /Previous V1 profile social release evidence/)
   assert.match(docs, /Previous V1 profile P2P delivery evidence/)
   assert.match(docs, /Previous V1 social delivery release plan/)
-  assert.match(docs, /Active V1 release proof next plan/)
+  assert.match(docs, /Previous V1 release proof next plan/)
+  assert.match(docs, /Active V1 profile route implementation plan/)
   assert.match(docs, /profile-routed private IM/)
   assert.match(docs, /profile-to-profile P2P route/)
   assert.match(docs, /Profile is the social address/)
@@ -153,6 +155,7 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
   assert.match(profileFirst, /22-v1-profile-p2p-delivery-next-plan\.md/)
   assert.match(profileFirst, /23-v1-social-delivery-release-plan\.md/)
   assert.match(profileFirst, /24-v1-release-proof-next-plan\.md/)
+  assert.match(profileFirst, /25-v1-profile-route-implementation-next-plan\.md/)
   assert.match(profileFirst, /\.\.\/v1\.21-cross-device-smoke\.md/)
   assert.match(moc, /Prior product-logic unification next plan/)
   assert.doesNotMatch(
@@ -1212,6 +1215,26 @@ test('V1 active release proof plan names the final readiness bar', async () => {
   assert.match(activePlan, /npm run v1:proof:check -- --file tmp\/final-v1-proof\.md/)
   assert.match(activePlan, /Do not start V2 media rooms before this proof is complete/)
   assert.match(activePlan, /desktop Profile QR -> Android request -> desktop accept/)
+})
+
+test('V1 active profile route implementation plan keeps Home out of friendship', async () => {
+  const activePlan = await readText(
+    '../docs/v1-friend-home-architecture/25-v1-profile-route-implementation-next-plan.md'
+  )
+
+  assert.match(activePlan, /Profile QR -> friend request -> mutual trust/)
+  assert.match(activePlan, /Home is a live\s+space after trust/)
+  assert.match(activePlan, /There is one normal add-friend path/)
+  assert.match(activePlan, /Profile-to-profile P2P is the production social delivery route/)
+  assert.match(
+    activePlan,
+    /Friend request, accept, DM bootstrap, and durable Chat must not depend on\s+Home control traffic/
+  )
+  assert.match(activePlan, /desktop and Android use one product model/)
+  assert.match(activePlan, /Home peer count must stay zero/)
+  assert.match(activePlan, /Debug Home QR may exist only as an advanced\/debug descriptor/)
+  assert.match(activePlan, /Direct host:port is diagnostics only/)
+  assert.match(activePlan, /Do not start V2 media rooms in this pass/)
 })
 
 test('V1 normal UX docs use Chat and Treehole product labels', async () => {

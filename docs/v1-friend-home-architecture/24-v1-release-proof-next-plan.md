@@ -1,6 +1,7 @@
 # V1 Release Proof Next Plan
 
-This is the active next plan after `23-v1-social-delivery-release-plan.md`.
+This was the active next plan after `23-v1-social-delivery-release-plan.md`.
+Use `25-v1-profile-route-implementation-next-plan.md` for new V1 work.
 
 Use this document for the final V1 execution pass. Use `23` as the product
 rule baseline and `../v1.21-cross-device-smoke.md` as the proof recipe.

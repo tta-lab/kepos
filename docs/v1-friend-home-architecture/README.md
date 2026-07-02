@@ -125,9 +125,15 @@ The short version:
     - Use this as the product-rule baseline before `24`.
 
 24. `24-v1-release-proof-next-plan.md`
-    - Active V1 plan: finish the final release-proof pass for the profile-first
+    - Previous V1 plan: finish the final release-proof pass for the profile-first
       private IM product.
-    - Use this before calling V1 ready or starting V2 work.
+    - Use this as the final proof bar before calling V1 ready.
+
+25. `25-v1-profile-route-implementation-next-plan.md`
+    - Active V1 plan: fix the profile-route implementation and UI parity before
+      the final release proof. Friend request, accept, DM bootstrap, and Chat
+      are profile-routed; Home is only explicit live-room entry after trust.
+    - Use this for current V1 implementation work.
 
 ## Core Principle
 
