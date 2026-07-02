@@ -566,10 +566,10 @@ function createFakeProfileRequestRuntimeFactory(runtimes = []) {
       opened: false,
       options,
       sent: [],
-      async close() {
+      close() {
         runtime.closed = true
       },
-      async open() {
+      open() {
         runtime.opened = true
       },
       send(request) {
