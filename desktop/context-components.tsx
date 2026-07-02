@@ -120,10 +120,10 @@ export function ContextPanel({
 
   return (
     <>
-      <details className='contextGroup homeActions' aria-labelledby='homeActionsTitle' open>
+      <details className='contextGroup homeActions' aria-labelledby='homeActionsTitle'>
         <summary className='contextHead'>
           <SectionTitle id='homeActionsTitle' icon={<Home size={15} />} text='Home' />
-          <p className='contextHint'>Open your home, share My QR, or enter a trusted home.</p>
+          <p className='contextHint'>Open your home or enter a trusted live room.</p>
         </summary>
 
         <form
@@ -264,10 +264,10 @@ export function ContextPanel({
         </details>
       </details>
 
-      <details className='contextGroup peopleActions' aria-labelledby='peopleActionsTitle'>
+      <details className='contextGroup peopleActions' aria-labelledby='peopleActionsTitle' open>
         <summary className='contextHead'>
           <SectionTitle id='peopleActionsTitle' icon={<ShieldCheck size={15} />} text='Contacts' />
-          <p className='contextHint'>Advanced contact requests and private messages.</p>
+          <p className='contextHint'>Show My QR, scan a Profile QR, and start requests.</p>
         </summary>
 
         <form

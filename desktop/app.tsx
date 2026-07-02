@@ -79,7 +79,7 @@ function DesktopApp() {
           />
         </section>
 
-        <aside className='contextPanel' aria-label='Home and Contacts context'>
+        <aside className='contextPanel' aria-label='Contacts and Home context'>
           <ContextPanel
             actions={model.contextFormActions}
             controls={model.controls}
