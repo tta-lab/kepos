@@ -119,6 +119,7 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
     'docs/v1-friend-home-architecture/30-v1-profile-only-social-route-next-plan.md',
     'docs/v1-friend-home-architecture/31-v1-profile-p2p-release-next-plan.md',
     'docs/v1-friend-home-architecture/32-v1-profile-dm-first-release-next-plan.md',
+    'docs/v1-friend-home-architecture/33-v1-profile-dm-only-social-next-plan.md',
     'docs/v1.20-smoke-guide.md',
     'docs/v1.21-cross-device-smoke.md'
   ]) {
@@ -154,7 +155,8 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
   assert.match(docs, /Previous V1 profile delivery and Home demotion plan/)
   assert.match(docs, /Previous V1 profile-only social route plan/)
   assert.match(docs, /Previous V1 profile P2P release plan/)
-  assert.match(docs, /Active V1 profile\/DM-first release plan/)
+  assert.match(docs, /Previous V1 profile\/DM-first release plan/)
+  assert.match(docs, /Active V1 profile\/DM-only social plan/)
   assert.match(docs, /profile-routed private IM/)
   assert.match(docs, /profile-to-profile P2P route/)
   assert.match(docs, /Profile is the social address/)
@@ -177,6 +179,7 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
   assert.match(profileFirst, /30-v1-profile-only-social-route-next-plan\.md/)
   assert.match(profileFirst, /31-v1-profile-p2p-release-next-plan\.md/)
   assert.match(profileFirst, /32-v1-profile-dm-first-release-next-plan\.md/)
+  assert.match(profileFirst, /33-v1-profile-dm-only-social-next-plan\.md/)
   assert.match(profileFirst, /\.\.\/v1\.21-cross-device-smoke\.md/)
   assert.match(moc, /Prior product-logic unification next plan/)
   assert.doesNotMatch(
@@ -186,7 +189,33 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
   assert.doesNotMatch(profileFirst, /evidence packet described in `08`/)
 })
 
-test('V1 active profile and DM first release plan demotes Home from social delivery', async () => {
+test('V1 active profile and DM only social plan keeps Home out of normal social paths', async () => {
+  const plan = await readText(
+    '../docs/v1-friend-home-architecture/33-v1-profile-dm-only-social-next-plan.md'
+  )
+
+  assert.match(plan, /Profile\/DM = normal social product/)
+  assert.match(plan, /Home = explicit trusted live\/session product/)
+  assert.match(plan, /A user adds a person, not a room/)
+  assert.match(plan, /Profile QR -> friend request -> accept -> Contact -> Chat\/Profile posts/)
+  assert.match(plan, /trusted Contact -> Profile detail -> Enter Home/)
+  assert.match(plan, /No normal social action should require Home entry/)
+  assert.match(plan, /Add A Friend/)
+  assert.match(plan, /This flow must not enter Home/)
+  assert.match(plan, /Chat With A Friend/)
+  assert.match(plan, /This flow must not depend on Home runtime state/)
+  assert.match(plan, /Post To Treehole/)
+  assert.match(plan, /It must not require the owner\s+to open their Home first/)
+  assert.match(plan, /Enter Home/)
+  assert.match(plan, /This is a live\/session action\. It is not a trust action/)
+  assert.match(plan, /Audit And Remove Remaining Home Gates From Social Paths/)
+  assert.match(plan, /Make Desktop And Android Use One Product Vocabulary/)
+  assert.match(plan, /Keep Home Descriptor Delivery Post-Trust/)
+  assert.match(plan, /Run Final Physical Proof Last/)
+  assert.match(plan, /source-level route increasingly clean; release proof still open/)
+})
+
+test('V1 previous profile and DM first release plan demotes Home from social delivery', async () => {
   const plan = await readText(
     '../docs/v1-friend-home-architecture/32-v1-profile-dm-first-release-next-plan.md'
   )
@@ -228,7 +257,7 @@ test('V1 active profile and DM first release plan demotes Home from social deliv
   assert.match(plan, /V1 has one production social delivery model: profile\/DM P2P/)
 })
 
-test('V1 active profile P2P release plan owns final release work', async () => {
+test('V1 previous profile P2P release plan owns final release work', async () => {
   const plan = await readText(
     '../docs/v1-friend-home-architecture/31-v1-profile-p2p-release-next-plan.md'
   )
