@@ -2,6 +2,7 @@ import type { StyleProp, TextStyle, ViewStyle } from 'react-native'
 import { Pressable, Text, View } from 'react-native'
 import { Plus, User, Users } from 'lucide-react-native'
 import { createDmThreadListView, type DmThreadListViewItem } from '../src/dm-thread-list.ts'
+import type { ResolveAvatarMediaUri } from '../src/profile-avatar-view-model.ts'
 import {
   MobileActionButton,
   MobileRequestActionButton,
@@ -103,6 +104,7 @@ export type MessageThreadListProps = {
     senderEncryptionPublicKey?: string | null
     text?: string | null
   }[]
+  resolveAvatarMediaUri?: ResolveAvatarMediaUri | null
   selectedProfileId?: string
   shortenProfileId(profileId: string): string
   styles: MessageThreadStyles
@@ -122,6 +124,7 @@ export function MessageThreadList({
   outgoingRequests,
   ownerProfileId,
   pendingRequests,
+  resolveAvatarMediaUri = null,
   selectedProfileId,
   shortenProfileId,
   styles,
@@ -135,6 +138,7 @@ export function MessageThreadList({
     outgoingRequests,
     ownerProfileId: ownerProfileId || '',
     pendingRequests,
+    resolveAvatarMediaUri,
     shortenProfileId,
     threads
   })

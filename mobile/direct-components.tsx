@@ -188,6 +188,7 @@ export function DirectPane({
         outgoingRequests={outgoingRequests}
         ownerProfileId={ownerProfileId}
         pendingRequests={pendingRequests}
+        resolveAvatarMediaUri={resolveAvatarMediaUri}
         selectedProfileId={recipient}
         shortenProfileId={shortenProfileId}
         styles={styles}

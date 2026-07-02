@@ -973,10 +973,15 @@ test('mobile messages can show thread rows and scanned profile request targets',
   assert.match(directPane, /<MessageThreadList[\s\S]*onMarkThreadRead=\{onMarkThreadRead\}/)
   assert.match(directPane, /<MessageThreadList[\s\S]*messages=\{messages\}/)
   assert.match(directPane, /<MessageThreadList[\s\S]*contacts=\{threadContacts\}/)
+  assert.match(
+    directPane,
+    /<MessageThreadList[\s\S]*resolveAvatarMediaUri=\{resolveAvatarMediaUri\}/
+  )
   assert.match(directPane, /<MessageThreadList[\s\S]*styles=\{styles\}/)
   assert.match(directPane, /<DirectBubble[\s\S]*contacts=\{contactOptions\}/)
   assert.match(directPane, /const selectedThread = findSelectedDmThreadView\(/)
   assert.match(directPane, /selectedProfileId: recipient/)
+  assert.match(directPane, /createDmThreadListView\(\{[\s\S]*resolveAvatarMediaUri,[\s\S]*threads/)
   assert.match(directPane, /<DirectThreadHeader[\s\S]*thread=\{selectedThread\}/)
   assert.match(directPane, /<DirectThreadHeader[\s\S]*styles=\{styles\}/)
   assert.match(
@@ -1001,6 +1006,10 @@ test('mobile messages can show thread rows and scanned profile request targets',
   assert.match(checkedThreadList, /testID='message-thread-open-contacts-button'/)
   assert.match(checkedThreadList, /onPress=\{onOpenPeople\}/)
   assert.match(checkedThreadList, /createDmThreadListView\(\{[\s\S]*messages,[\s\S]*threads/)
+  assert.match(
+    checkedThreadList,
+    /createDmThreadListView\(\{[\s\S]*resolveAvatarMediaUri,[\s\S]*threads/
+  )
   assert.match(checkedThreadRow, /<MobileProfileAvatar avatar=\{thread\.avatar\}/)
   assert.match(checkedThreadRow, /thread\.preview/)
   assert.match(checkedThreadRow, /thread\.timeLabel/)
