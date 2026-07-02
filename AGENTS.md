@@ -71,6 +71,11 @@ Use these docs as the current architecture map for Kepos.
 - Public home access allows room chat only, not treehole read.
 - Room chat is ephemeral.
 - DM is durable, pairwise, and separate from home room traffic.
+- Profile QR is the only normal add-friend QR.
+- Friend request, accept, DM bootstrap, and normal private Chat use
+  profile-level P2P delivery, not Home control traffic.
+- Home is explicit post-trust live-room entry. It is not the friend request
+  route, not the authorization route, and not a production fallback for Chat.
 - Trust has one V1 scope: `home`.
 - Production friend bootstrap must use profile-to-profile P2P delivery. Home
   control request/invite handling is debug fallback or legacy compatibility,

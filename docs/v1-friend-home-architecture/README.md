@@ -141,8 +141,13 @@ The short version:
     - Use this for readiness-closure context before `27`.
 
 27. `27-v1-profile-social-finalization-next-plan.md`
-    - Active V1 plan: finish the profile-social private IM path and produce the
-      final physical desktop/Android proof packet.
+    - Previous V1 plan: finish the profile-social private IM path and produce
+      the final physical desktop/Android proof packet.
+    - Use this for profile-social finalization context before `28`.
+
+28. `28-v1-profile-delivery-home-independent-next-plan.md`
+    - Active V1 plan: make the Home-independent profile delivery rule explicit,
+      audit UI/copy/delivery boundaries, and finish the final proof.
     - Use this for current V1 work before starting V2.
 
 ## Core Principle
@@ -161,3 +166,7 @@ Joining a Home must not be used to deliver the request in the production
 architecture. Friend request, accept, and durable DM delivery must be
 profile-to-profile P2P. Direct host/port is diagnostics only, not a production
 social route.
+
+Home can host a later activity invite only after trust already exists. It is
+not the trust bootstrap, not the add-friend QR, and not the fallback for normal
+private messaging.

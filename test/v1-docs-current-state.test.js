@@ -114,6 +114,7 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
     'docs/v1-friend-home-architecture/25-v1-profile-route-implementation-next-plan.md',
     'docs/v1-friend-home-architecture/26-v1-readiness-closure-next-plan.md',
     'docs/v1-friend-home-architecture/27-v1-profile-social-finalization-next-plan.md',
+    'docs/v1-friend-home-architecture/28-v1-profile-delivery-home-independent-next-plan.md',
     'docs/v1.20-smoke-guide.md',
     'docs/v1.21-cross-device-smoke.md'
   ]) {
@@ -144,7 +145,8 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
   assert.match(docs, /Previous V1 release proof next plan/)
   assert.match(docs, /Previous V1 profile route implementation plan/)
   assert.match(docs, /Previous V1 readiness closure plan/)
-  assert.match(docs, /Active V1 profile-social finalization plan/)
+  assert.match(docs, /Previous V1 profile-social finalization plan/)
+  assert.match(docs, /Active V1 Home-independent profile delivery plan/)
   assert.match(docs, /profile-routed private IM/)
   assert.match(docs, /profile-to-profile P2P route/)
   assert.match(docs, /Profile is the social address/)
@@ -162,6 +164,7 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
   assert.match(profileFirst, /25-v1-profile-route-implementation-next-plan\.md/)
   assert.match(profileFirst, /26-v1-readiness-closure-next-plan\.md/)
   assert.match(profileFirst, /27-v1-profile-social-finalization-next-plan\.md/)
+  assert.match(profileFirst, /28-v1-profile-delivery-home-independent-next-plan\.md/)
   assert.match(profileFirst, /\.\.\/v1\.21-cross-device-smoke\.md/)
   assert.match(moc, /Prior product-logic unification next plan/)
   assert.doesNotMatch(
@@ -169,6 +172,29 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
     /current execution plan has moved on to `08-v1-im-release-next-plan\.md`/
   )
   assert.doesNotMatch(profileFirst, /evidence packet described in `08`/)
+})
+
+test('V1 active Home-independent profile delivery plan keeps Home out of authorization', async () => {
+  const plan = await readText(
+    '../docs/v1-friend-home-architecture/28-v1-profile-delivery-home-independent-next-plan.md'
+  )
+
+  assert.match(plan, /Profile QR -> friend request -> accept/)
+  assert.match(plan, /Home entry is a separate trusted action/)
+  assert.match(plan, /Home must not be part of adding a friend/)
+  assert.match(plan, /Home QR is advanced\/debug only in V1/)
+  assert.match(plan, /Direct host\/port is diagnostics only/)
+  assert.match(plan, /Trust belongs to the profile relationship/)
+  assert.match(plan, /Delivery belongs to profile-level P2P routes/)
+  assert.match(plan, /Activity invites are allowed only after trust already exists/)
+  assert.match(plan, /The phrase "home invite" should not mean "build trust"/)
+  assert.match(plan, /join target Home -> send control frame -> infer friendship/)
+  assert.match(plan, /`90de1e0b12a39112bedff13a7fcf910ecb305a2e`/)
+  assert.match(plan, /970 Node tests/)
+  assert.match(plan, /Release APK SHA-256/)
+  assert.match(plan, /physical Profile QR scan works/)
+  assert.match(plan, /Home peer counts are zero/)
+  assert.match(plan, /Home is a post-trust action, not an authorization mechanism/)
 })
 
 test('V1 TypeScript boundary docs describe the current TSX migration state', async () => {

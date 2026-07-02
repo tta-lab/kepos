@@ -1,10 +1,12 @@
 # V1 Profile Social Finalization Next Plan
 
-This is the active next plan after `26-v1-readiness-closure-next-plan.md`.
+This was the active next plan after `26-v1-readiness-closure-next-plan.md`.
+Current V1 execution has moved to
+`28-v1-profile-delivery-home-independent-next-plan.md`.
 
-Use `26` for the readiness-closure bar and final proof packet shape. Use this
-document for the remaining V1 implementation pass before the expensive physical
-desktop/Android proof.
+Use `26` for the readiness-closure bar and final proof packet shape. Use `28`
+for current V1 work. Use this document for the profile-social finalization
+context before the expensive physical desktop/Android proof.
 
 ## Target
 
