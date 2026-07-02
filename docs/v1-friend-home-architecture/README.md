@@ -146,8 +146,15 @@ The short version:
     - Use this for profile-social finalization context before `28`.
 
 28. `28-v1-profile-delivery-home-independent-next-plan.md`
-    - Active V1 plan: make the Home-independent profile delivery rule explicit,
-      audit UI/copy/delivery boundaries, and finish the final proof.
+    - Previous V1 plan: make the Home-independent profile delivery rule explicit
+      and remove Home descriptor coupling from Profile QR.
+    - Use this for evidence that Profile QR no longer carries or stores Home
+      descriptors.
+
+29. `29-v1-profile-delivery-home-demotion-next-plan.md`
+    - Active V1 plan: profile delivery owns social delivery, Profile QR is the
+      only normal add-friend QR, and Home is only explicit post-trust live
+      room/activity space.
     - Use this for current V1 work before starting V2.
 
 ## Core Principle
@@ -170,3 +177,7 @@ social route.
 Home can host a later activity invite only after trust already exists. It is
 not the trust bootstrap, not the add-friend QR, and not the fallback for normal
 private messaging.
+
+Profile QR must not embed Home descriptors. If V1 needs Home entry without a
+debug QR exchange, signed Home descriptors should travel over profile-level
+post-trust delivery and be stored only for an already trusted profile.

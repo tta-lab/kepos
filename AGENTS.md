@@ -31,7 +31,9 @@ Use these docs as the current architecture map for Kepos.
 - `docs/v1-friend-home-architecture/24-v1-release-proof-next-plan.md`: previous V1 plan; final release-proof bar before calling V1 ready.
 - `docs/v1-friend-home-architecture/25-v1-profile-route-implementation-next-plan.md`: previous V1 plan; profile-route implementation and UI parity evidence.
 - `docs/v1-friend-home-architecture/26-v1-readiness-closure-next-plan.md`: previous V1 plan; readiness closure and final physical proof packet context.
-- `docs/v1-friend-home-architecture/27-v1-profile-social-finalization-next-plan.md`: active V1 plan; profile-social finalization and final physical proof packet owner.
+- `docs/v1-friend-home-architecture/27-v1-profile-social-finalization-next-plan.md`: previous V1 plan; profile-social finalization and final physical proof packet owner.
+- `docs/v1-friend-home-architecture/28-v1-profile-delivery-home-independent-next-plan.md`: previous V1 plan; Profile QR no longer carries or stores Home descriptors.
+- `docs/v1-friend-home-architecture/29-v1-profile-delivery-home-demotion-next-plan.md`: active V1 plan; profile delivery owns social delivery, and Home is only explicit post-trust live room/activity space.
 - `docs/v1.07-architecture-gaps.md`: remaining architecture gaps for V1 after identity and QR design.
 - `docs/v1.03-limitations.md`: explicit V1 limitations, non-goals, and success bar.
 - `docs/v1.04-tradeoffs.md`: accepted V1 tradeoffs, rejected options, risks, and future escape hatches.
@@ -47,10 +49,10 @@ Use these docs as the current architecture map for Kepos.
 - One device is one profile.
 - One profile owns one home room.
 - One profile owns one treehole.
-- Profile QR is the product share surface: it represents the person, can carry
-  that person's current home descriptor, and starts the friend request/trust
-  path. Home QR is only an advanced/debug home descriptor surface, not a
-  parallel primary invite model.
+- Profile QR is the product share surface: it represents the person and starts
+  the friend request path. It must not carry a Home descriptor in the normal
+  V1 product path. Home QR is only an advanced/debug home descriptor surface,
+  not a parallel primary invite model.
 - Home is not part of add-friend bootstrap. It is an explicit live-room action
   after trust, not authorization, not friend request delivery, and not the main
   DM route.
@@ -76,6 +78,9 @@ Use these docs as the current architecture map for Kepos.
   profile-level P2P delivery, not Home control traffic.
 - Home is explicit post-trust live-room entry. It is not the friend request
   route, not the authorization route, and not a production fallback for Chat.
+- Home descriptors may arrive through advanced/debug Home QR after trust or
+  through profile-level post-trust delivery. They must not be embedded in
+  Profile QR to bootstrap friendship.
 - Trust has one V1 scope: `home`.
 - Production friend bootstrap must use profile-to-profile P2P delivery. Home
   control request/invite handling is debug fallback or legacy compatibility,

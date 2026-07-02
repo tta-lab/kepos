@@ -25,8 +25,10 @@ The current execution path is:
   plan
 - `27-v1-profile-social-finalization-next-plan.md` for the active V1 final
   implementation and proof plan
-- `28-v1-profile-delivery-home-independent-next-plan.md` for the active V1
+- `28-v1-profile-delivery-home-independent-next-plan.md` for the previous V1
   Home-independent profile delivery plan
+- `29-v1-profile-delivery-home-demotion-next-plan.md` for the active V1
+  profile delivery and Home demotion plan
 - `../v1.21-cross-device-smoke.md` for the final desktop/Android release proof
 
 ## Decision
@@ -178,7 +180,8 @@ Current execution note:
 - `25` owns the profile-route implementation pass.
 - `26` owns the V1 readiness closure context.
 - `27` owns the active V1 final implementation and proof plan.
-- `28` owns the active V1 Home-independent profile delivery and proof plan.
+- `28` owns the previous V1 Home-independent profile delivery and proof plan.
+- `29` owns the active V1 profile delivery and Home demotion plan.
 - `../v1.21-cross-device-smoke.md` owns the final release proof packet.
 
 The current product behavior is intentionally honest: a request can be queued or searching locally without claiming the other side received it.
