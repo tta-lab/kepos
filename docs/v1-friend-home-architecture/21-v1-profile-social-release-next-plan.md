@@ -16,6 +16,12 @@ Home is only an explicit live room after trust.
 Low-cost proof now covers the V1 architecture shape:
 
 - request retry on desktop and Android uses profile/social delivery
+- ContactBook storage preserves outgoing request ids, text, signed request
+  frames, and delivery state, so pending/searching/delivered request rows can
+  recover after restart
+- desktop and Android render outgoing request rows with honest pending,
+  searching, delivered, failed, and retry states instead of hiding delivery
+  uncertainty
 - accept creates trust and returns the signed DM invite without using Home
 - accepted contacts can appear in Chat before the first private message
 - desktop can restore accepted Chat rows, thread metadata, and saved messages
@@ -86,6 +92,25 @@ Do not hide P2P uncertainty behind optimistic UI.
 - retry resends the same signed request where possible
 - pending accept or DM bootstrap state remains visible
 - restart does not erase pending social state
+
+Low-cost status: complete for source, storage, and UI proof. The relevant
+coverage is:
+
+- `test/contact-book-storage.test.js` proves outgoing request ids, signed
+  request frames, text, and delivery states survive sync and app-file storage
+  restore
+- `test/desktop-people-view-model.test.js` proves desktop outgoing request rows
+  show pending/failed delivery state and enable Retry only when a signed request
+  can be resent
+- `test/mobile-mlp-ui.test.js` proves Android outgoing request rows are restored
+  from ContactBook, expose Retry, reset delivery to queued, and resend through
+  `RPC_PROFILE_REQUEST_SEND` instead of Home or room transport
+- `test/dm-thread-list.test.js` proves pending, delivered, accepted, and
+  incoming request states remain visible as Chat rows rather than disappearing
+
+Remaining proof: the final physical cross-device packet still needs to record
+that these states appear on the real desktop plus Android path and survive the
+specified restarts.
 
 ### 4. Run Low-Cost Gates
 

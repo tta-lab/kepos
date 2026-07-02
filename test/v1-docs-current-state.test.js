@@ -1143,6 +1143,29 @@ test('V1 docs use Remove friend as the normal user-facing revoke action', async 
   assert.doesNotMatch(docs, /Revoke trust, delete/)
 })
 
+test('V1 active release plan records honest delivery state proof', async () => {
+  const releasePlan = await readText(
+    '../docs/v1-friend-home-architecture/21-v1-profile-social-release-next-plan.md'
+  )
+
+  assert.match(releasePlan, /ContactBook storage preserves outgoing request ids/)
+  assert.match(releasePlan, /signed request\s+frames/)
+  assert.match(
+    releasePlan,
+    /pending\/searching\/delivered request rows can\s+recover after restart/
+  )
+  assert.match(releasePlan, /honest pending,\s+searching, delivered, failed, and retry states/)
+  assert.match(releasePlan, /Low-cost status: complete for source, storage, and UI proof/)
+  assert.match(releasePlan, /test\/contact-book-storage\.test\.js/)
+  assert.match(releasePlan, /test\/desktop-people-view-model\.test\.js/)
+  assert.match(releasePlan, /test\/mobile-mlp-ui\.test\.js/)
+  assert.match(releasePlan, /test\/dm-thread-list\.test\.js/)
+  assert.match(releasePlan, /RPC_PROFILE_REQUEST_SEND/)
+  assert.match(releasePlan, /instead of Home or room transport/)
+  assert.match(releasePlan, /final physical cross-device packet/)
+  assert.doesNotMatch(releasePlan, /Do not hide P2P uncertainty behind optimistic UI\.\s*$/)
+})
+
 test('V1 normal UX docs use Chat and Treehole product labels', async () => {
   const direction = await readText('../docs/00-project-direction.md')
   const ux = await readText('../docs/v1.12-mlp-ux-after-architecture-switch.md')
