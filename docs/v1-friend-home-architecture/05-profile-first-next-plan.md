@@ -103,6 +103,8 @@ Phase 1 through Phase 6 are implemented or quarantined in the current branch:
 - profile request runtime can send through the target profile topic without
   opening the local inbox first
 - outgoing requests are recorded as `queued`, then updated to `searching` or `sent` from transport callbacks
+- outgoing request delivery state is serialized in ContactBook storage, so
+  pending/searching/sent/delivered state can survive restart
 - Android applies profile request delivery-state callbacks back into the
   outgoing request ContactBook and persists the update
 - desktop applies profile request delivery-state callbacks back into the

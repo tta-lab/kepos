@@ -30,6 +30,7 @@ describe('contact book storage', () => {
     const storage = createMemoryStorage()
     const book = recordOutgoingFriendRequest(createContactBook({ ownerProfileId: 'owner-a' }), {
       alias: 'Ada',
+      deliveryState: 'searching',
       profileId: 'profile-b',
       requestedAt: 1000,
       requestId: 'request-1',
@@ -41,6 +42,7 @@ describe('contact book storage', () => {
     const restored = loadContactBookFromStorage({ ownerProfileId: 'owner-a', storage })
 
     assert.equal(restored.outgoingRequestsByProfileId.get('profile-b').requestId, 'request-1')
+    assert.equal(restored.outgoingRequestsByProfileId.get('profile-b').deliveryState, 'searching')
     assert.equal(getContact(restored, 'profile-b').alias, 'Ada')
   })
 
@@ -83,6 +85,7 @@ describe('contact book storage', () => {
     const fileSystem = createFileSystem(files)
     const book = recordOutgoingFriendRequest(createContactBook({ ownerProfileId: 'owner-a' }), {
       alias: 'Ada',
+      deliveryState: 'delivered',
       profileId: 'profile-b',
       requestedAt: 1000,
       requestId: 'request-1',
@@ -102,6 +105,7 @@ describe('contact book storage', () => {
     })
 
     assert.equal(restored.outgoingRequestsByProfileId.get('profile-b').requestId, 'request-1')
+    assert.equal(restored.outgoingRequestsByProfileId.get('profile-b').deliveryState, 'delivered')
     assert.equal(restored.outgoingRequestsByProfileId.get('profile-b').text, 'hi')
     assert.equal(getContact(restored, 'profile-b').alias, 'Ada')
   })

@@ -55,6 +55,8 @@ Already in source:
 - Profile request transport can send through the target profile topic without
   opening the local inbox first, which keeps request sending independent from
   Home entry and local room lifecycle.
+- Outgoing request delivery state is part of ContactBook storage and survives
+  sync/file restore.
 - Android backend starts the profile request service from `RPC_PROFILE_START`
   without joining Home.
 - Android persists profile request delivery-state callbacks into the outgoing
