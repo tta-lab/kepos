@@ -234,7 +234,7 @@ test('Android lobby uses shared task headers for setup panels', async () => {
     quickStart,
     /description=\{[\s\S]*profileReady[\s\S]*\? 'Open your home or show My QR\.'[\s\S]*: 'Setting up your profile\.\.\.'[\s\S]*\}/
   )
-  assert.match(peopleActions, /<TaskHeader[\s\S]*eyebrow='Advanced'[\s\S]*title='Home QR'/)
+  assert.match(peopleActions, /<TaskHeader[\s\S]*eyebrow='Advanced'[\s\S]*title='Debug Home QR'/)
   assert.match(
     peopleActions,
     /<TaskHeader[\s\S]*description='Scan a Profile QR, then write a request in Chat\.'[\s\S]*eyebrow='Contacts'[\s\S]*title='Add friend'/

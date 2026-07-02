@@ -98,7 +98,10 @@ describe('manual key debug UI boundary', () => {
     assert.match(lobby, /<TaskHeader[\s\S]*eyebrow='Advanced'[\s\S]*title='Manual home key'/)
     assert.match(lobby, /description='Use only when QR joining is unavailable\.'/)
     assert.match(peopleActions, /<TaskHeader[\s\S]*eyebrow='Advanced'[\s\S]*title='QR details'/)
-    assert.match(peopleActions, /description='Paste or copy raw QR payloads for debug flows\.'/)
+    assert.match(
+      peopleActions,
+      /description='Paste or copy raw QR payloads for advanced diagnostics\.'/
+    )
     assert.equal(lobby.includes('<Text style={styles.panelTitle}>Manual home key</Text>'), false)
     assert.equal(peopleActions.includes('<Text style={styles.panelTitle}>QR details</Text>'), false)
   })
