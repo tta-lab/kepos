@@ -153,7 +153,7 @@ export function createDesktopUiActionBindings({
       qrActions
         .showLargeQr({
           returnFocus,
-          title: 'Home QR',
+          title: 'Debug Home QR',
           uri: qrActions.getShareQrOutputs().homeUri
         })
         .catch(onError),

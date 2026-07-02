@@ -115,7 +115,7 @@ export function HomeStartupPane({
             autoCapitalize='none'
             autoCorrect={false}
             onChangeText={onDirectRoomEndpointChange}
-            placeholder='Optional direct host:port'
+            placeholder='Debug direct host:port'
             placeholderTextColor={theme.placeholder}
             style={styles.keyInput}
             testID='manual-home-endpoint-input'

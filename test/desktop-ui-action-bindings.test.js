@@ -135,7 +135,7 @@ test('desktop UI action bindings route renderer actions to command payloads', as
     ['setTab', 'dm'],
     ['copyQrValue', { notice: 'Home QR copied.', value: 'kepos://home' }],
     ['copyQrValue', { notice: 'Profile QR copied.', value: 'kepos://profile' }],
-    ['showLargeQr', { returnFocus: 'home-button', title: 'Home QR', uri: 'kepos://home' }],
+    ['showLargeQr', { returnFocus: 'home-button', title: 'Debug Home QR', uri: 'kepos://home' }],
     ['showLargeQr', { returnFocus: 'profile-button', title: 'Profile QR', uri: 'kepos://profile' }],
     ['updateAvatarMedia', { bytesBase64: 'aGVsbG8=', mimeType: 'image/png' }],
     ['dispatch', 'updateAvatarMedia', { bytesBase64: 'aGVsbG8=', mimeType: 'image/png' }],

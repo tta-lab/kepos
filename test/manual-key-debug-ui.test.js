@@ -97,6 +97,8 @@ describe('manual key debug UI boundary', () => {
 
     assert.match(lobby, /<TaskHeader[\s\S]*eyebrow='Advanced'[\s\S]*title='Manual home key'/)
     assert.match(lobby, /description='Use only when QR joining is unavailable\.'/)
+    assert.match(lobby, /placeholder='Debug direct host:port'/)
+    assert.equal(lobby.includes("placeholder='Optional direct host:port'"), false)
     assert.match(peopleActions, /<TaskHeader[\s\S]*eyebrow='Advanced'[\s\S]*title='QR details'/)
     assert.match(
       peopleActions,
