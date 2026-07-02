@@ -54,8 +54,8 @@ As of 2026-07-03, the source has moved close to the target model:
 - local Treehole posts persist
 - Home entry is exposed as an explicit trusted-profile action
 - the current non-device `npm run v1:gate` passed on commit
-  `f582c546a502572069e04a95b353e09595c39cc2` with lint, typecheck,
-  platform boundaries, 967 Node tests, TypeScript probes, desktop bundles,
+  `45f14014ff187b2df602ec6980f2b43156bbe9e6` with lint, typecheck,
+  platform boundaries, 968 Node tests, TypeScript probes, desktop bundles,
   Android backend Bare bundle, Expo Android export, and Android APK
   native-library checks
 - release proof tooling exists through
@@ -170,8 +170,8 @@ npm run lint
 Current evidence:
 
 - `npm run v1:gate` passed on
-  `f582c546a502572069e04a95b353e09595c39cc2`, covering lint, typecheck,
-  platform boundaries, 967 Node tests, TypeScript probes, desktop bundles,
+  `45f14014ff187b2df602ec6980f2b43156bbe9e6`, covering lint, typecheck,
+  platform boundaries, 968 Node tests, TypeScript probes, desktop bundles,
   Android backend Bare bundle, Expo Android export, and Android APK
   native-library checks.
 - The older focused proof
