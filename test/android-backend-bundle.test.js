@@ -117,6 +117,10 @@ test('android backend trims outgoing text at the RPC boundary', () => {
   assert.match(source, /RPC_PROFILE_REQUEST_STATE/)
   assert.match(source, /createProfileFriendRequestRuntime\(/)
   assert.match(joinRoom, /resendOutgoingMessageRequests\(peer\)/)
+  assert.match(
+    resendOutgoingMessageRequests,
+    /if \(!allowHomeTrustFallback \|\| !room \|\| !peer\)/
+  )
   assert.match(resendOutgoingMessageRequests, /outgoingMessageRequestsByProfileId\.values\(\)/)
   assert.match(resendOutgoingMessageRequests, /room\.sendControl\(peer, request\)/)
   assert.match(source, /RPC_TREEHOLE_POLICY/)

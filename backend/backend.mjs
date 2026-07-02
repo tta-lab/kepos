@@ -513,7 +513,7 @@ function requestHomeHello(peer = null) {
 }
 
 function resendOutgoingMessageRequests(peer) {
-  if (!room || !peer) {
+  if (!allowHomeTrustFallback || !room || !peer) {
     return
   }
 
