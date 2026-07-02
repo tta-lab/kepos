@@ -1,9 +1,10 @@
 # V1 Social Delivery Release Plan
 
-This is the active V1 next plan after the profile P2P delivery decision.
+This was the V1 social delivery release plan after the profile P2P delivery decision.
 
 Use `22-v1-profile-p2p-delivery-next-plan.md` as evidence context. Use this
-document for new V1 implementation work.
+document as the product-rule baseline. Use
+`24-v1-release-proof-next-plan.md` for the active final proof pass.
 
 ## Target
 

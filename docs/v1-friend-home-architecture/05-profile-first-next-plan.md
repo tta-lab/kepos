@@ -16,8 +16,9 @@ The current execution path is:
   evidence
 - `21-v1-profile-social-release-next-plan.md` for the release evidence context
 - `22-v1-profile-p2p-delivery-next-plan.md` for profile P2P delivery evidence
-- `23-v1-social-delivery-release-plan.md` for the active social delivery
-  release plan
+- `23-v1-social-delivery-release-plan.md` for the social delivery release
+  baseline
+- `24-v1-release-proof-next-plan.md` for the active final release-proof pass
 - `../v1.21-cross-device-smoke.md` for the final desktop/Android release proof
 
 ## Decision
@@ -160,7 +161,12 @@ Current execution note:
 - `13` owns the current Home decoupling next plan.
 - `14` owns the next desktop/Android product-logic unification plan.
 - `18` owns the profile P2P hardening evidence baseline.
-- `19` owns the active profile-social delivery and final proof plan.
+- `19` owns the profile-social delivery and final proof model.
+- `20` owns the low-cost completion evidence.
+- `21` owns the release evidence context.
+- `22` owns the profile P2P delivery evidence context.
+- `23` owns the social delivery release baseline.
+- `24` owns the active final release-proof pass.
 - `../v1.21-cross-device-smoke.md` owns the final release proof packet.
 
 The current product behavior is intentionally honest: a request can be queued or searching locally without claiming the other side received it.

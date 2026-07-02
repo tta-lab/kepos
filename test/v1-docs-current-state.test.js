@@ -110,6 +110,7 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
     'docs/v1-friend-home-architecture/21-v1-profile-social-release-next-plan.md',
     'docs/v1-friend-home-architecture/22-v1-profile-p2p-delivery-next-plan.md',
     'docs/v1-friend-home-architecture/23-v1-social-delivery-release-plan.md',
+    'docs/v1-friend-home-architecture/24-v1-release-proof-next-plan.md',
     'docs/v1.20-smoke-guide.md',
     'docs/v1.21-cross-device-smoke.md'
   ]) {
@@ -125,8 +126,10 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
   assert.match(docs, /agent recipe for desktop\/Android gates/)
   assert.match(agents, /final V1 release proof packet/)
   assert.match(agents, /tmp\/final-v1-proof\.md/)
+  assert.match(agents, /npm run v1:proof:check/)
   assert.match(moc, /final V1 release proof packet/)
   assert.match(moc, /tmp\/final-v1-proof\.md/)
+  assert.match(moc, /npm run v1:proof:check -- --file tmp\/final-v1-proof\.md/)
   assert.match(docs, /Use this as the checklist before starting V2 or calling V1 ready/)
   assert.match(docs, /Previous V1 profile-routed IM next plan/)
   assert.match(docs, /Previous V1 profile P2P hardening next plan/)
@@ -134,7 +137,8 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
   assert.match(docs, /Previous V1 profile social completion next plan/)
   assert.match(docs, /Previous V1 profile social release evidence/)
   assert.match(docs, /Previous V1 profile P2P delivery evidence/)
-  assert.match(docs, /Active V1 social delivery release plan/)
+  assert.match(docs, /Previous V1 social delivery release plan/)
+  assert.match(docs, /Active V1 release proof next plan/)
   assert.match(docs, /profile-routed private IM/)
   assert.match(docs, /profile-to-profile P2P route/)
   assert.match(docs, /Profile is the social address/)
@@ -148,6 +152,7 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
   assert.match(profileFirst, /21-v1-profile-social-release-next-plan\.md/)
   assert.match(profileFirst, /22-v1-profile-p2p-delivery-next-plan\.md/)
   assert.match(profileFirst, /23-v1-social-delivery-release-plan\.md/)
+  assert.match(profileFirst, /24-v1-release-proof-next-plan\.md/)
   assert.match(profileFirst, /\.\.\/v1\.21-cross-device-smoke\.md/)
   assert.match(moc, /Prior product-logic unification next plan/)
   assert.doesNotMatch(
@@ -1172,21 +1177,41 @@ test('V1 release evidence records honest delivery state proof', async () => {
   assert.doesNotMatch(releasePlan, /Do not hide P2P uncertainty behind optimistic UI\.\s*$/)
 })
 
-test('V1 active social delivery release plan keeps Home out of social delivery', async () => {
-  const activePlan = await readText(
+test('V1 social delivery baseline keeps Home out of social delivery', async () => {
+  const baselinePlan = await readText(
     '../docs/v1-friend-home-architecture/23-v1-social-delivery-release-plan.md'
   )
 
-  assert.match(activePlan, /Profile is the social address/)
+  assert.match(baselinePlan, /Profile is the social address/)
+  assert.match(baselinePlan, /Profile QR -> friend request -> mutual trust/)
+  assert.match(baselinePlan, /Profile QR is the normal add-friend path/)
+  assert.match(baselinePlan, /Debug Home QR is an advanced transport descriptor/)
+  assert.match(baselinePlan, /Direct host:port is diagnostics only/)
+  assert.match(baselinePlan, /friend request/)
+  assert.match(baselinePlan, /DM bootstrap/)
+  assert.match(baselinePlan, /private Chat works before any Home session is entered/)
+  assert.match(
+    baselinePlan,
+    /Do not use Home control traffic as production friend-request delivery/
+  )
+  assert.match(baselinePlan, /Physical smoke is expensive and should only run when asked/)
+})
+
+test('V1 active release proof plan names the final readiness bar', async () => {
+  const activePlan = await readText(
+    '../docs/v1-friend-home-architecture/24-v1-release-proof-next-plan.md'
+  )
+
   assert.match(activePlan, /Profile QR -> friend request -> mutual trust/)
-  assert.match(activePlan, /Profile QR is the normal add-friend path/)
-  assert.match(activePlan, /Debug Home QR is an advanced transport descriptor/)
-  assert.match(activePlan, /Direct host:port is diagnostics only/)
-  assert.match(activePlan, /friend request/)
-  assert.match(activePlan, /DM bootstrap/)
-  assert.match(activePlan, /private Chat works before any Home session is entered/)
-  assert.match(activePlan, /Do not use Home control traffic as production friend-request delivery/)
-  assert.match(activePlan, /Physical smoke is expensive and should only run when asked/)
+  assert.match(activePlan, /Home must stay out of the normal friend request path/)
+  assert.match(activePlan, /Profile QR is the only normal add-friend QR/)
+  assert.match(activePlan, /Debug Home QR is clearly advanced\/debug/)
+  assert.match(activePlan, /Home peer count stays zero/)
+  assert.match(activePlan, /Contacts and Chat both lead to the same trusted profile detail/)
+  assert.match(activePlan, /npm run v1:proof:packet -- --output tmp\/final-v1-proof\.md/)
+  assert.match(activePlan, /npm run v1:proof:check -- --file tmp\/final-v1-proof\.md/)
+  assert.match(activePlan, /Do not start V2 media rooms before this proof is complete/)
+  assert.match(activePlan, /desktop Profile QR -> Android request -> desktop accept/)
 })
 
 test('V1 normal UX docs use Chat and Treehole product labels', async () => {
