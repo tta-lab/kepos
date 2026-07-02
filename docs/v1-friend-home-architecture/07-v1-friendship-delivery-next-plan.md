@@ -27,8 +27,6 @@ Implemented:
 
 Still not finished:
 
-- There is no receiver acknowledgement frame yet, so UI must not claim
-  `delivered`.
 - Cross-device proof with Home peers at zero is still manual and expensive.
 
 Now completed in source:
@@ -38,6 +36,9 @@ Now completed in source:
 - Android Home-control request and invite handling is ignored by default.
 - Legacy Android `RPC_DM_SEND` requires explicit Home trust fallback.
 - Automated tests prove request receive, accept, and invite return without Home.
+- Profile request runtime now sends a receiver acknowledgement for valid
+  request/invite frames, so `delivered` means the target runtime received a
+  valid frame.
 
 ## Architecture Rule
 
@@ -107,16 +108,17 @@ accidentally reintroducing Home as a hidden dependency.
 
 ### 3. Keep Delivery Wording Honest
 
-Status: still open until acknowledgement frames exist.
+Status: implemented for runtime delivery acknowledgement.
 
-Until receiver acknowledgement exists:
+Delivery states mean:
 
 - `queued` means local request exists.
 - `searching` means the profile route is looking for the target.
 - `sent` means the frame was written to a connected route.
+- `delivered` means the receiver runtime acknowledged a valid signed frame.
 - `accepted` means the receiver accepted and invite/trust bootstrap completed.
 
-Do not show `delivered` in product UI until an explicit ack frame exists.
+Do not treat `delivered` as friendship. It is transport proof only.
 
 ### 4. Align Docs And Smoke Instructions
 

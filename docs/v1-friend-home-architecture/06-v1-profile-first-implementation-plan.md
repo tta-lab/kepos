@@ -107,11 +107,13 @@ The profile-level friend request route is now implemented far enough for code-le
   desktop distinguishes profile-source frames from Home-source frames, Android
   gates the legacy Home path behind explicit fallback, and automated tests
   prove request accept / invite return without Home.
+- Receiver acknowledgement exists in the profile request runtime:
+  `delivered` means the target runtime acked a valid signed frame, not that the
+  target accepted friendship.
 
 The next implementation block is proof and cleanup:
 
 - run cross-device smoke with Home disconnected or peer count at zero through request, accept, and DM thread creation
-- add an acknowledgement frame only when there is a real receiver ack, not before
 
 The current focused next plan is
 `07-v1-friendship-delivery-next-plan.md`. Use this document for the complete

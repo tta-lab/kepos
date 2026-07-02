@@ -103,7 +103,6 @@ Phase 1, Phase 2, and the first request-delivery part of Phase 3 are implemented
 Still open:
 
 - prove request and accept / invite delivery in cross-device smoke with Home peers at zero
-- add an explicit receiver acknowledgement before showing `delivered`
 
 Now completed:
 
@@ -111,6 +110,8 @@ Now completed:
   behind explicit debug fallback
 - automated tests prove profile-source request accept / invite return without
   Home membership
+- profile request runtime sends an explicit receiver acknowledgement, so
+  `delivered` now means the target runtime received a valid signed frame
 
 Current execution note:
 

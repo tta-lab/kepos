@@ -148,6 +148,50 @@ test('profile friend request runtime sends through a target profile topic', asyn
   ])
 })
 
+test('profile friend request runtime marks sent frames delivered after receiver ack', async () => {
+  const swarms = []
+  const delivery = []
+  const from = createSigningKeyPair()
+  const to = createSigningKeyPair()
+  const request = createRequest({ from, to })
+  const runtime = createProfileFriendRequestRuntime({
+    createSwarm: () => {
+      const swarm = new FakeSwarm()
+      swarms.push(swarm)
+      return swarm
+    },
+    localProfileId: from.publicKey,
+    onDeliveryState: (state) => delivery.push(state)
+  })
+
+  await runtime.send(request)
+  const socket = new FakeSocket()
+  swarms[0].connect(socket)
+  socket.emitData(
+    `${JSON.stringify({
+      fromProfileId: to.publicKey,
+      requestId: request.requestId,
+      toProfileId: from.publicKey,
+      type: 'kepos.profile.request.ack.v1'
+    })}\n`
+  )
+  socket.emitData(
+    `${JSON.stringify({
+      fromProfileId: to.publicKey,
+      requestId: request.requestId,
+      toProfileId: from.publicKey,
+      type: 'kepos.profile.request.ack.v1'
+    })}\n`
+  )
+
+  assert.deepEqual(delivery.at(-1), {
+    requestId: request.requestId,
+    state: 'delivered',
+    toProfileId: to.publicKey
+  })
+  assert.equal(delivery.filter((entry) => entry.state === 'delivered').length, 1)
+})
+
 test('profile friend request runtime receives verified requests once', async () => {
   const received = []
   const local = createSigningKeyPair()
@@ -169,6 +213,12 @@ test('profile friend request runtime receives verified requests once', async () 
   socket.emitData(`${JSON.stringify(request)}\n`)
 
   assert.deepEqual(received, [request])
+  assert.deepEqual(JSON.parse(socket.writes[0]), {
+    fromProfileId: local.publicKey,
+    requestId: request.requestId,
+    toProfileId: remote.publicKey,
+    type: 'kepos.profile.request.ack.v1'
+  })
 })
 
 test('profile friend request runtime receives verified DM invites once', async () => {

@@ -40,6 +40,13 @@ export type ProfileFriendRequestLocalProfile = {
 
 export type ProfileFriendRequestFrame = MessageRequest | DmInvite
 
+type ProfileFriendRequestAck = {
+  fromProfileId: string
+  requestId: string
+  toProfileId: string
+  type: 'kepos.profile.request.ack.v1'
+}
+
 export async function sendProfileFriendRequest({
   localProfile,
   request,
@@ -183,6 +190,7 @@ export function createProfileFriendRequestRuntime({
     const swarm = createSwarm()
     const route: ProfileFriendRequestSendRoute = {
       discovery: null,
+      deliveredFrameIds: new Set(),
       peers: new Set(),
       pendingFrames: new Map(),
       sentFrameIds: new Set(),
@@ -199,9 +207,20 @@ export function createProfileFriendRequestRuntime({
   }
 
   function addSendPeer(route: ProfileFriendRequestSendRoute, socket: ProfileFriendRequestSocket) {
+    let buffer = ''
     route.peers.add(socket)
     socket.on('close', () => route.peers.delete(socket))
     socket.on('error', () => route.peers.delete(socket))
+    socket.on('data', (chunk) => {
+      buffer += b4a.toString(chunk)
+      const lines = buffer.split('\n')
+      buffer = lines.pop() || ''
+
+      for (const line of lines) {
+        if (!line.trim()) continue
+        handleSendRouteLine(route, line)
+      }
+    })
 
     for (const frame of route.pendingFrames.values()) {
       sendOnRoute(route, frame)
@@ -253,18 +272,19 @@ export function createProfileFriendRequestRuntime({
 
       for (const line of lines) {
         if (!line.trim()) continue
-        handleInboxLine(line)
+        handleInboxLine(socket, line)
       }
     })
   }
 
-  function handleInboxLine(line: string): void {
+  function handleInboxLine(socket: ProfileFriendRequestSocket, line: string): void {
     try {
       const message: unknown = JSON.parse(line)
       const frame = readValidIncomingFrame(message)
       if (!frame) return
 
       incomingFrameIds.add(frameDeliveryId(frame))
+      socket.write(`${JSON.stringify(createProfileFriendRequestAck(frame))}\n`)
       if (frame.type === 'kepos.message.request.v1') {
         onRequest(frame)
         return
@@ -276,6 +296,23 @@ export function createProfileFriendRequestRuntime({
     }
   }
 
+  function handleSendRouteLine(route: ProfileFriendRequestSendRoute, line: string): void {
+    try {
+      const message: unknown = JSON.parse(line)
+      const ack = readValidAck(message, route)
+      if (!ack || route.deliveredFrameIds.has(ack.requestId)) return
+
+      route.deliveredFrameIds.add(ack.requestId)
+      onDeliveryState({
+        requestId: ack.requestId,
+        state: 'delivered',
+        toProfileId: ack.fromProfileId
+      })
+    } catch {
+      // Ignore malformed profile request acknowledgement frames.
+    }
+  }
+
   function readValidIncomingFrame(message: unknown): ProfileFriendRequestFrame | null {
     const frame = readValidOutgoingFrame(message)
     if (!frame) return null
@@ -284,6 +321,26 @@ export function createProfileFriendRequestRuntime({
     if (incomingFrameIds.has(frameDeliveryId(frame))) return null
 
     return frame
+  }
+
+  function readValidAck(
+    message: unknown,
+    route: ProfileFriendRequestSendRoute
+  ): ProfileFriendRequestAck | null {
+    if (!isRecord(message)) return null
+    if (message.type !== 'kepos.profile.request.ack.v1') return null
+    if (message.fromProfileId !== route.targetProfileId) return null
+    if (message.toProfileId !== cleanLocalProfileId) return null
+    if (typeof message.requestId !== 'string' || !message.requestId.trim()) return null
+    const requestId = message.requestId.trim()
+    if (!route.sentFrameIds.has(requestId)) return null
+
+    return {
+      fromProfileId: message.fromProfileId,
+      requestId,
+      toProfileId: message.toProfileId,
+      type: 'kepos.profile.request.ack.v1'
+    }
   }
 
   function readValidOutgoingFrame(message: unknown): ProfileFriendRequestFrame | null {
@@ -317,6 +374,19 @@ function frameDeliveryId(frame: ProfileFriendRequestFrame): string {
   }
 
   return frame.requestId
+}
+
+function createProfileFriendRequestAck(frame: ProfileFriendRequestFrame): ProfileFriendRequestAck {
+  return {
+    fromProfileId: frame.toProfileId,
+    requestId: frameDeliveryId(frame),
+    toProfileId: frame.fromProfileId,
+    type: 'kepos.profile.request.ack.v1'
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value))
 }
 
 export function formatProfileFriendRequestDeliveryState(
@@ -376,6 +446,7 @@ type ProfileFriendRequestSocket = {
 }
 
 type ProfileFriendRequestSendRoute = {
+  deliveredFrameIds: Set<string>
   discovery: ProfileFriendRequestDiscovery | null
   peers: Set<ProfileFriendRequestSocket>
   pendingFrames: Map<string, ProfileFriendRequestFrame>
