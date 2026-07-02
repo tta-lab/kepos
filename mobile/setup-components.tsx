@@ -23,6 +23,7 @@ export type QuickStartPanelTheme = {
 }
 
 export type QuickStartPanelProps = {
+  homeReady: boolean
   localAvatarUri?: string
   nick?: string
   onCreateRoom(): void
@@ -37,6 +38,7 @@ export type QuickStartPanelProps = {
 }
 
 export function QuickStartPanel({
+  homeReady,
   localAvatarUri,
   nick,
   onCreateRoom,
@@ -110,7 +112,7 @@ export function QuickStartPanel({
           disabledContentColor={theme.placeholder}
           primaryContentColor={theme.surface}
           styles={styles}
-          disabled={!profileReady}
+          disabled={!homeReady}
           icon={House}
           label='Open Home'
           onPress={onCreateRoom}

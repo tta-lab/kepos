@@ -77,6 +77,16 @@ Done means none of the normal social actions depend on:
 Any compatibility path that remains must be named debug or legacy in source,
 tests, docs, and UI copy.
 
+Status: in progress.
+
+Evidence:
+
+- Android UI readiness is split between `profileReady` and `homeReady`.
+  Profile QR, Add friend, request paste, and other social actions depend on
+  identity, profile id, and ContactBook readiness only. Opening/entering Home
+  and showing Debug Home QR depend on `homeReady`, which includes the local
+  Home key.
+
 ### 2. Make Desktop And Android Product Logic Match
 
 Both clients should expose the same product facts, even if the layouts differ:

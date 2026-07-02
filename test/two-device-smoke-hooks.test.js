@@ -252,18 +252,17 @@ test('Android lobby uses shared task headers for setup panels', async () => {
 test('Android lobby disables profile-dependent actions while profile loads', async () => {
   const source = await readMobileUiSource()
 
-  assert.match(
-    source,
-    /const profileReady = Boolean\(identity && profileId && homeRoomKey && contactBook\)/
-  )
+  assert.match(source, /const profileReady = Boolean\(identity && profileId && contactBook\)/)
+  assert.match(source, /const homeReady = Boolean\(profileReady && homeRoomKey\)/)
   assert.match(source, /profileReady={profileReady}/)
+  assert.match(source, /homeReady={homeReady}/)
   assert.match(source, /function QuickStartPanel\([\s\S]*profileReady[\s\S]*\) \{/)
   assert.match(source, /Setting up your profile\.\.\./)
   assert.match(source, /disabled={!profileReady}/)
   assert.match(source, /disabled && styles\.disabledButton/)
-  assert.match(source, /canJoin={profileReady && canJoin}/)
-  assert.match(source, /function PeopleActions\([\s\S]*profileReady[\s\S]*\) \{/)
-  assert.match(source, /const canUseHomeJoin = profileReady && canJoinHome/)
+  assert.match(source, /canJoin={homeReady && canJoin}/)
+  assert.match(source, /function PeopleActions\([\s\S]*homeReady[\s\S]*profileReady[\s\S]*\) \{/)
+  assert.match(source, /const canUseHomeJoin = homeReady && canJoinHome/)
   assert.match(source, /disabled=\{!canUseHomeJoin \|\| !homeQrUri\.trim\(\)\}/)
   assert.match(source, /disabled={!profileReady \|\| !trustQrUri\.trim\(\)}/)
 })
@@ -1090,8 +1089,10 @@ test('Android people pane only offers joining before a home session exists', asy
   const peopleActions = sliceBetween(source, 'function PeopleActions(', 'function DirectPane(')
 
   assert.match(room, /canJoinHome=\{!session\}/)
+  assert.match(room, /homeReady=\{homeReady\}/)
   assert.match(peoplePane, /canJoinHome=\{canJoinHome\}/)
-  assert.match(peopleActions, /const canUseHomeJoin = profileReady && canJoinHome/)
+  assert.match(peoplePane, /homeReady=\{homeReady\}/)
+  assert.match(peopleActions, /const canUseHomeJoin = homeReady && canJoinHome/)
   assert.match(peopleActions, /disabled=\{!canUseHomeJoin\}/)
   assert.match(peopleActions, /disabled=\{!canUseHomeJoin \|\| !homeQrUri\.trim\(\)\}/)
   assert.match(peopleActions, /Leave this home before joining another one\./)

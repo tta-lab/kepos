@@ -350,7 +350,8 @@ export default function App() {
     () => (contactBook ? listBlockedContacts(contactBook) : []),
     [contactBook]
   )
-  const profileReady = Boolean(identity && profileId && homeRoomKey && contactBook)
+  const profileReady = Boolean(identity && profileId && contactBook)
+  const homeReady = Boolean(profileReady && homeRoomKey)
   const pendingMessageRequests = useMemo(
     () => (contactBook ? Array.from(contactBook.pendingRequestsByProfileId.values()) : []),
     [contactBook]
@@ -1644,7 +1645,7 @@ export default function App() {
                 activeHomeOwnerProfileId={activeHomeOwnerProfileId}
                 activeTab={activeTab}
                 blockedContacts={blockedContactOptions}
-                canJoin={profileReady && canJoin}
+                canJoin={homeReady && canJoin}
                 contactProfileTargetId={contactProfileTargetId}
                 directRoomEndpoint={directRoomEndpoint}
                 draft={draft}
@@ -1654,6 +1655,7 @@ export default function App() {
                 dmRecipient={dmRecipient}
                 dmThreads={dmThreads}
                 homeQrUri={homeQrUri}
+                homeReady={homeReady}
                 lastError={lastError}
                 localAvatarUri={localAvatarUri}
                 myHomeQrUri={myHomeQrUri}

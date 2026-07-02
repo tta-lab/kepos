@@ -87,6 +87,7 @@ export type ChatRoomProps = {
   dmRecipient: string
   dmThreads: DirectPaneProps['threads']
   homeQrUri: string
+  homeReady: HomeStartupPaneProps['homeReady']
   lastError?: string
   localAvatarUri?: HomeStartupPaneProps['localAvatarUri']
   myHomeQrUri: string
@@ -161,6 +162,7 @@ export function ChatRoom({
   dmRecipient,
   dmThreads,
   homeQrUri,
+  homeReady,
   localAvatarUri,
   myHomeQrUri,
   nick,
@@ -300,6 +302,7 @@ export function ChatRoom({
             <HomeStartupPane
               canJoin={canJoin}
               directRoomEndpoint={directRoomEndpoint}
+              homeReady={homeReady}
               localAvatarUri={localAvatarUri}
               nick={nick}
               onChooseLocalAvatarImage={onChooseLocalAvatarImage}
@@ -370,6 +373,7 @@ export function ChatRoom({
         ) : (
           <PeoplePane
             canJoinHome={!session}
+            homeReady={homeReady}
             homeQrUri={homeQrUri}
             myHomeQrUri={myHomeQrUri}
             onAcceptRequest={onAcceptRequest}

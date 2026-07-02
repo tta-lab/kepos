@@ -66,6 +66,7 @@ export type PeoplePaneProps = {
   activeHomeOwnerProfileId?: string
   blockedContacts?: ContactRecord[]
   canJoinHome: boolean
+  homeReady: boolean
   homeQrUri: string
   myHomeQrUri: string
   onAcceptRequest: MessageRequestManagerProps['onAcceptRequest']
@@ -103,6 +104,7 @@ export function PeoplePane({
   activeHomeOwnerProfileId,
   blockedContacts,
   canJoinHome,
+  homeReady,
   homeQrUri,
   myHomeQrUri,
   onAcceptRequest,
@@ -155,6 +157,7 @@ export function PeoplePane({
       />
       <PeopleActions
         canJoinHome={canJoinHome}
+        homeReady={homeReady}
         homeQrUri={homeQrUri}
         myHomeQrUri={myHomeQrUri}
         onHomeQrChange={onHomeQrChange}
@@ -196,6 +199,7 @@ export type PeopleActionsProps = {
   activeHomeOwnerProfileId?: string
   blockedContacts?: ContactRecord[]
   canJoinHome: boolean
+  homeReady: boolean
   homeQrUri: string
   myHomeQrUri: string
   onAcceptRequest: MessageRequestManagerProps['onAcceptRequest']
@@ -232,6 +236,7 @@ export function PeopleActions({
   activeHomeOwnerProfileId,
   blockedContacts,
   canJoinHome,
+  homeReady,
   homeQrUri,
   myHomeQrUri,
   onAcceptRequest,
@@ -265,7 +270,7 @@ export function PeopleActions({
 }: PeopleActionsProps) {
   const [showAdvancedShare, setShowAdvancedShare] = useState(false)
   const [showHomeQr, setShowHomeQr] = useState(false)
-  const canUseHomeJoin = profileReady && canJoinHome
+  const canUseHomeJoin = homeReady && canJoinHome
 
   return (
     <>
@@ -313,7 +318,7 @@ export function PeopleActions({
             primaryContentColor={theme.surface}
             styles={styles}
             accessibilityState={{ expanded: showHomeQr }}
-            disabled={!profileReady}
+            disabled={!homeReady}
             icon={QrCode}
             label='Show Debug Home QR'
             onPress={() => setShowHomeQr((value) => !value)}

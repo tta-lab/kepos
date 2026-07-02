@@ -23,6 +23,7 @@ type LobbyTheme = QuickStartPanelProps['theme'] & {
 export type HomeStartupPaneProps = {
   canJoin: boolean
   directRoomEndpoint: string
+  homeReady: boolean
   localAvatarUri?: string
   nick?: string
   onChooseLocalAvatarImage: QuickStartPanelProps['onChooseLocalAvatarImage']
@@ -45,6 +46,7 @@ export type HomeStartupPaneProps = {
 export function HomeStartupPane({
   canJoin,
   directRoomEndpoint,
+  homeReady,
   nick,
   localAvatarUri,
   onCreateRoom,
@@ -71,6 +73,7 @@ export function HomeStartupPane({
       testID='lobby-scroll'
     >
       <QuickStartPanel
+        homeReady={homeReady}
         localAvatarUri={localAvatarUri}
         nick={nick}
         onCreateRoom={onCreateRoom}
