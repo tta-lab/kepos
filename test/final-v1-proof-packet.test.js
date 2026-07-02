@@ -237,6 +237,11 @@ test('package and docs expose the final V1 proof packet helper', async () => {
   assert.match(recipe, /whether physical Profile QR scan passed/)
   assert.match(recipe, /observed Home peer count on desktop when the desktop receives/)
   assert.match(recipe, /observed Home peer count on Android when the desktop receives/)
+  assert.match(
+    recipe,
+    /request receipt and accept are recorded with desktop and Android Home peer\s+counts zero/
+  )
+  assert.doesNotMatch(recipe, /request receipt and accept are recorded with Home peer count zero/)
   assert.match(recipe, /worktree state: clean, dirty-local, or unknown/)
   assert.match(recipe, /commit, worktree state, and Android metadata/)
   assert.match(recipe, /same commit and worktree state being proved/)
