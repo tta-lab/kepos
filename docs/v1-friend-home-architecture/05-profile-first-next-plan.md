@@ -91,6 +91,8 @@ Phase 1 through Phase 6 are implemented or quarantined in the current branch:
 
 - mobile Profile QR friend request sending no longer calls `enterRequestTargetHome`
 - mobile friend requests no longer send `RPC_DM_SEND` through the Home backend
+- mobile Profile QR scan/paste builds a request target and selects Chat; it
+  does not enter Home, start the Home backend, or write ContactBook trust
 - desktop message request sending no longer requires `homeRuntime.isJoined()`
 - desktop message request sending no longer forwards new requests through Home control
 - `src/profile-friend-request-transport.ts` owns the profile-to-profile delivery boundary

@@ -46,6 +46,9 @@ Already in source:
 - Contacts can show trusted friends, incoming requests, outgoing requests,
   ignored profiles, and removed profiles.
 - Android request cards can open profile detail.
+- Android Profile QR scan/paste builds a request target and selects Chat
+  without entering Home, starting the Home backend, or writing ContactBook
+  trust.
 - Chat can show trusted threads and request-like rows.
 - Debug Home paths are no longer the main copy path.
 - Final proof packet starts from Profile QR instead of Home entry.

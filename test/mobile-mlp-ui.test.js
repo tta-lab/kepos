@@ -855,6 +855,10 @@ test('mobile messages can show thread rows and scanned profile request targets',
     profileComponents.indexOf('export function ProfileRequestTargetCard('),
     profileComponents.indexOf('function getMobileAvatarToneStyle(')
   )
+  const chooseProfileRequestTarget = source.slice(
+    source.indexOf('function chooseProfileRequestTarget(uri: string'),
+    source.indexOf('async function revokeTrustedContact(')
+  )
   const checkedThreadList = threadComponents.slice(
     threadComponents.indexOf('function MessageThreadList('),
     threadComponents.indexOf('function ThreadRow(')
@@ -888,6 +892,15 @@ test('mobile messages can show thread rows and scanned profile request targets',
   assert.match(source, /setActiveTab\('dm'\)/)
   assert.match(source, /setNotice\(targetView\.copy\)/)
   assert.match(source, /contactBook,[\s\S]*shortenProfileId,[\s\S]*target/)
+  assert.match(chooseProfileRequestTarget, /readMobileProfileRequestTarget\(\{ uri \}\)/)
+  assert.match(chooseProfileRequestTarget, /setProfileRequestTarget\(targetView\)/)
+  assert.match(chooseProfileRequestTarget, /setDmRecipient\(target\.profileId\)/)
+  assert.match(chooseProfileRequestTarget, /setActiveTab\('dm'\)/)
+  assert.doesNotMatch(chooseProfileRequestTarget, /applyMobileHomeQrScan/)
+  assert.doesNotMatch(chooseProfileRequestTarget, /enterContactHome/)
+  assert.doesNotMatch(chooseProfileRequestTarget, /startBackend/)
+  assert.doesNotMatch(chooseProfileRequestTarget, /saveContactBookToFileSystem/)
+  assert.doesNotMatch(chooseProfileRequestTarget, /trustContact/)
   assert.match(directPane, /<ProfileRequestTargetCard[\s\S]*requestTarget=\{requestTarget\}/)
   assert.match(directPane, /<ProfileRequestTargetCard[\s\S]*onOpenProfile=\{onOpenProfile\}/)
   assert.doesNotMatch(source, /function ProfileRequestTargetCard\(/)
