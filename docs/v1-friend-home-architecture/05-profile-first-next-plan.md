@@ -207,7 +207,8 @@ Use precise states:
 - "Request delivered" means receiver acknowledged it.
 - "Friend" means accept completed.
 
-If V1 cannot implement delivered ack yet, avoid delivered wording.
+`delivered` is transport proof only. It must not be presented as friendship or
+acceptance.
 
 ### Phase 5: Refactor UI Around Profile
 

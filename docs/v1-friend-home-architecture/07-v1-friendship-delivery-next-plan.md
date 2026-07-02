@@ -122,8 +122,7 @@ Do not treat `delivered` as friendship. It is transport proof only.
 
 ### 4. Align Docs And Smoke Instructions
 
-Status: partly done. Smoke docs still need the final release-proof wording pass
-when manual cross-device proof is ready.
+Status: done for the current plan. Final proof still needs a real manual run.
 
 Update smoke docs to say:
 

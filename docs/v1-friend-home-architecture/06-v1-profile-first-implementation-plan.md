@@ -45,6 +45,8 @@ Friend request delivery should use these states:
 - `failed`: delivery cannot continue without user action or a retry
 
 Do not show `delivered` until there is an explicit receiver acknowledgement.
+That acknowledgement now exists in the profile request runtime. `delivered`
+means runtime receipt of a valid signed frame, not friendship.
 
 ## Architecture Split
 
@@ -226,7 +228,6 @@ Keep only as debug or explicit live-room behavior:
 
 These are not product blockers, but they must be answered before calling the transport final:
 
-- whether profile request topics need an acknowledgement frame for `delivered`
 - how long queued requests retry before showing a visible problem
 - whether request topics should be encrypted in addition to signed
 - how Android should keep profile services alive when the app is backgrounded
