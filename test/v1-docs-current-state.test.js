@@ -1236,10 +1236,12 @@ test('V1 active plan records source-level profile-social hardening as closed', a
   assert.match(plan, /Chat thread rows on desktop and Android can open the same profile detail/)
   assert.match(plan, /Home remains an explicit live-room action, not the friend system/)
   assert.match(plan, /Run Low-Cost Proof Before Phone Smoke/)
-  assert.match(plan, /passed on commit `4d20c34a0ef3db278d4517541f41ca78acac2cad`/)
+  assert.match(plan, /passed and superseded by the current full non-device gate/)
+  assert.match(plan, /`npm run v1:gate` passed on/)
+  assert.match(plan, /`f582c546a502572069e04a95b353e09595c39cc2`/)
   assert.match(plan, /passed with 62 tests on `4d20c34a0ef3db278d4517541f41ca78acac2cad`/)
-  assert.match(plan, /`npm run lint` passed on the same commit/)
-  assert.match(plan, /No physical desktop\/Android smoke was run for this low-cost proof pass/)
+  assert.match(plan, /it remains useful as a quick local recheck/)
+  assert.match(plan, /No physical desktop\/Android smoke was run for either low-cost proof pass/)
   assert.match(
     plan,
     /remaining blocker is proving the normal\s+product path on real desktop plus physical Android/
