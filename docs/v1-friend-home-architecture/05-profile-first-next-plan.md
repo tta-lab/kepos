@@ -23,6 +23,8 @@ The current execution path is:
   UI parity implementation pass
 - `26-v1-readiness-closure-next-plan.md` for the active V1 readiness closure
   plan
+- `27-v1-profile-social-finalization-next-plan.md` for the active V1 final
+  implementation and proof plan
 - `../v1.21-cross-device-smoke.md` for the final desktop/Android release proof
 
 ## Decision
@@ -172,7 +174,8 @@ Current execution note:
 - `23` owns the social delivery release baseline.
 - `24` owns the final release-proof bar.
 - `25` owns the profile-route implementation pass.
-- `26` owns the active V1 readiness closure plan.
+- `26` owns the V1 readiness closure context.
+- `27` owns the active V1 final implementation and proof plan.
 - `../v1.21-cross-device-smoke.md` owns the final release proof packet.
 
 The current product behavior is intentionally honest: a request can be queued or searching locally without claiming the other side received it.

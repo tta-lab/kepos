@@ -1,6 +1,8 @@
 # V1 Readiness Closure Next Plan
 
-This is the active next plan after `25-v1-profile-route-implementation-next-plan.md`.
+This was the active next plan after `25-v1-profile-route-implementation-next-plan.md`.
+
+Use `27-v1-profile-social-finalization-next-plan.md` for current V1 work.
 
 Use `25` for the implemented profile-route and UI parity evidence. Use this
 document to finish V1 as a ready private IM product and to decide what still
