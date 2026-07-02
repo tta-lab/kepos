@@ -10,6 +10,10 @@ Home is a live room after trust.
 Direct host:port is not a production path.
 ```
 
+The current execution follow-up is
+`10-v1-final-product-next-plan.md`. Use that file for the remaining V1 product
+finish and final proof checklist.
+
 ## Why This Exists
 
 The current user-visible problem is not one missing button. It is a product
@@ -171,6 +175,22 @@ Home is the place to:
 - debug live room transport when Advanced is open
 
 Home should not be the first explanation for how to add friends.
+
+## Current Status
+
+Source-level cleanup already completed:
+
+- desktop and Android start on Contacts
+- unknown product-surface fallback resolves to Contacts
+- Home QR and direct host:port are labeled as debug/advanced paths
+- desktop private DM composer no longer requires Home room membership
+- Android friend request and DM send paths are profile/runtime paths, not Home
+  entry paths
+
+The remaining blocker is proof, not the product decision: the physical
+desktop/Android path still needs to prove request delivery, accept return, DM,
+restart persistence, recent posts, and explicit Home entry with Home peer count
+allowed to remain zero.
 
 ## Implementation Plan
 

@@ -50,6 +50,12 @@ The short version:
    - Current delivery and UX plan: Profile/DM are the production social path; Home is explicit live-room entry; direct host:port is debug only.
    - Use this before changing friend request delivery, DM delivery, Home entry, direct connection UI, or platform parity.
 
+10. `10-v1-final-product-next-plan.md`
+
+- Active V1 finish plan after the Contacts-first/Profile-DM cleanup pass.
+- Use this before doing remaining V1 product polish, low-cost verification,
+  or final desktop/Android proof.
+
 ## Core Principle
 
 Product semantics must not depend on the current transport shortcut.

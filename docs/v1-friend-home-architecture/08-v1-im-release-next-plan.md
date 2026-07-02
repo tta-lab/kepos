@@ -3,10 +3,10 @@
 This is the current V1 plan after profile-level friend request delivery, invite
 return, Home fallback quarantine, and receiver acknowledgements landed.
 
-The next implementation doc is `09-v1-profile-dm-delivery-next-plan.md`. It
-narrows the remaining work around one production rule: Profile/DM delivery is
-the social path, Home is explicit live-room entry, and direct host:port is debug
-only.
+The current execution doc is `10-v1-final-product-next-plan.md`. The route
+decision remains in `09-v1-profile-dm-delivery-next-plan.md`: Profile/DM
+delivery is the social path, Home is explicit live-room entry, and direct
+host:port is debug only.
 
 The goal is no longer to prove that Home should not own friendship. That
 decision is made. The goal now is to make V1 feel like a ready private IM
@@ -36,13 +36,16 @@ Implemented source-level behavior:
 - Home-control request and invite handling is ignored by default.
 - Legacy Home fallback requires explicit debug configuration.
 - Automated tests prove accept and invite return without Home membership.
+- Desktop and Android start on Contacts instead of Home.
+- Unknown product-surface fallback resolves to Contacts.
+- Home QR and direct host:port are labeled as debug/advanced affordances.
+- Desktop private DM compose no longer requires Home room membership.
 
 Still missing before calling V1 ready:
 
 - real desktop/Android proof of the normal product path
-- UI parity between desktop and Android for the four main surfaces
 - clearer friend/request/contact state transitions in the product UI
-- final cleanup of debug affordances from primary screens
+- final evidence that debug affordances are not required for the normal path
 
 ## Architecture Rules For The Remaining Work
 
