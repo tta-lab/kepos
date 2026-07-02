@@ -14,6 +14,7 @@ import {
 } from './profile-friend-request-transport.ts'
 import { updateOutgoingFriendRequestDeliveryState, type ContactBook } from './contact-book.ts'
 import type { MessageRequest } from './message-request.ts'
+import type { DmInvite } from './dm-invite.ts'
 import type { LocalProfile } from './profile.ts'
 import {
   createSha256Hex,
@@ -150,7 +151,7 @@ export function createDesktopBackendSession({
     createId,
     getDmRuntime: () => dmRuntime,
     getDmSession: () => controllerState.getDmSession(),
-    getHomeRuntime: () => homeRuntime,
+    getFriendRequestTransport: () => profileRequestRuntime,
     getProfileContext,
     onChanged,
     setNotice
@@ -279,6 +280,9 @@ export function createDesktopBackendSession({
         onChanged()
       },
       onDiscoveryError: onError,
+      onInvite: (invite) => {
+        controlActions.handleControl(invite as Record<string, unknown>).catch(onError)
+      },
       onRequest: (request) => {
         controlActions.handleControl(request as Record<string, unknown>).catch(onError)
       }
@@ -405,6 +409,7 @@ type ProfileRequestRuntimeFactory = (options: {
     toProfileId: string
   }) => void
   onDiscoveryError?: (error: Error) => void
+  onInvite?: (invite: DmInvite) => void
   onRequest?: (request: MessageRequest) => void
 }) => ProfileFriendRequestRuntime
 

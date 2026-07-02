@@ -100,12 +100,15 @@ The profile-level friend request route is now implemented far enough for code-le
 - Android starts profile services after profile load and sends requests through `RPC_PROFILE_REQUEST_SEND`
 - Android receives delivery updates through `RPC_PROFILE_REQUEST_STATE`
 - Android leaving Home does not close the profile request service
+- accepting an incoming request does not require Home membership
+- signed DM invites are sent over the profile request topic
+- desktop and Android route incoming profile-level DM invites into the existing DM invite acceptance path
 
-The next implementation block is accept / DM invite delivery:
+The next implementation block is proof and cleanup:
 
-- accepting an incoming request should not require `room`
-- the DM invite should be delivered over a profile-level route or an equivalent profile bootstrap channel
-- Home-control invite broadcast should become debug fallback or be removed from the normal path
+- run cross-device smoke with Home disconnected or peer count at zero through request, accept, and DM thread creation
+- quarantine or remove Home-control request and invite compatibility paths after that proof
+- add an acknowledgement frame only when there is a real receiver ack, not before
 
 ### Phase 1: Lock The Shared Model
 

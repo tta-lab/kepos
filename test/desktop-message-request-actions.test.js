@@ -16,6 +16,12 @@ function createHarness(overrides = {}) {
     },
     isJoined: () => true
   }
+  const friendRequestTransport = {
+    send(message) {
+      calls.push(['profileTransport.send', message])
+      return { state: 'sent' }
+    }
+  }
   const dmRuntime = {
     acceptMessageRequest(payload) {
       calls.push(['dm.acceptMessageRequest', payload])
@@ -32,6 +38,7 @@ function createHarness(overrides = {}) {
     createId: () => 'thread-1',
     getDmRuntime: () => dmRuntime,
     getDmSession: () => ({ id: 'dm-session' }),
+    getFriendRequestTransport: () => friendRequestTransport,
     getHomeRuntime: () => homeRuntime,
     getProfileContext: () => context,
     now: () => 123,
@@ -43,7 +50,7 @@ function createHarness(overrides = {}) {
   return { actions, calls }
 }
 
-test('desktop message request actions accept requests and broadcast invites', async () => {
+test('desktop message request actions accept requests and sends invites over profile transport', async () => {
   const { actions, calls } = createHarness()
 
   await actions.acceptMessageRequest({ fromProfileId: 'friend' })
@@ -59,10 +66,32 @@ test('desktop message request actions accept requests and broadcast invites', as
       }
     ],
     ['saveContactBook', { accepted: 'friend' }],
-    ['home.broadcastControl', { type: 'kepos.dm.invite.v1' }],
+    ['profileTransport.send', { type: 'kepos.dm.invite.v1' }],
     ['notice', 'Friend request accepted.'],
     ['render']
   ])
+})
+
+test('desktop message request actions accept requests without joining Home', async () => {
+  const { actions, calls } = createHarness({
+    getHomeRuntime: () => ({
+      broadcastControl(message) {
+        calls.push(['home.broadcastControl', message])
+      },
+      isJoined: () => false
+    })
+  })
+
+  await actions.acceptMessageRequest({ fromProfileId: 'friend' })
+
+  assert.equal(
+    calls.some(([name]) => name === 'profileTransport.send'),
+    true
+  )
+  assert.equal(
+    calls.some(([name]) => name === 'home.broadcastControl'),
+    false
+  )
 })
 
 test('desktop message request actions ignore requests and dismiss visible messages', () => {

@@ -4,16 +4,16 @@ import {
 } from './desktop-message-request-service.ts'
 import type { ContactBook } from './contact-book.ts'
 import type { DesktopProfileContext } from './desktop-profile-context-core.ts'
+import {
+  createQueuedProfileFriendRequestTransport,
+  type ProfileFriendRequestFrame,
+  type ProfileFriendRequestTransport
+} from './profile-friend-request-transport.ts'
 
 type MessageRequestMessage = {
   fromProfileId?: string
   id?: string
   profileId?: string
-}
-
-type HomeRuntime = {
-  broadcastControl(message: unknown): unknown
-  isJoined(): boolean
 }
 
 type MessageRequestAcceptanceResult = {
@@ -44,7 +44,7 @@ export function createDesktopMessageRequestActions({
   createId,
   getDmRuntime,
   getDmSession,
-  getHomeRuntime,
+  getFriendRequestTransport = () => createQueuedProfileFriendRequestTransport(),
   getProfileContext,
   ignoreMessageRequest = createDesktopMessageRequestIgnore,
   now = () => Date.now(),
@@ -55,7 +55,7 @@ export function createDesktopMessageRequestActions({
   createId: () => string
   getDmRuntime: () => DmRuntime
   getDmSession: () => unknown
-  getHomeRuntime: () => HomeRuntime
+  getFriendRequestTransport?: () => ProfileFriendRequestTransport | null
   getProfileContext: () => Pick<DesktopProfileContext, 'contactBook' | 'saveContactBook'>
   ignoreMessageRequest?: MessageRequestIgnore
   now?: () => number
@@ -65,9 +65,8 @@ export function createDesktopMessageRequestActions({
   async function acceptIncomingMessageRequest(
     message?: MessageRequestMessage | null
   ): Promise<void> {
-    const homeRuntime = getHomeRuntime()
     const dmSession = getDmSession()
-    if (!homeRuntime.isJoined() || !dmSession) return
+    if (!dmSession) return
 
     const context = getProfileContext()
     const result = await acceptMessageRequest({
@@ -81,7 +80,7 @@ export function createDesktopMessageRequestActions({
     if (!result) return
 
     context.saveContactBook(result.book)
-    homeRuntime.broadcastControl(result.invite)
+    await getFriendRequestTransport()?.send(result.invite as ProfileFriendRequestFrame)
     setNotice('Friend request accepted.')
     onChanged()
   }

@@ -97,12 +97,13 @@ Phase 1, Phase 2, and the first request-delivery part of Phase 3 are implemented
 - Android starts a profile request listener after profile load, before Home entry
 - outgoing requests are recorded as `queued`, then updated to `searching` or `sent` from transport callbacks
 - leaving Home no longer shuts down Android profile request delivery
+- accepting a friend request no longer requires Home membership on desktop or Android
+- signed DM invites now travel over the same profile-level P2P topic instead of normal Home control broadcast
 
 Still open:
 
-- move accept / DM invite delivery off the Home control channel
-- keep DM request/accept logic fully based on profile identity, not Home membership
-- remove or quarantine the temporary Home-control request path after profile request delivery is proven in cross-device smoke
+- prove request and accept / invite delivery in cross-device smoke with Home peers at zero
+- remove or quarantine the temporary Home-control request and invite compatibility paths after profile delivery is proven in cross-device smoke
 - add an explicit receiver acknowledgement before showing `delivered`
 
 The current product behavior is intentionally honest: a request can be queued or searching locally without claiming the other side received it.

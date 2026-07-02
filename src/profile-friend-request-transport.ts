@@ -1,6 +1,8 @@
 import Hyperswarm from 'hyperswarm'
 import b4a from 'b4a'
 import crypto from 'hypercore-crypto'
+import type { DmInvite } from './dm-invite.ts'
+import { verifyDmInvite } from './dm-invite.ts'
 import type { MessageRequest } from './message-request.ts'
 import { verifyMessageRequest } from './message-request.ts'
 import type { SigningIdentity } from './signed-record.ts'
@@ -22,7 +24,7 @@ export type ProfileFriendRequestDeliveryResult = {
 
 export type ProfileFriendRequestTransport = {
   send(
-    request: MessageRequest
+    request: ProfileFriendRequestFrame
   ): ProfileFriendRequestDeliveryResult | Promise<ProfileFriendRequestDeliveryResult>
 }
 
@@ -35,6 +37,8 @@ export type ProfileFriendRequestLocalProfile = {
   identity: SigningIdentity
   profileId: string
 }
+
+export type ProfileFriendRequestFrame = MessageRequest | DmInvite
 
 export async function sendProfileFriendRequest({
   localProfile,
@@ -96,6 +100,7 @@ export function createProfileFriendRequestRuntime({
   localProfileId,
   onDeliveryState = () => {},
   onDiscoveryError = () => {},
+  onInvite = () => {},
   onRequest = () => {}
 }: {
   awaitDiscoveryFlush?: boolean
@@ -103,10 +108,11 @@ export function createProfileFriendRequestRuntime({
   localProfileId: string
   onDeliveryState?: (delivery: ProfileFriendRequestDeliveryUpdate) => void
   onDiscoveryError?: (error: Error) => void
+  onInvite?: (invite: DmInvite) => void
   onRequest?: (request: MessageRequest) => void
 }): ProfileFriendRequestRuntime {
   const cleanLocalProfileId = cleanHexProfileId(localProfileId, 'Local profile id is required')
-  const incomingRequestIds = new Set<string>()
+  const incomingFrameIds = new Set<string>()
   const sendRoutes = new Map<string, ProfileFriendRequestSendRoute>()
   let inboxSwarm: ProfileFriendRequestSwarm | null = null
 
@@ -121,31 +127,37 @@ export function createProfileFriendRequestRuntime({
     await flushDiscovery(discovery)
   }
 
-  async function send(request: MessageRequest): Promise<ProfileFriendRequestDeliveryResult> {
-    if (!verifyMessageRequest(request)) {
-      return { reason: 'Invalid signed friend request.', state: 'failed' }
+  async function send(
+    frame: ProfileFriendRequestFrame
+  ): Promise<ProfileFriendRequestDeliveryResult> {
+    const validatedFrame = readValidOutgoingFrame(frame)
+    if (!validatedFrame) {
+      return { reason: 'Invalid signed profile request frame.', state: 'failed' }
     }
 
-    if (request.fromProfileId === request.toProfileId) {
-      return { reason: 'Cannot send a friend request to the local profile.', state: 'failed' }
+    if (validatedFrame.fromProfileId === validatedFrame.toProfileId) {
+      return {
+        reason: 'Cannot send a profile request frame to the local profile.',
+        state: 'failed'
+      }
     }
 
-    cleanHexProfileId(request.toProfileId, 'Target profile id is required')
-    const route = getOrCreateSendRoute(request.toProfileId)
-    const state = sendOnRoute(route, request) ? 'sent' : 'searching'
+    cleanHexProfileId(validatedFrame.toProfileId, 'Target profile id is required')
+    const route = getOrCreateSendRoute(validatedFrame.toProfileId)
+    const state = sendOnRoute(route, validatedFrame) ? 'sent' : 'searching'
 
     if (state === 'searching') {
       onDeliveryState({
-        requestId: request.requestId,
+        requestId: frameDeliveryId(validatedFrame),
         state,
-        toProfileId: request.toProfileId
+        toProfileId: validatedFrame.toProfileId
       })
     }
 
     await flushDiscovery(route.discovery)
 
     return {
-      state: route.sentRequestIds.has(request.requestId) ? 'sent' : state
+      state: route.sentFrameIds.has(frameDeliveryId(validatedFrame)) ? 'sent' : state
     }
   }
 
@@ -153,7 +165,7 @@ export function createProfileFriendRequestRuntime({
     await closeInbox()
     await Promise.all([...sendRoutes.values()].map((route) => closeSendRoute(route)))
     sendRoutes.clear()
-    incomingRequestIds.clear()
+    incomingFrameIds.clear()
   }
 
   async function closeInbox(): Promise<void> {
@@ -172,8 +184,8 @@ export function createProfileFriendRequestRuntime({
     const route: ProfileFriendRequestSendRoute = {
       discovery: null,
       peers: new Set(),
-      pendingRequests: new Map(),
-      sentRequestIds: new Set(),
+      pendingFrames: new Map(),
+      sentFrameIds: new Set(),
       swarm,
       targetProfileId
     }
@@ -191,28 +203,32 @@ export function createProfileFriendRequestRuntime({
     socket.on('close', () => route.peers.delete(socket))
     socket.on('error', () => route.peers.delete(socket))
 
-    for (const request of route.pendingRequests.values()) {
-      sendOnRoute(route, request)
+    for (const frame of route.pendingFrames.values()) {
+      sendOnRoute(route, frame)
     }
   }
 
-  function sendOnRoute(route: ProfileFriendRequestSendRoute, request: MessageRequest): boolean {
-    route.pendingRequests.set(request.requestId, request)
+  function sendOnRoute(
+    route: ProfileFriendRequestSendRoute,
+    frame: ProfileFriendRequestFrame
+  ): boolean {
+    const deliveryId = frameDeliveryId(frame)
+    route.pendingFrames.set(deliveryId, frame)
     let sent = false
 
     for (const peer of route.peers) {
       if (peer.destroyed) continue
 
-      peer.write(`${JSON.stringify(request)}\n`)
+      peer.write(`${JSON.stringify(frame)}\n`)
       sent = true
     }
 
-    if (sent && !route.sentRequestIds.has(request.requestId)) {
-      route.sentRequestIds.add(request.requestId)
+    if (sent && !route.sentFrameIds.has(deliveryId)) {
+      route.sentFrameIds.add(deliveryId)
       onDeliveryState({
-        requestId: request.requestId,
+        requestId: deliveryId,
         state: 'sent',
-        toProfileId: request.toProfileId
+        toProfileId: frame.toProfileId
       })
     }
 
@@ -245,22 +261,35 @@ export function createProfileFriendRequestRuntime({
   function handleInboxLine(line: string): void {
     try {
       const message: unknown = JSON.parse(line)
-      if (!shouldAcceptIncomingRequest(message)) return
+      const frame = readValidIncomingFrame(message)
+      if (!frame) return
 
-      incomingRequestIds.add(message.requestId)
-      onRequest(message)
+      incomingFrameIds.add(frameDeliveryId(frame))
+      if (frame.type === 'kepos.message.request.v1') {
+        onRequest(frame)
+        return
+      }
+
+      onInvite(frame)
     } catch {
       // Ignore malformed profile request frames; later valid frames should still work.
     }
   }
 
-  function shouldAcceptIncomingRequest(message: unknown): message is MessageRequest {
-    return (
-      verifyMessageRequest(message) &&
-      message.toProfileId === cleanLocalProfileId &&
-      message.fromProfileId !== cleanLocalProfileId &&
-      !incomingRequestIds.has(message.requestId)
-    )
+  function readValidIncomingFrame(message: unknown): ProfileFriendRequestFrame | null {
+    const frame = readValidOutgoingFrame(message)
+    if (!frame) return null
+    if (frame.toProfileId !== cleanLocalProfileId) return null
+    if (frame.fromProfileId === cleanLocalProfileId) return null
+    if (incomingFrameIds.has(frameDeliveryId(frame))) return null
+
+    return frame
+  }
+
+  function readValidOutgoingFrame(message: unknown): ProfileFriendRequestFrame | null {
+    if (verifyMessageRequest(message)) return message
+    if (verifyDmInvite(message)) return message
+    return null
   }
 
   async function flushDiscovery(discovery: ProfileFriendRequestDiscovery | null): Promise<void> {
@@ -280,6 +309,14 @@ export function createProfileFriendRequestRuntime({
     open,
     send
   }
+}
+
+function frameDeliveryId(frame: ProfileFriendRequestFrame): string {
+  if (frame.type === 'kepos.dm.invite.v1') {
+    return frame.requestId || frame.inviteId
+  }
+
+  return frame.requestId
 }
 
 export function formatProfileFriendRequestDeliveryState(
@@ -341,8 +378,8 @@ type ProfileFriendRequestSocket = {
 type ProfileFriendRequestSendRoute = {
   discovery: ProfileFriendRequestDiscovery | null
   peers: Set<ProfileFriendRequestSocket>
-  pendingRequests: Map<string, MessageRequest>
-  sentRequestIds: Set<string>
+  pendingFrames: Map<string, ProfileFriendRequestFrame>
+  sentFrameIds: Set<string>
   swarm: ProfileFriendRequestSwarm
   targetProfileId: string
 }

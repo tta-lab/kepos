@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createDmEncryptionKeyPair } from '../src/dm-invite.ts'
+import { createDmEncryptionKeyPair, createDmInvite } from '../src/dm-invite.ts'
 import { createMessageRequest } from '../src/message-request.ts'
 import {
   createProfileFriendRequestRuntime,
@@ -171,6 +171,28 @@ test('profile friend request runtime receives verified requests once', async () 
   assert.deepEqual(received, [request])
 })
 
+test('profile friend request runtime receives verified DM invites once', async () => {
+  const received = []
+  const local = createSigningKeyPair()
+  const remote = createSigningKeyPair()
+  const invite = createInvite({ from: remote, to: local })
+  const swarm = new FakeSwarm()
+  const runtime = createProfileFriendRequestRuntime({
+    createSwarm: () => swarm,
+    localProfileId: local.publicKey,
+    onInvite: (nextInvite) => received.push(nextInvite)
+  })
+  const socket = new FakeSocket()
+
+  await runtime.open()
+  swarm.connect(socket)
+  socket.emitData(`${JSON.stringify({ ...invite, channelPublicKey: '0'.repeat(64) })}\n`)
+  socket.emitData(`${JSON.stringify(invite)}\n`)
+  socket.emitData(`${JSON.stringify(invite)}\n`)
+
+  assert.deepEqual(received, [JSON.parse(JSON.stringify(invite))])
+})
+
 test('profile friend request runtime closes inbox and send swarms', async () => {
   const swarms = []
   const from = createSigningKeyPair()
@@ -201,6 +223,26 @@ function createRequest({ from, to, requestId = 'request-1' }) {
     requestId,
     senderEncryptionPublicKey: createDmEncryptionKeyPair().publicKey,
     text: 'hello',
+    toProfileId: to.publicKey
+  })
+}
+
+function createInvite({ from, to, requestId = 'request-1' }) {
+  const channelDiscoveryKey = 'a'.repeat(64)
+  const channelPublicKey = 'b'.repeat(64)
+  return createDmInvite({
+    channelDiscoveryKey,
+    channelPublicKey,
+    createdAt: 1001,
+    fromIdentity: from,
+    inviteId: `${requestId}:invite`,
+    payload: {
+      channelDiscoveryKey,
+      channelPublicKey,
+      threadId: 'thread-1'
+    },
+    recipientEncryptionPublicKey: createDmEncryptionKeyPair().publicKey,
+    requestId,
     toProfileId: to.publicKey
   })
 }

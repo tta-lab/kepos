@@ -173,7 +173,7 @@ async function handleRequest(req) {
   }
 
   if (req.command === RPC_DM_INVITE_SEND) {
-    sendDmInvite(payload)
+    await sendDmInvite(payload)
     req.reply?.(b4a.from(JSON.stringify({ ok: true })))
   }
 }
@@ -299,6 +299,11 @@ async function startProfileService(payload) {
     onDeliveryState: (delivery) => sendToUI(RPC_PROFILE_REQUEST_STATE, delivery),
     onDiscoveryError: (error) => {
       sendToUI(RPC_ERROR, { message: `Profile request discovery unavailable: ${error.message}` })
+    },
+    onInvite: (invite) => {
+      acceptDmInvite(invite)
+        .then(() => sendToUI(RPC_DM_INVITE, invite))
+        .catch((error) => sendToUI(RPC_ERROR, { message: error.message }))
     },
     onRequest: (request) => sendToUI(RPC_DM_MESSAGE, request)
   })
@@ -662,11 +667,7 @@ async function sendProfileMessageRequest(payload) {
 }
 
 async function acceptMessageRequest(payload) {
-  if (!room) {
-    throw new Error('Home is not ready')
-  }
-
-  if (!identity || !profileId || !dmEncryptionKeyPair) {
+  if (!identity || !profileId || !dmEncryptionKeyPair || !profileRequestRuntime) {
     throw new Error('Profile is not ready')
   }
 
@@ -707,7 +708,7 @@ async function acceptMessageRequest(payload) {
     toProfileId: request.fromProfileId
   })
 
-  room.broadcastControl(invite)
+  await profileRequestRuntime.send(invite)
   await saveBackendDmThread(thread)
   await dmRuntime?.openThread(thread)
   sendToUI(RPC_DM_THREAD, thread)
@@ -821,16 +822,16 @@ async function updateTreeholePolicy(payload) {
   await sendTreeholeState()
 }
 
-function sendDmInvite(payload) {
-  if (!room) {
-    throw new Error('Home is not ready')
-  }
-
+async function sendDmInvite(payload) {
   if (payload?.type !== 'kepos.dm.invite.v1') {
     throw new Error('DM invite is required')
   }
 
-  room.broadcastControl(payload)
+  if (!profileRequestRuntime) {
+    throw new Error('Profile request service is not ready')
+  }
+
+  await profileRequestRuntime.send(payload)
 }
 
 function cleanRequiredText(text) {
