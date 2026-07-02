@@ -68,7 +68,7 @@ test('final V1 proof packet prints the normal product-path checklist', () => {
   assert.match(packet, /Android scans the desktop Profile QR through the camera/)
   assert.match(packet, /Android sends a friend request/)
   assert.match(packet, /Android shows the request as Request pending before acceptance/)
-  assert.match(packet, /profile-level delivery while Home peer count may be zero/)
+  assert.match(packet, /profile-level delivery while Home peer count stays zero/)
   assert.match(packet, /Android still shows the outgoing request as Request pending after restart/)
   assert.match(packet, /Desktop ignores the friend request/)
   assert.match(packet, /Desktop shows Android in Removed \/ ignored and chooses Allow requests/)
@@ -87,7 +87,7 @@ test('final V1 proof packet prints the normal product-path checklist', () => {
   assert.match(packet, /local Treehole posts survive restart/)
   assert.match(packet, /Treehole posts stay separate/)
   assert.match(packet, /Home\/Treehole path/)
-  assert.match(packet, /do not require Home peer membership/)
+  assert.match(packet, /recorded with Home peer count zero/)
   assert.match(packet, /ignored requests stay visible/)
   assert.match(packet, /Allow requests permits a new request without restoring trust/)
   assert.match(packet, /Chat rows and Contacts rows open the same trusted profile detail/)
@@ -99,7 +99,7 @@ test('final V1 proof packet prints the normal product-path checklist', () => {
     packet,
     /does not replace the normal Profile QR -> request -> ignore -> allow -> request -> accept/
   )
-  assert.match(packet, /Home peer count allowed to stay at zero/)
+  assert.match(packet, /Home peer count recorded as zero/)
   assert.match(packet, /desktop #peerLabel/)
   assert.match(packet, /Android room-transport-debug/)
   assert.match(packet, /V1 ready requires one recorded normal cross-device run/)

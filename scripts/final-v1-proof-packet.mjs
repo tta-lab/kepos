@@ -20,7 +20,7 @@ export const FINAL_V1_PROOF_STEPS = [
   'Android scans the desktop Profile QR through the camera.',
   'Android sends a friend request from the scanned profile target.',
   'Android shows the request as Request pending before acceptance.',
-  'Desktop receives the incoming request through profile-level delivery while Home peer count may be zero.',
+  'Desktop receives the incoming request through profile-level delivery while Home peer count stays zero.',
   'Restart Android before desktop handles that request.',
   'Android still shows the outgoing request as Request pending after restart.',
   'Desktop ignores the friend request.',
@@ -45,7 +45,7 @@ export const FINAL_V1_PROOF_STEPS = [
 
 export const FINAL_V1_PASSING_CRITERIA = [
   'trust starts from Profile QR plus friend request, not Home QR',
-  'request receipt and accept do not require Home peer membership',
+  'request receipt and accept are recorded with Home peer count zero',
   'outgoing friend requests survive restart, ignored requests stay visible, and Allow requests permits a new request without restoring trust',
   'Home entry is explicit from a trusted profile',
   'Chat rows and Contacts rows open the same trusted profile detail, with Message as the primary post-accept action',
@@ -61,7 +61,7 @@ export const FINAL_V1_EVIDENCE_BOUNDARIES = [
   'Desktop self-run smoke and Pear smoke prove desktop app paths; they do not prove Android camera, Android persistence, or cross-device trust UX.',
   'Android self-run smoke proves local Android create/open/post/restart behavior; it does not prove desktop-to-Android friend request and Chat flow.',
   'Debug two-device smoke proves live transport and persistence sub-paths; it does not replace the normal Profile QR -> request -> ignore -> allow -> request -> accept release path.',
-  'Profile-level request delivery must be proved with Home peer count allowed to stay at zero through request receipt and accept; record the observed peer counts from desktop #peerLabel and Android room-transport-debug when available; Enter Home is a separate post-trust step.',
+  'Profile-level request delivery must be proved with Home peer count recorded as zero through request receipt and accept; record the observed peer counts from desktop #peerLabel and Android room-transport-debug when available; Enter Home is a separate post-trust step.',
   'V1 ready requires one recorded normal cross-device run where every product-path checklist item below is checked.'
 ]
 
