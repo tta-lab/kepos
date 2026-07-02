@@ -591,6 +591,10 @@ test('mobile Home startup and RPC store avatar media byte controls', async () =>
     source.indexOf('function handleBackendRequest('),
     source.indexOf('function applyProfileRequestDeliveryState')
   )
+  const applyProfileRequestDeliveryState = source.slice(
+    source.indexOf('function applyProfileRequestDeliveryState'),
+    source.indexOf('function startBackend(')
+  )
 
   assert.match(
     source,
@@ -610,6 +614,17 @@ test('mobile Home startup and RPC store avatar media byte controls', async () =>
   assert.match(backendRequestHandler, /book: contactBookRef\.current/)
   assert.match(backendRequestHandler, /sha256Hex: createMobileSha256Hex/)
   assert.match(backendRequestHandler, /setNotice\('Profile image received\.'\)/)
+  assert.match(
+    source,
+    /import \{[\s\S]*updateOutgoingFriendRequestDeliveryState[\s\S]*\} from '\.\.\/src\/contact-book\.ts'/
+  )
+  assert.match(backendRequestHandler, /applyProfileRequestDeliveryState\(payloadRecord/)
+  assert.match(applyProfileRequestDeliveryState, /updateOutgoingFriendRequestDeliveryState/)
+  assert.match(applyProfileRequestDeliveryState, /deliveryState: delivery\.state \|\| 'queued'/)
+  assert.match(applyProfileRequestDeliveryState, /profileId: delivery\.toProfileId \|\| ''/)
+  assert.match(applyProfileRequestDeliveryState, /requestId: delivery\.requestId \|\| ''/)
+  assert.match(applyProfileRequestDeliveryState, /contactBookRef\.current = nextBook/)
+  assert.match(applyProfileRequestDeliveryState, /saveContactBookToFileSystem/)
 })
 
 test('mobile direct contact chips and revoke actions expose trust state', async () => {

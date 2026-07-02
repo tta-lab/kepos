@@ -54,6 +54,8 @@ Already in source:
   Home entry and local room lifecycle.
 - Android backend starts the profile request service from `RPC_PROFILE_START`
   without joining Home.
+- Android persists profile request delivery-state callbacks into the outgoing
+  request ContactBook.
 - Desktop normal request actions do not read Home runtime; Home is touched only
   for Home chat or explicit debug fallback.
 
