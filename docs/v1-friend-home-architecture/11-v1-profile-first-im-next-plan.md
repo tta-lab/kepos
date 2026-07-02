@@ -137,6 +137,20 @@ Required production properties:
 Direct host:port is debug only. Home-control friend request delivery is legacy
 or debug compatibility only. Neither is the V1 product route.
 
+## Current Source-Level Progress
+
+Already landed:
+
+- Desktop and Android start from Contacts.
+- Profile QR is the normal share surface.
+- Home QR, raw Home keys, direct host:port, and Home-control fallback are
+  advanced/debug paths.
+- Chat can show trusted threads plus incoming/outgoing request rows.
+- Profile detail exists for trusted, incoming request, outgoing request,
+  removed, and ignored states.
+- Android Contacts request cards can open the same profile detail for incoming
+  and outgoing requests.
+
 ## Remaining V1 Work
 
 ### 1. Finish Profile-First Request Delivery Proof
@@ -168,6 +182,13 @@ Acceptance:
 - `Message` opens the durable DM thread
 - `Recent posts` appears when available
 - `Enter Home` is separate from add friend and DM
+
+Source-level status:
+
+- Desktop and Android can open trusted, incoming request, outgoing request,
+  removed, and ignored profile details.
+- The remaining bar is physical proof that real cross-device request delivery
+  creates the same states on both clients.
 
 ### 4. Keep Debug Paths Quarantined
 

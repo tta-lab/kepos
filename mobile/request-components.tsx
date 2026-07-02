@@ -1,6 +1,6 @@
 import type { StyleProp, TextStyle, ViewStyle } from 'react-native'
 import { Text, View } from 'react-native'
-import { MessageCircle, Send } from 'lucide-react-native'
+import { MessageCircle, Send, User } from 'lucide-react-native'
 import {
   formatMessageRequestSubtitle,
   formatMessageRequestTitle,
@@ -9,12 +9,15 @@ import {
 } from '../src/mobile-product-copy.ts'
 import { formatProfileFriendRequestDeliveryState } from '../src/profile-friend-request-transport.ts'
 import {
+  MobileSmallActionButton,
   MobileRequestActionButton,
-  type MobileRequestActionButtonStyles
+  type MobileRequestActionButtonStyles,
+  type MobileSmallActionButtonStyles
 } from './action-components.tsx'
 import { PanelEmptyState, TaskHeader, type PanelEmptyStateStyles } from './panel-components.tsx'
 
 export type RequestManagerStyles = MobileRequestActionButtonStyles &
+  MobileSmallActionButtonStyles &
   PanelEmptyStateStyles & {
     contactProfile: StyleProp<TextStyle>
     panel: StyleProp<ViewStyle>
@@ -28,6 +31,8 @@ export type RequestManagerStyles = MobileRequestActionButtonStyles &
   }
 
 export type RequestManagerTheme = {
+  accentStrong: string
+  danger: string
   iconMuted: string
   inkSoft: string
   surface: string
@@ -50,12 +55,14 @@ export type IncomingFriendRequest = OutgoingFriendRequest & {
 }
 
 export type OutgoingRequestManagerProps = {
+  onOpenProfile?(profileId: string): void
   outgoingRequests?: OutgoingFriendRequest[]
   styles: RequestManagerStyles
   theme: RequestManagerTheme
 }
 
 export function OutgoingRequestManager({
+  onOpenProfile,
   outgoingRequests,
   styles,
   theme
@@ -88,6 +95,18 @@ export function OutgoingRequestManager({
             <Text style={styles.trustStatus}>
               {formatProfileFriendRequestDeliveryState(request.deliveryState)}
             </Text>
+            {onOpenProfile ? (
+              <MobileSmallActionButton
+                accentColor={theme.accentStrong}
+                dangerColor={theme.danger}
+                styles={styles}
+                accessibilityLabel={`Open ${formatOutgoingRequestTitle(request)} profile`}
+                icon={User}
+                label='Profile'
+                onPress={() => onOpenProfile(request.profileId)}
+                testID='people-outgoing-request-profile-button'
+              />
+            ) : null}
           </View>
         </View>
       ))}
@@ -106,6 +125,7 @@ export type MessageRequestManagerProps = {
     type: 'kepos.message.request.v1'
   }): void
   onIgnoreRequest(request: IncomingFriendRequest): void
+  onOpenProfile?(profileId: string): void
   pendingRequests?: IncomingFriendRequest[]
   profileId?: string | null
   styles: RequestManagerStyles
@@ -115,6 +135,7 @@ export type MessageRequestManagerProps = {
 export function MessageRequestManager({
   onAcceptRequest,
   onIgnoreRequest,
+  onOpenProfile,
   pendingRequests,
   profileId,
   styles,
@@ -150,6 +171,18 @@ export function MessageRequestManager({
               <Text style={styles.requestPreview}>{formatRequestPreview(request.text)}</Text>
             </View>
             <View style={styles.requestActions}>
+              {onOpenProfile ? (
+                <MobileSmallActionButton
+                  accentColor={theme.accentStrong}
+                  dangerColor={theme.danger}
+                  styles={styles}
+                  accessibilityLabel={`Open ${formatMessageRequestTitle(request)} profile`}
+                  icon={User}
+                  label='Profile'
+                  onPress={() => onOpenProfile(request.profileId)}
+                  testID='people-message-request-profile-button'
+                />
+              ) : null}
               <MobileRequestActionButton
                 acceptContentColor={theme.surface}
                 ignoreContentColor={theme.inkSoft}

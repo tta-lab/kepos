@@ -137,12 +137,18 @@ export function PeoplePane({
       <MessageRequestManager
         onAcceptRequest={onAcceptRequest}
         onIgnoreRequest={onIgnoreRequest}
+        onOpenProfile={(requestProfileId) => onSelectedProfileChange(requestProfileId)}
         pendingRequests={pendingRequests}
         profileId={profileId}
         styles={styles}
         theme={theme}
       />
-      <OutgoingRequestManager outgoingRequests={outgoingRequests} styles={styles} theme={theme} />
+      <OutgoingRequestManager
+        onOpenProfile={(requestProfileId) => onSelectedProfileChange(requestProfileId)}
+        outgoingRequests={outgoingRequests}
+        styles={styles}
+        theme={theme}
+      />
       <PeopleActions
         canJoinHome={canJoinHome}
         homeQrUri={homeQrUri}

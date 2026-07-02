@@ -627,6 +627,10 @@ test('mobile direct contact chips and revoke actions expose trust state', async 
     requestComponents.indexOf('function OutgoingRequestManager('),
     requestComponents.indexOf('export type MessageRequestManagerProps')
   )
+  const messageRequestManager = requestComponents.slice(
+    requestComponents.indexOf('function MessageRequestManager('),
+    requestComponents.length
+  )
   const directPane = directComponents.slice(directComponents.indexOf('function DirectPane('))
   const profileComponents = await readMobileProfileComponentsSource()
   const contactChip = profileComponents.slice(
@@ -755,9 +759,20 @@ test('mobile direct contact chips and revoke actions expose trust state', async 
   assert.doesNotMatch(source, /function OutgoingRequestManager\(/)
   assert.doesNotMatch(source, /function MessageRequestManager\(/)
   assert.match(requestComponents, /export type OutgoingRequestManagerProps = \{/)
+  assert.match(requestComponents, /onOpenProfile\?\(profileId: string\): void/)
   assert.match(outgoingRequestManager, /title='Sent requests'/)
   assert.match(outgoingRequestManager, /formatProfileFriendRequestDeliveryState/)
   assert.match(outgoingRequestManager, /formatOutgoingRequestTitle\(request\)/)
+  assert.match(
+    outgoingRequestManager,
+    /<MobileSmallActionButton[\s\S]*testID='people-outgoing-request-profile-button'/
+  )
+  assert.match(outgoingRequestManager, /onPress=\{\(\) => onOpenProfile\(request\.profileId\)\}/)
+  assert.match(
+    messageRequestManager,
+    /<MobileSmallActionButton[\s\S]*testID='people-message-request-profile-button'/
+  )
+  assert.match(messageRequestManager, /onPress=\{\(\) => onOpenProfile\(request\.profileId\)\}/)
   assert.match(contactChip, /accessibilityRole='button'/)
   assert.match(contactChip, /accessibilityState=\{\{ selected \}\}/)
   assert.match(directPane, /<MobileContactChip[\s\S]*contact=\{contact\}/)
@@ -1139,6 +1154,14 @@ test('mobile request sent state is derived from restored contact book', async ()
     /\(\) => \(contactBook \? Array\.from\(contactBook\.outgoingRequestsByProfileId\.values\(\)\) : \[\]\)/
   )
   assert.match(source, /outgoingRequests=\{outgoingMessageRequests\}/)
+  assert.match(
+    peoplePane,
+    /<MessageRequestManager[\s\S]*onOpenProfile=\{\(requestProfileId\) => onSelectedProfileChange\(requestProfileId\)\}/
+  )
+  assert.match(
+    peoplePane,
+    /<OutgoingRequestManager[\s\S]*onOpenProfile=\{\(requestProfileId\) => onSelectedProfileChange\(requestProfileId\)\}/
+  )
   assert.match(peoplePane, /<OutgoingRequestManager[\s\S]*outgoingRequests=\{outgoingRequests\}/)
   assert.match(peoplePane, /<OutgoingRequestManager[\s\S]*styles=\{styles\}/)
   assert.match(peoplePane, /<OutgoingRequestManager[\s\S]*theme=\{theme\}/)
