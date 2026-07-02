@@ -21,7 +21,8 @@ Use these docs as the current architecture map for Kepos.
 - `docs/v1-friend-home-architecture/14-v1-product-logic-unification-next-plan.md`: prior plan for desktop/Android product-logic unification.
 - `docs/v1-friend-home-architecture/15-v1-ready-product-next-plan.md`: prior plan for V1 ready-product completion.
 - `docs/v1-friend-home-architecture/16-v1-profile-delivery-next-plan.md`: previous profile-delivery plan after phone smoke clarified that Home is not part of add-friend bootstrap.
-- `docs/v1-friend-home-architecture/17-v1-profile-routed-im-next-plan.md`: active V1 plan; finish Kepos as a profile-routed private IM where friendship, requests, Chat, and profile posts are profile-routed, while Home is only an optional live room after trust.
+- `docs/v1-friend-home-architecture/17-v1-profile-routed-im-next-plan.md`: previous V1 plan that locked the profile-routed IM product model.
+- `docs/v1-friend-home-architecture/18-v1-profile-p2p-hardening-next-plan.md`: active V1 plan; harden the profile-to-profile P2P route for requests, accepts, DM bootstrap, Chat, profile posts, and explicit Home entry.
 - `docs/v1.07-architecture-gaps.md`: remaining architecture gaps for V1 after identity and QR design.
 - `docs/v1.03-limitations.md`: explicit V1 limitations, non-goals, and success bar.
 - `docs/v1.04-tradeoffs.md`: accepted V1 tradeoffs, rejected options, risks, and future escape hatches.
@@ -44,6 +45,9 @@ Use these docs as the current architecture map for Kepos.
 - Home is not part of add-friend bootstrap. It is an explicit live-room action
   after trust, not authorization, not friend request delivery, and not the main
   DM route.
+- Profile-to-profile P2P is the only production social delivery route for
+  friend requests, accepts, and DM bootstrap. Direct host:port is diagnostics
+  only, not a product fallback.
 - Opening a profile, sending a request, accepting a request, and opening Chat
   must not auto-enter Home in the normal product path.
 - Desktop and mobile must use shared product/domain logic for QR generation,

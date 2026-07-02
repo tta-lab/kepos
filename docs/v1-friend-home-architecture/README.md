@@ -89,10 +89,15 @@ The short version:
     - Use this for the profile-delivery cleanup context before `17`.
 
 17. `17-v1-profile-routed-im-next-plan.md`
-    - Active V1 plan: finish Kepos as a profile-routed private IM where
+    - Previous V1 plan: finish Kepos as a profile-routed private IM where
       friendship, requests, Chat, and profile posts are profile-routed, while
       Home is only an optional live room after trust.
-    - Use this as the active V1 implementation plan.
+    - Use this for the product model locked before `18`.
+
+18. `18-v1-profile-p2p-hardening-next-plan.md`
+    - Active V1 plan: harden the profile-to-profile P2P route for requests,
+      accepts, DM bootstrap, Chat, profile posts, and explicit Home entry.
+    - Use this as the active V1 implementation and proof plan.
 
 ## Core Principle
 
@@ -108,4 +113,5 @@ It must not mean:
 
 Joining a Home must not be used to deliver the request in the production
 architecture. Friend request, accept, and durable DM delivery must be
-profile-to-profile P2P.
+profile-to-profile P2P. Direct host/port is diagnostics only, not a production
+social route.

@@ -4,11 +4,10 @@ This is the V1 finish plan after Home was removed from the friendship path and
 desktop/Android navigation started sharing the same product surface model.
 
 The active follow-up plan is
-`17-v1-profile-routed-im-next-plan.md`. Use that document for the current
-implementation order. `16-v1-profile-delivery-next-plan.md` remains the
-previous profile-delivery cleanup context after phone smoke clarified that
-production request, accept, and durable DM delivery must use profile-level P2P,
-not Home.
+`18-v1-profile-p2p-hardening-next-plan.md`. Use that document for the current
+implementation and proof order. `17-v1-profile-routed-im-next-plan.md` remains
+the previous product-model lock after phone smoke clarified that production
+request, accept, and durable DM delivery must use profile-level P2P, not Home.
 
 The goal is a ready private IM product, not only a working transport demo:
 

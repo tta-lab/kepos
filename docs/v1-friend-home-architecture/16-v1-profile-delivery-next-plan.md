@@ -1,6 +1,6 @@
 # V1 Profile Delivery Next Plan
 
-Superseded by `17-v1-profile-routed-im-next-plan.md`.
+Superseded by `18-v1-profile-p2p-hardening-next-plan.md`.
 
 This was the next plan after we rechecked the friend/Home model during phone
 smoke.

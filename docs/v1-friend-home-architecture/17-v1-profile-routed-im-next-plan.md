@@ -1,6 +1,11 @@
 # V1 Profile-Routed IM Next Plan
 
-This is the active V1 plan after rechecking the confusing phone smoke paths.
+Superseded by `18-v1-profile-p2p-hardening-next-plan.md`.
+
+This document locked the V1 product model. Use `18` for the active
+implementation and proof hardening pass.
+
+This was the V1 plan after rechecking the confusing phone smoke paths.
 
 The product rule is now final for V1:
 
