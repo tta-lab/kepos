@@ -29,7 +29,8 @@ Use these docs as the current architecture map for Kepos.
 - `docs/v1-friend-home-architecture/22-v1-profile-p2p-delivery-next-plan.md`: previous V1 plan; profile-to-profile P2P delivery evidence while keeping Home out of add friend, accept, DM bootstrap, and private Chat.
 - `docs/v1-friend-home-architecture/23-v1-social-delivery-release-plan.md`: previous V1 plan; private IM release path on profile-social P2P, with Profile QR as the normal add-friend path and Debug Home QR as an advanced live-room descriptor.
 - `docs/v1-friend-home-architecture/24-v1-release-proof-next-plan.md`: previous V1 plan; final release-proof bar before calling V1 ready.
-- `docs/v1-friend-home-architecture/25-v1-profile-route-implementation-next-plan.md`: active V1 plan; fix the profile-route implementation and UI parity before the final release proof.
+- `docs/v1-friend-home-architecture/25-v1-profile-route-implementation-next-plan.md`: previous V1 plan; profile-route implementation and UI parity evidence.
+- `docs/v1-friend-home-architecture/26-v1-readiness-closure-next-plan.md`: active V1 plan; readiness closure and final physical proof packet owner.
 - `docs/v1.07-architecture-gaps.md`: remaining architecture gaps for V1 after identity and QR design.
 - `docs/v1.03-limitations.md`: explicit V1 limitations, non-goals, and success bar.
 - `docs/v1.04-tradeoffs.md`: accepted V1 tradeoffs, rejected options, risks, and future escape hatches.

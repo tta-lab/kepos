@@ -19,8 +19,10 @@ The current execution path is:
 - `23-v1-social-delivery-release-plan.md` for the social delivery release
   baseline
 - `24-v1-release-proof-next-plan.md` for the final release-proof bar
-- `25-v1-profile-route-implementation-next-plan.md` for the active route and
+- `25-v1-profile-route-implementation-next-plan.md` for the previous route and
   UI parity implementation pass
+- `26-v1-readiness-closure-next-plan.md` for the active V1 readiness closure
+  plan
 - `../v1.21-cross-device-smoke.md` for the final desktop/Android release proof
 
 ## Decision
@@ -169,7 +171,8 @@ Current execution note:
 - `22` owns the profile P2P delivery evidence context.
 - `23` owns the social delivery release baseline.
 - `24` owns the final release-proof bar.
-- `25` owns the active profile-route implementation pass.
+- `25` owns the profile-route implementation pass.
+- `26` owns the active V1 readiness closure plan.
 - `../v1.21-cross-device-smoke.md` owns the final release proof packet.
 
 The current product behavior is intentionally honest: a request can be queued or searching locally without claiming the other side received it.

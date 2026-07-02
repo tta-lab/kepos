@@ -130,10 +130,15 @@ The short version:
     - Use this as the final proof bar before calling V1 ready.
 
 25. `25-v1-profile-route-implementation-next-plan.md`
-    - Active V1 plan: fix the profile-route implementation and UI parity before
+    - Previous V1 plan: fix the profile-route implementation and UI parity before
       the final release proof. Friend request, accept, DM bootstrap, and Chat
       are profile-routed; Home is only explicit live-room entry after trust.
-    - Use this for current V1 implementation work.
+    - Use this for profile-route implementation evidence.
+
+26. `26-v1-readiness-closure-next-plan.md`
+    - Active V1 plan: close readiness for the private IM product and produce the
+      final physical desktop/Android proof packet.
+    - Use this for current V1 readiness work before starting V2.
 
 ## Core Principle
 

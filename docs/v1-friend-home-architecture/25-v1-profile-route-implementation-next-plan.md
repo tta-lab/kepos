@@ -1,6 +1,7 @@
 # V1 Profile Route Implementation Next Plan
 
-This is the active next plan after `24-v1-release-proof-next-plan.md`.
+This was the active next plan after `24-v1-release-proof-next-plan.md`.
+Use `26-v1-readiness-closure-next-plan.md` for new V1 readiness work.
 
 Use `23-v1-social-delivery-release-plan.md` as the product-rule baseline and
 `24-v1-release-proof-next-plan.md` as the final proof bar. This document is the
