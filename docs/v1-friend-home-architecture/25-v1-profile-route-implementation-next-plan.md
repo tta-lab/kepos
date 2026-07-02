@@ -67,17 +67,19 @@ model, not add more paths.
 
 ## Work Order
 
-## Current Low-Cost Evidence
+## Current Non-Device Evidence
 
-As of 2026-07-03 on the active V1 branch, the non-device release gate passes:
+As of 2026-07-03 on commit `225ae2048792a3da8494235258af973fdf2b8bf7`,
+the non-device release gate passes:
 
 ```sh
 npm run v1:gate
 ```
 
-This proves lint, typecheck, all Node tests, TypeScript compatibility probes,
-desktop bundles, Android backend Bare bundle, Expo Android export, and Android
-APK native-library checks for the current source shape.
+This proves lint, typecheck, platform boundaries, 963 Node tests, TypeScript
+compatibility probes, desktop bundles, Android backend Bare bundle, Expo
+Android export, and Android APK native-library checks for the current source
+shape.
 
 It does not replace the final physical proof. V1 is still not complete until
 `../v1.21-cross-device-smoke.md` records a real desktop/Android Profile QR
