@@ -55,9 +55,14 @@ The short version:
     - Use this for the pre-`11` source-level cleanup context.
 
 11. `11-v1-profile-first-im-next-plan.md`
-    - Active V1 next plan after the Home/add-friend model was rechecked.
-    - Use this as the current source of truth for profile-first IM, Home demotion,
-      production P2P delivery, and final release proof order.
+    - Current product model after the Home/add-friend model was rechecked.
+    - Use this to understand profile-first IM, Home demotion, production P2P
+      delivery, and final release proof order.
+
+12. `12-v1-profile-first-implementation-next-plan.md`
+    - Active V1 execution plan from the current model to a ready product.
+    - Use this for implementation order, low-cost proof, and final release
+      evidence.
 
 ## Core Principle
 

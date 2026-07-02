@@ -15,7 +15,8 @@ Use these docs as the current architecture map for Kepos.
 - `docs/v1-friend-home-architecture/08-v1-im-release-next-plan.md`: prior V1 plan for finishing Kepos as a ready private IM product.
 - `docs/v1-friend-home-architecture/09-v1-profile-dm-delivery-next-plan.md`: prior delivery and UX next plan; Profile/DM are the production social path, Home is explicit live-room entry, and direct host:port is debug only.
 - `docs/v1-friend-home-architecture/10-v1-final-product-next-plan.md`: previous V1 finish plan after the Contacts-first/Profile-DM cleanup pass.
-- `docs/v1-friend-home-architecture/11-v1-profile-first-im-next-plan.md`: active V1 next plan; use this for profile-first IM, Home demotion, production P2P delivery, and final release proof order.
+- `docs/v1-friend-home-architecture/11-v1-profile-first-im-next-plan.md`: V1 profile-first IM product model; use this when product nouns or flow semantics are unclear.
+- `docs/v1-friend-home-architecture/12-v1-profile-first-implementation-next-plan.md`: active V1 implementation next plan; use this for implementation order, low-cost proof, production P2P delivery, and final release evidence.
 - `docs/v1.07-architecture-gaps.md`: remaining architecture gaps for V1 after identity and QR design.
 - `docs/v1.03-limitations.md`: explicit V1 limitations, non-goals, and success bar.
 - `docs/v1.04-tradeoffs.md`: accepted V1 tradeoffs, rejected options, risks, and future escape hatches.

@@ -98,6 +98,7 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
   for (const path of [
     'docs/v1.16-final-mlp-ui-ux-refactor.md',
     'docs/v1.17-ready-im-completion-plan.md',
+    'docs/v1-friend-home-architecture/12-v1-profile-first-implementation-next-plan.md',
     'docs/v1.20-smoke-guide.md',
     'docs/v1.21-cross-device-smoke.md'
   ]) {
@@ -116,6 +117,8 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
   assert.match(moc, /final V1 release proof packet/)
   assert.match(moc, /tmp\/final-v1-proof\.md/)
   assert.match(docs, /Use this as the checklist before starting V2 or calling V1 ready/)
+  assert.match(docs, /active V1 implementation next plan/)
+  assert.match(docs, /low-cost proof/)
 })
 
 test('V1 TypeScript boundary docs describe the current TSX migration state', async () => {
