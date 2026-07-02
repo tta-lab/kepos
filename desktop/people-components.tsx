@@ -278,7 +278,7 @@ export function PeopleLists({
                     </p>
                     <p className='text-xs font-semibold text-base-content/60'>
                       {contact.recentCopy ||
-                        'Posts from this profile will appear after you enter their home.'}
+                        'Recent posts from this profile will appear here when available.'}
                     </p>
                     {contact.recentPosts?.length ? (
                       <div className='mt-2 grid gap-2'>
@@ -498,17 +498,8 @@ function ContactProfileDetail({
           {profile.recentTitle}
         </p>
         <p className='text-xs font-semibold text-base-content/60'>
-          {profile.recentCopy || 'Posts from this profile will appear after you enter their home.'}
+          {profile.recentCopy || 'Recent posts from this profile will appear here when available.'}
         </p>
-        {profile.homeActionEnabled ? (
-          <ActionButton
-            ariaLabel={`Refresh recent posts from ${profile.alias}`}
-            className='smallButton mt-2'
-            icon={<RefreshCw size={15} />}
-            label='Refresh posts'
-            onClick={() => actions.enterContactHome(profile.profileId)}
-          />
-        ) : null}
         {profile.recentPosts?.length ? (
           <div className='mt-2 grid gap-2'>
             {profile.recentPosts.map((post) => (

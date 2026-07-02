@@ -213,9 +213,13 @@ test('desktop people UI uses trusted friends copy', async () => {
   assert.match(source, /Advanced identity/)
   assert.match(source, /Profile fingerprint/)
   assert.match(source, /actions\.closeProfile/)
-  assert.match(source, /\{profile\.homeActionEnabled \? \(/)
-  assert.match(source, /ariaLabel=\{`Refresh recent posts from \$\{profile\.alias\}`\}/)
-  assert.match(source, /label='Refresh posts'/)
+  const contactProfileDetail = source.slice(source.indexOf('function ContactProfileDetail('))
+  const recentPostsSection = contactProfileDetail.slice(
+    contactProfileDetail.indexOf("className='profileRecent"),
+    contactProfileDetail.indexOf("className='advanced mt-4'")
+  )
+  assert.doesNotMatch(recentPostsSection, /Refresh posts/)
+  assert.doesNotMatch(recentPostsSection, /actions\.enterContactHome/)
   assert.match(source, /actions\.enterContactHome\(profile\.profileId\)/)
   assert.match(source, /<ActionButton[\s\S]*ariaLabel=\{`Remove \$\{contact\.alias\} as friend`\}/)
   assert.match(source, /<ActionButton[\s\S]*className='smallButton dangerButton'/)

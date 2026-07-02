@@ -48,7 +48,7 @@ export function createProfileRecentPostsViewModel({
 
   if (!selectedProfileId || (!isActiveHome && sourcePosts.length === 0)) {
     return {
-      recentCopy: 'Enter their home to load recent posts.',
+      recentCopy: 'Recent posts from this profile will appear here when available.',
       recentPosts: [],
       recentTitle: 'Recent posts'
     }
@@ -75,8 +75,8 @@ export function createProfileRecentPostsViewModel({
 
 function formatRecentCopy({ count, isCached }: { count: number; isCached: boolean }): string {
   const plural = count === 1 ? 'post' : 'posts'
-  if (isCached) return `${count} cached recent ${plural} from last visit.`
-  return `${count} recent ${plural} from this home.`
+  if (isCached) return `${count} cached recent ${plural} from this profile.`
+  return `${count} recent ${plural} from this profile.`
 }
 
 function readCommentCount(post: ProfileRecentTreeholePost): number {

@@ -136,7 +136,7 @@ function formatTrustTime(trustedAt: number | undefined, formatDate: FormatDate):
 
 function formatRecentCopy(state: ContactProfileRelationshipState): string {
   if (state === 'trusted') {
-    return 'Posts from this profile will appear after you enter their home.'
+    return 'Recent posts from this profile will appear here when available.'
   }
   return 'Recent posts will appear after this profile becomes trusted.'
 }

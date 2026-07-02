@@ -10,7 +10,7 @@ test('profile recent posts stay empty until the selected profile owns the active
       selectedProfileId: 'owner-b'
     }),
     {
-      recentCopy: 'Enter their home to load recent posts.',
+      recentCopy: 'Recent posts from this profile will appear here when available.',
       recentPosts: [],
       recentTitle: 'Recent posts'
     }
@@ -51,7 +51,7 @@ test('profile recent posts show the latest loaded treehole posts for the active 
       selectedProfileId: 'owner-a'
     }),
     {
-      recentCopy: '3 recent posts from this home.',
+      recentCopy: '3 recent posts from this profile.',
       recentPosts: [
         {
           id: 'post-1',
@@ -93,7 +93,7 @@ test('profile recent posts fall back to cached posts after leaving a contact hom
       selectedProfileId: 'owner-a'
     }),
     {
-      recentCopy: '1 cached recent post from last visit.',
+      recentCopy: '1 cached recent post from this profile.',
       recentPosts: [
         {
           id: 'cached-1',

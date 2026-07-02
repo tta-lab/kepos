@@ -1,16 +1,7 @@
 import { useState } from 'react'
 import type { ImageStyle, StyleProp, TextStyle, ViewStyle } from 'react-native'
 import { Image, Pressable, Text, View } from 'react-native'
-import {
-  ArrowLeft,
-  Fingerprint,
-  House,
-  RefreshCw,
-  Send,
-  User,
-  UserMinus,
-  UserPlus
-} from 'lucide-react-native'
+import { ArrowLeft, Fingerprint, House, Send, User, UserMinus, UserPlus } from 'lucide-react-native'
 import type { MobileContactLike } from '../src/mobile-product-copy.ts'
 import { formatMobileTrustedContactName } from '../src/mobile-product-copy.ts'
 import { createProfileAvatarViewModel } from '../src/profile-avatar-view-model.ts'
@@ -389,17 +380,6 @@ export function ContactProfileDetail({
       <View style={styles.contactRecent}>
         <Text style={styles.contactRecentTitle}>{profile.recentTitle}</Text>
         <Text style={styles.contactRecentCopy}>{profile.recentCopy}</Text>
-        {profile.enterHomeEnabled ? (
-          <MobileSmallActionButton
-            accentColor={theme.accentStrong}
-            dangerColor={theme.danger}
-            styles={styles}
-            accessibilityLabel={`Refresh recent posts from ${profile.displayName}`}
-            icon={RefreshCw}
-            label='Refresh posts'
-            onPress={() => onEnterContactHome(profile.profileId)}
-          />
-        ) : null}
         {profile.recentPosts?.map((post) => (
           <View key={post.id} style={styles.contactRecentPost}>
             <Text style={styles.contactRecentPostText}>{post.text}</Text>

@@ -129,7 +129,7 @@ The local Treehole is where the user posts durable updates.
 A trusted contact's profile can show those updates as `Recent posts`. This is
 profile context, not Home room history and not a global feed.
 
-V1 can use an explicit refresh path. V2 can later make this a live feed stream.
+V1 can use cache-led profile context. V2 can later make this a live feed stream.
 
 ## Transport Rule
 

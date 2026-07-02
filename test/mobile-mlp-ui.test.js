@@ -804,13 +804,12 @@ test('mobile direct contact chips and revoke actions expose trust state', async 
     contactProfileDetail,
     /<MobileSmallActionButton[\s\S]*accessibilityLabel=\{`Allow requests from \$\{profile\.displayName\}`\}[\s\S]*icon=\{UserPlus\}[\s\S]*label='Allow requests'[\s\S]*onAllowContactRequests\(profile\.profileId\)/
   )
-  assert.match(contactProfileDetail, /\{profile\.enterHomeEnabled \? \(/)
-  assert.match(
-    contactProfileDetail,
-    /accessibilityLabel=\{`Refresh recent posts from \$\{profile\.displayName\}`\}/
+  const recentPostsSection = contactProfileDetail.slice(
+    contactProfileDetail.indexOf('<View style={styles.contactRecent}>'),
+    contactProfileDetail.indexOf('<View style={styles.contactIdentity}>')
   )
-  assert.match(contactProfileDetail, /label='Refresh posts'/)
-  assert.match(contactProfileDetail, /onPress=\{\(\) => onEnterContactHome\(profile\.profileId\)\}/)
+  assert.doesNotMatch(recentPostsSection, /Refresh posts/)
+  assert.doesNotMatch(recentPostsSection, /onEnterContactHome/)
   assert.doesNotMatch(source, /function ContactProfileDetail\(/)
   assert.match(profileComponents, /export type ContactProfileDetailProps = \{/)
   assert.match(contactManager, /<ContactProfileDetail[\s\S]*profile=\{selectedProfile\}/)
