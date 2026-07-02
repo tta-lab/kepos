@@ -29,6 +29,8 @@ export const productSurfaceTabs: ProductSurface[] = [
   }
 ]
 
+const DEFAULT_PRODUCT_SURFACE_ID: ProductSurfaceId = 'people'
+
 export function getProductSurfaceLabel(surfaceId?: string | null): string {
   return readProductSurface(surfaceId).label
 }
@@ -38,5 +40,9 @@ export function getProductSurfaceTitle(surfaceId?: string | null): string {
 }
 
 function readProductSurface(surfaceId?: string | null): ProductSurface {
-  return productSurfaceTabs.find((surface) => surface.id === surfaceId) || productSurfaceTabs[0]
+  return (
+    productSurfaceTabs.find((surface) => surface.id === surfaceId) ||
+    productSurfaceTabs.find((surface) => surface.id === DEFAULT_PRODUCT_SURFACE_ID) ||
+    productSurfaceTabs[0]
+  )
 }

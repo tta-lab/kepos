@@ -47,6 +47,7 @@ test('mobile product copy maps backend and room state to user copy', () => {
   assert.equal(getMobileBackendNotice('unknown'), 'Home status updated.')
 
   assert.equal(getMobileRoomSurface('chat'), 'Home chat')
+  assert.equal(getMobileRoomSurface('unknown'), 'Contacts')
   assert.equal(getMobileRoomSurface('dm'), 'Chat')
   assert.equal(getMobileRoomSurface('treehole'), 'Treehole')
   assert.equal(getMobileRoomSurface('people'), 'Contacts')

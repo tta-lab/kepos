@@ -26,7 +26,7 @@ test('product surface titles keep Home chat distinct from Home label', () => {
   assert.equal(getProductSurfaceTitle('people'), 'Contacts')
 })
 
-test('unknown product surfaces fall back to Home', () => {
-  assert.equal(getProductSurfaceLabel('unknown'), 'Home')
-  assert.equal(getProductSurfaceTitle('unknown'), 'Home chat')
+test('unknown product surfaces fall back to Contacts', () => {
+  assert.equal(getProductSurfaceLabel('unknown'), 'Contacts')
+  assert.equal(getProductSurfaceTitle('unknown'), 'Contacts')
 })
