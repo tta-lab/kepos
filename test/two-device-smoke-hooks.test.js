@@ -555,7 +555,8 @@ test('Android backend status notices avoid raw worker status codes', async () =>
   const copy = await readFile(new URL('../src/mobile-product-copy.ts', import.meta.url), 'utf8')
 
   assert.match(copy, /function getMobileBackendNotice\(status\?: string\)/)
-  assert.match(source, /setNotice\(getMobileBackendNotice\(asString\(payloadRecord\.status\)\)\)/)
+  assert.match(source, /const status = asString\(payloadRecord\.status\)/)
+  assert.match(source, /setNotice\(getMobileBackendNotice\(status\)\)/)
   assert.match(copy, /return 'Starting home\.\.\.'/)
   assert.match(copy, /return 'Syncing posts\.\.\.'/)
   assert.match(copy, /return 'Connected\.'/)

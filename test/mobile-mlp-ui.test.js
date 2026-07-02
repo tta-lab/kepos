@@ -1328,6 +1328,10 @@ test('mobile composer sends trimmed text payloads', async () => {
     source.indexOf('function sendMessageRequest()'),
     source.indexOf('function sendTreeholePost()')
   )
+  const enterRequestTargetHome = source.slice(
+    source.indexOf('function enterRequestTargetHome('),
+    source.indexOf('async function sendMessageRequest()')
+  )
   const sendTreeholePost = source.slice(
     source.indexOf('function sendTreeholePost()'),
     source.indexOf('function sendTreeholeComment(')
@@ -1344,6 +1348,22 @@ test('mobile composer sends trimmed text payloads', async () => {
   assert.match(sendMessageRequest, /const cleanText = normalizeComposerText\(dmDraft\)/)
   assert.match(sendMessageRequest, /createFriendRequestTargetViewModel\(/)
   assert.match(sendMessageRequest, /if \(!requestTargetView\.canSendRequest\)/)
+  assert.match(
+    sendMessageRequest,
+    /const requestRpc = await enterRequestTargetHome\(requestTargetView\)/
+  )
+  assert.match(sendMessageRequest, /if \(!requestRpc\) return/)
+  assert.match(sendMessageRequest, /requestRpc\.request\(RPC_DM_SEND\)\.send/)
+  assert.match(enterRequestTargetHome, /activeHomeOwnerProfileId === requestTarget\.profileId/)
+  assert.match(
+    enterRequestTargetHome,
+    /const homeDescriptor = asRecord\(requestTarget\.homeDescriptor\)/
+  )
+  assert.match(enterRequestTargetHome, /createHomeJoinSessionFromAddress\(/)
+  assert.match(enterRequestTargetHome, /setActiveHomeOwnerProfileId\(ownerProfileId\)/)
+  assert.match(enterRequestTargetHome, /const started = startBackend\(/)
+  assert.match(enterRequestTargetHome, /const joined = await started\.joined/)
+  assert.match(enterRequestTargetHome, /return started\.rpc/)
   assert.match(
     sendMessageRequest,
     /const homeDescriptor = asRecord\(requestTargetView\.homeDescriptor\)/

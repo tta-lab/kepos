@@ -43,6 +43,7 @@ test('android backend trims outgoing text at the RPC boundary', () => {
     'if (req.command === RPC_SEND)',
     'if (req.command === RPC_LEAVE)'
   )
+  const joinRoom = sliceBetween(source, 'async function joinRoom', 'async function leaveRoom')
   const sendHomeMessage = sliceBetween(
     source,
     'function sendHomeMessage',
@@ -62,6 +63,11 @@ test('android backend trims outgoing text at the RPC boundary', () => {
     source,
     'function sendMessageRequest',
     'async function acceptMessageRequest'
+  )
+  const resendOutgoingMessageRequests = sliceBetween(
+    source,
+    'function resendOutgoingMessageRequests',
+    'function sendTreeholeBootstrap'
   )
   const acceptMessageRequest = sliceBetween(
     source,
@@ -94,6 +100,9 @@ test('android backend trims outgoing text at the RPC boundary', () => {
   assert.match(source, /let allowHomeDmBodyFallback = false/)
   assert.match(source, /const outgoingMessageRequestsByProfileId = new Map\(\)/)
   assert.match(leaveRoom, /outgoingMessageRequestsByProfileId\.clear\(\)/)
+  assert.match(joinRoom, /resendOutgoingMessageRequests\(peer\)/)
+  assert.match(resendOutgoingMessageRequests, /outgoingMessageRequestsByProfileId\.values\(\)/)
+  assert.match(resendOutgoingMessageRequests, /room\.sendControl\(peer, request\)/)
   assert.match(source, /RPC_TREEHOLE_POLICY/)
   assert.match(rpcTreeholePolicy, /await updateTreeholePolicy\(payload\)/)
   assert.match(source, /async function updateTreeholePolicy\(payload\)/)
@@ -111,7 +120,10 @@ test('android backend trims outgoing text at the RPC boundary', () => {
   assert.match(postTreehole, /const text = cleanRequiredText\(payload\.text\)/)
   assert.match(commentTreehole, /const text = cleanRequiredText\(payload\.text\)/)
   assert.match(sendMessageRequest, /const text = cleanRequiredText\(payload\.text\)/)
-  assert.match(sendMessageRequest, /outgoingMessageRequestsByProfileId\.set\(/)
+  assert.match(
+    sendMessageRequest,
+    /outgoingMessageRequestsByProfileId\.set\(request\.toProfileId, request\)/
+  )
   assert.match(acceptMessageRequest, /canAcceptIncomingMessageRequest\(request\)/)
   assert.match(acceptMessageRequest, /verifyMessageRequest\(request\)/)
   assert.match(acceptMessageRequest, /request\.toProfileId !== profileId/)
@@ -123,7 +135,7 @@ test('android backend trims outgoing text at the RPC boundary', () => {
   assert.match(canAcceptIncomingDmInvite, /trustedProfileIds\?\.includes\(fromProfileId\)/)
   assert.match(
     canAcceptIncomingDmInvite,
-    /outgoingMessageRequestsByProfileId\.get\(fromProfileId\) === invite\?\.requestId\?\.trim\(\)/
+    /outgoingMessageRequestsByProfileId\.get\(fromProfileId\)\?\.requestId === invite\?\.requestId\?\.trim\(\)/
   )
   assert.match(sendDmBody, /const text = cleanRequiredText\(payload\.text\)/)
   assert.match(handleControlDmBody, /if \(!allowHomeDmBodyFallback\)/)

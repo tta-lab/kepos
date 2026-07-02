@@ -172,6 +172,10 @@ type RpcClient = {
     send(value: string): void
   }
 }
+type BackendStartResult = {
+  joined: Promise<boolean>
+  rpc: RpcClient
+}
 type WorkletHandle = {
   IPC: unknown
   start(path: string, bundle: unknown, args: unknown[]): void
@@ -841,7 +845,72 @@ export default function App() {
     setDraft('')
   }
 
-  function sendMessageRequest() {
+  async function enterRequestTargetHome(
+    requestTarget: FriendRequestTargetViewModel
+  ): Promise<RpcClient | null> {
+    if (session && activeHomeOwnerProfileId === requestTarget.profileId) return rpc
+
+    const homeDescriptor = asRecord(requestTarget.homeDescriptor)
+    const address = asString(homeDescriptor.address)
+    const ownerProfileId = asString(homeDescriptor.ownerProfileId) || requestTarget.profileId
+    const roomKey = asString(homeDescriptor.roomKey)
+    const policy = asString(homeDescriptor.policy) === 'public' ? 'public' : 'trusted_only'
+
+    if (!address || !roomKey || !identity || !profileId) {
+      setNotice('Enter this Home before sending a friend request.')
+      return null
+    }
+
+    try {
+      const storageBasePath = await getMobileBackendStorageBasePath({ fileSystem: FileSystem })
+      const homeJoin = createHomeJoinSessionFromAddress({
+        address,
+        identity,
+        nick,
+        ownerProfileId,
+        policy,
+        profileId,
+        roomKey
+      })
+      const nextDmSession = await restoreMobileDirectMessageSession()
+      setRoomKey(homeJoin.roomKey)
+      setSession(homeJoin.session)
+      setActiveHomeOwnerProfileId(ownerProfileId)
+      setDmSession(nextDmSession)
+      setDmMessages(nextDmSession.messages)
+      setPeerCount(0)
+      setTreeholePosts([])
+      setTreeholeCanInteract(false)
+      setTreeholeCanPost(false)
+      setTreeholeStatus('waiting')
+
+      const started = startBackend(
+        await createHomeSessionPayload({
+          ...homeJoin,
+          createTreehole: false,
+          nick,
+          storageBasePath,
+          treeholePolicy
+        })
+      )
+      if (!started) return null
+
+      const joined = await started.joined
+      if (!joined) {
+        setNotice('Could not enter this Home yet.')
+        return null
+      }
+
+      return started.rpc
+    } catch (error) {
+      console.error('Could not enter request target home', error)
+      setLastError(errorMessage(error))
+      setNotice('Could not enter this Home.')
+      return null
+    }
+  }
+
+  async function sendMessageRequest() {
     const cleanText = normalizeComposerText(dmDraft)
     const cleanRecipient = dmRecipient.trim()
     if (!dmSession || !cleanText || !cleanRecipient) {
@@ -893,6 +962,9 @@ export default function App() {
       return
     }
 
+    const requestRpc = await enterRequestTargetHome(requestTargetView)
+    if (!requestRpc) return
+
     const homeDescriptor = asRecord(requestTargetView.homeDescriptor)
     const nextSession = appendLocalMessageRequest(dmSession, message)
     if (contactBook) {
@@ -932,7 +1004,7 @@ export default function App() {
       setLastError(errorMessage(error))
       setNotice('Could not save this friend request.')
     })
-    rpc?.request(RPC_DM_SEND).send(
+    requestRpc.request(RPC_DM_SEND).send(
       JSON.stringify({
         at: message.createdAt,
         id: message.requestId,
@@ -995,11 +1067,27 @@ export default function App() {
     )
   }
 
-  function startBackend(nextSession: HomeJoinSession & Record<string, unknown>) {
+  function startBackend(
+    nextSession: HomeJoinSession & Record<string, unknown>
+  ): BackendStartResult | null {
     try {
       const worklet = new Worklet() as WorkletHandle
       worklet.start('/app.bundle', bundle, [])
       workletRef.current = worklet
+
+      let joinedSettled = false
+      let joinedTimeout: ReturnType<typeof setTimeout> | null = null
+      let resolveJoined: (ready: boolean) => void = () => {}
+      const joined = new Promise<boolean>((resolve) => {
+        resolveJoined = resolve
+      })
+      const resolveHomeJoined = (ready: boolean) => {
+        if (joinedSettled) return
+        joinedSettled = true
+        if (joinedTimeout) clearTimeout(joinedTimeout)
+        resolveJoined(ready)
+      }
+      joinedTimeout = setTimeout(() => resolveHomeJoined(false), 10000)
 
       const RpcConstructor = RPC as unknown as new (
         ipc: unknown,
@@ -1109,7 +1197,11 @@ export default function App() {
         }
 
         if (req.command === RPC_STATUS) {
-          setNotice(getMobileBackendNotice(asString(payloadRecord.status)))
+          const status = asString(payloadRecord.status)
+          setNotice(getMobileBackendNotice(status))
+          if (status === 'joined') {
+            resolveHomeJoined(true)
+          }
           return
         }
 
@@ -1150,6 +1242,7 @@ export default function App() {
         }
 
         if (req.command === RPC_ERROR) {
+          resolveHomeJoined(false)
           setLastError(asString(payloadRecord.message) || 'Home connection error')
           setNotice('Home connection error.')
         }
@@ -1158,10 +1251,12 @@ export default function App() {
       nextRpc.request(RPC_JOIN).send(JSON.stringify(nextSession))
       setRpc(nextRpc)
       setNotice('Starting home...')
+      return { joined, rpc: nextRpc }
     } catch (error) {
       console.error('Could not connect home', error)
       setLastError(errorMessage(error))
       setNotice('Could not connect this home.')
+      return null
     }
   }
 

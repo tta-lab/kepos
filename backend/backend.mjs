@@ -218,6 +218,7 @@ async function joinRoom(payload) {
     onPeer: (peer) => {
       sendHomeHello(peer)
       requestHomeHello(peer)
+      resendOutgoingMessageRequests(peer)
     },
     onPeerCount: (count) => sendToUI(RPC_PEER_COUNT, { count })
   })
@@ -459,6 +460,16 @@ function requestHomeHello(peer = null) {
   room.broadcastControl(request)
 }
 
+function resendOutgoingMessageRequests(peer) {
+  if (!room || !peer) {
+    return
+  }
+
+  for (const request of outgoingMessageRequestsByProfileId.values()) {
+    room.sendControl(peer, request)
+  }
+}
+
 function sendTreeholeBootstrap(peer, remoteProfileId) {
   if (!room || !treehole || !peer || homeOwnerProfileId !== profileId) {
     return
@@ -587,7 +598,7 @@ function sendMessageRequest(payload) {
     text,
     toProfileId: payload.toProfileId
   })
-  outgoingMessageRequestsByProfileId.set(request.toProfileId, request.requestId)
+  outgoingMessageRequestsByProfileId.set(request.toProfileId, request)
   room.broadcastControl(request)
 }
 
@@ -688,7 +699,9 @@ function canAcceptIncomingDmInvite(invite) {
     return true
   }
 
-  return outgoingMessageRequestsByProfileId.get(fromProfileId) === invite?.requestId?.trim()
+  return (
+    outgoingMessageRequestsByProfileId.get(fromProfileId)?.requestId === invite?.requestId?.trim()
+  )
 }
 
 function sendDmBody(payload) {
