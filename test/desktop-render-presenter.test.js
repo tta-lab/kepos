@@ -268,3 +268,66 @@ test('desktop render presenter allows direct messages without entering Home', ()
     ]
   )
 })
+
+test('desktop render presenter shows restored accepted Chat rows without entering Home', () => {
+  const friendProfileId = 'b'.repeat(64)
+  const contactBook = trustContact(createContactBook({ ownerProfileId: 'owner' }), {
+    alias: 'Ada',
+    profileId: friendProfileId,
+    trustedAt: 1000
+  })
+  const { calls, ui } = createUiRecorder()
+  const presenter = createDesktopRenderPresenter({
+    formatTime: (value) => `t:${value}`,
+    shortenProfileId: (value) => value.slice(0, 6),
+    ui
+  })
+
+  presenter.render({
+    contactBook,
+    directComposerRecipientProfileId: friendProfileId,
+    dmSession: {
+      messages: [
+        {
+          at: 2200,
+          direction: 'in',
+          fromProfileId: friendProfileId,
+          id: 'message-1',
+          text: 'still here after restart',
+          type: 'kepos.dm.message.v1'
+        }
+      ]
+    },
+    dmThreads: [
+      {
+        acceptedAt: 2000,
+        remoteProfileId: friendProfileId,
+        state: 'accepted',
+        threadId: 'thread-accepted'
+      }
+    ],
+    pendingCommand: null,
+    session: null,
+    state: createDesktopState()
+  })
+
+  assert.equal(calls.find(([name]) => name === 'controls')[1].canUseHomeChatComposer, false)
+  assert.equal(calls.find(([name]) => name === 'homeMessages')[1].length, 0)
+  assert.deepEqual(calls.find(([name]) => name === 'directThreads')[1], [
+    {
+      avatar: {
+        initials: 'A',
+        label: 'Ada avatar',
+        tone: 'avatarTone3'
+      },
+      label: 'Ada',
+      preview: 'still here after restart',
+      profileId: friendProfileId,
+      statusLabel: 'Accepted thread',
+      threadId: 'thread-accepted',
+      timeLabel: 't:2200',
+      unreadCount: 0,
+      unreadLabel: ''
+    }
+  ])
+})

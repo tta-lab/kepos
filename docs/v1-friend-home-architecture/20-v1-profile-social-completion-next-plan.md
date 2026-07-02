@@ -35,6 +35,12 @@ Already true or partly proven:
   thread, and marks the matching outgoing request accepted in ContactBook.
 - The shared Chat thread list creates accepted rows from trusted ContactBook
   contacts even when there are no saved messages or thread snapshots yet.
+- Desktop render proof shows restored accepted Chat rows from ContactBook,
+  persisted DM thread metadata, and saved messages while no Home session is
+  active.
+- Android bootstrap proof shows durable ContactBook and accepted thread metadata
+  restore from app file storage, then render through the shared Chat thread view
+  after restart.
 - Chat and Contacts are the intended trusted-person surfaces.
 - Home is documented as a live room, not the way to add friends.
 
@@ -44,9 +50,9 @@ V1 is not ready until these are true on both desktop and Android:
 
 - Friend request accept and invite return are proven on the physical
   cross-device path with Home peer counts staying zero.
-- The accepted contact appears in Contacts and Chat on both rendered clients
-  without entering Home.
-- DM bootstrap durability is proven through restart on both rendered clients.
+- The accepted contact appears in Contacts and Chat on the final physical
+  cross-device path without entering Home.
+- DM bootstrap durability is proven through physical restart on both clients.
 - The first private message path is clearly Chat, not Home room chat.
 - Profile detail is the shared destination from Contacts and Chat.
 - Treehole remains my own post surface, while a friend's recent posts are
@@ -83,11 +89,14 @@ Required behavior:
 - first message send uses the DM/profile route, not Home room chat
 - failed or pending bootstrap state is visible instead of hidden
 
-Low-cost status: partly complete. Tests prove accepted threads are saved/opened,
-`RPC_DM_THREAD` updates Android UI state, trusted contacts can become Chat rows
-before messages, and accepted message sends avoid Home.
+Low-cost status: complete for model, storage, and render proof. Tests prove
+accepted threads are saved/opened, `RPC_DM_THREAD` updates Android UI state,
+trusted contacts can become Chat rows before messages, accepted message sends
+avoid Home, desktop renders restored accepted Chat rows without Home, and
+Android bootstrap restores trusted ContactBook plus accepted thread metadata
+from app file storage.
 
-Remaining proof: rendered desktop and Android restart proof still needs to show
+Remaining proof: physical desktop and Android restart proof still needs to show
 the accepted Chat thread, preview, and first private message path after restart.
 
 ## Phase 3: Finish Shared Product Logic
