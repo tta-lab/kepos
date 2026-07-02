@@ -4,11 +4,7 @@ import type { ContactBook } from './contact-book.ts'
 import type { HomeRoom } from './home-room.ts'
 import type { LocalProfile } from './profile.ts'
 import type { SigningIdentity } from './signed-record.ts'
-import {
-  createSignedHomeAddressPayload,
-  createSignedTrustInvitePayload,
-  encodeQrUri
-} from './signed-qr-payload.ts'
+import { createShareQrPayloads } from './share-qr-service.ts'
 import { applySignedQrUriToContactBook } from './signed-qr-scan.ts'
 
 type DesktopQrSvgOptions = {
@@ -117,22 +113,13 @@ export async function createDesktopShareQrOutputs({
 }: {
   profile: DesktopShareProfile
 }): Promise<DesktopShareQrOutputs> {
-  const homeDescriptor = createSignedHomeAddressPayload({
-    address: profile.homeRoom.address,
-    identity: profile.identity,
-    policy: profile.homeRoom.policy,
-    roomKey: profile.homeRoom.roomKey
+  const { homeUri, profileUri } = createShareQrPayloads({
+    avatarMedia: profile.avatarMedia,
+    avatarUri: profile.avatarUri,
+    displayName: profile.displayName,
+    homeRoom: profile.homeRoom,
+    identity: profile.identity
   })
-  const profileUri = encodeQrUri(
-    createSignedTrustInvitePayload({
-      avatarMedia: profile.avatarMedia,
-      avatarUri: profile.avatarUri,
-      displayName: profile.displayName,
-      homeDescriptor,
-      identity: profile.identity
-    })
-  )
-  const homeUri = encodeQrUri(homeDescriptor)
 
   const [profileSvg, homeSvg] = await Promise.all([
     renderDesktopQrSvg(profileUri),

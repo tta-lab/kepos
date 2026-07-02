@@ -26,6 +26,13 @@ Use these docs as the current architecture map for Kepos.
 - One device is one profile.
 - One profile owns one home room.
 - One profile owns one treehole.
+- Profile QR is the product share surface: it represents the person, can carry
+  that person's current home descriptor, and starts the friend request/trust
+  path. Home QR is only an advanced/debug home descriptor surface, not a
+  parallel primary invite model.
+- Desktop and mobile must use shared product/domain logic for QR generation,
+  trust, friend requests, home descriptors, and treehole/DM policy. Platform
+  code should only own rendering, camera, storage adapters, and runtime glue.
 - Identity signing is part of V1 for trust, QR/home payloads, treehole events, DM invites, message requests, and DM messages.
 - Treehole main posts can only be created by the owner.
 - Trusted users can read, comment, and like the owner's treehole.

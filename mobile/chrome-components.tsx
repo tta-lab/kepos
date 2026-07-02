@@ -5,8 +5,8 @@ import { QrCode, Sprout } from 'lucide-react-native'
 import {
   MobileScannerCancelButton,
   type MobileScannerCancelButtonStyles
-} from './action-components.js'
-import { MobileQrCard } from './qr-components.js'
+} from './action-components.tsx'
+import { MobileQrCard } from './qr-components.tsx'
 
 export type HeaderStyles = {
   brandRow: StyleProp<ViewStyle>

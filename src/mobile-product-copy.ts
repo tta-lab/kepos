@@ -59,18 +59,18 @@ export function getMobileHomeStatus({ online, session }: MobileHomeStatusInput) 
 
 export function getMobileTreeholeStatus(status?: string) {
   if (status === 'ready') {
-    return 'My treehole ready'
+    return 'Treehole ready'
   }
 
   if (status === 'starting') {
-    return 'Starting My treehole'
+    return 'Starting Treehole'
   }
 
   if (status === 'waiting' || status === 'waiting-for-bootstrap') {
     return 'Waiting for posts'
   }
 
-  return 'My treehole offline'
+  return 'Treehole offline'
 }
 
 export function getMobileBackendNotice(status?: string) {
@@ -233,7 +233,7 @@ export function getMobileTreeholeEmptyCopy(
   }
 
   if (status === 'starting') {
-    return 'Starting My treehole.'
+    return 'Starting Treehole.'
   }
 
   if (!canPost) {

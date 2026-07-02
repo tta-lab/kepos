@@ -10,8 +10,8 @@ import {
 import {
   MobileRequestActionButton,
   type MobileRequestActionButtonStyles
-} from './action-components.js'
-import { PanelEmptyState, TaskHeader, type PanelEmptyStateStyles } from './panel-components.js'
+} from './action-components.tsx'
+import { PanelEmptyState, TaskHeader, type PanelEmptyStateStyles } from './panel-components.tsx'
 
 export type RequestManagerStyles = MobileRequestActionButtonStyles &
   PanelEmptyStateStyles & {

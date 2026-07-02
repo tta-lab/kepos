@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import type { StyleProp, ViewStyle } from 'react-native'
 import { View } from 'react-native'
-import { Image, Plus, QrCode, Users } from 'lucide-react-native'
-import { MobileActionButton, type MobileActionButtonStyles } from './action-components.js'
-import { QrCard } from './chrome-components.js'
-import { Field, type FieldStyles } from './form-components.js'
-import { TaskHeader, type TaskHeaderProps } from './panel-components.js'
+import { Image, Plus, QrCode } from 'lucide-react-native'
+import { MobileActionButton, type MobileActionButtonStyles } from './action-components.tsx'
+import { QrCard } from './chrome-components.tsx'
+import { Field, type FieldStyles } from './form-components.tsx'
+import { TaskHeader, type TaskHeaderProps } from './panel-components.tsx'
 
 export type QuickStartPanelStyles = FieldStyles &
   MobileActionButtonStyles &
@@ -28,7 +28,6 @@ export type QuickStartPanelProps = {
   onCreateRoom(): void
   onChooseLocalAvatarImage(): void
   onLocalAvatarUriChange(value: string): void
-  onOpenPeopleSetup(): void
   onNickChange(value: string): void
   profileQrUri: string
   profileReady: boolean
@@ -42,7 +41,6 @@ export function QuickStartPanel({
   onCreateRoom,
   onChooseLocalAvatarImage,
   onLocalAvatarUriChange,
-  onOpenPeopleSetup,
   onNickChange,
   profileQrUri,
   profileReady,
@@ -54,11 +52,7 @@ export function QuickStartPanel({
   return (
     <View style={styles.quickStartPanel}>
       <TaskHeader
-        description={
-          profileReady
-            ? 'Open your home, share My QR, or open Contacts.'
-            : 'Setting up your profile...'
-        }
+        description={profileReady ? 'Open your home or show My QR.' : 'Setting up your profile...'}
         eyebrow='Start'
         styles={styles}
         title='Start here'
@@ -109,17 +103,6 @@ export function QuickStartPanel({
         {showQuickProfileQr ? (
           <QrCard backgroundColor={theme.raised} styles={styles} value={profileQrUri} />
         ) : null}
-        <MobileActionButton
-          accentColor={theme.accentStrong}
-          disabledContentColor={theme.placeholder}
-          primaryContentColor={theme.surface}
-          styles={styles}
-          disabled={!profileReady}
-          icon={Users}
-          label='Open Contacts'
-          onPress={onOpenPeopleSetup}
-          testID='quick-open-contacts-button'
-        />
       </View>
     </View>
   )

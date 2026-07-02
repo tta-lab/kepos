@@ -4,6 +4,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { _electron as electron } from 'playwright'
 import { markSmokeStorage } from './smoke-storage.mjs'
+import { decodeQrUri } from '../src/signed-qr-payload.ts'
 
 const repoDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const desktopDir = path.join(repoDir, 'desktop')
@@ -28,6 +29,8 @@ try {
   await waitForInputPrefix(page, '#homeQrOutput', 'kepos://home')
   const profileUri = await page.locator('#profileQrOutput').inputValue()
   const homeUri = await page.locator('#homeQrOutput').inputValue()
+  const profileProof = readProfileQrProof(profileUri)
+  const homeProof = readHomeQrProof(homeUri)
 
   await page.click('#createButton')
   await waitForText(page, '#noticeLabel', 'Home joined.')
@@ -43,8 +46,22 @@ try {
   await waitForTextIncludes(page, '#treeholeList', treeholePostText)
 
   const restartedPage = await restartDesktopApp()
-  await waitForInputValue(restartedPage, '#profileQrOutput', profileUri)
-  await waitForInputValue(restartedPage, '#homeQrOutput', homeUri)
+  await waitForMatchingQr(
+    restartedPage,
+    '#profileQrOutput',
+    'kepos://profile',
+    profileProof,
+    readProfileQrProof,
+    'profile QR identity'
+  )
+  await waitForMatchingQr(
+    restartedPage,
+    '#homeQrOutput',
+    'kepos://home',
+    homeProof,
+    readHomeQrProof,
+    'home QR owner and room'
+  )
   await restartedPage.click('#createButton')
   await waitForText(restartedPage, '#noticeLabel', 'Home joined.')
   await restartedPage.click('#treeholeTab')
@@ -60,8 +77,8 @@ try {
     treeholePost: treeholePostText,
     treeholeStatus: await restartedPage.locator('#treeholeStatusLabel').textContent(),
     verified: [
-      'profile QR remains stable after desktop restart',
-      'home QR remains stable after desktop restart',
+      'profile QR keeps the same identity after desktop restart',
+      'home QR keeps the same owner and room after desktop restart',
       'treehole post remains after desktop restart'
     ]
   }
@@ -78,7 +95,8 @@ async function launchDesktopApp() {
     cwd: desktopDir,
     env: {
       ...process.env,
-      KEPOS_SMOKE_DESKTOP: usePearRuntime ? undefined : '1'
+      KEPOS_DESKTOP_PEAR: usePearRuntime ? '1' : undefined,
+      KEPOS_SMOKE_DESKTOP: '1'
     },
     executablePath: electronExecutable,
     timeout: 60000
@@ -86,9 +104,6 @@ async function launchDesktopApp() {
 
   const page = await app.firstWindow({ timeout: 60000 })
   await page.waitForLoadState('domcontentloaded')
-  page.on('console', (message) => {
-    if (message.type() === 'error') console.error(`[desktop] ${message.text()}`)
-  })
   const pageRequireType = await page.evaluate(() => typeof globalThis.require)
   if (pageRequireType !== 'undefined') {
     throw new Error(
@@ -128,10 +143,18 @@ async function waitForInputPrefix(page, selector, prefix) {
   await waitFor(async () => (await locator.inputValue()).startsWith(prefix), `${selector} prefix`)
 }
 
-async function waitForInputValue(page, selector, expected) {
+async function waitForMatchingQr(page, selector, prefix, expected, readProof, label) {
   const locator = page.locator(selector)
   await locator.waitFor({ state: 'attached' })
-  await waitFor(async () => (await locator.inputValue()) === expected, `${selector} value`)
+  await waitFor(async () => {
+    const value = await locator.inputValue()
+    if (!value.startsWith(prefix)) return false
+    try {
+      return JSON.stringify(readProof(value)) === JSON.stringify(expected)
+    } catch {
+      return false
+    }
+  }, `${selector} ${label}`)
 }
 
 async function waitForText(page, selector, expected) {
@@ -158,4 +181,32 @@ async function waitFor(predicate, label) {
   }
 
   throw new Error(`Timed out waiting for ${label}`)
+}
+
+function readProfileQrProof(uri) {
+  const payload = decodeQrUri(uri)
+  if (!payload || !String(payload.type || '').startsWith('kepos.trust.invite.')) {
+    throw new Error('Expected Profile QR payload')
+  }
+  return {
+    home: payload.homeDescriptor ? readHomeQrProofPayload(payload.homeDescriptor) : null,
+    identityPublicKey: payload.identityPublicKey,
+    profileId: payload.profileId
+  }
+}
+
+function readHomeQrProof(uri) {
+  return readHomeQrProofPayload(decodeQrUri(uri))
+}
+
+function readHomeQrProofPayload(payload) {
+  if (!payload || payload.type !== 'kepos.home.address.v1') {
+    throw new Error('Expected Home QR payload')
+  }
+  return {
+    address: payload.address,
+    ownerProfileId: payload.ownerProfileId,
+    policy: payload.policy,
+    roomKey: payload.roomKey
+  }
 }

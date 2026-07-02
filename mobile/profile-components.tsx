@@ -17,7 +17,10 @@ import type {
   ProfileAvatarViewModel,
   ResolveAvatarMediaUri
 } from '../src/profile-avatar-view-model.ts'
-import { MobileSmallActionButton, type MobileSmallActionButtonStyles } from './action-components.js'
+import {
+  MobileSmallActionButton,
+  type MobileSmallActionButtonStyles
+} from './action-components.tsx'
 
 export type MobileProfileAvatarStyles = {
   avatarTone0: StyleProp<ViewStyle>

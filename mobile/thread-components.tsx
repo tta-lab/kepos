@@ -9,9 +9,9 @@ import {
   type MobileActionButtonStyles,
   type MobileRequestActionButtonStyles,
   type MobileSmallActionButtonStyles
-} from './action-components.js'
-import { PanelEmptyState, type PanelEmptyStateStyles } from './panel-components.js'
-import { MobileProfileAvatar, type MobileProfileAvatarStyles } from './profile-components.js'
+} from './action-components.tsx'
+import { PanelEmptyState, type PanelEmptyStateStyles } from './panel-components.tsx'
+import { MobileProfileAvatar, type MobileProfileAvatarStyles } from './profile-components.tsx'
 
 export type MessageThreadContact = {
   alias?: string

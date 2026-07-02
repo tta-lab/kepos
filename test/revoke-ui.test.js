@@ -34,7 +34,10 @@ test('desktop exposes contact revoke controls that update trust and DM threads',
 
 test('android exposes contact revoke controls and notifies Bare backend', async () => {
   const app = await readFile(new URL('../mobile/App.tsx', import.meta.url), 'utf8')
-  const people = await readFile(new URL('../mobile/people-components.tsx', import.meta.url), 'utf8')
+  const profile = await readFile(
+    new URL('../mobile/profile-components.tsx', import.meta.url),
+    'utf8'
+  )
   const backend = await readFile(new URL('../backend/backend.mjs', import.meta.url), 'utf8')
   const rpc = await readFile(new URL('../rpc-commands.mjs', import.meta.url), 'utf8')
 
@@ -43,7 +46,7 @@ test('android exposes contact revoke controls and notifies Bare backend', async 
   assert.match(app, /revokeTrustedContact/)
   assert.match(app, /RPC_DM_REVOKE/)
   assert.match(app, /syncTreeholePolicy\(result\.treeholePolicy\)/)
-  assert.match(people, /UserMinus/)
+  assert.match(profile, /UserMinus/)
   assert.match(backend, /revokeDmByProfile/)
   assert.match(backend, /RPC_TREEHOLE_POLICY/)
   assert.match(backend, /updateTreeholePolicy\(payload\)/)

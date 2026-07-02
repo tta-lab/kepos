@@ -157,42 +157,33 @@ test('Android lobby starts with compact product choices', async () => {
   assert.match(source, /Open my home/)
   assert.match(source, /label='Show My QR'[\s\S]*testID='quick-show-my-qr-button'/)
   assert.match(source, /showQuickProfileQr \? \([\s\S]*<QrCard[\s\S]*value=\{profileQrUri\}/)
-  assert.match(source, /label='Open Contacts'[\s\S]*testID='quick-open-contacts-button'/)
+  assert.doesNotMatch(source, /testID='quick-open-contacts-button'/)
   assert.doesNotMatch(source, /testID='quick-show-home-qr-button'/)
   assert.doesNotMatch(source, /testID='quick-scan-home-qr-button'/)
   assert.doesNotMatch(source, /testID='quick-scan-profile-qr-button'/)
   assert.equal(source.indexOf('Scan Home QR') > source.indexOf('function PeopleActions'), true)
-  assert.equal(source.indexOf('Scan Profile QR') > source.indexOf('function PeopleActions'), true)
-  assert.match(source, /const \[showPeopleSetup, setShowPeopleSetup\] = useState\(false\)/)
-  assert.match(source, /testID='people-setup-toggle'/)
-  assert.match(source, /label='Contacts'[\s\S]*testID='people-setup-toggle'/)
+  assert.equal(source.indexOf("label='Scan QR'") > source.indexOf('function PeopleActions'), true)
+  assert.doesNotMatch(source, /showPeopleSetup/)
+  assert.doesNotMatch(source, /testID='people-setup-toggle'/)
+  assert.match(source, /testID='people-tab'/)
   assert.equal(source.includes('Contacts setup'), false)
   assert.equal(source.includes('People setup'), false)
-  assert.match(source, /showPeopleSetup \? \(/)
-  assert.equal(
-    source.indexOf('<QuickStartPanel') < source.indexOf("testID='people-setup-toggle'"),
-    true
-  )
-  assert.equal(source.indexOf('<PeopleActions') > source.indexOf('showPeopleSetup ? ('), true)
+  assert.equal(source.indexOf('<QuickStartPanel') < source.indexOf("testID='people-tab'"), true)
+  assert.equal(source.indexOf('<PeopleActions') > source.indexOf('function PeoplePane('), true)
   assert.equal(source.includes("label='Nick'"), false)
 })
 
-test('Android lobby keeps manual join advanced reachable before people setup', async () => {
+test('Android Home startup keeps manual join advanced reachable before Contacts tab', async () => {
   const source = await readMobileUiSource()
-  const lobby = sliceBetween(source, 'function Lobby(', 'function ChatRoom(')
+  const startupPane = sliceBetween(source, 'function HomeStartupPane(', 'function QuickStartPanel(')
 
+  assert.match(startupPane, /testID='advanced-join-toggle'/)
+  assert.doesNotMatch(startupPane, /people-setup-toggle/)
+  assert.match(startupPane, /testID='manual-home-key-input'/)
+  assert.match(startupPane, /testID='manual-home-endpoint-input'/)
   assert.equal(
-    lobby.indexOf("testID='advanced-join-toggle'") < lobby.indexOf("testID='people-setup-toggle'"),
-    true
-  )
-  assert.equal(
-    lobby.indexOf("testID='manual-home-key-input'") < lobby.indexOf("testID='people-setup-toggle'"),
-    true
-  )
-  assert.match(lobby, /testID='manual-home-endpoint-input'/)
-  assert.equal(
-    lobby.indexOf("testID='manual-home-endpoint-input'") <
-      lobby.indexOf("testID='manual-home-join-button'"),
+    startupPane.indexOf("testID='manual-home-endpoint-input'") <
+      startupPane.indexOf("testID='manual-home-join-button'"),
     true
   )
 })
@@ -214,13 +205,13 @@ test('Android manual home join can pass direct guest endpoint to backend', async
 
 test('Android setup action buttons use icons consistently', async () => {
   const source = await readMobileUiSource()
-  const lobby = sliceBetween(source, 'function Lobby(', 'function ChatRoom(')
+  const startupPane = sliceBetween(source, 'function HomeStartupPane(', 'function QuickStartPanel(')
   const peopleActions = sliceBetween(source, 'function PeopleActions(', 'function DirectPane(')
   const directPane = sliceBetween(source, 'function DirectPane(', 'function ContactManager(')
 
   assert.match(peopleActions, /icon=\{ArrowRight\}[\s\S]*testID='scan-home-qr-button'/)
   assert.match(peopleActions, /icon=\{Plus\}[\s\S]*testID='scan-profile-qr-button'/)
-  assert.match(lobby, /icon=\{Settings\}[\s\S]*testID='advanced-join-toggle'/)
+  assert.match(startupPane, /icon=\{Settings\}[\s\S]*testID='advanced-join-toggle'/)
   assert.match(peopleActions, /icon=\{Settings\}[\s\S]*testID='advanced-share-toggle'/)
   assert.match(directPane, /testID='advanced-dm-recipient-toggle'[\s\S]*variant='compact'/)
 })
@@ -241,12 +232,12 @@ test('Android lobby uses shared task headers for setup panels', async () => {
   assert.match(quickStart, /<TaskHeader[\s\S]*eyebrow='Start'[\s\S]*title='Start here'/)
   assert.match(
     quickStart,
-    /description=\{[\s\S]*profileReady[\s\S]*\? 'Open your home, share My QR, or open Contacts\.'[\s\S]*: 'Setting up your profile\.\.\.'[\s\S]*\}/
+    /description=\{[\s\S]*profileReady[\s\S]*\? 'Open your home or show My QR\.'[\s\S]*: 'Setting up your profile\.\.\.'[\s\S]*\}/
   )
   assert.match(peopleActions, /<TaskHeader[\s\S]*eyebrow='Advanced'[\s\S]*title='Home QR'/)
   assert.match(
     peopleActions,
-    /<TaskHeader[\s\S]*description='Paste a Profile QR, then write a request in Messages\.'[\s\S]*eyebrow='Advanced'[\s\S]*title='Profile request'/
+    /<TaskHeader[\s\S]*description='Scan a Profile QR, then write a request in Chat\.'[\s\S]*eyebrow='Contacts'[\s\S]*title='Add friend'/
   )
   assert.equal(peopleActions.includes('trust-only setup'), false)
   assert.match(source, /taskHeader: \{/)
@@ -278,7 +269,7 @@ test('Android normal UI copy avoids backend and address language', async () => {
   const source = await readMobileUiSource()
 
   for (const text of [
-    'Open your home, share My QR, or open Contacts.',
+    'Open your home or show My QR.',
     'Open my home',
     'Starting home...',
     'Home connection error.'
@@ -324,12 +315,12 @@ test('Android own QR cards are reveal actions, not default dashboard blocks', as
   const source = await readMobileUiSource()
 
   assert.match(source, /const \[showHomeQr, setShowHomeQr\] = useState\(false\)/)
-  assert.match(source, /const \[showProfileQr, setShowProfileQr\] = useState\(false\)/)
+  assert.match(source, /const \[showQuickProfileQr, setShowQuickProfileQr\] = useState\(false\)/)
   assert.match(source, /Show Home QR/)
-  assert.match(source, /label='Show My QR'[\s\S]*testID='show-profile-qr-button'/)
+  assert.match(source, /label='Show My QR'[\s\S]*testID='quick-show-my-qr-button'/)
   assert.equal(source.includes('Show My Profile QR'), false)
   assert.match(source, /showHomeQr \? \([\s\S]*<QrCard[\s\S]*value=\{myHomeQrUri\}/)
-  assert.match(source, /showProfileQr \? \([\s\S]*<QrCard[\s\S]*value=\{profileQrUri\}/)
+  assert.match(source, /showQuickProfileQr \? \([\s\S]*<QrCard[\s\S]*value=\{profileQrUri\}/)
   assert.equal(
     source.includes('<Text style={styles.panelTitle}>Home QR</Text>\\n        <QrCard'),
     false
@@ -553,8 +544,8 @@ test('Android header shows product home status instead of raw peer count', async
   assert.match(copy, /Connected/)
   assert.match(copy, /Waiting for friends/)
   assert.match(copy, /Offline/)
-  assert.match(copy, /My treehole ready/)
-  assert.match(copy, /My treehole offline/)
+  assert.match(copy, /Treehole ready/)
+  assert.match(copy, /Treehole offline/)
   assert.equal(source.includes('Looking for peers'), false)
   assert.equal(source.includes('{online} peer'), false)
 })
@@ -620,7 +611,7 @@ test('Android room advanced action uses an icon like other advanced controls', a
 test('Android room panes label live and durable surfaces', async () => {
   const source = await readMobileUiSource()
 
-  for (const text of ['Live home chat', 'Messages', 'My treehole']) {
+  for (const text of ['Live home chat', 'Chat', 'Treehole']) {
     assert.match(source, new RegExp(text), `${text} is missing`)
   }
 
@@ -644,7 +635,7 @@ test('Android icon-only buttons expose accessible labels', async () => {
     'Leave home',
     'Send home message',
     'Send message',
-    'Post to My treehole',
+    'Post to Treehole',
     'Send comment'
   ]) {
     assert.match(source, new RegExp(`accessibilityLabel=['"]${label}['"]`), `${label} is missing`)
@@ -740,7 +731,7 @@ test('Android message empty states share layout with contextual icons', async ()
   assert.match(emptyTreehole, /<EmptyState[\s\S]*icon=\{Sprout\}/)
 })
 
-test('Android direct message composer keeps revoke in People', async () => {
+test('Android direct message composer keeps revoke in contact profiles', async () => {
   const directPane = await readFile(
     new URL('../mobile/direct-components.tsx', import.meta.url),
     'utf8'
@@ -753,6 +744,11 @@ test('Android direct message composer keeps revoke in People', async () => {
     profileComponents,
     'function MobileContactChip(',
     'export type ContactProfileDetailView'
+  )
+  const contactProfileDetail = sliceBetween(
+    profileComponents,
+    'function ContactProfileDetail(',
+    'function getMobileAvatarToneStyle('
   )
   const peopleComponents = await readFile(
     new URL('../mobile/people-components.tsx', import.meta.url),
@@ -768,8 +764,10 @@ test('Android direct message composer keeps revoke in People', async () => {
   assert.equal(directPane.includes('onRevokeContact'), false)
   assert.match(contactChip, /formatMobileTrustedContactName\(contact\)/)
   assert.equal(directPane.includes('{contact.alias}'), false)
-  assert.match(contactManager, /onRevokeContact\(profile\.profileId\)/)
-  assert.match(contactManager, /UserMinus/)
+  assert.doesNotMatch(contactManager, /onRevokeContact\(profile\.profileId\)/)
+  assert.doesNotMatch(contactManager, /UserMinus/)
+  assert.match(contactProfileDetail, /onRevokeContact\(profile\.profileId\)/)
+  assert.match(contactProfileDetail, /UserMinus/)
 })
 
 test('Android direct message zero-contact state links to People', async () => {
@@ -795,7 +793,7 @@ test('Android treehole empty state talks about posts', async () => {
   assert.match(source, /getMobileTreeholeEmptyCopy\(status, \{ canPost \}\)/)
   assert.match(copy, /Posts from this home will appear here\./)
   assert.match(copy, /Waiting for the home owner to share posts\./)
-  assert.match(copy, /Starting My treehole\./)
+  assert.match(copy, /Starting Treehole\./)
   assert.equal(source.includes('No treeholes yet'), false)
   assert.equal(source.includes('Starting the treehole log.'), false)
   assert.equal(source.includes('Waiting for a home peer to share the treehole log.'), false)
@@ -850,7 +848,7 @@ test('Android room has a Contacts tab for QR and trusted contacts', async () => 
   assert.match(source, /activeTab === 'people'/)
   assert.match(source, /<PeoplePane/)
   assert.match(source, /Home QR/)
-  assert.match(source, /Profile request/)
+  assert.match(source, /Add friend/)
   assert.match(source, /ContactManager/)
 })
 
@@ -1055,22 +1053,35 @@ test('Android people management panels use shared task headers', async () => {
   assert.equal(contactManager.includes('<Text style={styles.panelTitle}>Contacts</Text>'), false)
 })
 
-test('Android lobby and room reuse the same people action UI', async () => {
-  const source = await readMobileUiSource()
+test('Android Contacts tab owns the people action UI', async () => {
+  const lobbyComponents = await readFile(
+    new URL('../mobile/lobby-components.tsx', import.meta.url),
+    'utf8'
+  )
+  const peopleComponents = await readFile(
+    new URL('../mobile/people-components.tsx', import.meta.url),
+    'utf8'
+  )
+  const startupPane = lobbyComponents.slice(lobbyComponents.indexOf('function HomeStartupPane('))
+  const peoplePane = sliceBetween(
+    peopleComponents,
+    'function PeoplePane(',
+    'export type PeopleActionsProps'
+  )
 
-  assert.match(source, /function PeopleActions\(/)
-  assert.match(source, /function Lobby[\s\S]*<PeopleActions/)
-  assert.match(source, /function PeoplePane[\s\S]*<PeopleActions/)
+  assert.match(peopleComponents, /function PeopleActions\(/)
+  assert.doesNotMatch(startupPane, /<PeopleActions/)
+  assert.match(peoplePane, /<PeopleActions/)
 })
 
-test('Android room people pane does not offer joining another home', async () => {
+test('Android people pane only offers joining before a home session exists', async () => {
   const source = await readMobileUiSource()
-  const lobby = sliceBetween(source, 'function Lobby(', 'function ChatRoom(')
+  const room = sliceBetween(source, 'function ChatRoom(', 'function toPeopleContact(')
   const peoplePane = sliceBetween(source, 'function PeoplePane(', 'function MessageRequestManager(')
   const peopleActions = sliceBetween(source, 'function PeopleActions(', 'function DirectPane(')
 
-  assert.match(lobby, /canJoinHome=\{true\}/)
-  assert.match(peoplePane, /canJoinHome=\{false\}/)
+  assert.match(room, /canJoinHome=\{!session\}/)
+  assert.match(peoplePane, /canJoinHome=\{canJoinHome\}/)
   assert.match(peopleActions, /const canUseHomeJoin = profileReady && canJoinHome/)
   assert.match(peopleActions, /disabled=\{!canUseHomeJoin\}/)
   assert.match(peopleActions, /disabled=\{!canUseHomeJoin \|\| !homeQrUri\.trim\(\)\}/)
@@ -1225,7 +1236,8 @@ test('debug two-device smoke covers live DM exchange and restart persistence', a
 
   for (const marker of [
     "usePearRuntime = process\\.argv\\.includes\\('--pear'\\)",
-    "KEPOS_SMOKE_DESKTOP: usePearRuntime \\? undefined : '1'",
+    "KEPOS_DESKTOP_PEAR: usePearRuntime \\? '1' : undefined",
+    "KEPOS_SMOKE_DESKTOP: '1'",
     'prepareAndroidDevice',
     'configureAndroidSmokeInputMethod',
     'org\\.futo\\.inputmethod\\.latin/\\.LatinIME',

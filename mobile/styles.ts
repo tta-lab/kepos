@@ -13,9 +13,9 @@ export function createMobileStyles(theme: MobileThemeTokens) {
       backgroundColor: theme.surface
     },
     header: {
-      paddingHorizontal: 22,
-      paddingTop: 18,
-      paddingBottom: 16,
+      paddingHorizontal: 16,
+      paddingTop: 10,
+      paddingBottom: 10,
       borderBottomWidth: 1,
       borderBottomColor: theme.border
     },
@@ -30,9 +30,9 @@ export function createMobileStyles(theme: MobileThemeTokens) {
       borderColor: theme.quickPanelBorder,
       borderRadius: 8,
       borderWidth: 1,
-      height: 42,
+      height: 34,
       justifyContent: 'center',
-      width: 42
+      width: 34
     },
     kicker: {
       color: theme.inkMuted,
@@ -42,7 +42,7 @@ export function createMobileStyles(theme: MobileThemeTokens) {
     },
     title: {
       color: theme.ink,
-      fontSize: 30,
+      fontSize: 24,
       fontWeight: '800',
       letterSpacing: 0
     },
@@ -51,7 +51,7 @@ export function createMobileStyles(theme: MobileThemeTokens) {
       flexDirection: 'row',
       flexWrap: 'wrap',
       gap: 8,
-      marginTop: 16
+      marginTop: 8
     },
     homeStatusPill: {
       alignItems: 'center',
@@ -94,9 +94,9 @@ export function createMobileStyles(theme: MobileThemeTokens) {
     },
     notice: {
       color: theme.inkMuted,
-      fontSize: 13,
-      lineHeight: 18,
-      marginTop: 12
+      fontSize: 12,
+      lineHeight: 17,
+      marginTop: 8
     },
     lobby: {
       gap: 14,
@@ -373,8 +373,8 @@ export function createMobileStyles(theme: MobileThemeTokens) {
       borderBottomWidth: 1,
       flexDirection: 'row',
       justifyContent: 'space-between',
-      paddingHorizontal: 18,
-      paddingVertical: 13
+      paddingHorizontal: 16,
+      paddingVertical: 8
     },
     sessionStrip: {
       flex: 1,
@@ -408,7 +408,7 @@ export function createMobileStyles(theme: MobileThemeTokens) {
       borderWidth: 1,
       flexDirection: 'row',
       gap: 6,
-      height: 42,
+      height: 36,
       justifyContent: 'center',
       paddingHorizontal: 12
     },
@@ -451,9 +451,9 @@ export function createMobileStyles(theme: MobileThemeTokens) {
       alignItems: 'center',
       backgroundColor: theme.quickPanel,
       borderRadius: 8,
-      height: 42,
+      height: 36,
       justifyContent: 'center',
-      width: 42
+      width: 36
     },
     messageList: {
       flexGrow: 1,
@@ -910,7 +910,7 @@ export function createMobileStyles(theme: MobileThemeTokens) {
       marginTop: 3
     },
     contactActions: {
-      alignItems: 'flex-end',
+      alignItems: 'center',
       gap: 6
     },
     contactProfileDetail: {

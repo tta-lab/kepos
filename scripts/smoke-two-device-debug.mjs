@@ -174,7 +174,8 @@ async function launchDesktopApp() {
       ...process.env,
       KEPOS_DIRECT_ADVERTISED_HOST: directAdvertisedHost,
       KEPOS_DIRECT_LISTEN_HOST: '0.0.0.0',
-      KEPOS_SMOKE_DESKTOP: usePearRuntime ? undefined : '1'
+      KEPOS_DESKTOP_PEAR: usePearRuntime ? '1' : undefined,
+      KEPOS_SMOKE_DESKTOP: '1'
     },
     executablePath: electronExecutable,
     timeout: 60000
@@ -234,12 +235,8 @@ async function revealAndroidAdvancedShare() {
       visible:
         id: 'lobby-scroll'
     commands:
-      - scrollUntilVisible:
-          element:
-            id: 'people-setup-toggle'
-          direction: DOWN
       - tapOn:
-          id: 'people-setup-toggle'
+          id: 'people-tab'
 - scrollUntilVisible:
     element:
       id: 'advanced-share-toggle'

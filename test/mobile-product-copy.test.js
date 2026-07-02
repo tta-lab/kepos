@@ -31,11 +31,11 @@ test('mobile product copy formats home and treehole status', () => {
     'Waiting for friends'
   )
 
-  assert.equal(getMobileTreeholeStatus('ready'), 'My treehole ready')
-  assert.equal(getMobileTreeholeStatus('starting'), 'Starting My treehole')
+  assert.equal(getMobileTreeholeStatus('ready'), 'Treehole ready')
+  assert.equal(getMobileTreeholeStatus('starting'), 'Starting Treehole')
   assert.equal(getMobileTreeholeStatus('waiting'), 'Waiting for posts')
   assert.equal(getMobileTreeholeStatus('waiting-for-bootstrap'), 'Waiting for posts')
-  assert.equal(getMobileTreeholeStatus('idle'), 'My treehole offline')
+  assert.equal(getMobileTreeholeStatus('idle'), 'Treehole offline')
 })
 
 test('mobile product copy maps backend and room state to user copy', () => {
@@ -47,8 +47,8 @@ test('mobile product copy maps backend and room state to user copy', () => {
   assert.equal(getMobileBackendNotice('unknown'), 'Home status updated.')
 
   assert.equal(getMobileRoomSurface('chat'), 'Home chat')
-  assert.equal(getMobileRoomSurface('dm'), 'Messages')
-  assert.equal(getMobileRoomSurface('treehole'), 'My treehole')
+  assert.equal(getMobileRoomSurface('dm'), 'Chat')
+  assert.equal(getMobileRoomSurface('treehole'), 'Treehole')
   assert.equal(getMobileRoomSurface('people'), 'Contacts')
 })
 
@@ -90,8 +90,8 @@ test('mobile product copy formats people and request labels', () => {
 })
 
 test('mobile product copy formats pending tab badges', () => {
-  assert.equal(getMobileTabButtonLabel('Messages', 0), 'Messages')
-  assert.equal(getMobileTabButtonLabel('Messages', 2), 'Messages, 2 pending')
+  assert.equal(getMobileTabButtonLabel('Chat', 0), 'Chat')
+  assert.equal(getMobileTabButtonLabel('Chat', 2), 'Chat, 2 pending')
   assert.equal(formatPendingBadgeCount(0), '0')
   assert.equal(formatPendingBadgeCount(12), '12')
   assert.equal(formatPendingBadgeCount(100), '99+')
@@ -172,7 +172,7 @@ test('mobile product copy formats treehole empty copy and post time', () => {
     getMobileTreeholeEmptyCopy('waiting-for-bootstrap'),
     'Waiting for the home owner to share posts.'
   )
-  assert.equal(getMobileTreeholeEmptyCopy('starting'), 'Starting My treehole.')
+  assert.equal(getMobileTreeholeEmptyCopy('starting'), 'Starting Treehole.')
   assert.equal(getMobileTreeholeEmptyCopy('ready'), 'Write the first post from this phone.')
   assert.equal(
     getMobileTreeholeEmptyCopy('ready', { canPost: false }),

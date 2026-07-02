@@ -1,15 +1,12 @@
-import { useState } from 'react'
 import type { StyleProp, ViewStyle } from 'react-native'
 import { ScrollView, TextInput, View } from 'react-native'
-import { ArrowRight, Settings, Users } from 'lucide-react-native'
-import { MobileActionButton, type MobileActionButtonStyles } from './action-components.js'
-import { PeopleActions, type PeopleActionsProps } from './people-components.js'
-import { TaskHeader, type TaskHeaderProps } from './panel-components.js'
-import { QuickStartPanel, type QuickStartPanelProps } from './setup-components.js'
+import { ArrowRight, Settings } from 'lucide-react-native'
+import { MobileActionButton, type MobileActionButtonStyles } from './action-components.tsx'
+import { TaskHeader, type TaskHeaderProps } from './panel-components.tsx'
+import { QuickStartPanel, type QuickStartPanelProps } from './setup-components.tsx'
 
 type LobbyStyles = MobileActionButtonStyles &
   QuickStartPanelProps['styles'] &
-  PeopleActionsProps['styles'] &
   TaskHeaderProps['styles'] & {
     keyInput: StyleProp<ViewStyle>
     lobby: StyleProp<ViewStyle>
@@ -17,88 +14,53 @@ type LobbyStyles = MobileActionButtonStyles &
     panel: StyleProp<ViewStyle>
   }
 
-type LobbyTheme = QuickStartPanelProps['theme'] &
-  PeopleActionsProps['theme'] & {
-    accentStrong: string
-    placeholder: string
-    surface: string
-  }
+type LobbyTheme = QuickStartPanelProps['theme'] & {
+  accentStrong: string
+  placeholder: string
+  surface: string
+}
 
-export type LobbyProps = {
-  blockedContacts?: PeopleActionsProps['blockedContacts']
+export type HomeStartupPaneProps = {
   canJoin: boolean
   directRoomEndpoint: string
-  homeQrUri: string
   localAvatarUri?: string
-  myHomeQrUri: string
   nick?: string
-  onAllowContactRequests: PeopleActionsProps['onAllowContactRequests']
   onChooseLocalAvatarImage: QuickStartPanelProps['onChooseLocalAvatarImage']
   onCreateRoom(): void
   onDirectRoomEndpointChange(value: string): void
-  onEnterContactHome: PeopleActionsProps['onEnterContactHome']
-  onHomeQrChange: PeopleActionsProps['onHomeQrChange']
-  onJoinHomeQr: PeopleActionsProps['onJoinHomeQr']
   onJoinRoom(): void
   onLocalAvatarUriChange: QuickStartPanelProps['onLocalAvatarUriChange']
   onNickChange: QuickStartPanelProps['onNickChange']
-  onRevokeContact: PeopleActionsProps['onRevokeContact']
   onRoomKeyChange(value: string): void
-  onScanHomeQr: PeopleActionsProps['onScanHomeQr']
-  onScanProfileQr: PeopleActionsProps['onScanProfileQr']
   onToggleAdvancedJoin(): void
-  onTrustAliasChange: PeopleActionsProps['onTrustAliasChange']
-  onTrustProfile: PeopleActionsProps['onTrustProfile']
-  onTrustQrChange: PeopleActionsProps['onTrustQrChange']
   profileQrUri: string
   profileReady: boolean
   roomKey: string
   showAdvancedJoin: boolean
   styles: LobbyStyles
   theme: LobbyTheme
-  trustAlias?: string
-  trustedContacts?: PeopleActionsProps['trustedContacts']
-  trustQrUri: string
 }
 
-export function Lobby({
-  blockedContacts,
+export function HomeStartupPane({
   canJoin,
   directRoomEndpoint,
-  homeQrUri,
-  myHomeQrUri,
   nick,
   localAvatarUri,
   onCreateRoom,
-  onAllowContactRequests,
   onChooseLocalAvatarImage,
   onDirectRoomEndpointChange,
-  onHomeQrChange,
-  onEnterContactHome,
   onJoinRoom,
-  onJoinHomeQr,
   onLocalAvatarUriChange,
   onNickChange,
   onRoomKeyChange,
-  onRevokeContact,
-  onScanHomeQr,
-  onScanProfileQr,
   onToggleAdvancedJoin,
-  onTrustAliasChange,
-  onTrustProfile,
-  onTrustQrChange,
   profileReady,
   profileQrUri,
   roomKey,
   showAdvancedJoin,
   styles,
-  theme,
-  trustAlias,
-  trustQrUri,
-  trustedContacts
-}: LobbyProps) {
-  const [showPeopleSetup, setShowPeopleSetup] = useState(false)
-
+  theme
+}: HomeStartupPaneProps) {
   return (
     <ScrollView
       contentContainerStyle={styles.lobby}
@@ -112,7 +74,6 @@ export function Lobby({
         onCreateRoom={onCreateRoom}
         onChooseLocalAvatarImage={onChooseLocalAvatarImage}
         onLocalAvatarUriChange={onLocalAvatarUriChange}
-        onOpenPeopleSetup={() => setShowPeopleSetup(true)}
         onNickChange={onNickChange}
         profileQrUri={profileQrUri}
         profileReady={profileReady}
@@ -172,44 +133,6 @@ export function Lobby({
             testID='manual-home-join-button'
           />
         </View>
-      ) : null}
-
-      <MobileActionButton
-        accentColor={theme.accentStrong}
-        disabledContentColor={theme.placeholder}
-        primaryContentColor={theme.surface}
-        styles={styles}
-        accessibilityState={{ expanded: showPeopleSetup }}
-        icon={Users}
-        label='Contacts'
-        onPress={() => setShowPeopleSetup((value) => !value)}
-        testID='people-setup-toggle'
-      />
-      {showPeopleSetup ? (
-        <PeopleActions
-          canJoinHome={true}
-          homeQrUri={homeQrUri}
-          myHomeQrUri={myHomeQrUri}
-          onHomeQrChange={onHomeQrChange}
-          onAllowContactRequests={onAllowContactRequests}
-          onEnterContactHome={onEnterContactHome}
-          onJoinHomeQr={onJoinHomeQr}
-          onRevokeContact={onRevokeContact}
-          onScanHomeQr={onScanHomeQr}
-          onScanProfileQr={onScanProfileQr}
-          onSelectedProfileChange={() => {}}
-          onTrustAliasChange={onTrustAliasChange}
-          onTrustProfile={onTrustProfile}
-          onTrustQrChange={onTrustQrChange}
-          profileReady={profileReady}
-          profileQrUri={profileQrUri}
-          trustAlias={trustAlias}
-          blockedContacts={blockedContacts}
-          trustedContacts={trustedContacts}
-          trustQrUri={trustQrUri}
-          styles={styles}
-          theme={theme}
-        />
       ) : null}
     </ScrollView>
   )

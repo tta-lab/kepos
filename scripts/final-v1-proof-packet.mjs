@@ -27,33 +27,33 @@ export const FINAL_V1_PROOF_STEPS = [
   'Android sends the friend request again.',
   'Desktop accepts the second friend request.',
   'Both sides show the other side in Contacts.',
-  'Android opens Messages, selects the desktop contact, and sends a message.',
-  'Desktop replies from the same durable Messages thread.',
+  'Android opens Chat, selects the desktop contact, and sends a message.',
+  'Desktop replies from the same durable Chat thread.',
   'Restart both apps.',
-  'Both sides still show the trusted contact and the prior Messages thread.',
+  'Both sides still show the trusted contact and the prior Chat thread.',
   'Desktop creates or reopens its Home.',
   'Android opens the desktop contact profile and explicitly chooses Enter Home.',
   'Android reaches the desktop Home without typing a raw Home key.',
-  'Desktop creates a My treehole post.',
+  'Desktop creates a Treehole post.',
   'Android refreshes or opens the desktop profile Recent posts and sees that post.',
   'Desktop revokes Android from Contacts.',
-  'Android can no longer use that trust relationship for future Home/Messages access.'
+  'Android can no longer use that trust relationship for future Home/Chat access.'
 ]
 
 export const FINAL_V1_PASSING_CRITERIA = [
   'trust starts from Profile QR plus friend request, not Home QR',
   'outgoing friend requests survive restart, ignored requests stay visible, and Allow requests permits a new request without restoring trust',
   'Home entry is explicit from a trusted profile',
-  'Messages are durable across restart',
-  'room chat, Messages, and My treehole posts stay separate',
-  "Recent posts load from the trusted profile's Home/My treehole path",
+  'Chat messages are durable across restart',
+  'room chat, Chat, and Treehole posts stay separate',
+  "Recent posts load from the trusted profile's Home/Treehole path",
   'revoke removes future access but does not promise to delete already copied data'
 ]
 
 export const FINAL_V1_EVIDENCE_BOUNDARIES = [
   '`npm run v1:gate` proves source, bundles, export, and non-device model behavior; it is not final release proof by itself.',
   'Desktop self-run smoke and Pear smoke prove desktop app paths; they do not prove Android camera, Android persistence, or cross-device trust UX.',
-  'Android self-run smoke proves local Android create/open/post/restart behavior; it does not prove desktop-to-Android friend request and Messages flow.',
+  'Android self-run smoke proves local Android create/open/post/restart behavior; it does not prove desktop-to-Android friend request and Chat flow.',
   'Debug two-device smoke proves live transport and persistence sub-paths; it does not replace the normal Profile QR -> request -> ignore -> allow -> request -> accept release path.',
   'V1 ready requires one recorded normal cross-device run where every product-path checklist item below is checked.'
 ]
@@ -85,7 +85,7 @@ export function createFinalV1ProofPacket({
     '- Desktop mode: <normal Electron | Pear/Bare worker>',
     `- Android device: ${model}`,
     `- ANDROID_SERIAL: ${serial}`,
-    '- Android runtime: <Metro/dev-client | installed APK>',
+    '- Android runtime: <Metro/dev-client | installed debug APK | installed release APK>',
     '- Physical Profile QR scan: <pass/fail>',
     '- Advanced Home QR scan (optional transport descriptor, not the trust path): <pass/fail/not run>',
     '- Evidence: <screenshots/log paths or notes>',

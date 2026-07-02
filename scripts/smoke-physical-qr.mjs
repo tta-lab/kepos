@@ -106,7 +106,8 @@ function launchDesktopApp() {
     cwd: desktopDir,
     env: {
       ...process.env,
-      KEPOS_SMOKE_DESKTOP: usePearRuntime ? undefined : '1'
+      KEPOS_DESKTOP_PEAR: usePearRuntime ? '1' : undefined,
+      KEPOS_SMOKE_DESKTOP: '1'
     },
     executablePath: electronExecutable,
     timeout: 60000
@@ -137,8 +138,8 @@ async function openAndroidScanner(testId) {
 async function openAndroidPeopleSetup() {
   if (boundsByResourceId(dumpAndroidUi(), 'scan-profile-qr-button')) return
 
-  await waitForAndroidResourceId('people-setup-toggle')
-  tapAndroidResourceId('people-setup-toggle')
+  await waitForAndroidResourceId('people-tab')
+  tapAndroidResourceId('people-tab')
   await waitForAndroidResourceId('scan-profile-qr-button')
 }
 

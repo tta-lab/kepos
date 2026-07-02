@@ -81,6 +81,12 @@ Build a debug APK without installing it:
 npm run android:assemble
 ```
 
+Build and install a standalone release APK:
+
+```bash
+npm run android:install:release
+```
+
 ## Desktop peer
 
 The desktop peer is an Electron app under `desktop/` with `pear-runtime`
@@ -114,11 +120,11 @@ Current desktop scope:
 
 Current Android scope:
 
-- create room UI
-- join room UI
+- create/open home UI
+- join home UI through trusted profile or advanced descriptor paths
 - room header and peer status
 - message list and composer
-- room tabs for live chat and treehole feed
+- Home, Chat, Contacts, and Treehole tabs
 - shared chat session state with tests
 - Bare worklet backend
 - React Native to Bare RPC

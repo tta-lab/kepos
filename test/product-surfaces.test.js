@@ -11,9 +11,9 @@ test('product surface labels are shared across desktop and mobile', () => {
     productSurfaceTabs.map((surface) => [surface.id, surface.label]),
     [
       ['chat', 'Home'],
-      ['dm', 'Messages'],
+      ['dm', 'Chat'],
       ['people', 'Contacts'],
-      ['treehole', 'My treehole']
+      ['treehole', 'Treehole']
     ]
   )
 })
@@ -21,8 +21,8 @@ test('product surface labels are shared across desktop and mobile', () => {
 test('product surface titles keep Home chat distinct from Home label', () => {
   assert.equal(getProductSurfaceLabel('chat'), 'Home')
   assert.equal(getProductSurfaceTitle('chat'), 'Home chat')
-  assert.equal(getProductSurfaceTitle('dm'), 'Messages')
-  assert.equal(getProductSurfaceTitle('treehole'), 'My treehole')
+  assert.equal(getProductSurfaceTitle('dm'), 'Chat')
+  assert.equal(getProductSurfaceTitle('treehole'), 'Treehole')
   assert.equal(getProductSurfaceTitle('people'), 'Contacts')
 })
 

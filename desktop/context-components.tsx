@@ -278,7 +278,7 @@ export function ContextPanel({
           <PanelHeader
             eyebrow='Advanced'
             title='Profile request'
-            description='Paste a Profile QR, then write a request in Messages.'
+            description='Paste a Profile QR, then write a request in Chat.'
           />
           <div className='actions'>
             <ActionButton

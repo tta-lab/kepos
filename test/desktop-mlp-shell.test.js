@@ -135,7 +135,7 @@ test('desktop context forms use task panel headers', async () => {
   )
   assert.match(
     context,
-    /id='trustForm'[\s\S]*<PanelHeader[\s\S]*eyebrow='Advanced'[\s\S]*title='Profile request'[\s\S]*description='Paste a Profile QR, then write a request in Messages\.'[\s\S]*\/>/
+    /id='trustForm'[\s\S]*<PanelHeader[\s\S]*eyebrow='Advanced'[\s\S]*title='Profile request'[\s\S]*description='Paste a Profile QR, then write a request in Chat\.'[\s\S]*\/>/
   )
   assert.match(styles, /\.panelHeader/)
   assert.match(styles, /\.panelTitle/)
@@ -176,7 +176,7 @@ test('desktop people UI uses trusted friends copy', async () => {
   assert.match(source, /id='peoplePane'/)
   assert.match(
     source,
-    /<PaneHeader[\s\S]*eyebrow='profiles'[\s\S]*title='Contacts'[\s\S]*description='Trusted profiles, Messages, and home entry live here\.'/
+    /<PaneHeader[\s\S]*eyebrow='profiles'[\s\S]*title='Contacts'[\s\S]*description='Trusted profiles, Chat, and home entry live here\.'/
   )
   assert.match(source, /Profiles/)
   assert.match(source, /No trusted friends yet/)
@@ -340,7 +340,7 @@ test('desktop primary panes live behind a dedicated component boundary', async (
   assert.doesNotMatch(source, /function PaneLabel\(/)
 })
 
-test('desktop Messages focuses the selected direct thread message list', async () => {
+test('desktop Chat focuses the selected direct thread message list', async () => {
   const panes = await readFile(new URL('../desktop/pane-components.tsx', import.meta.url), 'utf8')
   const directPane = panes.slice(
     panes.indexOf('export function DirectPane('),
@@ -385,17 +385,17 @@ test('desktop panes share product headers with short guidance', async () => {
   )
   assert.match(
     panes,
-    /<PaneHeader[\s\S]*eyebrow='durable'[\s\S]*title='Messages'[\s\S]*description='Private pairwise threads that survive restarts\.'[\s\S]*\/>/
+    /<PaneHeader[\s\S]*eyebrow='durable'[\s\S]*title='Chat'[\s\S]*description='Private pairwise threads that survive restarts\.'[\s\S]*\/>/
   )
   assert.match(
     panes,
-    /<PaneHeader[\s\S]*eyebrow='durable'[\s\S]*title='My treehole'[\s\S]*description='Your durable posts stay here; trusted friends can react and comment\.'[\s\S]*\/>/
+    /<PaneHeader[\s\S]*eyebrow='durable'[\s\S]*title='Treehole'[\s\S]*description='Your durable posts stay here; trusted friends can react and comment\.'[\s\S]*\/>/
   )
-  assert.match(panes, /placeholder='Post to My treehole'/)
+  assert.match(panes, /placeholder='Post to Treehole'/)
   assert.equal(panes.includes("placeholder='Post to the treehole'"), false)
   assert.match(
     people,
-    /<PaneHeader[\s\S]*eyebrow='profiles'[\s\S]*title='Contacts'[\s\S]*description='Trusted profiles, Messages, and home entry live here\.'[\s\S]*\/>/
+    /<PaneHeader[\s\S]*eyebrow='profiles'[\s\S]*title='Contacts'[\s\S]*description='Trusted profiles, Chat, and home entry live here\.'[\s\S]*\/>/
   )
   assert.doesNotMatch(panes, /function PaneLabel\(/)
   assert.doesNotMatch(people, /function PaneLabel\(/)
@@ -623,7 +623,7 @@ test('desktop status panel keeps raw ids in advanced details', async () => {
   )
 
   assert.match(source, /id='homeStatusLabel'/)
-  assert.match(source, /My treehole offline/)
+  assert.match(source, /Treehole offline/)
   assert.match(source, /<p className='label'>Online<\/p>/)
   assert.match(source, /<details[^>]+id='advancedStatus'/)
   assert.equal(source.indexOf("id='roomKeyLabel'") > source.indexOf("id='advancedStatus'"), true)
@@ -729,7 +729,7 @@ test('desktop panes label live and durable surfaces', async () => {
   )
   const styles = await readFile(new URL('../desktop/styles.css', import.meta.url), 'utf8')
 
-  for (const text of ['Live home chat', 'Messages', 'My treehole']) {
+  for (const text of ['Live home chat', 'Chat', 'Treehole']) {
     assert.match(source, new RegExp(text), `${text} is missing`)
   }
 
@@ -737,10 +737,10 @@ test('desktop panes label live and durable surfaces', async () => {
   assert.match(source, /label=\{getProductSurfaceLabel\('dm'\)\}/)
   assert.match(source, /id='treeholeTab'[\s\S]*title=\{getProductSurfaceTitle\('treehole'\)\}/)
   assert.match(source, /label=\{getProductSurfaceLabel\('treehole'\)\}/)
-  assert.match(source, /aria-label='Messages'/)
+  assert.match(source, /aria-label='Chat'/)
   assert.equal(source.includes("aria-label='Direct messages'"), false)
-  assert.match(source, /aria-label='My treehole posts'/)
-  assert.equal(source.includes("aria-label='Treehole posts'"), false)
+  assert.match(source, /aria-label='Treehole posts'/)
+  assert.equal(source.includes("aria-label='My treehole posts'"), false)
   assert.match(source, /function DirectThreadList\(/)
   assert.match(source, /id='messageThreadList'/)
   assert.match(source, /aria-label=\{`Open message thread \$\{thread\.label\}`\}/)

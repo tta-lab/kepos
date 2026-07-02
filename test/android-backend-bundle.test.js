@@ -21,7 +21,7 @@ test('bare bundle TypeScript emit rewrites relative ts imports', () => {
   assert.equal(tsconfig.compilerOptions.rewriteRelativeImportExtensions, true)
 })
 
-test('Expo Metro resolves local JavaScript specifiers to TypeScript mobile source', () => {
+test('Expo Metro keeps TypeScript mobile imports compatible', () => {
   const metroConfig = readFileSync(new URL('../metro.config.cjs', import.meta.url), 'utf8')
   const mobileApp = readFileSync(new URL('../mobile/App.tsx', import.meta.url), 'utf8')
 
@@ -29,9 +29,10 @@ test('Expo Metro resolves local JavaScript specifiers to TypeScript mobile sourc
   assert.match(metroConfig, /moduleName\.endsWith\('\.js'\)/)
   assert.equal(metroConfig.includes("['.ts', '.tsx']"), true)
   assert.match(metroConfig, /context\.resolveRequest\(context, mappedModuleName, platform\)/)
-  assert.match(mobileApp, /from '\.\/styles\.js'/)
-  assert.match(mobileApp, /from '\.\/chrome-components\.js'/)
-  assert.match(mobileApp, /from '\.\/room-components\.js'/)
+  assert.match(mobileApp, /from '\.\/styles\.ts'/)
+  assert.match(mobileApp, /from '\.\/chrome-components\.tsx'/)
+  assert.match(mobileApp, /from '\.\/room-components\.tsx'/)
+  assert.doesNotMatch(mobileApp, /from '\.\/[^']+\.js'/)
   assert.doesNotMatch(mobileApp, /app\.bundle\.mjs\.js/)
 })
 

@@ -16,31 +16,31 @@ import {
   type MobileActionButtonStyles,
   type MobileAdvancedToggleStyles,
   type MobileSendButtonStyles
-} from './action-components.js'
+} from './action-components.tsx'
 import {
   EmptyDirectMessages,
   type EmptyStateStyles,
   type EmptyStateTheme
-} from './empty-components.js'
+} from './empty-components.tsx'
 import {
   DirectBubble,
   type DirectBubbleContact,
   type DirectBubbleStyles
-} from './message-components.js'
-import { PaneLabel, PanelEmptyState, type PaneLabelProps } from './panel-components.js'
+} from './message-components.tsx'
+import { PaneLabel, PanelEmptyState, type PaneLabelProps } from './panel-components.tsx'
 import {
   MobileContactChip,
   ProfileRequestTargetCard,
   type MobileContactChipStyles,
   type ProfileRequestTargetCardProps
-} from './profile-components.js'
+} from './profile-components.tsx'
 import {
   DirectThreadHeader,
   formatMobileThreadTime,
   MessageThreadList,
   type DirectThreadHeaderProps,
   type MessageThreadListProps
-} from './thread-components.js'
+} from './thread-components.tsx'
 
 export type DirectPaneContact = DirectBubbleContact & { profileId: string }
 
@@ -153,7 +153,7 @@ export function DirectPane({
 
   return (
     <>
-      <PaneLabel eyebrow='durable' styles={styles} title='Messages' />
+      <PaneLabel eyebrow='durable' styles={styles} title='Chat' />
       <DirectThreadHeader
         onOpenProfile={onOpenProfile}
         styles={styles}

@@ -1,6 +1,7 @@
 # Generated artifacts
 desktop/app.bundle.cjs
 desktop/app.bundle.js
+desktop/backend-worker-host.bundle.cjs
 desktop/backend-worker.bundle.cjs
 desktop/controller.browser.bundle.js
 desktop/controller.bundle.cjs

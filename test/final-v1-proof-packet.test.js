@@ -38,6 +38,10 @@ test('final V1 proof packet prints the normal product-path checklist', () => {
   assert.match(packet, /Worktree state: clean/)
   assert.match(packet, /Android device: Pixel 7a/)
   assert.match(packet, /ANDROID_SERIAL: usb-1/)
+  assert.match(
+    packet,
+    /Android runtime: <Metro\/dev-client \| installed debug APK \| installed release APK>/
+  )
   assert.match(packet, /`npm run v1:gate`: <pass\/fail, paste summary>/)
   assert.match(packet, /Physical Profile QR scan: <pass\/fail>/)
   assert.match(
@@ -58,13 +62,13 @@ test('final V1 proof packet prints the normal product-path checklist', () => {
   assert.match(packet, /Desktop shows Android in Removed \/ ignored and chooses Allow requests/)
   assert.match(packet, /Android sends the friend request again/)
   assert.match(packet, /Desktop accepts the second friend request/)
-  assert.match(packet, /Both sides still show the trusted contact and the prior Messages thread/)
+  assert.match(packet, /Both sides still show the trusted contact and the prior Chat thread/)
   assert.match(packet, /explicitly chooses Enter Home/)
   assert.match(packet, /Recent posts/)
   assert.match(packet, /Desktop revokes Android from Contacts/)
-  assert.match(packet, /future Home\/Messages access/)
-  assert.match(packet, /My treehole posts stay separate/)
-  assert.match(packet, /Home\/My treehole path/)
+  assert.match(packet, /future Home\/Chat access/)
+  assert.match(packet, /Treehole posts stay separate/)
+  assert.match(packet, /Home\/Treehole path/)
   assert.match(packet, /ignored requests stay visible/)
   assert.match(packet, /Allow requests permits a new request without restoring trust/)
   assert.doesNotMatch(packet, /future Home\/DM access/)
@@ -147,11 +151,11 @@ test('final V1 proof packet constants cover the documented release proof', () =>
   assert.ok(FINAL_V1_PROOF_STEPS.some((step) => step.includes('Request sent')))
   assert.ok(FINAL_V1_PROOF_STEPS.some((step) => step.includes('ignores the friend request')))
   assert.ok(FINAL_V1_PROOF_STEPS.some((step) => step.includes('Allow requests')))
-  assert.ok(FINAL_V1_PROOF_STEPS.some((step) => step.includes('Messages thread')))
-  assert.ok(FINAL_V1_PROOF_STEPS.some((step) => step.includes('Home/Messages access')))
+  assert.ok(FINAL_V1_PROOF_STEPS.some((step) => step.includes('Chat thread')))
+  assert.ok(FINAL_V1_PROOF_STEPS.some((step) => step.includes('Home/Chat access')))
   assert.ok(FINAL_V1_PASSING_CRITERIA.some((criterion) => criterion.includes('not Home QR')))
   assert.ok(FINAL_V1_PASSING_CRITERIA.some((criterion) => criterion.includes('ignored requests')))
-  assert.ok(FINAL_V1_PASSING_CRITERIA.some((criterion) => criterion.includes('My treehole posts')))
+  assert.ok(FINAL_V1_PASSING_CRITERIA.some((criterion) => criterion.includes('Treehole posts')))
   assert.ok(
     FINAL_V1_EVIDENCE_BOUNDARIES.some((boundary) => boundary.includes('not final release proof'))
   )
@@ -170,6 +174,8 @@ test('package and docs expose the final V1 proof packet helper', async () => {
   )
 
   assert.equal(packageJson.scripts['v1:proof:packet'], 'node scripts/final-v1-proof-packet.mjs')
+  assert.match(packageJson.scripts['android:assemble:release'], /assembleRelease/)
+  assert.match(packageJson.scripts['android:install:release'], /app-release\.apk/)
   assert.match(recipe, /npm run v1:proof:packet/)
   assert.match(recipe, /--output/)
   assert.match(recipe, /non-invasive/)

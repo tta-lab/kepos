@@ -220,7 +220,7 @@ export function DirectPane({
     <section id='dmPane' className={activeTab === 'dm' ? 'pane' : 'pane hidden'}>
       <PaneHeader
         eyebrow='durable'
-        title='Messages'
+        title='Chat'
         description='Private pairwise threads that survive restarts.'
       />
       <DirectThreadList
@@ -481,7 +481,7 @@ export function TreeholePane({
     <section id='treeholePane' className={activeTab === 'treehole' ? 'pane' : 'pane hidden'}>
       <PaneHeader
         eyebrow='durable'
-        title='My treehole'
+        title='Treehole'
         description='Your durable posts stay here; trusted friends can react and comment.'
       />
       <TreeholeList actions={actions} canPost={controls.canPostTreehole} posts={posts} />
@@ -655,7 +655,7 @@ function TreeholeComposer({
       <textarea
         id='treeholeInput'
         className='textarea textarea-bordered min-h-24 w-full resize-y bg-base-100 text-base-content disabled:bg-base-200'
-        placeholder='Post to My treehole'
+        placeholder='Post to Treehole'
         disabled={!controls.canPostTreehole}
         value={draft}
         onChange={(event) => setDraft(event.target.value)}
@@ -710,7 +710,7 @@ function DirectMessageList({
   const visibleMessages = messages.map(readMessageView)
 
   return (
-    <ol id='dmList' className='list bg-base-100' aria-label='Messages'>
+    <ol id='dmList' className='list bg-base-100' aria-label='Chat'>
       {visibleMessages.length === 0 ? (
         <ListEmptyState
           icon={<Send size={18} />}
@@ -827,7 +827,7 @@ function TreeholeList({
     : 'Posts from this home will appear here.'
 
   return (
-    <ol id='treeholeList' className='list posts bg-base-100' aria-label='My treehole posts'>
+    <ol id='treeholeList' className='list posts bg-base-100' aria-label='Treehole posts'>
       {visiblePosts.length === 0 ? (
         <ListEmptyState icon={<Sprout size={18} />} title='No posts yet' copy={emptyCopy} />
       ) : (

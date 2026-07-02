@@ -10,7 +10,7 @@ export function createDesktopBackendWorkerHost({
   createMainBackendSession,
   startBackendWorker = startDesktopBackendWorker as unknown as WorkerStarter,
   storageBasePath,
-  workerEntryPath = new URL('./desktop-backend-worker-bare-entry.ts', import.meta.url).pathname
+  workerEntryPath = ''
 }: DesktopBackendWorkerHostOptions = {}): DesktopBackendWorkerHost {
   let client: DesktopBackendWorkerIpcClient | null = null
   let worker: WorkerHandle | null = null

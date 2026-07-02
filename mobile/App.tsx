@@ -101,7 +101,7 @@ import {
   mobileThemes,
   type MobileThemeTokens
 } from '../src/mobile-theme-tokens.ts'
-import { createMobileStyles, type MobileStyles } from './styles.js'
+import { createMobileStyles, type MobileStyles } from './styles.ts'
 import { applyMobileHomeQrScan, readMobileProfileRequestTarget } from '../src/mobile-qr-actions.ts'
 import { getScannedQrData, type MobileQrScanEvent } from '../src/mobile-qr-event.ts'
 import {
@@ -118,11 +118,8 @@ import {
 } from '../src/mobile-product-copy.ts'
 import { applyLocalContactRevoke } from '../src/revoke-state.ts'
 import { createMobileHomeRoomKey, createMobileMessageId } from '../src/mobile-runtime-ids.ts'
-import {
-  createSignedHomeAddressPayload,
-  createSignedTrustInvitePayload,
-  encodeQrUri
-} from '../src/signed-qr-payload.ts'
+import { encodeQrUri } from '../src/signed-qr-payload.ts'
+import { createShareQrPayloads } from '../src/share-qr-service.ts'
 import { readTrustedContactHomeDescriptor } from '../src/signed-qr-scan.ts'
 import { readRpcPayload } from '../src/rpc-payload.ts'
 import type { SigningIdentity } from '../src/signed-record.ts'
@@ -130,13 +127,12 @@ import type { TransportDebugLabelState } from '../src/transport-debug-label.ts'
 import { Worklet } from 'react-native-bare-kit'
 import RPC from 'bare-rpc'
 import bundle from './app.bundle.mjs'
-import { Header, QrCard, QrScanner } from './chrome-components.js'
-import { Field } from './form-components.js'
-import { PaneLabel, PanelEmptyState, TaskHeader } from './panel-components.js'
-import { ContactProfileDetail, MobileProfileAvatar } from './profile-components.js'
-import { Lobby } from './lobby-components.js'
-import { ChatRoom } from './room-components.js'
-import type { TreeholePostInput } from './treehole-components.js'
+import { Header, QrCard, QrScanner } from './chrome-components.tsx'
+import { Field } from './form-components.tsx'
+import { PaneLabel, PanelEmptyState, TaskHeader } from './panel-components.tsx'
+import { ContactProfileDetail, MobileProfileAvatar } from './profile-components.tsx'
+import { ChatRoom } from './room-components.tsx'
+import type { TreeholePostInput } from './treehole-components.tsx'
 import {
   RPC_ERROR,
   RPC_DM_ACCEPT,
@@ -287,39 +283,24 @@ export default function App() {
   const workletRef = useRef<WorkletHandle | null>(null)
 
   const canJoin = ROOM_KEY_PATTERN.test(roomKey.trim())
-  const profileQrUri = useMemo(() => {
+  const shareQrPayloads = useMemo(() => {
     if (!identity) return ''
-    const homeDescriptor = homeRoomKey
-      ? createSignedHomeAddressPayload({
-          address: homeRoomKey,
-          identity,
-          policy: 'trusted_only',
-          roomKey: homeRoomKey
-        })
-      : null
-
-    return encodeQrUri(
-      createSignedTrustInvitePayload({
-        avatarMedia: localAvatarMedia,
-        avatarUri: localAvatarUri,
-        displayName: nick,
-        homeDescriptor,
-        identity
-      })
-    )
+    return createShareQrPayloads({
+      avatarMedia: localAvatarMedia,
+      avatarUri: localAvatarUri,
+      displayName: nick,
+      homeRoom: homeRoomKey
+        ? {
+            address: homeRoomKey,
+            policy: 'trusted_only',
+            roomKey: homeRoomKey
+          }
+        : null,
+      identity
+    })
   }, [homeRoomKey, identity, localAvatarMedia, localAvatarUri, nick])
-  const myHomeQrUri = useMemo(() => {
-    if (!identity || !homeRoomKey) return ''
-
-    return encodeQrUri(
-      createSignedHomeAddressPayload({
-        address: homeRoomKey,
-        identity,
-        policy: 'trusted_only',
-        roomKey: homeRoomKey
-      })
-    )
-  }, [homeRoomKey, identity])
+  const profileQrUri = shareQrPayloads ? shareQrPayloads.primaryUri : ''
+  const myHomeQrUri = shareQrPayloads ? shareQrPayloads.debugHomeUri : ''
   const dmContactOptions = useMemo(
     () => (contactBook ? listTrustedContacts(contactBook) : []),
     [contactBook]
@@ -1372,103 +1353,78 @@ export default function App() {
                 treeholeStatusLabel={treeholeStatusLabel}
                 title={session ? 'Home' : 'Kepos'}
               />
-              {session ? (
-                <ChatRoom
-                  draft={draft}
-                  dmDraft={dmDraft}
-                  dmContactOptions={dmContactOptions}
-                  blockedContacts={blockedContactOptions}
-                  dmMessages={dmMessages}
-                  dmRecipient={dmRecipient}
-                  dmThreads={dmThreads}
-                  activeTab={activeTab}
-                  homeQrUri={homeQrUri}
-                  myHomeQrUri={myHomeQrUri}
-                  onAllowContactRequests={allowRequestsFromContact}
-                  onAcceptRequest={acceptIncomingMessageRequest}
-                  onDraftChange={setDraft}
-                  onDmDraftChange={setDmDraft}
-                  onDmRecipientChange={setDmRecipient}
-                  onHomeQrChange={setHomeQrUri}
-                  onIgnoreRequest={ignoreIncomingMessageRequest}
-                  onJoinHomeQr={joinHomeQr}
-                  onEnterContactHome={enterContactHome}
-                  onMarkThreadRead={markMobileThreadRead}
-                  onLeave={leaveRoom}
-                  onRevokeContact={revokeTrustedContact}
-                  contactProfileTargetId={contactProfileTargetId}
-                  onContactProfileTargetChange={setContactProfileTargetId}
-                  onScanHomeQr={() => startQrScan('home')}
-                  onScanProfileQr={() => startQrScan('profile')}
-                  onSend={sendMessage}
-                  onSendDm={sendMessageRequest}
-                  onTabChange={setActiveTab}
-                  onTrustAliasChange={setTrustAlias}
-                  onTrustProfile={chooseProfileRequestTargetFromInput}
-                  onTrustQrChange={setTrustQrUri}
-                  onTreeholeDraftChange={setTreeholeDraft}
-                  onTreeholeComment={sendTreeholeComment}
-                  onTreeholeLike={sendTreeholeLike}
-                  onTreeholePost={sendTreeholePost}
-                  outgoingRequests={outgoingMessageRequests}
-                  pendingRequests={pendingMessageRequests}
-                  profileId={profileId}
-                  profileReady={profileReady}
-                  profileQrUri={profileQrUri}
-                  profileRequestTarget={profileRequestTarget}
-                  lastError={lastError}
-                  session={session}
-                  styles={styles}
-                  theme={theme}
-                  transportDebug={transportDebug}
-                  treeholeCanInteract={treeholeCanInteract}
-                  treeholeCanPost={treeholeCanPost}
-                  treeholeDraft={treeholeDraft}
-                  treeholePosts={treeholePosts}
-                  profileRecentPostCache={profileRecentPostCache}
-                  treeholeStatus={treeholeStatus}
-                  activeHomeOwnerProfileId={activeHomeOwnerProfileId}
-                  trustAlias={trustAlias}
-                  trustQrUri={trustQrUri}
-                />
-              ) : (
-                <Lobby
-                  canJoin={profileReady && canJoin}
-                  homeQrUri={homeQrUri}
-                  myHomeQrUri={myHomeQrUri}
-                  nick={nick}
-                  localAvatarUri={localAvatarUri}
-                  onCreateRoom={createRoom}
-                  onAllowContactRequests={allowRequestsFromContact}
-                  onChooseLocalAvatarImage={chooseLocalAvatarImage}
-                  onHomeQrChange={setHomeQrUri}
-                  onJoinRoom={joinRoom}
-                  onJoinHomeQr={joinHomeQr}
-                  onEnterContactHome={enterContactHome}
-                  onDirectRoomEndpointChange={setDirectRoomEndpoint}
-                  onLocalAvatarUriChange={updateLocalAvatarUri}
-                  onNickChange={setNick}
-                  onRoomKeyChange={setRoomKey}
-                  onScanHomeQr={() => startQrScan('home')}
-                  onScanProfileQr={() => startQrScan('profile')}
-                  onToggleAdvancedJoin={() => setShowAdvancedJoin((value) => !value)}
-                  onRevokeContact={revokeTrustedContact}
-                  onTrustAliasChange={setTrustAlias}
-                  onTrustProfile={chooseProfileRequestTargetFromInput}
-                  onTrustQrChange={setTrustQrUri}
-                  profileReady={profileReady}
-                  profileQrUri={profileQrUri}
-                  roomKey={roomKey}
-                  directRoomEndpoint={directRoomEndpoint}
-                  showAdvancedJoin={showAdvancedJoin}
-                  trustAlias={trustAlias}
-                  trustQrUri={trustQrUri}
-                  blockedContacts={blockedContactOptions}
-                  trustedContacts={dmContactOptions}
-                  styles={styles}
-                  theme={theme}
-                />
-              )}
+              <ChatRoom
+                activeHomeOwnerProfileId={activeHomeOwnerProfileId}
+                activeTab={activeTab}
+                blockedContacts={blockedContactOptions}
+                canJoin={profileReady && canJoin}
+                contactProfileTargetId={contactProfileTargetId}
+                directRoomEndpoint={directRoomEndpoint}
+                draft={draft}
+                dmContactOptions={dmContactOptions}
+                dmDraft={dmDraft}
+                dmMessages={dmMessages}
+                dmRecipient={dmRecipient}
+                dmThreads={dmThreads}
+                homeQrUri={homeQrUri}
+                lastError={lastError}
+                localAvatarUri={localAvatarUri}
+                myHomeQrUri={myHomeQrUri}
+                nick={nick}
+                onAcceptRequest={acceptIncomingMessageRequest}
+                onAllowContactRequests={allowRequestsFromContact}
+                onChooseLocalAvatarImage={chooseLocalAvatarImage}
+                onContactProfileTargetChange={setContactProfileTargetId}
+                onCreateRoom={createRoom}
+                onDirectRoomEndpointChange={setDirectRoomEndpoint}
+                onDmDraftChange={setDmDraft}
+                onDmRecipientChange={setDmRecipient}
+                onDraftChange={setDraft}
+                onEnterContactHome={enterContactHome}
+                onHomeQrChange={setHomeQrUri}
+                onIgnoreRequest={ignoreIncomingMessageRequest}
+                onJoinHomeQr={joinHomeQr}
+                onJoinRoom={joinRoom}
+                onLeave={leaveRoom}
+                onLocalAvatarUriChange={updateLocalAvatarUri}
+                onMarkThreadRead={markMobileThreadRead}
+                onNickChange={setNick}
+                onRevokeContact={revokeTrustedContact}
+                onRoomKeyChange={setRoomKey}
+                onScanHomeQr={() => startQrScan('home')}
+                onScanProfileQr={() => startQrScan('profile')}
+                onSend={sendMessage}
+                onSendDm={sendMessageRequest}
+                onTabChange={setActiveTab}
+                onToggleAdvancedJoin={() => setShowAdvancedJoin((value) => !value)}
+                onTreeholeComment={sendTreeholeComment}
+                onTreeholeDraftChange={setTreeholeDraft}
+                onTreeholeLike={sendTreeholeLike}
+                onTreeholePost={sendTreeholePost}
+                onTrustAliasChange={setTrustAlias}
+                onTrustProfile={chooseProfileRequestTargetFromInput}
+                onTrustQrChange={setTrustQrUri}
+                outgoingRequests={outgoingMessageRequests}
+                pendingRequests={pendingMessageRequests}
+                profileId={profileId}
+                profileQrUri={profileQrUri}
+                profileReady={profileReady}
+                profileRecentPostCache={profileRecentPostCache}
+                profileRequestTarget={profileRequestTarget}
+                roomKey={roomKey}
+                session={session}
+                showAdvancedJoin={showAdvancedJoin}
+                styles={styles}
+                theme={theme}
+                transportDebug={transportDebug}
+                treeholeCanInteract={treeholeCanInteract}
+                treeholeCanPost={treeholeCanPost}
+                treeholeDraft={treeholeDraft}
+                treeholePosts={treeholePosts}
+                treeholeStatus={treeholeStatus}
+                trustAlias={trustAlias}
+                trustQrUri={trustQrUri}
+              />
             </>
           )}
         </KeyboardAvoidingView>

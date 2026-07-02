@@ -22,8 +22,11 @@ test('desktop smoke is wired to Playwright Electron with isolated state', async 
   assert.match(source, /smoke home message/)
   assert.match(source, /smoke treehole post/)
   assert.match(source, /restartDesktopApp/)
-  assert.match(source, /waitForInputValue\(restartedPage, '#profileQrOutput', profileUri\)/)
-  assert.match(source, /waitForInputValue\(restartedPage, '#homeQrOutput', homeUri\)/)
+  assert.match(source, /waitForMatchingQr\([\s\S]*'#profileQrOutput'[\s\S]*profileProof/)
+  assert.match(source, /waitForMatchingQr\([\s\S]*'#homeQrOutput'[\s\S]*homeProof/)
+  assert.match(source, /decodeQrUri/)
+  assert.match(source, /profile QR keeps the same identity after desktop restart/)
+  assert.match(source, /home QR keeps the same owner and room after desktop restart/)
   assert.match(source, /treehole post remains after desktop restart/)
   assert.match(source, /waitForTextIncludes\(page, '#messageList'/)
   assert.match(source, /waitForTextIncludes\(restartedPage, '#treeholeList'/)
@@ -42,7 +45,8 @@ test('desktop pear smoke runs the Electron app through pear-runtime', async () =
   const source = await readFile(new URL('../scripts/smoke-desktop.mjs', import.meta.url), 'utf8')
 
   assert.match(source, /process\.argv\.includes\('--pear'\)/)
-  assert.match(source, /KEPOS_SMOKE_DESKTOP:\s*usePearRuntime \? undefined : '1'/)
+  assert.match(source, /KEPOS_DESKTOP_PEAR:\s*usePearRuntime \? '1' : undefined/)
+  assert.match(source, /KEPOS_SMOKE_DESKTOP:\s*'1'/)
 })
 
 test('desktop contact persistence smoke restarts with the same user data', async () => {
@@ -85,7 +89,8 @@ test('desktop contact persistence smoke restarts with the same user data', async
     '--user-data-dir=',
     'markSmokeStorage\\(userDataDir\\)',
     "usePearRuntime = process.argv.includes\\('--pear'\\)",
-    "KEPOS_SMOKE_DESKTOP: usePearRuntime \\? undefined : '1'"
+    "KEPOS_DESKTOP_PEAR: usePearRuntime \\? '1' : undefined",
+    "KEPOS_SMOKE_DESKTOP: '1'"
   ]) {
     assert.match(source, new RegExp(marker), `${marker} is missing`)
   }

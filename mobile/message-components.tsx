@@ -11,10 +11,10 @@ import {
   MobileRequestActionButton,
   type MobileRequestActionButtonStyles,
   type MobileSendButtonStyles
-} from './action-components.js'
-import { EmptyMessages, type EmptyStateStyles, type EmptyStateTheme } from './empty-components.js'
-import { PaneLabel, type PaneLabelProps } from './panel-components.js'
-import { MobileProfileAvatar, type MobileProfileAvatarStyles } from './profile-components.js'
+} from './action-components.tsx'
+import { EmptyMessages, type EmptyStateStyles, type EmptyStateTheme } from './empty-components.tsx'
+import { PaneLabel, type PaneLabelProps } from './panel-components.tsx'
+import { MobileProfileAvatar, type MobileProfileAvatarStyles } from './profile-components.tsx'
 
 export type MobileBubbleMessage = {
   direction?: string

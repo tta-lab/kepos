@@ -18,12 +18,13 @@ import {
   MobileIconButton,
   type MobileAdvancedToggleStyles,
   type MobileIconButtonStyles
-} from './action-components.js'
-import { DirectPane, type DirectPaneProps } from './direct-components.js'
-import { HomeChatPane, type HomeChatPaneProps } from './message-components.js'
-import { PeoplePane, type PeoplePaneProps } from './people-components.js'
-import { TabButton, type TabButtonProps } from './tab-components.js'
-import { TreeholePane, type TreeholePaneProps } from './treehole-components.js'
+} from './action-components.tsx'
+import { DirectPane, type DirectPaneProps } from './direct-components.tsx'
+import { HomeStartupPane, type HomeStartupPaneProps } from './lobby-components.tsx'
+import { HomeChatPane, type HomeChatPaneProps } from './message-components.tsx'
+import { PeoplePane, type PeoplePaneProps } from './people-components.tsx'
+import { TabButton, type TabButtonProps } from './tab-components.tsx'
+import { TreeholePane, type TreeholePaneProps } from './treehole-components.tsx'
 
 type MobileStyles = MobileAdvancedToggleStyles &
   MobileIconButtonStyles &
@@ -62,7 +63,9 @@ export type ChatRoomProps = {
   activeHomeOwnerProfileId?: string
   activeTab: string
   blockedContacts?: PeoplePaneProps['blockedContacts']
+  canJoin: HomeStartupPaneProps['canJoin']
   contactProfileTargetId?: string | null
+  directRoomEndpoint: HomeStartupPaneProps['directRoomEndpoint']
   draft: string
   dmContactOptions: DirectPaneProps['contactOptions']
   dmDraft: string
@@ -71,10 +74,15 @@ export type ChatRoomProps = {
   dmThreads: DirectPaneProps['threads']
   homeQrUri: string
   lastError?: string
+  localAvatarUri?: HomeStartupPaneProps['localAvatarUri']
   myHomeQrUri: string
+  nick?: HomeStartupPaneProps['nick']
   onAcceptRequest: PeoplePaneProps['onAcceptRequest'] & DirectPaneProps['onAcceptRequest']
   onAllowContactRequests: PeoplePaneProps['onAllowContactRequests']
+  onChooseLocalAvatarImage: HomeStartupPaneProps['onChooseLocalAvatarImage']
   onContactProfileTargetChange(profileId: string | null): void
+  onCreateRoom: HomeStartupPaneProps['onCreateRoom']
+  onDirectRoomEndpointChange: HomeStartupPaneProps['onDirectRoomEndpointChange']
   onDmDraftChange(value: string): void
   onDmRecipientChange(profileId: string): void
   onDraftChange(value: string): void
@@ -82,14 +90,19 @@ export type ChatRoomProps = {
   onHomeQrChange(value: string): void
   onIgnoreRequest: PeoplePaneProps['onIgnoreRequest'] & DirectPaneProps['onIgnoreRequest']
   onJoinHomeQr(): void
+  onJoinRoom: HomeStartupPaneProps['onJoinRoom']
   onLeave(): void
+  onLocalAvatarUriChange: HomeStartupPaneProps['onLocalAvatarUriChange']
   onMarkThreadRead(profileId: string): void
+  onNickChange: HomeStartupPaneProps['onNickChange']
   onRevokeContact: PeoplePaneProps['onRevokeContact']
+  onRoomKeyChange: HomeStartupPaneProps['onRoomKeyChange']
   onScanHomeQr(): void
   onScanProfileQr(): void
   onSend(): void
   onSendDm(): void
   onTabChange(tab: string): void
+  onToggleAdvancedJoin: HomeStartupPaneProps['onToggleAdvancedJoin']
   onTreeholeComment: TreeholePaneProps['onComment']
   onTreeholeDraftChange: TreeholePaneProps['onDraftChange']
   onTreeholeLike: TreeholePaneProps['onLike']
@@ -104,7 +117,9 @@ export type ChatRoomProps = {
   profileReady: boolean
   profileRecentPostCache?: PeoplePaneProps['profileRecentPostCache']
   profileRequestTarget?: PeoplePaneProps['profileRequestTarget'] & DirectPaneProps['requestTarget']
-  session: MobileRoomSessionPreview & { messages: HomeChatPaneProps['messages'] }
+  roomKey: HomeStartupPaneProps['roomKey']
+  session?: (MobileRoomSessionPreview & { messages: HomeChatPaneProps['messages'] }) | null
+  showAdvancedJoin: HomeStartupPaneProps['showAdvancedJoin']
   styles: MobileStyles
   theme: MobileTheme
   transportDebug?: TransportDebugLabelState | null
@@ -121,7 +136,9 @@ export function ChatRoom({
   activeTab,
   activeHomeOwnerProfileId,
   blockedContacts,
+  canJoin,
   contactProfileTargetId,
+  directRoomEndpoint,
   draft,
   dmDraft,
   dmContactOptions,
@@ -129,25 +146,35 @@ export function ChatRoom({
   dmRecipient,
   dmThreads,
   homeQrUri,
+  localAvatarUri,
   myHomeQrUri,
+  nick,
   onAcceptRequest,
   onAllowContactRequests,
+  onChooseLocalAvatarImage,
   onContactProfileTargetChange,
+  onCreateRoom,
   onDraftChange,
+  onDirectRoomEndpointChange,
   onDmDraftChange,
   onDmRecipientChange,
   onHomeQrChange,
   onIgnoreRequest,
   onJoinHomeQr,
+  onJoinRoom,
   onEnterContactHome,
+  onLocalAvatarUriChange,
   onMarkThreadRead,
+  onNickChange,
   onLeave,
   onRevokeContact,
+  onRoomKeyChange,
   onScanHomeQr,
   onScanProfileQr,
   onSend,
   onSendDm,
   onTabChange,
+  onToggleAdvancedJoin,
   onTrustAliasChange,
   onTrustProfile,
   onTrustQrChange,
@@ -163,7 +190,9 @@ export function ChatRoom({
   profileRequestTarget,
   profileRecentPostCache,
   lastError,
+  roomKey,
   session,
+  showAdvancedJoin,
   styles,
   theme,
   transportDebug,
@@ -194,11 +223,13 @@ export function ChatRoom({
             <Text style={styles.sessionBadgeText}>Current space</Text>
           </View>
           <Text style={styles.roomName}>{roomSurface}</Text>
-          <Text style={styles.roomOwnerName}>{homeOwner.title}</Text>
-          <Text style={styles.roomOwnerMeta}>{homeOwner.subtitle}</Text>
+          <Text style={styles.roomOwnerName}>{session ? homeOwner.title : 'This device'}</Text>
+          <Text style={styles.roomOwnerMeta}>
+            {session ? homeOwner.subtitle : 'Home is offline'}
+          </Text>
         </View>
         <View style={styles.roomActions}>
-          {homeOwner.canOpenProfile ? (
+          {session && homeOwner.canOpenProfile ? (
             <MobileIconButton
               accentColor={theme.accentStrong}
               accessibilityLabel={`Open ${homeOwner.title} owner profile`}
@@ -218,14 +249,16 @@ export function ChatRoom({
             styles={styles}
             testID='room-advanced-toggle'
           />
-          <MobileIconButton
-            accentColor={theme.accentStrong}
-            accessibilityLabel='Leave home'
-            icon={LogOut}
-            onPress={onLeave}
-            styles={styles}
-            testID='leave-home-button'
-          />
+          {session ? (
+            <MobileIconButton
+              accentColor={theme.accentStrong}
+              accessibilityLabel='Leave home'
+              icon={LogOut}
+              onPress={onLeave}
+              styles={styles}
+              testID='leave-home-button'
+            />
+          ) : null}
         </View>
       </View>
       {showRoomAdvanced ? (
@@ -247,14 +280,37 @@ export function ChatRoom({
 
       <View style={styles.roomContent}>
         {activeTab === 'chat' ? (
-          <HomeChatPane
-            draft={draft}
-            messages={session.messages}
-            onDraftChange={onDraftChange}
-            onSend={onSend}
-            styles={styles}
-            theme={theme}
-          />
+          !session ? (
+            <HomeStartupPane
+              canJoin={canJoin}
+              directRoomEndpoint={directRoomEndpoint}
+              localAvatarUri={localAvatarUri}
+              nick={nick}
+              onChooseLocalAvatarImage={onChooseLocalAvatarImage}
+              onCreateRoom={onCreateRoom}
+              onDirectRoomEndpointChange={onDirectRoomEndpointChange}
+              onJoinRoom={onJoinRoom}
+              onLocalAvatarUriChange={onLocalAvatarUriChange}
+              onNickChange={onNickChange}
+              onRoomKeyChange={onRoomKeyChange}
+              onToggleAdvancedJoin={onToggleAdvancedJoin}
+              profileQrUri={profileQrUri}
+              profileReady={profileReady}
+              roomKey={roomKey}
+              showAdvancedJoin={showAdvancedJoin}
+              styles={styles}
+              theme={theme}
+            />
+          ) : (
+            <HomeChatPane
+              draft={draft}
+              messages={session.messages}
+              onDraftChange={onDraftChange}
+              onSend={onSend}
+              styles={styles}
+              theme={theme}
+            />
+          )
         ) : activeTab === 'dm' ? (
           <DirectPane
             draft={dmDraft}
@@ -293,6 +349,7 @@ export function ChatRoom({
           />
         ) : (
           <PeoplePane
+            canJoinHome={!session}
             homeQrUri={homeQrUri}
             myHomeQrUri={myHomeQrUri}
             onAcceptRequest={onAcceptRequest}

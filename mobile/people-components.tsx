@@ -1,15 +1,13 @@
 import { useState } from 'react'
-import { ScrollView, Text, TextInput, View } from 'react-native'
+import { Pressable, ScrollView, Text, TextInput, View } from 'react-native'
 import {
   ArrowRight,
   House,
   Plus,
   QrCode,
-  Send,
   Settings,
   ShieldOff,
   User,
-  UserMinus,
   UserPlus,
   Users
 } from 'lucide-react-native'
@@ -28,15 +26,15 @@ import {
   type RequestTargetProfileInput
 } from '../src/request-target-profile-view-model.ts'
 import { formatMobileTrustTime, shortenProfileId } from '../src/mobile-product-copy.ts'
-import { MobileActionButton, MobileSmallActionButton } from './action-components.js'
-import { QrCard } from './chrome-components.js'
-import { Field } from './form-components.js'
-import { PanelEmptyState, TaskHeader } from './panel-components.js'
+import { MobileActionButton, MobileSmallActionButton } from './action-components.tsx'
+import { QrCard } from './chrome-components.tsx'
+import { Field } from './form-components.tsx'
+import { PanelEmptyState, TaskHeader } from './panel-components.tsx'
 import {
   ContactProfileDetail,
   MobileProfileAvatar,
   type ContactProfileDetailView
-} from './profile-components.js'
+} from './profile-components.tsx'
 import {
   MessageRequestManager,
   OutgoingRequestManager,
@@ -45,9 +43,9 @@ import {
   type OutgoingFriendRequest,
   type RequestManagerStyles,
   type RequestManagerTheme
-} from './request-components.js'
-import type { MobileStyles } from './styles.js'
-import { formatMobileThreadTime } from './thread-components.js'
+} from './request-components.tsx'
+import type { MobileStyles } from './styles.ts'
+import { formatMobileThreadTime } from './thread-components.tsx'
 
 type MobileTheme = {
   accentStrong: string
@@ -66,6 +64,7 @@ type TreeholePost = ProfileRecentTreeholePost
 export type PeoplePaneProps = {
   activeHomeOwnerProfileId?: string
   blockedContacts?: ContactRecord[]
+  canJoinHome: boolean
   homeQrUri: string
   myHomeQrUri: string
   onAcceptRequest: MessageRequestManagerProps['onAcceptRequest']
@@ -101,6 +100,7 @@ export type PeoplePaneProps = {
 export function PeoplePane({
   activeHomeOwnerProfileId,
   blockedContacts,
+  canJoinHome,
   homeQrUri,
   myHomeQrUri,
   onAcceptRequest,
@@ -144,7 +144,7 @@ export function PeoplePane({
       />
       <OutgoingRequestManager outgoingRequests={outgoingRequests} styles={styles} theme={theme} />
       <PeopleActions
-        canJoinHome={false}
+        canJoinHome={canJoinHome}
         homeQrUri={homeQrUri}
         myHomeQrUri={myHomeQrUri}
         onHomeQrChange={onHomeQrChange}
@@ -240,11 +240,29 @@ export function PeopleActions({
 }: PeopleActionsProps) {
   const [showAdvancedShare, setShowAdvancedShare] = useState(false)
   const [showHomeQr, setShowHomeQr] = useState(false)
-  const [showProfileQr, setShowProfileQr] = useState(false)
   const canUseHomeJoin = profileReady && canJoinHome
 
   return (
     <>
+      <View style={styles.panel}>
+        <TaskHeader
+          description='Scan a Profile QR, then write a request in Chat.'
+          eyebrow='Contacts'
+          styles={styles}
+          title='Add friend'
+        />
+        <MobileActionButton
+          accentColor={theme.accentStrong}
+          disabledContentColor={theme.placeholder}
+          primaryContentColor={theme.surface}
+          styles={styles}
+          disabled={!profileReady}
+          icon={Plus}
+          label='Scan QR'
+          onPress={onScanProfileQr}
+          testID='scan-profile-qr-button'
+        />
+      </View>
       <MobileActionButton
         accentColor={theme.accentStrong}
         disabledContentColor={theme.placeholder}
@@ -293,38 +311,6 @@ export function PeopleActions({
           {!canJoinHome ? (
             <Text style={styles.panelCopy}>Leave this home before joining another one.</Text>
           ) : null}
-          <TaskHeader
-            description='Paste a Profile QR, then write a request in Messages.'
-            eyebrow='Advanced'
-            styles={styles}
-            title='Profile request'
-          />
-          <MobileActionButton
-            accentColor={theme.accentStrong}
-            disabledContentColor={theme.placeholder}
-            primaryContentColor={theme.surface}
-            styles={styles}
-            accessibilityState={{ expanded: showProfileQr }}
-            disabled={!profileReady}
-            icon={QrCode}
-            label='Show My QR'
-            onPress={() => setShowProfileQr((value) => !value)}
-            testID='show-profile-qr-button'
-          />
-          {showProfileQr ? (
-            <QrCard backgroundColor={theme.raised} styles={styles} value={profileQrUri} />
-          ) : null}
-          <MobileActionButton
-            accentColor={theme.accentStrong}
-            disabledContentColor={theme.placeholder}
-            primaryContentColor={theme.surface}
-            styles={styles}
-            disabled={!profileReady}
-            icon={Plus}
-            label='Scan Profile QR'
-            onPress={onScanProfileQr}
-            testID='scan-profile-qr-button'
-          />
           <TaskHeader
             description='Paste or copy raw QR payloads for debug flows.'
             eyebrow='Advanced'
@@ -521,7 +507,13 @@ export function ContactManager({
         })
 
         return (
-          <View key={profile.profileId} style={styles.contactRow}>
+          <Pressable
+            accessibilityLabel={`Open ${profile.displayName} profile`}
+            accessibilityRole='button'
+            key={profile.profileId}
+            onPress={() => onSelectedProfileChange(profile.profileId)}
+            style={styles.contactRow}
+          >
             <MobileProfileAvatar avatar={profile.avatar} styles={styles} />
             <View style={styles.contactRowText}>
               <Text style={styles.contactName}>{profile.displayName}</Text>
@@ -531,58 +523,11 @@ export function ContactManager({
                 <Text style={styles.trustMetaText}>{profile.sourceLabel}</Text>
                 <Text style={styles.trustMetaText}>{profile.trustedAtLabel}</Text>
               </View>
-              <View style={styles.contactRecent}>
-                <Text style={styles.contactRecentTitle}>{profile.recentTitle}</Text>
-                <Text style={styles.contactRecentCopy}>{profile.recentCopy}</Text>
-                {profile.recentPosts?.map((post) => (
-                  <View key={post.id} style={styles.contactRecentPost}>
-                    <Text style={styles.contactRecentPostText}>{post.text}</Text>
-                    <Text style={styles.contactRecentPostMeta}>{post.metaLabel}</Text>
-                  </View>
-                ))}
-              </View>
             </View>
             <View style={styles.contactActions}>
-              <MobileSmallActionButton
-                accentColor={theme.accentStrong}
-                dangerColor={theme.danger}
-                styles={styles}
-                accessibilityLabel={`Message ${profile.displayName}`}
-                icon={Send}
-                label={profile.messageLabel}
-                onPress={() => onMessageContact(profile.profileId)}
-              />
-              <MobileSmallActionButton
-                accentColor={theme.accentStrong}
-                dangerColor={theme.danger}
-                styles={styles}
-                accessibilityLabel={`Open ${profile.displayName} profile`}
-                icon={User}
-                label='Profile'
-                onPress={() => onSelectedProfileChange(profile.profileId)}
-              />
-              <MobileSmallActionButton
-                accentColor={theme.accentStrong}
-                dangerColor={theme.danger}
-                styles={styles}
-                accessibilityLabel={`Enter ${profile.displayName} home`}
-                disabled={!profile.enterHomeEnabled}
-                icon={House}
-                label={profile.enterHomeLabel}
-                onPress={() => onEnterContactHome(profile.profileId)}
-              />
-              <MobileSmallActionButton
-                accentColor={theme.accentStrong}
-                dangerColor={theme.danger}
-                styles={styles}
-                accessibilityLabel={`Remove ${profile.displayName} as friend`}
-                icon={UserMinus}
-                label={profile.revokeLabel}
-                onPress={() => onRevokeContact(profile.profileId)}
-                variant='danger'
-              />
+              <User color={theme.accentStrong} size={18} />
             </View>
-          </View>
+          </Pressable>
         )
       })}
       <View style={styles.contactBlockedSection}>

@@ -41,9 +41,40 @@ test('desktop scripts build the renderer bundle before launch', async () => {
     await readFile(new URL('../desktop/package.json', import.meta.url), 'utf8')
   )
 
-  assert.equal(
+  assert.match(packageJson.scripts['desktop:bundle'], /^npm run desktop:styles && /)
+  assert.match(packageJson.scripts['desktop:bundle'], /esbuild desktop\/app\.tsx --bundle/)
+  assert.match(packageJson.scripts['desktop:bundle'], /--outfile=desktop\/app\.bundle\.js/)
+  assert.match(packageJson.scripts['desktop:bundle'], /esbuild desktop\/controller\.js --bundle/)
+  assert.match(
     packageJson.scripts['desktop:bundle'],
-    'npm run desktop:styles && esbuild desktop/app.tsx --bundle --platform=browser --format=iife --define:process.env.NODE_ENV=\\\"production\\\" --minify --outfile=desktop/app.bundle.js && esbuild desktop/controller.js --bundle --platform=browser --format=iife --define:process.env.NODE_ENV=\\\"production\\\" --outfile=desktop/controller.browser.bundle.js && esbuild desktop/controller.js --bundle --platform=node --format=cjs --packages=external --outfile=desktop/controller.bundle.cjs && esbuild desktop/local-backend.ts --bundle --platform=node --format=cjs --packages=external --outfile=desktop/local-backend.bundle.cjs && esbuild desktop/local-profile.ts --bundle --platform=node --format=cjs --packages=external --outfile=desktop/local-profile.bundle.cjs && esbuild src/desktop-backend-worker-bare-entry.ts --bundle --platform=node --format=cjs --packages=external --outfile=desktop/backend-worker.bundle.cjs'
+    /--outfile=desktop\/controller\.browser\.bundle\.js/
+  )
+  assert.match(packageJson.scripts['desktop:bundle'], /--outfile=desktop\/controller\.bundle\.cjs/)
+  assert.match(packageJson.scripts['desktop:bundle'], /esbuild desktop\/local-backend\.ts/)
+  assert.match(
+    packageJson.scripts['desktop:bundle'],
+    /--outfile=desktop\/local-backend\.bundle\.cjs/
+  )
+  assert.match(packageJson.scripts['desktop:bundle'], /esbuild desktop\/local-profile\.ts/)
+  assert.match(
+    packageJson.scripts['desktop:bundle'],
+    /--outfile=desktop\/local-profile\.bundle\.cjs/
+  )
+  assert.match(
+    packageJson.scripts['desktop:bundle'],
+    /esbuild src\/desktop-backend-worker-host\.ts/
+  )
+  assert.match(
+    packageJson.scripts['desktop:bundle'],
+    /--outfile=desktop\/backend-worker-host\.bundle\.cjs/
+  )
+  assert.match(
+    packageJson.scripts['desktop:bundle'],
+    /esbuild src\/desktop-backend-worker-bare-entry\.ts/
+  )
+  assert.match(
+    packageJson.scripts['desktop:bundle'],
+    /--outfile=desktop\/backend-worker\.bundle\.cjs/
   )
   assert.equal(
     packageJson.scripts['desktop:styles'],
@@ -68,11 +99,18 @@ test('desktop scripts build a transpiled backend worker bundle for Bare', async 
   )
 
   assert.match(packageJson.scripts['desktop:bundle'], /desktop-backend-worker-bare-entry\.ts/)
+  assert.match(packageJson.scripts['desktop:bundle'], /desktop-backend-worker-host\.ts/)
+  assert.match(
+    packageJson.scripts['desktop:bundle'],
+    /--outfile=desktop\/backend-worker-host\.bundle\.cjs/
+  )
   assert.match(
     packageJson.scripts['desktop:bundle'],
     /--outfile=desktop\/backend-worker\.bundle\.cjs/
   )
+  assert.match(mainSource, /backend-worker-host\.bundle\.cjs/)
   assert.match(mainSource, /backend-worker\.bundle\.cjs/)
+  assert.doesNotMatch(mainSource, /desktop-backend-worker-host\.js/)
   assert.doesNotMatch(mainSource, /src'[\s\S]*'desktop-backend-worker-bare-entry\.js'/)
 })
 

@@ -14,8 +14,8 @@ export const productSurfaceTabs: ProductSurface[] = [
   },
   {
     id: 'dm',
-    label: 'Messages',
-    title: 'Messages'
+    label: 'Chat',
+    title: 'Chat'
   },
   {
     id: 'people',
@@ -24,8 +24,8 @@ export const productSurfaceTabs: ProductSurface[] = [
   },
   {
     id: 'treehole',
-    label: 'My treehole',
-    title: 'My treehole'
+    label: 'Treehole',
+    title: 'Treehole'
   }
 ]
 

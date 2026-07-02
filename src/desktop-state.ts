@@ -100,7 +100,7 @@ export function getDesktopHomeStatus(state: DesktopState): string {
 
 export function getDesktopTreeholeStatus(state: DesktopState): string {
   if (state.treeholeStatus === 'ready') {
-    return 'My treehole ready'
+    return 'Treehole ready'
   }
 
   if (
@@ -112,8 +112,8 @@ export function getDesktopTreeholeStatus(state: DesktopState): string {
   }
 
   if (state.treeholeStatus === 'error') {
-    return 'My treehole error'
+    return 'Treehole error'
   }
 
-  return 'My treehole offline'
+  return 'Treehole offline'
 }

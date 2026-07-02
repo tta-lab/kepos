@@ -84,14 +84,14 @@ describe('desktop state', () => {
   })
 
   test('getDesktopTreeholeStatus maps internal states to product words', () => {
-    assert.equal(getDesktopTreeholeStatus(createDesktopState()), 'My treehole offline')
+    assert.equal(getDesktopTreeholeStatus(createDesktopState()), 'Treehole offline')
     assert.equal(
       getDesktopTreeholeStatus(setDesktopTreehole(createDesktopState(), { status: 'starting' })),
       'Syncing posts'
     )
     assert.equal(
       getDesktopTreeholeStatus(setDesktopTreehole(createDesktopState(), { status: 'ready' })),
-      'My treehole ready'
+      'Treehole ready'
     )
     assert.equal(
       getDesktopTreeholeStatus(setDesktopTreehole(createDesktopState(), { status: 'waiting' })),

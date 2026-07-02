@@ -1,7 +1,7 @@
 const path = require('node:path')
-const { pathToFileURL } = require('node:url')
 const { app, BrowserWindow, ipcMain } = require('electron')
 const { registerDesktopBackendIpc } = require('./backend-ipc.cjs')
+const { createDesktopBackendWorkerHost } = require('../backend-worker-host.bundle.cjs')
 
 const pkg = require('../package.json')
 
@@ -45,9 +45,6 @@ function createWindow() {
 async function connectMainBackend() {
   if (!backendIpc || mainBackendWorker) return
 
-  const { createDesktopBackendWorkerHost } = await import(
-    pathToFileURL(path.join(__dirname, '..', '..', 'src', 'desktop-backend-worker-host.js')).href
-  )
   const storageBasePath = getDesktopStorageBasePath()
   mainBackendWorker = createDesktopBackendWorkerHost({
     createBackendWorkerStream: pear ? createPearBackendWorkerStream : undefined,
@@ -107,7 +104,7 @@ function getDesktopStorageBasePath() {
 }
 
 app.whenReady().then(async () => {
-  if (process.env.KEPOS_SMOKE_DESKTOP !== '1') await startPearRuntime()
+  if (process.env.KEPOS_DESKTOP_PEAR === '1') await startPearRuntime()
   createWindow()
 
   app.on('activate', () => {

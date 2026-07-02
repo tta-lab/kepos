@@ -13,7 +13,7 @@ appId: io.guion.kepos
       id: 'create-home-button'
     timeout: 60000
 - tapOn:
-    id: 'people-setup-toggle'
+    id: 'people-tab'
 - tapOn:
     id: 'scan-home-qr-button'
 - assertVisible:

@@ -11,10 +11,10 @@ The product model is:
 
 - one device is one profile
 - one profile owns one Home
-- one profile owns one My treehole surface
+- one profile owns one Treehole surface
 - Home chat is live and ephemeral
-- My treehole is durable profile text
-- Messages are durable, pairwise, and separate from Home chat
+- Treehole is durable profile text
+- Chat messages are durable, pairwise, and separate from Home chat
 - trust is the product permission boundary
 - raw keys are transport capabilities and debug handles, not normal user-facing permission
 
@@ -43,14 +43,16 @@ redefine them.
 
 ## Current Evidence
 
-This read is based on the repository docs, source, and tests as of 2026-07-01.
+This read is based on the repository docs, source, and tests as of 2026-07-02.
 
 Verified locally:
 
 - `npm run v1:gate` has passed for the current V1 source shape, including
-  lint, typecheck, 898 Node tests, TypeScript compatibility probes, desktop
+  lint, typecheck, 902 Node tests, TypeScript compatibility probes, desktop
   bundle generation, Bare Android bundle checks, Expo Android export, and APK
   native-library alignment.
+- `npm run android:assemble:release` has passed for the standalone Android
+  release APK path.
 - V1 model smoke ties signed Profile QR friend requests, trusted Home access,
   treehole writer policy, accepted message requests, durable signed DM messages,
   and revoke policy together.
@@ -62,7 +64,7 @@ Verified locally:
   home room body frames.
 - Treehole signed mode enforces owner-only main posts and trusted comments/likes.
 - Desktop Pear/Bare smoke covers the bundled worker bridge for the current app
-  path, including Profile/Home QR publication, Home creation, owner My treehole
+  path, including Profile/Home QR publication, Home creation, owner Treehole
   posting, contact persistence, message request display, and revoke persistence.
 
 This is stronger than a prototype that only has UI and transport. The project
@@ -107,9 +109,9 @@ The thesis is good, but the first user loop must become simpler:
 2. scan a friend's profile QR
 3. send a friend request
 4. accept or ignore the friend request
-5. open the durable Messages thread
+5. open the durable Chat thread
 6. enter the trusted contact's Home explicitly
-7. read recent posts or write to My treehole
+7. read recent posts or write to Treehole
 8. restart both apps and see contacts, messages, and posts persist
 9. remove a friend and see future access stop
 

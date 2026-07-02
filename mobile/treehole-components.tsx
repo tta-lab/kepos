@@ -9,10 +9,10 @@ import {
   MobileSmallActionButton,
   type MobileSendButtonStyles,
   type MobileSmallActionButtonStyles
-} from './action-components.js'
-import { EmptyTreehole, type EmptyStateStyles, type EmptyStateTheme } from './empty-components.js'
-import { PaneLabel, type PaneLabelProps } from './panel-components.js'
-import { MobileProfileAvatar, type MobileProfileAvatarStyles } from './profile-components.js'
+} from './action-components.tsx'
+import { EmptyTreehole, type EmptyStateStyles, type EmptyStateTheme } from './empty-components.tsx'
+import { PaneLabel, type PaneLabelProps } from './panel-components.tsx'
+import { MobileProfileAvatar, type MobileProfileAvatarStyles } from './profile-components.tsx'
 
 export type TreeholePaneStyles = EmptyStateStyles &
   TreeholePostStyles &
@@ -59,7 +59,7 @@ export function TreeholePane({
 
   return (
     <>
-      <PaneLabel eyebrow='durable' styles={styles} title='My treehole' />
+      <PaneLabel eyebrow='durable' styles={styles} title='Treehole' />
       <FlatList
         contentContainerStyle={styles.treeholeList}
         data={posts}
@@ -85,7 +85,7 @@ export function TreeholePane({
             editable={canPost}
             multiline
             onChangeText={onDraftChange}
-            placeholder='Post to My treehole'
+            placeholder='Post to Treehole'
             placeholderTextColor={theme.placeholder}
             style={[styles.treeholeInput, !canPost && styles.disabledTreeholeInput]}
             testID='treehole-post-input'
@@ -96,7 +96,7 @@ export function TreeholePane({
           ) : null}
         </View>
         <MobileSendButton
-          accessibilityLabel='Post to My treehole'
+          accessibilityLabel='Post to Treehole'
           disabled={!canSubmitPost}
           onPress={onPost}
           styles={styles}

@@ -11,6 +11,7 @@ function assertIgnoresGeneratedArtifacts(ignore) {
   for (const entry of [
     'desktop/app.bundle.cjs',
     'desktop/app.bundle.js',
+    'desktop/backend-worker-host.bundle.cjs',
     'desktop/backend-worker.bundle.cjs',
     'desktop/controller.browser.bundle.js',
     'desktop/controller.bundle.cjs',
@@ -127,7 +128,7 @@ test('mobile TSX keeps local component imports Metro-compatible', () => {
   const result = spawnSync(
     'rg',
     [
-      String.raw`from ['"]\./[^'"]+\.(ts|tsx)|import\(['"]\./[^'"]+\.(ts|tsx)`,
+      String.raw`from ['"]\./[^'"]+\.(js|jsx)|import\(['"]\./[^'"]+\.(js|jsx)`,
       'mobile',
       '--glob',
       '*.tsx',

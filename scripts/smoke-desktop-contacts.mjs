@@ -76,7 +76,8 @@ async function launchDesktopApp() {
     cwd: desktopDir,
     env: {
       ...process.env,
-      KEPOS_SMOKE_DESKTOP: usePearRuntime ? undefined : '1'
+      KEPOS_DESKTOP_PEAR: usePearRuntime ? '1' : undefined,
+      KEPOS_SMOKE_DESKTOP: '1'
     },
     executablePath: electronExecutable,
     timeout: 60000

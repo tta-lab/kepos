@@ -30,7 +30,8 @@ test('desktop main connects Electron IPC to the backend worker host', async () =
   const source = await readFile(new URL('../desktop/electron/main.cjs', import.meta.url), 'utf8')
 
   assert.match(source, /createDesktopBackendWorkerHost/)
-  assert.match(source, /desktop-backend-worker-host\.js/)
+  assert.match(source, /backend-worker-host\.bundle\.cjs/)
+  assert.doesNotMatch(source, /desktop-backend-worker-host\.js/)
   assert.match(source, /backend-worker\.bundle\.cjs/)
   assert.match(source, /createPearBackendWorkerStream/)
   assert.match(

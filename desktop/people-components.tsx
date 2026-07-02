@@ -108,7 +108,7 @@ export function PeoplePane({
       <PaneHeader
         eyebrow='profiles'
         title='Contacts'
-        description='Trusted profiles, Messages, and home entry live here.'
+        description='Trusted profiles, Chat, and home entry live here.'
       />
       <PeopleLists
         actions={actions}
