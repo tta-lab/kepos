@@ -96,7 +96,11 @@ export function validateFinalV1ProofPacket(contents) {
     failures.push('`npm run v1:gate` must be recorded as passed')
   }
 
-  if (isCommitShaEvidence(commitSha) && isPassedEvidence(v1Gate) && !v1Gate.includes(commitSha)) {
+  if (
+    isCommitShaEvidence(commitSha) &&
+    isPassedEvidence(v1Gate) &&
+    !referencesCommitSha(v1Gate, commitSha)
+  ) {
     failures.push('`npm run v1:gate` evidence must reference the recorded commit SHA')
   }
 
@@ -181,6 +185,13 @@ function isAllowedAndroidRuntime(value) {
 function hasPeerCountEvidenceSource(value) {
   if (!isMeaningfulMetadata(value)) return false
   return /desktop/i.test(value) && /android/i.test(value)
+}
+
+function referencesCommitSha(value, commitSha) {
+  const evidenceShas = value.match(/\b[0-9a-f]{7,40}\b/gi) || []
+  return evidenceShas.some((evidenceSha) =>
+    commitSha.toLowerCase().startsWith(evidenceSha.toLowerCase())
+  )
 }
 
 function isZeroPeerCountEvidence(value) {

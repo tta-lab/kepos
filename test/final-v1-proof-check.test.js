@@ -16,7 +16,7 @@ function completedPacket() {
       const outputs = {
         'adb shell getprop ro.product.model': 'Pixel 7a\n',
         'git branch --show-current': 'feat/v1\n',
-        'git rev-parse HEAD': 'abc1234\n',
+        'git rev-parse HEAD': '0123456789abcdef0123456789abcdef01234567\n',
         'git status --porcelain': ''
       }
       return Object.hasOwn(outputs, key)
@@ -25,7 +25,7 @@ function completedPacket() {
     }
   })
     .replace('- `npm run v1:gate`: <pass/fail, paste summary>', '- `npm run v1:gate`: passed')
-    .replace('- `npm run v1:gate`: passed', '- `npm run v1:gate`: passed on abc1234')
+    .replace('- `npm run v1:gate`: passed', '- `npm run v1:gate`: passed on 0123456')
     .replace(
       '- Desktop mode: <normal Electron | Pear/Bare worker>',
       '- Desktop mode: normal Electron'
@@ -86,6 +86,17 @@ test('final V1 proof checker accepts a complete recorded packet', () => {
   assert.equal(result.checkedItems, 42)
 })
 
+test('final V1 proof checker accepts full v1 gate commit evidence', () => {
+  const packet = completedPacket().replace(
+    '- `npm run v1:gate`: passed on 0123456',
+    '- `npm run v1:gate`: passed on 0123456789abcdef0123456789abcdef01234567'
+  )
+  const result = validateFinalV1ProofPacket(packet)
+
+  assert.equal(result.ok, true)
+  assert.equal(result.failures.length, 0)
+})
+
 test('final V1 proof checker rejects dirty worktree proof', () => {
   const packet = completedPacket().replace(
     '- Worktree state: clean',
@@ -99,7 +110,7 @@ test('final V1 proof checker rejects dirty worktree proof', () => {
 
 test('final V1 proof checker rejects incomplete run metadata', () => {
   const packet = completedPacket()
-    .replace('- Commit SHA: abc1234', '- Commit SHA: abc')
+    .replace('- Commit SHA: 0123456789abcdef0123456789abcdef01234567', '- Commit SHA: abc')
     .replace('- Branch: feat/v1', '- Branch: ')
     .replace('- Desktop mode: normal Electron', '- Desktop mode: browser')
     .replace('- Android device: Pixel 7a', '- Android device: ')
@@ -148,7 +159,7 @@ test('final V1 proof checker rejects negated pass wording', () => {
 
 test('final V1 proof checker rejects v1 gate evidence from a different commit', () => {
   const packet = completedPacket().replace(
-    '- `npm run v1:gate`: passed on abc1234',
+    '- `npm run v1:gate`: passed on 0123456',
     '- `npm run v1:gate`: passed on def5678'
   )
   const result = validateFinalV1ProofPacket(packet)
