@@ -1759,10 +1759,14 @@ test('mobile composer sends trimmed text payloads', async () => {
   assert.match(sendMessageRequest, /text: cleanText/)
   assert.doesNotMatch(sendMessageRequest, /text: dmDraft/)
   assert.match(sendTreeholePost, /const cleanText = normalizeComposerText\(treeholeDraft\)/)
+  assert.match(sendTreeholePost, /if \(!treeholeCanPost \|\| !cleanText\)/)
   assert.match(sendTreeholePost, /text: cleanText/)
+  assert.doesNotMatch(sendTreeholePost, /!session/)
   assert.doesNotMatch(sendTreeholePost, /text: treeholeDraft/)
   assert.match(sendTreeholeComment, /const cleanText = normalizeComposerText\(text\)/)
+  assert.match(sendTreeholeComment, /if \(!treeholeCanInteract \|\| !cleanText\)/)
   assert.match(sendTreeholeComment, /text: cleanText/)
+  assert.doesNotMatch(sendTreeholeComment, /!session/)
 })
 
 test('mobile product notices are announced as polite status updates', async () => {

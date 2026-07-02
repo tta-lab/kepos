@@ -108,6 +108,7 @@ test('android backend trims outgoing text at the RPC boundary', () => {
 
   assert.match(source, /let allowDebugHomeDmBodyFallback = false/)
   assert.match(source, /let allowDebugHomeTrustFallback = false/)
+  assert.match(source, /let treeholeScope = null/)
   assert.doesNotMatch(source, /allowHomeDmBodyFallback/)
   assert.doesNotMatch(source, /allowHomeTrustFallback/)
   assert.match(source, /const outgoingMessageRequestsByProfileId = new Map\(\)/)
@@ -259,11 +260,51 @@ test('android backend starts profile request service without Home join', () => {
   assert.match(startProfileService, /profileRequestRuntime = createProfileFriendRequestRuntime/)
   assert.match(startProfileService, /profileHomeRoomKey = payload\.homeRoomKey/)
   assert.match(startProfileService, /await profileRequestRuntime\.open\(\)/)
+  assert.match(startProfileService, /if \(!roomKey\) \{[\s\S]*await openProfileTreehole\(\)/)
   assert.doesNotMatch(startProfileService, /createP2PRoom/)
   assert.doesNotMatch(startProfileService, /room\.join/)
   assert.match(sendProfileMessageRequest, /profileRequestRuntime\.send\(request\)/)
   assert.doesNotMatch(sendProfileMessageRequest, /room/)
   assert.doesNotMatch(sendProfileMessageRequest, /allowDebugHomeTrustFallback/)
+})
+
+test('android backend opens owner Treehole from profile service without Home session', () => {
+  const source = readFileSync(new URL('../backend/backend.mjs', import.meta.url), 'utf8')
+  const openProfileTreehole = sliceBetween(
+    source,
+    'async function openProfileTreehole',
+    'async function openTreehole'
+  )
+  const openTreehole = sliceBetween(
+    source,
+    'async function openTreehole',
+    'async function openTreeholeOnce'
+  )
+  const openTreeholeOnce = sliceBetween(
+    source,
+    'async function openTreeholeOnce',
+    'async function closeTreehole'
+  )
+  const leaveRoom = sliceBetween(
+    source,
+    'async function leaveRoom',
+    'async function startProfileService'
+  )
+
+  assert.match(openProfileTreehole, /await openTreehole\(null, 'profile'\)/)
+  assert.match(openProfileTreehole, /!profileHomeRoomKey/)
+  assert.match(openTreehole, /if \(treehole && treeholeScope === scope\)/)
+  assert.match(openTreehole, /await closeTreehole\(\)/)
+  assert.match(
+    openTreeholeOnce,
+    /const treeholeRoomKey = scope === 'profile' \? profileHomeRoomKey : roomKey/
+  )
+  assert.match(openTreeholeOnce, /roomKey: treeholeRoomKey/)
+  assert.match(openTreeholeOnce, /treeholeScope = scope/)
+  assert.match(leaveRoom, /const shouldRestoreProfileTreehole = treeholeScope === 'home'/)
+  assert.match(leaveRoom, /if \(treeholeScope === 'home'\) \{[\s\S]*await closeTreehole\(\)/)
+  assert.match(leaveRoom, /await openProfileTreehole\(\)/)
+  assert.doesNotMatch(leaveRoom, /room = null\n\s+await closeTreehole\(\)/)
 })
 
 test('android backend accepts requests and opens DM threads without Home', () => {

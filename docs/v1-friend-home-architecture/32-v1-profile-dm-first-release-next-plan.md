@@ -129,6 +129,21 @@ Treehole post, and Profile detail can work before Home is opened.
 Debug code may remain, but names and copy must say debug, diagnostics, or
 legacy.
 
+Status: in progress.
+
+Evidence:
+
+- Android backend profile startup now opens the owner's Treehole through the
+  profile service when no Home session is active. This does not join Home,
+  create a Home room, or depend on Home peer count.
+- Android Treehole post, comment, and like actions no longer require a Home
+  `session` in the UI. They depend on Treehole readiness and authorization:
+  `treeholeCanPost` for owner posts and `treeholeCanInteract` for comments and
+  likes.
+- Leaving a remote Home closes the remote Home-scoped Treehole and restores the
+  owner's profile Treehole. Leaving the owner's own Home does not clear the
+  profile-scoped Treehole.
+
 ### 2. Make Request And Chat UX Match On Both Clients
 
 Both clients should support the same user-facing states:

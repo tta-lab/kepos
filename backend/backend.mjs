@@ -75,6 +75,7 @@ const rpc = new RPC(BareKit.IPC, (req) => {
 let room = null
 let treehole = null
 let treeholeOpening = null
+let treeholeScope = null
 let treeholeSwarm = null
 let treeholeStatePublisher = null
 let roomKey = null
@@ -243,9 +244,12 @@ async function joinRoom(payload) {
   })
   if (payload.createTreehole) {
     sendToUI(RPC_STATUS, { status: 'opening-treehole' })
-    await openTreehole()
+    await openTreehole(null, 'profile')
     requestHomeHello()
   } else {
+    if (treeholeScope === 'profile') {
+      await closeTreehole()
+    }
     sendToUI(RPC_TREEHOLE_STATUS, { status: 'waiting-for-bootstrap' })
   }
 
@@ -260,7 +264,10 @@ async function joinRoom(payload) {
 async function leaveRoom() {
   await room?.leave()
   room = null
-  await closeTreehole()
+  const shouldRestoreProfileTreehole = treeholeScope === 'home'
+  if (treeholeScope === 'home') {
+    await closeTreehole()
+  }
   roomKey = null
   homeAddress = null
   homeOwnerProfileId = null
@@ -270,6 +277,11 @@ async function leaveRoom() {
   allowDebugHomeTrustFallback = false
   localAvatarMediaControl = null
   addedWriters.clear()
+  if (shouldRestoreProfileTreehole) {
+    await openProfileTreehole()
+  } else if (treeholeScope === 'profile') {
+    await sendTreeholeState()
+  }
 }
 
 async function startProfileService(payload) {
@@ -326,23 +338,43 @@ async function startProfileService(payload) {
     onRequest: (request) => sendToUI(RPC_DM_MESSAGE, request)
   })
   await profileRequestRuntime.open()
+
+  if (!roomKey) {
+    await openProfileTreehole()
+  }
 }
 
-function openTreehole(bootstrapKey = null) {
-  if (treehole) {
+async function openProfileTreehole() {
+  if (!profileHomeRoomKey || !profileId || !identity || !treeholeStorageBasePath) {
     return
+  }
+
+  await openTreehole(null, 'profile')
+}
+
+async function openTreehole(bootstrapKey = null, scope = 'home') {
+  if (treehole && treeholeScope === scope) {
+    return
+  }
+  if (treehole) {
+    await closeTreehole()
   }
   if (treeholeOpening) {
     return treeholeOpening
   }
 
-  treeholeOpening = openTreeholeOnce(bootstrapKey).finally(() => {
+  treeholeOpening = openTreeholeOnce(bootstrapKey, scope).finally(() => {
     treeholeOpening = null
   })
   return treeholeOpening
 }
 
-async function openTreeholeOnce(bootstrapKey = null) {
+async function openTreeholeOnce(bootstrapKey = null, scope = 'home') {
+  const treeholeRoomKey = scope === 'profile' ? profileHomeRoomKey : roomKey
+  if (!treeholeRoomKey) {
+    throw new Error('Treehole room key is required')
+  }
+
   sendToUI(RPC_STATUS, { status: 'opening-treehole-store' })
   sendToUI(RPC_TREEHOLE_STATUS, { status: 'opening-store' })
   treehole = await createTreeholeBase(
@@ -355,11 +387,12 @@ async function openTreeholeOnce(bootstrapKey = null) {
       storage: createTreeholeStoragePath({
         basePath: treeholeStorageBasePath,
         bootstrapKey,
-        roomKey
+        roomKey: treeholeRoomKey
       }),
       treeholePolicy
     })
   )
+  treeholeScope = scope
   sendToUI(RPC_STATUS, { status: 'opening-treehole-replication' })
   sendToUI(RPC_TREEHOLE_STATUS, { status: 'opening-replication' })
   startTreeholeReplication()
@@ -384,6 +417,7 @@ async function closeTreehole() {
   treeholeStatePublisher = null
   await treehole?.close()
   treehole = null
+  treeholeScope = null
 }
 
 function startTreeholeReplication() {
@@ -458,7 +492,7 @@ async function handleControl(message, peer) {
 
   if (message.type === 'treehole.bootstrap') {
     homeOwnerProfileId = message.ownerProfileId?.trim() || homeOwnerProfileId
-    await openTreehole(message.key)
+    await openTreehole(message.key, 'home')
     sendTreeholeWriter(peer)
     return
   }

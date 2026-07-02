@@ -1066,7 +1066,7 @@ export default function App() {
 
   function sendTreeholePost() {
     const cleanText = normalizeComposerText(treeholeDraft)
-    if (!session || !cleanText) {
+    if (!treeholeCanPost || !cleanText) {
       return
     }
 
@@ -1085,7 +1085,7 @@ export default function App() {
 
   function sendTreeholeComment({ postId, text }: TreeholeCommentDraft) {
     const cleanText = normalizeComposerText(text)
-    if (!session || !treeholeCanInteract || !cleanText) {
+    if (!treeholeCanInteract || !cleanText) {
       return
     }
 
@@ -1103,7 +1103,7 @@ export default function App() {
   }
 
   function sendTreeholeLike(postId: string) {
-    if (!session || !treeholeCanInteract) {
+    if (!treeholeCanInteract) {
       return
     }
 

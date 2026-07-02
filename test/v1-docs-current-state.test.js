@@ -209,6 +209,13 @@ test('V1 active profile and DM first release plan demotes Home from social deliv
   assert.match(plan, /Identity -> Profile delivery -> ContactBook trust -> DM/)
   assert.match(plan, /It is not:\n\n```text\nHome -> friend request -> trust -> Chat/)
   assert.match(plan, /Remove Remaining Home-Centric Product State/)
+  assert.match(plan, /Android backend profile startup now opens the owner's Treehole/)
+  assert.match(plan, /does not join Home/)
+  assert.match(
+    plan,
+    /Android Treehole post, comment, and like actions no longer require a Home\s+`session`/
+  )
+  assert.match(plan, /Leaving a remote Home closes the remote Home-scoped Treehole/)
   assert.match(plan, /Make Request And Chat UX Match On Both Clients/)
   assert.match(plan, /Treat Home As A Post-Trust Activity Surface/)
   assert.match(plan, /Do not spend phone time until the source-level route is clean/)
