@@ -108,6 +108,9 @@ Phase 1 through Phase 6 are implemented or quarantined in the current branch:
 - leaving Home no longer shuts down Android profile request delivery
 - accepting a friend request no longer requires Home membership on desktop or Android
 - signed DM invites now travel over the same profile-level P2P topic instead of normal Home control broadcast
+- desktop profile-source DM invite handling passes the current ContactBook,
+  current DM session, local DM encryption key, and invite acceptance callback
+  into the invite acceptance path, then persists returned ContactBook updates
 
 - temporary Home-control request and invite compatibility paths are quarantined
   behind explicit debug fallback

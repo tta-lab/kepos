@@ -195,6 +195,51 @@ test('desktop control actions persist contact book updates from accepted DM invi
   ])
 })
 
+test('desktop control actions route profile DM invites through local invite acceptance context', async () => {
+  const captured = []
+  const context = {
+    contactBook: { outgoingRequestsByProfileId: new Map(), ownerProfileId: 'local' },
+    profile: {
+      id: 'local',
+      dmEncryptionKeyPair: { privateKey: 'dm-private', publicKey: 'dm-public' }
+    },
+    saveContactBook(book) {
+      captured.push(['saveContactBook', book])
+    }
+  }
+  const { actions, calls } = createHarness({
+    createControlMessageResult: (payload) => {
+      captured.push(['payload', payload])
+      payload.acceptInviteAsRecipient({ inviteId: 'invite-1' })
+      return {
+        book: { trusted: 'friend' },
+        kind: 'dm_invite'
+      }
+    },
+    getProfileContext: () => context
+  })
+  const message = {
+    fromProfileId: 'friend',
+    requestId: 'request-1',
+    type: 'kepos.dm.invite.v1'
+  }
+
+  await actions.handleControl(message, undefined, { source: 'profile' })
+
+  assert.equal(captured.length, 2)
+  assert.equal(captured[0][0], 'payload')
+  assert.equal(captured[0][1].contactBook, context.contactBook)
+  assert.deepEqual(captured[0][1].currentDmSession, { localProfileId: 'local' })
+  assert.equal(captured[0][1].message, message)
+  assert.equal(captured[0][1].recipientEncryptionKeyPair, context.profile.dmEncryptionKeyPair)
+  assert.deepEqual(captured[1], ['saveContactBook', { trusted: 'friend' }])
+  assert.deepEqual(calls, [
+    ['dm.acceptInviteAsRecipient', { inviteId: 'invite-1' }],
+    ['notice', 'Message thread ready.'],
+    ['render']
+  ])
+})
+
 test('desktop control actions ignore signed DM body Home fallback frames by default', async () => {
   const { actions, calls } = createHarness()
   const message = {

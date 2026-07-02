@@ -124,7 +124,8 @@ Not V1 Home scope:
    friend request send, receive, accept, or DM bootstrap.
 2. Strengthen tests where behavior is only documented:
    - mobile accepted invite persists ContactBook trust
-   - desktop accepted invite persists ContactBook trust
+   - desktop accepted invite persists ContactBook trust and is routed through
+     the local invite acceptance context
    - Profile QR scan builds a profile target, not a Home target
    - normal Chat send path does not use Home room chat
 3. Make desktop and mobile screens converge on the same product nouns:
