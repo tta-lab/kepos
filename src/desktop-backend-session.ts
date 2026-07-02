@@ -162,21 +162,17 @@ export function createDesktopBackendSession({
     setNotice
   } as never)
   const roomActions = createDesktopRoomActions({
-    closeAll: () => closeAllRuntimes(),
+    closeHome: () => closeHomeRuntimes(),
     configureTreeholeRuntime,
     getDirectTransportConfig: ({ mode }: { mode?: string } = {}) =>
       getDesktopDirectTransportConfig({ env, mode }),
     getCurrentDisplayName,
-    getDmRuntime: () => dmRuntime,
     getHomeRuntime: () => homeRuntime,
     getProfileContext,
     getTreeholeRuntime: () => treeholeRuntime,
     onChanged,
     openTreehole,
     setContextFormDraft,
-    setDmSession: (nextSession: unknown) => {
-      controllerState.setDmSession(nextSession)
-    },
     setHomeJoinDetails: (nextDetails: unknown) => {
       controllerState.setHomeJoinDetails(nextDetails)
     },
@@ -330,10 +326,8 @@ export function createDesktopBackendSession({
     }
   }
 
-  async function closeAllRuntimes(): Promise<unknown[]> {
-    await profileRequestRuntime?.close()
-    profileRequestRuntime = null
-    return await Promise.all([backendRuntime.closeAll()])
+  async function closeHomeRuntimes(): Promise<unknown[]> {
+    return await (backendRuntime.closeHome?.() ?? Promise.all([backendRuntime.closeAll()]))
   }
 
   async function openTreehole(bootstrapKey: string | null = null) {
@@ -466,6 +460,7 @@ type DesktopLocalBackendHostLike = {
 
 type DesktopBackendRuntime = {
   closeAll: () => unknown | Promise<unknown>
+  closeHome?: () => unknown[] | Promise<unknown[]>
   configure: (context: unknown) => unknown
 }
 

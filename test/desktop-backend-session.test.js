@@ -178,6 +178,62 @@ test('desktop backend session starts direct messages before joining a home', asy
   assert.deepEqual(changes, ['changed'])
 })
 
+test('desktop backend session keeps profile delivery and DM alive across Home joins', async () => {
+  const controllerState = createControllerState()
+  const starts = []
+  const runtimeCloses = []
+  const createdHosts = []
+  const profileRequestRuntimes = []
+
+  createDesktopBackendSession({
+    controllerState,
+    createId: () => 'id-1',
+    createProfileRequestRuntime: createFakeProfileRequestRuntimeFactory(profileRequestRuntimes),
+    createLocalBackendHost: (options) => {
+      createdHosts.push(options)
+      return {
+        bridge: { label: 'bridge' },
+        dmRuntime: {
+          loadThreads: () => [],
+          replaceThreads: () => {},
+          start: (payload) => {
+            starts.push(payload)
+            return { id: `dm-session-${starts.length}`, localProfileId: 'a'.repeat(64) }
+          }
+        },
+        homeRuntime: {
+          isJoined: () => false,
+          join: () => {},
+          requestHomeHello: () => {}
+        },
+        runtime: {
+          closeAll: () => runtimeCloses.push('all'),
+          closeHome: () => runtimeCloses.push('home'),
+          configure: () => {}
+        },
+        treeholeRuntime: { canPost: () => false, open: () => {} }
+      }
+    },
+    getCurrentDisplayName: () => 'Desktop',
+    getProfileContext: () => createProfileContext(),
+    onChanged: () => {},
+    setContextFormDraft: () => {},
+    setDirectComposerRecipient: () => {},
+    setNotice: () => {},
+    shortenProfileId: (value) => value.slice(0, 8),
+    storageBasePath: '/user-data/kepos/v1',
+    updateState: (updater) => controllerState.updateState(updater)
+  })
+  await flushAsync()
+
+  await createdHosts[0].actions.joinHome({ createTreehole: true, mode: 'host' })
+
+  assert.equal(starts.length, 1)
+  assert.equal(controllerState.getDmSession().id, 'dm-session-1')
+  assert.equal(profileRequestRuntimes[0].closed, false)
+  assert.deepEqual(runtimeCloses, ['home'])
+})
+
 test('desktop backend session keeps runtime DM changes in controller state', () => {
   const controllerState = createControllerState()
   const changes = []

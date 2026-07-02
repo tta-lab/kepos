@@ -76,10 +76,12 @@ test('desktop backend runtime configures and closes composed runtimes', async ()
 
   runtime.configure(context)
   const closed = await runtime.closeAll()
+  const closedHome = await runtime.closeHome()
 
   assert.deepEqual(runtime.home.options.context, context)
   assert.deepEqual(runtime.treehole.options.context, context)
   assert.deepEqual(closed, ['dm:closeAll', 'home:leave', 'treehole:close'])
+  assert.deepEqual(closedHome, ['home:leave', 'treehole:close'])
 })
 
 test('desktop backend runtime passes storage base path to treehole runtime', () => {

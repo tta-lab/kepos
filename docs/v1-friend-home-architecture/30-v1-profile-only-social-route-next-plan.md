@@ -175,6 +175,18 @@ Both clients should expose the same nouns and same state transitions:
 Where possible, shared TypeScript modules should own the product rules.
 Platform code should own rendering, storage adapters, camera, and runtime glue.
 
+Status: in progress.
+
+Evidence added after the descriptor race fix:
+
+- Desktop Home lifecycle no longer owns social runtime lifecycle. Entering or
+  leaving Home closes Home/Treehole runtime state only; it does not close the
+  profile request runtime and does not restart or clear the durable DM session.
+- Android leave-Home UI already leaves durable Chat session state intact; a
+  regression test now locks that behavior.
+- Desktop and Android still keep explicit Enter Home as a separate action from
+  Profile QR, request send, request accept, and Chat open.
+
 ### 3. Remove Or Quarantine Legacy Product Paths
 
 Audit normal user actions and tests for hidden fallback:

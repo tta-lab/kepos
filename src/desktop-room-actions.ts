@@ -27,14 +27,6 @@ type DirectTransportConfig = Record<string, unknown> & {
   mode?: string
 }
 
-type DmRuntime = {
-  start(payload: {
-    nick: string
-    profile: DesktopProfileContext['profile']
-    storage: DesktopProfileContext['storage']
-  }): unknown | Promise<unknown>
-}
-
 type HomeRuntime = {
   join(payload: {
     homeJoinDetails: DesktopHomeJoinDetails['homeJoinDetails']
@@ -65,12 +57,11 @@ export type DesktopRoomActions = {
 
 export function createDesktopRoomActions({
   applyHomeQr = applyDesktopHomeQr,
-  closeAll,
+  closeHome,
   configureTreeholeRuntime,
   createHomeJoinDetails = createDesktopHomeJoinDetails,
   createInitialState = createDesktopState,
   getCurrentDisplayName,
-  getDmRuntime,
   getDirectTransportConfig = () => null,
   getHomeRuntime,
   getProfileContext,
@@ -78,7 +69,6 @@ export function createDesktopRoomActions({
   onChanged = () => {},
   openTreehole,
   setContextFormDraft = () => {},
-  setDmSession,
   setHomeJoinDetails,
   setSession,
   updateState
@@ -88,7 +78,7 @@ export function createDesktopRoomActions({
     localProfileId: string
     uri: string
   }) => DesktopHomeAddress
-  closeAll: () => unknown | Promise<unknown>
+  closeHome: () => unknown | Promise<unknown>
   configureTreeholeRuntime: () => void
   createHomeJoinDetails?: (options: {
     contactBook: DesktopProfileContext['contactBook']
@@ -100,7 +90,6 @@ export function createDesktopRoomActions({
   }) => DesktopHomeJoinDetails
   createInitialState?: () => DesktopState
   getCurrentDisplayName: () => string
-  getDmRuntime: () => DmRuntime
   getDirectTransportConfig?: (options: { mode?: string }) => DirectTransportConfig | null
   getHomeRuntime: () => HomeRuntime
   getProfileContext: (displayName?: string) => DesktopProfileContext
@@ -108,15 +97,13 @@ export function createDesktopRoomActions({
   onChanged?: () => void
   openTreehole: (bootstrapKey?: unknown) => unknown | Promise<unknown>
   setContextFormDraft?: (draft: Record<string, unknown>) => void
-  setDmSession: (session: unknown) => void
   setHomeJoinDetails: (details: DesktopHomeJoinDetails['homeJoinDetails'] | null) => void
   setSession: (session: unknown) => void
   updateState: (updater: (state: DesktopState) => DesktopState) => void
 }): DesktopRoomActions {
   async function leaveHome(): Promise<void> {
-    await closeAll()
+    await closeHome()
     setSession(null)
-    setDmSession(null)
     setHomeJoinDetails(null)
     configureTreeholeRuntime()
     updateState(() => createInitialState())
@@ -133,7 +120,7 @@ export function createDesktopRoomActions({
     await leaveHome()
 
     const nick = displayName?.trim() || getCurrentDisplayName()
-    const { contactBook, profile, storage } = getProfileContext(nick)
+    const { contactBook, profile } = getProfileContext(nick)
     const homeJoin = createHomeJoinDetails({
       contactBook,
       homeAddress,
@@ -157,7 +144,6 @@ export function createDesktopRoomActions({
     setHomeJoinDetails(homeJoin.homeJoinDetails)
     setSession(homeJoin.session)
     configureTreeholeRuntime()
-    setDmSession(await getDmRuntime().start({ nick, profile, storage }))
     updateState((state) => {
       const roomState = setDesktopRoom(state, {
         mode: homeJoin.mode,

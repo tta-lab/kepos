@@ -680,6 +680,18 @@ test('mobile Home startup and RPC store avatar media byte controls', async () =>
   )
 })
 
+test('mobile leave Home does not clear durable Chat session state', async () => {
+  const source = await readMobileSource()
+  const leaveRoom = source.slice(
+    source.indexOf('function leaveRoom()'),
+    source.indexOf('function sendMessage()')
+  )
+
+  assert.match(leaveRoom, /setSession\(null\)/)
+  assert.doesNotMatch(leaveRoom, /setDmSession\(null\)/)
+  assert.doesNotMatch(leaveRoom, /setDmMessages\(\[\]\)/)
+})
+
 test('mobile ContactBook direct writes keep the runtime ref in sync', async () => {
   const source = await readMobileSource()
   const syncContactBook = source.slice(

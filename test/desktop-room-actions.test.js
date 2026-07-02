@@ -8,7 +8,6 @@ function createHarness(overrides = {}) {
   const calls = []
   let state = { treeholePosts: [], treeholeStatus: 'idle', treeholeCanPost: false }
   let session = null
-  let dmSession = null
   let homeJoinDetails = null
   const homeRuntime = {
     join(payload) {
@@ -18,12 +17,6 @@ function createHarness(overrides = {}) {
       calls.push(['home.requestHomeHello'])
     }
   }
-  const dmRuntime = {
-    start(payload) {
-      calls.push(['dm.start', payload])
-      return { id: 'dm-session' }
-    }
-  }
   const actions = createDesktopRoomActions({
     applyHomeQr: ({ uri }) => ({
       address: `address:${uri}`,
@@ -31,7 +24,7 @@ function createHarness(overrides = {}) {
       policy: 'trusted',
       roomKey: `room:${uri}`
     }),
-    closeAll: () => calls.push(['runtime.closeAll']),
+    closeHome: () => calls.push(['runtime.closeHome']),
     configureTreeholeRuntime: () => calls.push(['treehole.configure']),
     createHomeJoinDetails: ({ homeAddress, mode, nick, roomKey }) => ({
       homeJoinDetails: {
@@ -43,7 +36,6 @@ function createHarness(overrides = {}) {
       session: { id: 'home-session', nick }
     }),
     getCurrentDisplayName: () => 'Neil',
-    getDmRuntime: () => dmRuntime,
     getHomeRuntime: () => homeRuntime,
     getProfileContext: (displayName = 'Neil') => ({
       contactBook: { ownerProfileId: 'profile-1' },
@@ -60,9 +52,6 @@ function createHarness(overrides = {}) {
     onChanged: () => calls.push(['render']),
     openTreehole: (bootstrapKey) => calls.push(['treehole.open', bootstrapKey]),
     setContextFormDraft: (draft) => calls.push(['form.draft', draft]),
-    setDmSession: (nextSession) => {
-      dmSession = nextSession
-    },
     setHomeJoinDetails: (nextDetails) => {
       homeJoinDetails = nextDetails
     },
@@ -78,9 +67,6 @@ function createHarness(overrides = {}) {
   return {
     actions,
     calls,
-    get dmSession() {
-      return dmSession
-    },
     get homeJoinDetails() {
       return homeJoinDetails
     },
@@ -93,7 +79,7 @@ function createHarness(overrides = {}) {
   }
 }
 
-test('desktop room actions create a host home and start runtimes', async () => {
+test('desktop room actions create a host home without restarting social runtimes', async () => {
   const harness = createHarness()
 
   await harness.actions.joinHome({ createTreehole: true, displayName: 'Ada', mode: 'host' })
@@ -104,23 +90,14 @@ test('desktop room actions create a host home and start runtimes', async () => {
     roomKey: 'created-room'
   })
   assert.deepEqual(harness.session, { id: 'home-session', nick: 'Ada' })
-  assert.deepEqual(harness.dmSession, { id: 'dm-session' })
   assert.equal(harness.state.view, 'room')
   assert.equal(harness.state.notice, 'Home joined.')
   assert.deepEqual(harness.calls, [
-    ['runtime.closeAll'],
+    ['runtime.closeHome'],
     ['treehole.configure'],
     ['render'],
     ['form.draft', { roomKey: 'created-room' }],
     ['treehole.configure'],
-    [
-      'dm.start',
-      {
-        nick: 'Ada',
-        profile: { displayName: 'Ada', id: 'profile-1' },
-        storage: { key: 'storage' }
-      }
-    ],
     ['render'],
     [
       'home.join',
@@ -319,8 +296,7 @@ test('desktop room actions leave home and reset local state', async () => {
   await harness.actions.leaveHome()
 
   assert.equal(harness.session, null)
-  assert.equal(harness.dmSession, null)
   assert.equal(harness.homeJoinDetails, null)
   assert.deepEqual(harness.state, { notice: 'Show My QR or add a friend.', view: 'lobby' })
-  assert.deepEqual(harness.calls, [['runtime.closeAll'], ['treehole.configure'], ['render']])
+  assert.deepEqual(harness.calls, [['runtime.closeHome'], ['treehole.configure'], ['render']])
 })
