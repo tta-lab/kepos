@@ -38,6 +38,7 @@
     "test": "node --test",
     "typecheck": "tsc --noEmit",
     "v1:proof:packet": "node scripts/final-v1-proof-packet.mjs",
+    "v1:proof:check": "node scripts/check-final-v1-proof-packet.mjs",
     "v1:gate": "npm run lint && npm test && npm run compat:typescript && npm run compat:bundle:typescript && npm run desktop:bundle && npm run backend:bundle:android && npx expo export --platform android --output-dir tmp/expo-export-android && npm run android:check-apk"
   },
   "dependencies": {
