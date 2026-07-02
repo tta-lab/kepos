@@ -80,7 +80,13 @@ The short version:
     - Current V1 finish plan: lock product parity, make Chat the primary trust
       result, keep Treehole personal, demote Home to explicit live room, and run
       the final release proof.
-    - Use this as the next implementation plan before more phone smoke.
+    - Use this for the previous ready-product plan and release proof context.
+
+16. `16-v1-profile-delivery-next-plan.md`
+    - Current next plan after phone smoke clarified the core rule: profile-level
+      P2P owns friend requests, accepts, and durable DM; Home is only explicit
+      live-room entry after trust.
+    - Use this as the active V1 implementation plan.
 
 ## Core Principle
 
@@ -95,4 +101,5 @@ It must not mean:
 > I want to join their Home room.
 
 Joining a Home must not be used to deliver the request in the production
-architecture. Friend request and DM delivery must be profile-to-profile P2P.
+architecture. Friend request, accept, and durable DM delivery must be
+profile-to-profile P2P.
