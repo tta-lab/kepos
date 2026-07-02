@@ -515,10 +515,16 @@ test('desktop success notices avoid profile id snippets', async () => {
     new URL('../src/desktop-trust-actions.ts', import.meta.url),
     'utf8'
   )
-  const source = `${controller}\n${messageRequestActions}\n${controlActions}\n${trustActions}`
+  const requestDelivery = await readFile(
+    new URL('../src/profile-friend-request-delivery.ts', import.meta.url),
+    'utf8'
+  )
+  const source = `${controller}\n${messageRequestActions}\n${controlActions}\n${trustActions}\n${requestDelivery}`
 
   assert.match(source, /setNotice\('Friend request target ready\.'\)/)
-  assert.match(source, /setNotice\('Friend request accepted\.'\)/)
+  assert.match(source, /formatProfileFriendAcceptanceDeliveryNotice/)
+  assert.match(source, /'Friend request accepted\. Invite sent\.'/)
+  assert.match(source, /'Friend request accepted\.'/)
   assert.match(source, /setNotice\('Message thread ready\.'\)/)
   assert.match(source, /setNotice\('Friend removed\.'\)/)
   assert.equal(source.includes("notice: 'DM invite accepted.'"), false)

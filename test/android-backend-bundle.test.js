@@ -242,6 +242,37 @@ test('android backend starts profile request service without Home join', () => {
   assert.doesNotMatch(sendProfileMessageRequest, /allowHomeTrustFallback/)
 })
 
+test('android backend accepts requests and opens DM threads without Home', () => {
+  const source = readFileSync(new URL('../backend/backend.mjs', import.meta.url), 'utf8')
+  const acceptMessageRequest = sliceBetween(
+    source,
+    'async function acceptMessageRequest',
+    'async function acceptDmInvite'
+  )
+
+  assert.match(
+    acceptMessageRequest,
+    /if \(!identity \|\| !profileId \|\| !dmEncryptionKeyPair \|\| !profileRequestRuntime\)/
+  )
+  assert.match(acceptMessageRequest, /canAcceptIncomingMessageRequest\(request\)/)
+  assert.match(
+    acceptMessageRequest,
+    /createDmThread\(\{[\s\S]*remoteProfileId: request\.fromProfileId/
+  )
+  assert.match(acceptMessageRequest, /acceptDmThread\(/)
+  assert.match(acceptMessageRequest, /createDmInvite\(\{/)
+  assert.match(acceptMessageRequest, /toProfileId: request\.fromProfileId/)
+  assert.match(acceptMessageRequest, /const delivery = await profileRequestRuntime\.send\(invite\)/)
+  assert.match(acceptMessageRequest, /phase: 'acceptance'/)
+  assert.match(acceptMessageRequest, /await saveBackendDmThread\(thread\)/)
+  assert.match(acceptMessageRequest, /await dmRuntime\?\.openThread\(thread\)/)
+  assert.match(acceptMessageRequest, /sendToUI\(RPC_DM_THREAD, thread\)/)
+  assert.doesNotMatch(acceptMessageRequest, /room/)
+  assert.doesNotMatch(acceptMessageRequest, /allowHomeTrustFallback/)
+  assert.doesNotMatch(acceptMessageRequest, /broadcastControl/)
+  assert.doesNotMatch(acceptMessageRequest, /sendControl/)
+})
+
 test('android backend forwards avatar media controls between Home peers and UI', () => {
   const source = readFileSync(new URL('../backend/backend.mjs', import.meta.url), 'utf8')
   const joinRoom = sliceBetween(source, 'async function joinRoom', 'async function leaveRoom')

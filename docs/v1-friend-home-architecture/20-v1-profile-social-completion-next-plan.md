@@ -26,6 +26,15 @@ Already true or partly proven:
   the original request id, text, timestamp, and target profile.
 - Retry marks the local outgoing request queued, and later delivery state events
   update the contact book.
+- Desktop accept sends the signed DM invite through profile transport, saves the
+  updated ContactBook, and does not broadcast over Home.
+- Android accept creates the accepted thread, sends the signed DM invite through
+  `profileRequestRuntime.send(invite)`, sends acceptance delivery state, saves
+  and opens the thread, emits `RPC_DM_THREAD`, and does not read Home.
+- Android receives `RPC_DM_THREAD` before async storage completes, upserts the
+  thread, and marks the matching outgoing request accepted in ContactBook.
+- The shared Chat thread list creates accepted rows from trusted ContactBook
+  contacts even when there are no saved messages or thread snapshots yet.
 - Chat and Contacts are the intended trusted-person surfaces.
 - Home is documented as a live room, not the way to add friends.
 
@@ -33,9 +42,11 @@ Already true or partly proven:
 
 V1 is not ready until these are true on both desktop and Android:
 
-- Friend request accept returns over profile-social delivery, not Home.
-- The accepted contact appears in Contacts and Chat without entering Home.
-- DM bootstrap is durable and survives restart.
+- Friend request accept and invite return are proven on the physical
+  cross-device path with Home peer counts staying zero.
+- The accepted contact appears in Contacts and Chat on both rendered clients
+  without entering Home.
+- DM bootstrap durability is proven through restart on both rendered clients.
 - The first private message path is clearly Chat, not Home room chat.
 - Profile detail is the shared destination from Contacts and Chat.
 - Treehole remains my own post surface, while a friend's recent posts are
@@ -54,8 +65,11 @@ Required behavior:
 - both sides keep honest state if the return path is delayed
 - Home peer count can stay zero for the whole flow
 
-Done when focused tests fail if accept calls Home control, Home entry, or direct
-host/port delivery.
+Low-cost status: complete for source and model proof. Desktop and Android tests
+fail if accept uses Home control, Home entry, or direct host/port delivery.
+
+Remaining proof: physical cross-device release proof still needs to record Home
+peer counts at accept/invite return.
 
 ## Phase 2: Prove DM Bootstrap Without Home
 
@@ -69,8 +83,12 @@ Required behavior:
 - first message send uses the DM/profile route, not Home room chat
 - failed or pending bootstrap state is visible instead of hidden
 
-Done when tests prove a trusted contact can become a Chat row and exchange the
-first private message with Home disconnected.
+Low-cost status: partly complete. Tests prove accepted threads are saved/opened,
+`RPC_DM_THREAD` updates Android UI state, trusted contacts can become Chat rows
+before messages, and accepted message sends avoid Home.
+
+Remaining proof: rendered desktop and Android restart proof still needs to show
+the accepted Chat thread, preview, and first private message path after restart.
 
 ## Phase 3: Finish Shared Product Logic
 
