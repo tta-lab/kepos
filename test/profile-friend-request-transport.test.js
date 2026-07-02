@@ -159,6 +159,32 @@ test('profile friend request runtime sends through a target profile topic', asyn
   ])
 })
 
+test('profile friend request runtime sends without opening the local inbox', async () => {
+  const swarms = []
+  const from = createSigningKeyPair()
+  const to = createSigningKeyPair()
+  const request = createRequest({ from, to })
+  const runtime = createProfileFriendRequestRuntime({
+    createSwarm: () => {
+      const swarm = new FakeSwarm()
+      swarms.push(swarm)
+      return swarm
+    },
+    localProfileId: from.publicKey
+  })
+
+  const result = await runtime.send(request)
+
+  assert.equal(result.state, 'searching')
+  assert.equal(swarms.length, 1)
+  assert.deepEqual(swarms[0].joins, [
+    {
+      options: { client: true, server: false },
+      topic: deriveProfileFriendRequestTopic(to.publicKey)
+    }
+  ])
+})
+
 test('profile friend request runtime marks sent frames delivered after receiver ack', async () => {
   const swarms = []
   const delivery = []

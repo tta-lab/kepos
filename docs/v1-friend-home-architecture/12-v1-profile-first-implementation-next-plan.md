@@ -49,6 +49,9 @@ Already in source:
 - Chat can show trusted threads and request-like rows.
 - Debug Home paths are no longer the main copy path.
 - Final proof packet starts from Profile QR instead of Home entry.
+- Profile request transport can send through the target profile topic without
+  opening the local inbox first, which keeps request sending independent from
+  Home entry and local room lifecycle.
 
 This is enough to stop redesigning the model. The remaining work is proof and
 small fixes found by proof.
