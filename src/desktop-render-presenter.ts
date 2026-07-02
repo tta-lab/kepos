@@ -81,6 +81,7 @@ export function createDesktopRenderPresenter({
     state: DesktopState
   }): void {
     const inRoom = state.view === 'room'
+    const hasDmSession = Boolean(dmSession)
     const isActionPending = Boolean(pendingCommand)
 
     ui?.setShellBusy(isActionPending)
@@ -96,7 +97,7 @@ export function createDesktopRenderPresenter({
       canCreateHome: !inRoom && !isActionPending,
       canLeaveHome: inRoom && !isActionPending,
       canPostTreehole: Boolean(state.treeholeCanPost),
-      canUseDirectComposer: inRoom,
+      canUseDirectComposer: hasDmSession && !isActionPending,
       canUseHomeChatComposer: inRoom,
       canUseHomeQrJoin: !isActionPending && !inRoom,
       canUseManualHomeJoin: !isActionPending && !inRoom,

@@ -220,3 +220,36 @@ test('desktop render presenter keeps lobby controls available when no action is 
     ]
   )
 })
+
+test('desktop render presenter allows direct messages without entering Home', () => {
+  const { calls, ui } = createUiRecorder()
+  const presenter = createDesktopRenderPresenter({
+    ui
+  })
+
+  presenter.render({
+    contactBook: createContactBook({ ownerProfileId: 'owner' }),
+    directComposerRecipientProfileId: 'friend',
+    dmSession: { messages: [] },
+    pendingCommand: null,
+    session: null,
+    state: createDesktopState()
+  })
+
+  assert.deepEqual(
+    calls.find(([name]) => name === 'controls'),
+    [
+      'controls',
+      {
+        canCreateHome: true,
+        canLeaveHome: false,
+        canPostTreehole: true,
+        canUseDirectComposer: true,
+        canUseHomeChatComposer: false,
+        canUseHomeQrJoin: true,
+        canUseManualHomeJoin: true,
+        canUseTrustProfile: true
+      }
+    ]
+  )
+})
