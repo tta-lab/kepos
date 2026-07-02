@@ -122,6 +122,80 @@ test('creates DM inbox rows from accepted threads and latest messages', () => {
   )
 })
 
+test('creates Chat rows from trusted contacts without saved DM threads', () => {
+  const friendProfileId = 'b'.repeat(64)
+  const book = trustContact(createContactBook({ ownerProfileId: 'a'.repeat(64) }), {
+    alias: 'Mina',
+    avatarUriSnapshot: 'kepos://avatar/mina',
+    profileId: friendProfileId,
+    trustedAt: 1000
+  })
+
+  assert.deepEqual(
+    createDmThreadListView({
+      contactBook: book,
+      formatTime: (value) => `t:${value}`,
+      shortenProfileId: (value) => `${value.slice(0, 4)}...`,
+      threads: []
+    }),
+    [
+      {
+        avatar: {
+          imageUri: 'kepos://avatar/mina',
+          initials: 'M',
+          label: 'Mina avatar',
+          tone: 'avatarTone3'
+        },
+        label: 'Mina',
+        preview: 'No messages yet',
+        profileId: friendProfileId,
+        statusLabel: 'Accepted thread',
+        threadId: `contact:${friendProfileId}`,
+        timeLabel: 't:1000',
+        unreadCount: 0,
+        unreadLabel: ''
+      }
+    ]
+  )
+})
+
+test('creates Chat rows from trusted contact arrays without saved DM threads', () => {
+  const friendProfileId = 'b'.repeat(64)
+
+  assert.deepEqual(
+    createDmThreadListView({
+      contacts: [
+        {
+          alias: 'Mina',
+          avatarUriSnapshot: 'kepos://avatar/mina',
+          profileId: friendProfileId
+        }
+      ],
+      formatTime: (value) => `t:${value}`,
+      shortenProfileId: (value) => `${value.slice(0, 4)}...`,
+      threads: []
+    }),
+    [
+      {
+        avatar: {
+          imageUri: 'kepos://avatar/mina',
+          initials: 'M',
+          label: 'Mina avatar',
+          tone: 'avatarTone3'
+        },
+        label: 'Mina',
+        preview: 'No messages yet',
+        profileId: friendProfileId,
+        statusLabel: 'Accepted thread',
+        threadId: `contact:${friendProfileId}`,
+        timeLabel: 'Accepted thread',
+        unreadCount: 0,
+        unreadLabel: ''
+      }
+    ]
+  )
+})
+
 test('resolves contact avatar media snapshots for DM inbox rows', () => {
   const friendProfileId = 'b'.repeat(64)
   const avatarMediaSnapshot = createAvatarMediaReference({

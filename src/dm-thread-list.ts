@@ -1,4 +1,5 @@
 import type { ContactBook, MessageRequestContact } from './contact-book.ts'
+import { isContactTrusted } from './contact-book.ts'
 import { formatProfileFriendRequestDeliveryState } from './profile-friend-request-delivery.ts'
 import { getLatestProfileSnapshot, type ProfileSnapshot } from './profile-snapshot.ts'
 import {
@@ -35,6 +36,7 @@ type ThreadContact = {
   displayNameSnapshot?: string
   profileId: string
   profileSnapshots?: ProfileSnapshot[]
+  trustedAt?: number
 }
 
 type ThreadRequestContact = Omit<
@@ -132,6 +134,8 @@ export function createDmThreadListView({
   ]
 
   return createThreadSnapshots({
+    contactBook,
+    contacts,
     outgoingRequests: allOutgoingRequests,
     pendingRequests: allPendingRequests,
     threads
@@ -235,30 +239,86 @@ function createRequestThreadContact(request: ThreadRequestContact): ThreadContac
 }
 
 function createThreadSnapshots({
+  contactBook,
+  contacts,
   outgoingRequests,
   pendingRequests,
   threads
 }: {
+  contactBook?: ContactBook | null
+  contacts: readonly ThreadContact[]
   outgoingRequests: readonly ThreadRequestContact[]
   pendingRequests: readonly ThreadRequestContact[]
   threads: readonly unknown[]
 }): unknown[] {
   const snapshots = threads.map(readThreadSnapshot)
-  const profilesWithThreads = new Set(
+  const profilesWithRows = new Set(
     snapshots
       .map((thread) => (typeof thread.remoteProfileId === 'string' ? thread.remoteProfileId : ''))
       .filter(Boolean)
   )
 
+  const pendingSnapshots: ThreadSnapshot[] = []
+  for (const request of pendingRequests) {
+    if (profilesWithRows.has(request.profileId)) continue
+    profilesWithRows.add(request.profileId)
+    pendingSnapshots.push(createRequestThreadSnapshot(request, 'in'))
+  }
+
+  const outgoingSnapshots: ThreadSnapshot[] = []
+  for (const request of outgoingRequests) {
+    if (profilesWithRows.has(request.profileId)) continue
+    profilesWithRows.add(request.profileId)
+    outgoingSnapshots.push(createRequestThreadSnapshot(request, 'out'))
+  }
+
   return [
     ...snapshots,
-    ...pendingRequests
-      .filter((request) => !profilesWithThreads.has(request.profileId))
-      .map((request) => createRequestThreadSnapshot(request, 'in')),
-    ...outgoingRequests
-      .filter((request) => !profilesWithThreads.has(request.profileId))
-      .map((request) => createRequestThreadSnapshot(request, 'out'))
+    ...pendingSnapshots,
+    ...outgoingSnapshots,
+    ...createTrustedContactThreadSnapshots({ contactBook, contacts, profilesWithRows })
   ]
+}
+
+function createTrustedContactThreadSnapshots({
+  contactBook,
+  contacts,
+  profilesWithRows
+}: {
+  contactBook?: ContactBook | null
+  contacts: readonly ThreadContact[]
+  profilesWithRows: Set<string>
+}): ThreadSnapshot[] {
+  const trustedContacts = new Map<string, ThreadContact>()
+
+  for (const contact of Array.from(contactBook?.contactsByProfileId?.values() || [])) {
+    if (!isContactTrusted(contactBook as ContactBook, contact.profileId)) continue
+    trustedContacts.set(contact.profileId, contact)
+  }
+
+  for (const contact of contacts) {
+    const profileId = contact.profileId?.trim()
+    if (!profileId || trustedContacts.has(profileId)) continue
+    trustedContacts.set(profileId, contact)
+  }
+
+  const snapshots: ThreadSnapshot[] = []
+  for (const contact of trustedContacts.values()) {
+    if (profilesWithRows.has(contact.profileId)) continue
+    profilesWithRows.add(contact.profileId)
+    snapshots.push(createTrustedContactThreadSnapshot(contact))
+  }
+
+  return snapshots
+}
+
+function createTrustedContactThreadSnapshot(contact: ThreadContact): ThreadSnapshot {
+  return {
+    acceptedAt: contact.trustedAt,
+    remoteProfileId: contact.profileId,
+    state: 'accepted',
+    threadId: `contact:${contact.profileId}`
+  }
 }
 
 function createRequestThreadSnapshot(

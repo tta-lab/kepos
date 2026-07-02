@@ -146,6 +146,14 @@ Still open for Phase 2:
   physical Android screen
 - final visual pass after the remaining Chat-first work is complete
 
+Phase 3 has source-level progress:
+
+- accepted trusted contacts appear in Chat even before a saved DM thread
+  snapshot exists
+- empty trusted-contact Chat rows show `No messages yet`
+- existing DM thread snapshots and request rows still take priority over
+  synthetic trusted-contact rows
+
 ### Phase 1: Remove Home From Friendship Semantics
 
 Required:
