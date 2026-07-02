@@ -74,6 +74,23 @@ test('friend request target view model marks an outgoing request as pending', ()
   })
 })
 
+test('friend request target view model keeps delivered requests untrusted', () => {
+  const book = recordOutgoingFriendRequest(createContactBook({ ownerProfileId: 'local' }), {
+    alias: 'Ada',
+    deliveryState: 'delivered',
+    profileId: 'profile-ada',
+    requestedAt: 1000,
+    requestId: 'request-1',
+    text: 'hello'
+  })
+  const profile = view(book)
+
+  assert.equal(profile.canSendRequest, false)
+  assert.equal(profile.relationshipState, 'outgoing_request')
+  assert.equal(profile.statusLabel, 'Request delivered')
+  assert.equal(profile.copy, 'Your request is pending. Wait for them to accept.')
+})
+
 test('friend request target view model marks trusted contacts as existing friends', () => {
   const book = trustContact(createContactBook({ ownerProfileId: 'local' }), {
     alias: 'Ada local',
