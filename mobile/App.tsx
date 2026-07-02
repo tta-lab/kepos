@@ -988,6 +988,58 @@ export default function App() {
     setProfileRequestTarget(null)
   }
 
+  function retryOutgoingMessageRequest(requestInput: {
+    profileId?: string | null
+    requestId?: string | null
+    requestedAt?: number
+    text?: string | null
+  }) {
+    const activeRpc = rpcRef.current
+    const cleanProfileId = requestInput.profileId?.trim() || ''
+    const cleanRequestId = requestInput.requestId?.trim() || ''
+    const cleanText = normalizeComposerText(requestInput.text || '')
+
+    if (!activeRpc) {
+      setNotice('Profile request service is not ready.')
+      return
+    }
+
+    if (!contactBook || !cleanProfileId || !cleanRequestId || !cleanText) {
+      setNotice('This friend request cannot be retried yet.')
+      return
+    }
+
+    const nextBook = updateOutgoingFriendRequestDeliveryState(contactBook, {
+      deliveryState: 'queued',
+      profileId: cleanProfileId,
+      requestId: cleanRequestId
+    })
+
+    if (nextBook !== contactBook) {
+      contactBookRef.current = nextBook
+      setContactBook(nextBook)
+      saveContactBookToFileSystem({
+        baseUri: getRequiredMobileDocumentDirectory(FileSystem),
+        book: nextBook,
+        fileSystem: FileSystem
+      }).catch((error: unknown) => {
+        console.error('Contact book storage unavailable', error)
+        setLastError(errorMessage(error))
+        setNotice('Could not save this contact.')
+      })
+    }
+
+    activeRpc.request(RPC_PROFILE_REQUEST_SEND).send(
+      JSON.stringify({
+        at: requestInput.requestedAt || Date.now(),
+        id: cleanRequestId,
+        text: cleanText,
+        toProfileId: cleanProfileId
+      })
+    )
+    setNotice('Retrying friend request.')
+  }
+
   function sendTreeholePost() {
     const cleanText = normalizeComposerText(treeholeDraft)
     if (!session || !cleanText) {
@@ -1542,6 +1594,7 @@ export default function App() {
                 onMarkThreadRead={markMobileThreadRead}
                 onNickChange={setNick}
                 onRevokeContact={revokeTrustedContact}
+                onRetryOutgoingRequest={retryOutgoingMessageRequest}
                 onRoomKeyChange={setRoomKey}
                 onScanHomeQr={() => startQrScan('home')}
                 onScanProfileQr={() => startQrScan('profile')}

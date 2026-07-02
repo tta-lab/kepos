@@ -1,0 +1,132 @@
+# V1 Profile Social Completion Next Plan
+
+This is the active next plan after request retry became a desktop and Android
+product affordance.
+
+The V1 rule remains:
+
+```text
+Profile is the social address.
+Profile-to-profile P2P is the production social route.
+Home is only an explicit live room after trust.
+```
+
+`19-v1-profile-social-delivery-next-plan.md` defines the product model. This
+document defines the next implementation order to get V1 to a ready private IM.
+
+## Current Evidence
+
+Already true or partly proven:
+
+- Desktop and Android both present profile request targets separately from Home
+  entry.
+- Desktop Sent requests can be retried through profile transport and do not read
+  Home runtime.
+- Android Sent requests can be retried through `RPC_PROFILE_REQUEST_SEND` using
+  the original request id, text, timestamp, and target profile.
+- Retry marks the local outgoing request queued, and later delivery state events
+  update the contact book.
+- Chat and Contacts are the intended trusted-person surfaces.
+- Home is documented as a live room, not the way to add friends.
+
+## What Is Still Not Good Enough
+
+V1 is not ready until these are true on both desktop and Android:
+
+- Friend request accept returns over profile-social delivery, not Home.
+- The accepted contact appears in Contacts and Chat without entering Home.
+- DM bootstrap is durable and survives restart.
+- The first private message path is clearly Chat, not Home room chat.
+- Profile detail is the shared destination from Contacts and Chat.
+- Treehole remains my own post surface, while a friend's recent posts are
+  profile context.
+- Home entry is explicit and secondary.
+
+## Phase 1: Prove Accept Without Home
+
+Implement and test accept delivery as profile-social delivery.
+
+Required behavior:
+
+- accepting a request creates local trust immediately
+- accept sends a signed result back through the profile route
+- the sender can observe accepted or syncing state without joining Home
+- both sides keep honest state if the return path is delayed
+- Home peer count can stay zero for the whole flow
+
+Done when focused tests fail if accept calls Home control, Home entry, or direct
+host/port delivery.
+
+## Phase 2: Prove DM Bootstrap Without Home
+
+After accept works, make Chat the durable result of trust.
+
+Required behavior:
+
+- accept creates or unlocks a durable pairwise thread
+- a trusted contact appears in Chat before the first message
+- thread preview and local message state survive restart
+- first message send uses the DM/profile route, not Home room chat
+- failed or pending bootstrap state is visible instead of hidden
+
+Done when tests prove a trusted contact can become a Chat row and exchange the
+first private message with Home disconnected.
+
+## Phase 3: Finish Shared Product Logic
+
+Desktop and Android should use the same nouns and state transitions.
+
+Required behavior:
+
+- bottom navigation or primary navigation has Home, Chat, Contacts, Treehole
+- Profile QR means add friend
+- Home QR, raw room key, and direct host/port are Advanced/debug
+- request rows show queued, searching, sent, delivered, accepted, or failed
+- Contacts row and Chat row open the same profile detail
+- trusted profile actions are Message, Recent posts, Enter Home, and Remove
+  friend
+
+Done when source-level checks and screenshots show one product model instead of
+desktop being the real app and Android being a partial older flow.
+
+## Phase 4: Final Low-Cost Gates
+
+Run low-cost proof before any physical phone smoke.
+
+Required gates:
+
+- typecheck
+- lint
+- focused model and UI tests for request, accept, DM bootstrap, and navigation
+- Android bundle/import tests
+- doc current-state test
+
+Do not run the high-cost phone smoke unless the user asks for release proof.
+
+## Phase 5: Final Cross-Device Proof
+
+When the user asks for release proof, run the physical desktop plus Android
+path and record it in `tmp/final-v1-proof.md`.
+
+The proof must show:
+
+1. Android scans desktop Profile QR.
+2. Android sends a friend request.
+3. Desktop receives it without entering Android Home.
+4. Desktop accepts without entering Android Home.
+5. Android observes trusted state without entering desktop Home.
+6. Both clients show each other in Contacts and Chat.
+7. Both clients open the same profile detail from Contacts and Chat.
+8. Both clients send durable private Chat messages.
+9. Restart preserves contacts, trust, threads, previews, and local Treehole
+   posts.
+10. Enter Home works only as a later explicit action.
+
+## Guardrails
+
+- Do not add another normal invite path.
+- Do not make Home QR part of add-friend bootstrap.
+- Do not use direct host/port as production social delivery.
+- Do not hide delivery failure behind optimistic local state.
+- Prefer shared TypeScript for domain and protocol logic.
+- Keep platform code focused on UI, storage, camera, IPC, and runtime glue.

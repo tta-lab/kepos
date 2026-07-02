@@ -100,9 +100,14 @@ The short version:
     - Use this for the route-hardening evidence baseline before `19`.
 
 19. `19-v1-profile-social-delivery-next-plan.md`
-    - Active V1 plan: finish the profile-social delivery model. Profile is the
-      social address; Home is only an explicit live room after trust.
-    - Use this as the active V1 implementation and proof plan.
+    - Previous V1 plan: finish the profile-social delivery model. Profile is
+      the social address; Home is only an explicit live room after trust.
+    - Use this for the product model before the completion plan.
+
+20. `20-v1-profile-social-completion-next-plan.md`
+    - Active V1 plan: finish accept, DM bootstrap, shared product logic, and
+      final proof on the profile-social route.
+    - Use this as the current implementation and proof plan.
 
 ## Core Principle
 

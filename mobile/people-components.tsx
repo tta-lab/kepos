@@ -76,6 +76,7 @@ export type PeoplePaneProps = {
   onJoinHomeQr(): void
   onMessageContact(profileId: string): void
   onRevokeContact(profileId: string): void
+  onRetryOutgoingRequest(request: OutgoingFriendRequest): void
   onScanHomeQr(): void
   onScanProfileQr(): void
   onSelectedProfileChange(profileId: string | null): void
@@ -112,6 +113,7 @@ export function PeoplePane({
   onEnterContactHome,
   onMessageContact,
   onRevokeContact,
+  onRetryOutgoingRequest,
   onScanHomeQr,
   onScanProfileQr,
   onTrustAliasChange,
@@ -146,6 +148,7 @@ export function PeoplePane({
       />
       <OutgoingRequestManager
         onOpenProfile={(requestProfileId) => onSelectedProfileChange(requestProfileId)}
+        onRetryRequest={onRetryOutgoingRequest}
         outgoingRequests={outgoingRequests}
         styles={styles}
         theme={theme}

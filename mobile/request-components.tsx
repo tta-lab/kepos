@@ -1,6 +1,6 @@
 import type { StyleProp, TextStyle, ViewStyle } from 'react-native'
 import { Text, View } from 'react-native'
-import { MessageCircle, Send, User } from 'lucide-react-native'
+import { MessageCircle, RefreshCw, Send, User } from 'lucide-react-native'
 import {
   formatMessageRequestSubtitle,
   formatMessageRequestTitle,
@@ -44,6 +44,7 @@ export type OutgoingFriendRequest = {
   deliveryState?: string | null
   displayNameSnapshot?: string | null
   profileId: string
+  requestId?: string | null
   requestedAt?: number
   text?: string | null
 }
@@ -56,6 +57,7 @@ export type IncomingFriendRequest = OutgoingFriendRequest & {
 
 export type OutgoingRequestManagerProps = {
   onOpenProfile?(profileId: string): void
+  onRetryRequest?(request: OutgoingFriendRequest): void
   outgoingRequests?: OutgoingFriendRequest[]
   styles: RequestManagerStyles
   theme: RequestManagerTheme
@@ -63,6 +65,7 @@ export type OutgoingRequestManagerProps = {
 
 export function OutgoingRequestManager({
   onOpenProfile,
+  onRetryRequest,
   outgoingRequests,
   styles,
   theme
@@ -84,32 +87,49 @@ export function OutgoingRequestManager({
           title='No sent requests'
         />
       ) : null}
-      {(outgoingRequests || []).map((request) => (
-        <View key={request.profileId} style={styles.requestCard}>
-          <View style={styles.requestText}>
-            <Text style={styles.requestTitle}>{formatOutgoingRequestTitle(request)}</Text>
-            <Text style={styles.contactProfile}>{formatMessageRequestSubtitle(request)}</Text>
-            <Text style={styles.requestPreview}>{formatRequestPreview(request.text)}</Text>
+      {(outgoingRequests || []).map((request) => {
+        const canRetry = Boolean(request.requestId && request.text)
+
+        return (
+          <View key={request.profileId} style={styles.requestCard}>
+            <View style={styles.requestText}>
+              <Text style={styles.requestTitle}>{formatOutgoingRequestTitle(request)}</Text>
+              <Text style={styles.contactProfile}>{formatMessageRequestSubtitle(request)}</Text>
+              <Text style={styles.requestPreview}>{formatRequestPreview(request.text)}</Text>
+            </View>
+            <View style={styles.trustMeta}>
+              <Text style={styles.trustStatus}>
+                {formatProfileFriendRequestDeliveryState(request.deliveryState)}
+              </Text>
+              {onRetryRequest ? (
+                <MobileSmallActionButton
+                  accentColor={theme.accentStrong}
+                  dangerColor={theme.danger}
+                  disabled={!canRetry}
+                  styles={styles}
+                  accessibilityLabel={`Retry ${formatOutgoingRequestTitle(request)}`}
+                  icon={RefreshCw}
+                  label='Retry'
+                  onPress={() => onRetryRequest(request)}
+                  testID='people-outgoing-request-retry-button'
+                />
+              ) : null}
+              {onOpenProfile ? (
+                <MobileSmallActionButton
+                  accentColor={theme.accentStrong}
+                  dangerColor={theme.danger}
+                  styles={styles}
+                  accessibilityLabel={`Open ${formatOutgoingRequestTitle(request)} profile`}
+                  icon={User}
+                  label='Profile'
+                  onPress={() => onOpenProfile(request.profileId)}
+                  testID='people-outgoing-request-profile-button'
+                />
+              ) : null}
+            </View>
           </View>
-          <View style={styles.trustMeta}>
-            <Text style={styles.trustStatus}>
-              {formatProfileFriendRequestDeliveryState(request.deliveryState)}
-            </Text>
-            {onOpenProfile ? (
-              <MobileSmallActionButton
-                accentColor={theme.accentStrong}
-                dangerColor={theme.danger}
-                styles={styles}
-                accessibilityLabel={`Open ${formatOutgoingRequestTitle(request)} profile`}
-                icon={User}
-                label='Profile'
-                onPress={() => onOpenProfile(request.profileId)}
-                testID='people-outgoing-request-profile-button'
-              />
-            ) : null}
-          </View>
-        </View>
-      ))}
+        )
+      })}
     </View>
   )
 }

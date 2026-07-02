@@ -1230,14 +1230,23 @@ test('mobile request sent state is derived from restored contact book', async ()
   const source = await readMobileSource()
   const bootstrap = await readMobileProfileBootstrapSource()
   const peopleComponents = await readMobilePeopleComponentsSource()
+  const roomComponents = await readMobileRoomComponentsSource()
   const peoplePane = peopleComponents.slice(
     peopleComponents.indexOf('function PeoplePane('),
     peopleComponents.indexOf('export type PeopleActionsProps')
+  )
+  const peopleActions = peopleComponents.slice(
+    peopleComponents.indexOf('function PeopleActions('),
+    peopleComponents.indexOf('export type ContactManagerProps')
   )
   const requestComponents = await readMobileRequestComponentsSource()
   const outgoingRequestManager = requestComponents.slice(
     requestComponents.indexOf('function OutgoingRequestManager('),
     requestComponents.indexOf('export type MessageRequestManagerProps')
+  )
+  const retryOutgoingMessageRequest = source.slice(
+    source.indexOf('function retryOutgoingMessageRequest('),
+    source.indexOf('function sendTreeholePost()')
   )
 
   assert.match(bootstrap, /loadContactBookFromFileSystem\(/)
@@ -1251,6 +1260,7 @@ test('mobile request sent state is derived from restored contact book', async ()
     /\(\) => \(contactBook \? Array\.from\(contactBook\.outgoingRequestsByProfileId\.values\(\)\) : \[\]\)/
   )
   assert.match(source, /outgoingRequests=\{outgoingMessageRequests\}/)
+  assert.match(source, /onRetryOutgoingRequest=\{retryOutgoingMessageRequest\}/)
   assert.match(
     peoplePane,
     /<MessageRequestManager[\s\S]*onOpenProfile=\{\(requestProfileId\) => onSelectedProfileChange\(requestProfileId\)\}/
@@ -1259,11 +1269,50 @@ test('mobile request sent state is derived from restored contact book', async ()
     peoplePane,
     /<OutgoingRequestManager[\s\S]*onOpenProfile=\{\(requestProfileId\) => onSelectedProfileChange\(requestProfileId\)\}/
   )
+  assert.match(
+    peoplePane,
+    /<OutgoingRequestManager[\s\S]*onRetryRequest=\{onRetryOutgoingRequest\}/
+  )
+  assert.match(
+    peopleActions,
+    /<ContactManager[\s\S]*onSelectedProfileChange=\{onSelectedProfileChange\}/
+  )
+  assert.match(
+    roomComponents,
+    /onRetryOutgoingRequest: PeoplePaneProps\['onRetryOutgoingRequest'\]/
+  )
+  assert.match(roomComponents, /onRetryOutgoingRequest=\{onRetryOutgoingRequest\}/)
   assert.match(peoplePane, /<OutgoingRequestManager[\s\S]*outgoingRequests=\{outgoingRequests\}/)
   assert.match(peoplePane, /<OutgoingRequestManager[\s\S]*styles=\{styles\}/)
   assert.match(peoplePane, /<OutgoingRequestManager[\s\S]*theme=\{theme\}/)
   assert.match(outgoingRequestManager, /title='Sent requests'/)
   assert.match(outgoingRequestManager, /formatProfileFriendRequestDeliveryState/)
+  assert.match(
+    outgoingRequestManager,
+    /const canRetry = Boolean\(request\.requestId && request\.text\)/
+  )
+  assert.match(outgoingRequestManager, /icon=\{RefreshCw\}/)
+  assert.match(outgoingRequestManager, /label='Retry'/)
+  assert.match(outgoingRequestManager, /onPress=\{\(\) => onRetryRequest\(request\)\}/)
+  assert.match(outgoingRequestManager, /testID='people-outgoing-request-retry-button'/)
+  assert.match(
+    retryOutgoingMessageRequest,
+    /const cleanProfileId = requestInput\.profileId\?\.trim\(\) \|\| ''/
+  )
+  assert.match(
+    retryOutgoingMessageRequest,
+    /const cleanRequestId = requestInput\.requestId\?\.trim\(\) \|\| ''/
+  )
+  assert.match(
+    retryOutgoingMessageRequest,
+    /const cleanText = normalizeComposerText\(requestInput\.text \|\| ''\)/
+  )
+  assert.match(retryOutgoingMessageRequest, /updateOutgoingFriendRequestDeliveryState\(contactBook/)
+  assert.match(retryOutgoingMessageRequest, /deliveryState: 'queued'/)
+  assert.match(retryOutgoingMessageRequest, /activeRpc\.request\(RPC_PROFILE_REQUEST_SEND\)\.send/)
+  assert.match(retryOutgoingMessageRequest, /id: cleanRequestId/)
+  assert.match(retryOutgoingMessageRequest, /toProfileId: cleanProfileId/)
+  assert.doesNotMatch(retryOutgoingMessageRequest, /RPC_DM_SEND|RPC_SEND|enterRequestTargetHome/)
 })
 
 test('mobile recent profile posts cache is durable across app restart', async () => {

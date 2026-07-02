@@ -110,6 +110,7 @@ export type ChatRoomProps = {
   onMarkThreadRead(profileId: string): void
   onNickChange: HomeStartupPaneProps['onNickChange']
   onRevokeContact: PeoplePaneProps['onRevokeContact']
+  onRetryOutgoingRequest: PeoplePaneProps['onRetryOutgoingRequest']
   onRoomKeyChange: HomeStartupPaneProps['onRoomKeyChange']
   onScanHomeQr(): void
   onScanProfileQr(): void
@@ -182,6 +183,7 @@ export function ChatRoom({
   onNickChange,
   onLeave,
   onRevokeContact,
+  onRetryOutgoingRequest,
   onRoomKeyChange,
   onScanHomeQr,
   onScanProfileQr,
@@ -380,6 +382,7 @@ export function ChatRoom({
               onTabChange('dm')
             }}
             onRevokeContact={onRevokeContact}
+            onRetryOutgoingRequest={onRetryOutgoingRequest}
             onScanHomeQr={onScanHomeQr}
             onScanProfileQr={onScanProfileQr}
             onTrustAliasChange={onTrustAliasChange}

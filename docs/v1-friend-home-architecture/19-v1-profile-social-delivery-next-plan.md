@@ -1,7 +1,11 @@
 # V1 Profile Social Delivery Next Plan
 
-This is the active V1 next plan after the Home/add-friend model was corrected
+This was the active V1 next plan after the Home/add-friend model was corrected
 again.
+
+The current next plan is
+`20-v1-profile-social-completion-next-plan.md`. Use `20` for new V1 work. Use
+this document for the product model and social-delivery context.
 
 The product rule is now stricter:
 
@@ -267,11 +271,14 @@ Already true or partly proven:
 - Desktop outgoing friend requests now store their signed request frame and
   expose a Retry action that resends through profile transport, updates
   ContactBook delivery state, and does not read Home runtime.
+- Mobile Sent requests now expose a Retry action that reuses the original
+  request id, text, timestamp, and target profile, sends through
+  `RPC_PROFILE_REQUEST_SEND`, locally marks the request queued, and does not
+  enter Home.
 - Home is documented as explicit live room, not friendship.
 
 Still open before V1 can be called ready:
 
-- finish mobile retry parity for outgoing request delivery state
 - finish accept/DM bootstrap proof without Home
 - close mobile UI parity gaps
 - run the final desktop/Android proof once the user explicitly asks

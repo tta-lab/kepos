@@ -10,7 +10,9 @@ The current execution path is:
   product-logic unification pass
 - `18-v1-profile-p2p-hardening-next-plan.md` for the profile P2P hardening
   evidence baseline
-- `19-v1-profile-social-delivery-next-plan.md` for the active implementation
+- `19-v1-profile-social-delivery-next-plan.md` for the profile-social product
+  model
+- `20-v1-profile-social-completion-next-plan.md` for the active implementation
   and proof plan
 - `../v1.21-cross-device-smoke.md` for the final desktop/Android release proof
 

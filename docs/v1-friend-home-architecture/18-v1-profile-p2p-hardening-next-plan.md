@@ -4,9 +4,9 @@ This was the active next plan after deciding that Home should have no role in
 friendship delivery.
 
 The current next plan is
-`19-v1-profile-social-delivery-next-plan.md`. Use `19` for new V1 work. Use
+`20-v1-profile-social-completion-next-plan.md`. Use `20` for new V1 work. Use
 this document for the evidence baseline and route-hardening context that led to
-that plan.
+the profile-social completion plan.
 
 The V1 product rule is:
 
@@ -263,10 +263,12 @@ Already landed before this plan:
 - desktop outgoing friend requests now persist their signed request frame and
   expose a Retry action that resends over profile transport, records the latest
   delivery state in ContactBook, and stays independent of Home runtime
+- mobile outgoing friend requests expose a Retry action that resends the same
+  request id/text/target through `RPC_PROFILE_REQUEST_SEND`, marks the local
+  delivery state queued, and stays independent of Home entry
 
 Still open:
 
-- mobile retry parity for outgoing request delivery state
 - physical Android/Desktop proof for request, accept, durable Chat, restart,
   profile posts, and explicit Home entry
 - any UI parity fixes found by that proof
