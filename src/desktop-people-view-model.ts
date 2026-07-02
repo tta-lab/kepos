@@ -59,6 +59,8 @@ export type DesktopMessageRequestViewModel = {
 export type DesktopOutgoingRequestViewModel = {
   profileId: string
   profileLabel: string
+  retryActionEnabled: boolean
+  retryActionLabel: string
   requestedAtLabel: string
   statusLabel: string
   textPreview: string
@@ -317,6 +319,8 @@ function createOutgoingRequestViewModel({
   return {
     profileId: request.profileId,
     profileLabel: label,
+    retryActionEnabled: Boolean(request.signedRequest),
+    retryActionLabel: 'Retry',
     requestedAtLabel: `Queued ${formatTrustTime(request.requestedAt, formatDate)}`,
     statusLabel: formatProfileFriendRequestDeliveryState(request.deliveryState),
     textPreview: formatDesktopRequestPreview(request.text),

@@ -157,12 +157,42 @@ test('desktop people view model formats outgoing friend requests for rendering',
     {
       profileId,
       profileLabel: 'Ada',
+      retryActionEnabled: false,
+      retryActionLabel: 'Retry',
       requestedAtLabel: 'Queued Jan 1, 1970',
       statusLabel: 'Request pending',
       textPreview: 'hello',
       title: 'Ada has not accepted yet.'
     }
   ])
+})
+
+test('desktop people view model enables retry when a signed outgoing request is stored', () => {
+  const profileId = 'b'.repeat(64)
+  const book = recordOutgoingFriendRequest(createContactBook({ ownerProfileId: 'owner-a' }), {
+    alias: 'Ada',
+    deliveryState: 'failed',
+    profileId,
+    requestedAt: 1000,
+    requestId: 'request-1',
+    signedRequest: {
+      fromProfileId: 'owner-a',
+      requestId: 'request-1',
+      text: 'hello',
+      toProfileId: profileId
+    },
+    source: 'profile_qr',
+    text: ' hello '
+  })
+
+  const viewModel = createDesktopPeopleViewModel({
+    contactBook: book,
+    formatDate: () => 'Jan 1, 1970'
+  })
+
+  assert.equal(viewModel.outgoingRequests[0].retryActionEnabled, true)
+  assert.equal(viewModel.outgoingRequests[0].retryActionLabel, 'Retry')
+  assert.equal(viewModel.outgoingRequests[0].statusLabel, 'Request failed')
 })
 
 test('desktop people view model formats removed and ignored contacts for rendering', () => {

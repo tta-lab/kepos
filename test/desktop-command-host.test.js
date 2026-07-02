@@ -39,6 +39,7 @@ test('desktop command host normalizes command payloads before calling actions', 
   await host.dispatch('likeTreehole', { postId: 'post-1' })
   await host.dispatch('markDmThreadRead', { profileId: 'friend', readAt: 1234 })
   await host.dispatch('postTreehole', { text: 'post' })
+  await host.dispatch('retryOutgoingFriendRequest', { profileId: 'friend' })
   await host.dispatch('revokeContact', { profileId: 'friend' })
   await host.dispatch('sendDmMessage', { text: 'dm', toProfileId: 'friend' })
   await host.dispatch('sendHomeMessage', { text: 'chat' })
@@ -59,6 +60,7 @@ test('desktop command host normalizes command payloads before calling actions', 
     ['likeTreehole', 'post-1'],
     ['markDmThreadRead', { profileId: 'friend', readAt: 1234 }],
     ['postTreehole', { text: 'post' }],
+    ['retryOutgoingFriendRequest', { profileId: 'friend' }],
     ['revokeContact', 'friend'],
     ['sendDmMessage', { text: 'dm', toProfileId: 'friend' }],
     ['sendHomeMessage', { text: 'chat' }],
@@ -77,6 +79,7 @@ test('desktop command host ignores commands missing required entity ids', async 
   await host.dispatch('allowContactRequests', {})
   await host.dispatch('enterContactHome', {})
   await host.dispatch('likeTreehole', {})
+  await host.dispatch('retryOutgoingFriendRequest', {})
   await host.dispatch('revokeContact', {})
 
   assert.deepEqual(calls, [])

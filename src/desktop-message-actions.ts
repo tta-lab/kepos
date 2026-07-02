@@ -1,5 +1,9 @@
-import { recordOutgoingFriendRequest } from './contact-book.ts'
+import {
+  recordOutgoingFriendRequest,
+  updateOutgoingFriendRequestDeliveryState
+} from './contact-book.ts'
 import { createFriendRequestTargetViewModel } from './friend-request-target-view-model.ts'
+import { formatProfileFriendRequestDeliveryState } from './profile-friend-request-delivery.ts'
 import {
   createQueuedProfileFriendRequestTransport,
   sendProfileFriendRequest,
@@ -79,6 +83,7 @@ export type DesktopMessageActions = {
   likeTreehole(postId?: string): Promise<void>
   markDmThreadRead(payload?: MessageActionPayload): void
   postTreehole(payload?: MessageActionPayload): Promise<void>
+  retryOutgoingFriendRequest(payload?: MessageActionPayload): Promise<void>
   sendDmMessage(payload?: MessageActionPayload): Promise<void>
   sendHomeMessage(payload?: MessageActionPayload): void
 }
@@ -159,6 +164,34 @@ export function createDesktopMessageActions({
         text: cleanText
       })
     },
+    async retryOutgoingFriendRequest({ profileId } = {}) {
+      const cleanProfileId = cleanMessageText(profileId)
+      const contactBook = getContactBook()
+      const request = cleanProfileId
+        ? contactBook?.outgoingRequestsByProfileId?.get(cleanProfileId)
+        : null
+      const signedRequest = request?.signedRequest
+
+      if (!contactBook || !request || !signedRequest || !request.requestId) {
+        setNotice('This friend request cannot be retried yet.')
+        return
+      }
+
+      const deliveryState = await sendDesktopProfileFriendRequest({
+        getFriendRequestTransport,
+        getLocalProfile,
+        request: signedRequest
+      })
+      const nextBook = updateOutgoingFriendRequestDeliveryState(contactBook, {
+        deliveryState,
+        profileId: cleanProfileId,
+        requestId: request.requestId
+      })
+
+      saveContactBook(nextBook)
+      setNotice(`Friend request retry: ${formatProfileFriendRequestDeliveryState(deliveryState)}.`)
+      onChanged()
+    },
     async sendDmMessage({ text, toProfileId } = {}) {
       const cleanText = cleanMessageText(text)
       const dmRuntime = getDmRuntime()
@@ -223,6 +256,7 @@ export function createDesktopMessageActions({
               deliveryState,
               requestedAt: now(),
               requestId: result.request.requestId,
+              signedRequest: result.request,
               source: 'profile_qr',
               text: result.request.text
             })

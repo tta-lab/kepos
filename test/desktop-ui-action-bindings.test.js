@@ -111,6 +111,7 @@ test('desktop UI action bindings route renderer actions to command payloads', as
   actions.people.allowContactRequests('profile-b')
   actions.people.ignoreMessageRequest('profile-c')
   actions.people.enterContactHome('profile-home')
+  actions.people.retryOutgoingFriendRequest('profile-retry')
   actions.people.revokeContact('profile-d')
   actions.shell.hideLargeQr()
   actions.shell.leaveHome()
@@ -155,6 +156,7 @@ test('desktop UI action bindings route renderer actions to command payloads', as
     ['dispatch', 'allowContactRequests', { profileId: 'profile-b' }],
     ['dispatch', 'ignoreMessageRequest', { profileId: 'profile-c' }],
     ['dispatch', 'enterContactHome', { profileId: 'profile-home' }],
+    ['dispatch', 'retryOutgoingFriendRequest', { profileId: 'profile-retry' }],
     ['dispatch', 'revokeContact', { profileId: 'profile-d' }],
     ['hideLargeQr'],
     ['dispatch', 'leaveHome', undefined],

@@ -24,6 +24,7 @@ test('desktop backend actions compose the complete V1 command action map', () =>
       'likeTreehole',
       'markDmThreadRead',
       'postTreehole',
+      'retryOutgoingFriendRequest',
       'sendDmMessage',
       'sendHomeMessage'
     ],
@@ -71,6 +72,10 @@ test('desktop backend actions compose the complete V1 command action map', () =>
   assert.equal(actions.sendMessageRequest({ text: 'dm' }), 'message:sendDmMessage')
   assert.equal(actions.markDmThreadRead({ profileId: 'friend' }), 'message:markDmThreadRead')
   assert.equal(
+    actions.retryOutgoingFriendRequest({ profileId: 'profile-b' }),
+    'message:retryOutgoingFriendRequest'
+  )
+  assert.equal(
     actions.updateAvatarUri({ avatarUri: 'file:///avatar/me.png' }),
     'display:updateAvatarUri'
   )
@@ -88,6 +93,7 @@ test('desktop backend actions compose the complete V1 command action map', () =>
     ['trust', 'allowContactRequests', 'profile-b'],
     ['message', 'sendDmMessage', { text: 'dm' }],
     ['message', 'markDmThreadRead', { profileId: 'friend' }],
+    ['message', 'retryOutgoingFriendRequest', { profileId: 'profile-b' }],
     ['display', 'updateAvatarUri', { avatarUri: 'file:///avatar/me.png' }],
     ['display', 'updateAvatarMedia', { bytesBase64: 'aGVsbG8=', mimeType: 'image/png' }],
     ['display', 'updateDisplayName', { displayName: 'Ada' }]

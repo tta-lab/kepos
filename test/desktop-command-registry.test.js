@@ -71,6 +71,7 @@ test('desktop controller routes UI actions through the command host', async () =
     'sendHomeMessage',
     'sendDmMessage',
     'postTreehole',
+    'retryOutgoingFriendRequest',
     'prepareProfileRequestTarget',
     'joinHomeUri',
     'revokeContact',
@@ -149,6 +150,7 @@ test('desktop direct message command carries composer fields as payload', async 
   )
   assert.match(backendActions, /sendDmMessage: messageActions\?\.sendDmMessage/)
   assert.match(actions, /sendDmMessage\(\{ text, toProfileId \} = \{\}\)/)
+  assert.match(actions, /retryOutgoingFriendRequest\(\{ profileId \} = \{\}\)/)
   assert.doesNotMatch(source, /dmForm: document\.querySelector/)
   assert.doesNotMatch(source, /dmInput: document\.querySelector/)
   assert.doesNotMatch(source, /dmRecipientInput: document\.querySelector/)

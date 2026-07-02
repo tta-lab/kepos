@@ -134,6 +134,7 @@ type PeopleActions = Record<
   | 'ignoreMessageRequest'
   | 'messageContact'
   | 'openProfile'
+  | 'retryOutgoingFriendRequest'
   | 'revokeContact',
   UiAction
 >
@@ -277,6 +278,7 @@ const DEFAULT_BACKEND_PEOPLE_ACTIONS: BackendPeopleActions = {
   enterContactHome: () => {},
   ignoreMessageRequest: () => {},
   messageContact: () => {},
+  retryOutgoingFriendRequest: () => {},
   revokeContact: () => {}
 }
 const DEFAULT_SHELL_ACTIONS: ShellActions = {

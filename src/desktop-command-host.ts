@@ -48,6 +48,10 @@ export function createDesktopCommandHost({
       },
       markDmThreadRead: (payload) => actions.markDmThreadRead(readCommandPayload(payload)),
       postTreehole: (payload) => actions.postTreehole(readCommandPayload(payload)),
+      retryOutgoingFriendRequest: (payload) => {
+        const { profileId } = readCommandPayload(payload)
+        if (profileId) return actions.retryOutgoingFriendRequest({ profileId })
+      },
       revokeContact: (payload) => {
         const { profileId } = readCommandPayload(payload)
         if (profileId) return actions.revokeContact(profileId)

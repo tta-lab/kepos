@@ -10,6 +10,7 @@ export const DESKTOP_COMMANDS = [
   'likeTreehole',
   'markDmThreadRead',
   'postTreehole',
+  'retryOutgoingFriendRequest',
   'revokeContact',
   'sendDmMessage',
   'sendHomeMessage',

@@ -139,6 +139,11 @@ test('desktop message actions record queued outgoing friend requests when direct
   assert.equal(savedBooks[0].outgoingRequestsByProfileId.get('friend').deliveryState, 'queued')
   assert.equal(savedBooks[0].outgoingRequestsByProfileId.get('friend').requestId, 'id-1')
   assert.equal(savedBooks[0].outgoingRequestsByProfileId.get('friend').text, 'hello')
+  assert.deepEqual(savedBooks[0].outgoingRequestsByProfileId.get('friend').signedRequest, {
+    requestId: 'id-1',
+    text: 'hello',
+    toProfileId: 'friend'
+  })
 })
 
 test('desktop message actions create outgoing friend requests without touching Home runtime', async () => {
@@ -248,6 +253,87 @@ test('desktop message actions preserve scanned Home descriptors on outgoing frie
     savedBooks[0].outgoingRequestsByProfileId.get('friend').proof,
     homeDescriptor.proof
   )
+})
+
+test('desktop message actions retry outgoing friend requests through profile transport', async () => {
+  const sentFrames = []
+  const savedBooks = []
+  const notices = []
+  const renders = []
+  const request = {
+    fromProfileId: 'local',
+    requestId: 'request-1',
+    text: 'hello',
+    toProfileId: 'friend'
+  }
+  const requestedBook = recordOutgoingFriendRequest(
+    createContactBook({ ownerProfileId: 'local' }),
+    {
+      alias: 'Friend',
+      deliveryState: 'failed',
+      profileId: 'friend',
+      requestedAt: 1000,
+      requestId: 'request-1',
+      signedRequest: request,
+      text: 'hello'
+    }
+  )
+  const actions = createDesktopMessageActions({
+    getContactBook: () => requestedBook,
+    getFriendRequestTransport: () => ({
+      send(frame) {
+        sentFrames.push(frame)
+        return { state: 'sent' }
+      }
+    }),
+    getHomeRuntime: () => {
+      throw new Error('Home runtime should not be read for retry')
+    },
+    getLocalProfile: () => ({
+      identity: { publicKey: 'local' },
+      profileId: 'local'
+    }),
+    onChanged: () => renders.push('render'),
+    saveContactBook: (book) => savedBooks.push(book),
+    setNotice: (notice) => notices.push(notice)
+  })
+
+  await actions.retryOutgoingFriendRequest({ profileId: 'friend' })
+
+  assert.deepEqual(sentFrames, [request])
+  assert.equal(savedBooks.length, 1)
+  assert.equal(savedBooks[0].outgoingRequestsByProfileId.get('friend').deliveryState, 'sent')
+  assert.deepEqual(notices, ['Friend request retry: Request sent.'])
+  assert.deepEqual(renders, ['render'])
+})
+
+test('desktop message actions keep non-retryable outgoing requests visible', async () => {
+  const calls = []
+  const requestedBook = recordOutgoingFriendRequest(
+    createContactBook({ ownerProfileId: 'local' }),
+    {
+      alias: 'Friend',
+      deliveryState: 'searching',
+      profileId: 'friend',
+      requestedAt: 1000,
+      requestId: 'request-1',
+      text: 'hello'
+    }
+  )
+  const actions = createDesktopMessageActions({
+    getContactBook: () => requestedBook,
+    getFriendRequestTransport: () => ({
+      send() {
+        calls.push('send')
+      }
+    }),
+    setNotice: (notice) => calls.push(['notice', notice])
+  })
+
+  await actions.retryOutgoingFriendRequest({ profileId: 'friend' })
+
+  assert.deepEqual(calls, [['notice', 'This friend request cannot be retried yet.']])
+  assert.equal(requestedBook.outgoingRequestsByProfileId.get('friend').deliveryState, 'searching')
 })
 
 test('desktop message actions do not send duplicate outgoing friend requests', async () => {

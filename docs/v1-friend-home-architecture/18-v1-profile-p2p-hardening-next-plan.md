@@ -260,9 +260,13 @@ Already landed before this plan:
   queued/searching acceptance is shown as local accept plus waiting for profile
   delivery, sent/delivered is shown explicitly, and failed delivery is not
   hidden behind a plain accepted notice
+- desktop outgoing friend requests now persist their signed request frame and
+  expose a Retry action that resends over profile transport, records the latest
+  delivery state in ContactBook, and stays independent of Home runtime
 
 Still open:
 
+- mobile retry parity for outgoing request delivery state
 - physical Android/Desktop proof for request, accept, durable Chat, restart,
   profile posts, and explicit Home entry
 - any UI parity fixes found by that proof

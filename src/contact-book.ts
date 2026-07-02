@@ -5,6 +5,7 @@ import {
   mergeProfileSnapshots,
   type ProfileSnapshot
 } from './profile-snapshot.ts'
+import type { MessageRequest } from './message-request.ts'
 
 const TRUST_SCOPE_HOME = 'home'
 const CONTACT_BOOK_VERSION = 1
@@ -45,6 +46,7 @@ export type MessageRequestContact = {
   requestedAt?: number
   requestId?: string
   senderEncryptionPublicKey?: string
+  signedRequest?: MessageRequest
   source?: string
   text?: string
 }
@@ -575,6 +577,7 @@ export function recordOutgoingFriendRequest(
     proof,
     deliveryState,
     senderEncryptionPublicKey,
+    signedRequest,
     source,
     text
   }: Partial<MessageRequestContact> & { profileId: string }
@@ -638,6 +641,7 @@ export function recordOutgoingFriendRequest(
       deliveryState: cleanOptionalString(deliveryState),
       ...withProfileSnapshots(profileSnapshots),
       senderEncryptionPublicKey: cleanOptionalString(senderEncryptionPublicKey),
+      signedRequest,
       source: cleanOptionalString(source),
       text: cleanOptionalString(text)
     }) as MessageRequestContact

@@ -77,6 +77,7 @@ type PeopleActions = {
   enterContactHome: ActionHandler<string | undefined>
   ignoreMessageRequest: ActionHandler<string | undefined>
   messageContact: ActionHandler<string | undefined>
+  retryOutgoingFriendRequest: ActionHandler<string | undefined>
   revokeContact: ActionHandler<string | undefined>
 }
 type ShellActions = {
@@ -220,6 +221,8 @@ export function createDesktopUiActionBindings({
       return setTab('dm')
     },
     enterContactHome: (profileId) => dispatchCommand('enterContactHome', { profileId }),
+    retryOutgoingFriendRequest: (profileId) =>
+      dispatchCommand('retryOutgoingFriendRequest', { profileId }),
     revokeContact: (profileId) => dispatchCommand('revokeContact', { profileId })
   })
 

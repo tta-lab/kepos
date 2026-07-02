@@ -34,6 +34,22 @@ describe('contact book storage', () => {
       profileId: 'profile-b',
       requestedAt: 1000,
       requestId: 'request-1',
+      signedRequest: {
+        createdAt: 1000,
+        fromProfileId: 'owner-a',
+        proof: {
+          createdAt: 1000,
+          signature: 'signature',
+          signerProfileId: 'owner-a',
+          type: 'kepos.message.request.v1',
+          version: 1
+        },
+        requestId: 'request-1',
+        senderEncryptionPublicKey: 'b'.repeat(64),
+        text: 'hi',
+        toProfileId: 'profile-b',
+        type: 'kepos.message.request.v1'
+      },
       source: 'profile_qr',
       text: 'hi'
     })
@@ -43,6 +59,10 @@ describe('contact book storage', () => {
 
     assert.equal(restored.outgoingRequestsByProfileId.get('profile-b').requestId, 'request-1')
     assert.equal(restored.outgoingRequestsByProfileId.get('profile-b').deliveryState, 'searching')
+    assert.equal(
+      restored.outgoingRequestsByProfileId.get('profile-b').signedRequest.requestId,
+      'request-1'
+    )
     assert.equal(getContact(restored, 'profile-b').alias, 'Ada')
   })
 
@@ -89,6 +109,22 @@ describe('contact book storage', () => {
       profileId: 'profile-b',
       requestedAt: 1000,
       requestId: 'request-1',
+      signedRequest: {
+        createdAt: 1000,
+        fromProfileId: 'owner-a',
+        proof: {
+          createdAt: 1000,
+          signature: 'signature',
+          signerProfileId: 'owner-a',
+          type: 'kepos.message.request.v1',
+          version: 1
+        },
+        requestId: 'request-1',
+        senderEncryptionPublicKey: 'b'.repeat(64),
+        text: 'hi',
+        toProfileId: 'profile-b',
+        type: 'kepos.message.request.v1'
+      },
       source: 'profile_qr',
       text: 'hi'
     })
@@ -107,6 +143,10 @@ describe('contact book storage', () => {
     assert.equal(restored.outgoingRequestsByProfileId.get('profile-b').requestId, 'request-1')
     assert.equal(restored.outgoingRequestsByProfileId.get('profile-b').deliveryState, 'delivered')
     assert.equal(restored.outgoingRequestsByProfileId.get('profile-b').text, 'hi')
+    assert.equal(
+      restored.outgoingRequestsByProfileId.get('profile-b').signedRequest.toProfileId,
+      'profile-b'
+    )
     assert.equal(getContact(restored, 'profile-b').alias, 'Ada')
   })
 

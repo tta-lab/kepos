@@ -23,6 +23,7 @@ type PeopleActions = {
   ignoreMessageRequest(profileId: string): unknown
   messageContact(profileId: string): unknown
   openProfile(profileId: string): unknown
+  retryOutgoingFriendRequest(profileId: string): unknown
   revokeContact(profileId: string): unknown
 }
 
@@ -41,6 +42,8 @@ export type MessageRequestView = {
 export type OutgoingRequestView = {
   profileId: string
   profileLabel: string
+  retryActionEnabled: boolean
+  retryActionLabel: string
   requestedAtLabel: string
   statusLabel: string
   textPreview: string
@@ -214,13 +217,23 @@ export function PeopleLists({
                 <p className='muted smallText text-xs text-base-content/60'>
                   {request.requestedAtLabel}
                 </p>
-                <ActionButton
-                  ariaLabel={`Open ${request.profileLabel} profile`}
-                  className='smallButton'
-                  icon={<User size={15} />}
-                  label='Profile'
-                  onClick={() => actions.openProfile(request.profileId)}
-                />
+                <div className='inlineActions flex flex-wrap justify-end gap-2'>
+                  <ActionButton
+                    ariaLabel={`Retry friend request to ${request.profileLabel}`}
+                    className='smallButton'
+                    disabled={!request.retryActionEnabled}
+                    icon={<RefreshCw size={15} />}
+                    label={request.retryActionLabel}
+                    onClick={() => actions.retryOutgoingFriendRequest(request.profileId)}
+                  />
+                  <ActionButton
+                    ariaLabel={`Open ${request.profileLabel} profile`}
+                    className='smallButton'
+                    icon={<User size={15} />}
+                    label='Profile'
+                    onClick={() => actions.openProfile(request.profileId)}
+                  />
+                </div>
               </div>
             ))
           )}

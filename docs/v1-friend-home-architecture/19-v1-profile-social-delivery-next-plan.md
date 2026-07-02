@@ -264,11 +264,14 @@ Already true or partly proven:
 - Trusted contacts can appear in Chat before a saved DM snapshot.
 - Accept delivery state is surfaced instead of hidden behind a plain accepted
   notice.
+- Desktop outgoing friend requests now store their signed request frame and
+  expose a Retry action that resends through profile transport, updates
+  ContactBook delivery state, and does not read Home runtime.
 - Home is documented as explicit live room, not friendship.
 
 Still open before V1 can be called ready:
 
-- finish retryable request delivery state
+- finish mobile retry parity for outgoing request delivery state
 - finish accept/DM bootstrap proof without Home
 - close mobile UI parity gaps
 - run the final desktop/Android proof once the user explicitly asks

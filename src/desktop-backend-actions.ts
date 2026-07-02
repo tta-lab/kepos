@@ -30,6 +30,7 @@ export function createDesktopBackendActions({
     likeTreehole: messageActions?.likeTreehole,
     markDmThreadRead: messageActions?.markDmThreadRead,
     postTreehole: messageActions?.postTreehole,
+    retryOutgoingFriendRequest: messageActions?.retryOutgoingFriendRequest,
     revokeContact: trustActions?.revokeContact,
     sendDmMessage: messageActions?.sendDmMessage,
     sendHomeMessage: messageActions?.sendHomeMessage,
