@@ -143,6 +143,11 @@ Evidence:
 - Leaving a remote Home closes the remote Home-scoped Treehole and restores the
   owner's profile Treehole. Leaving the owner's own Home does not clear the
   profile-scoped Treehole.
+- Desktop backend startup now configures and opens the owner's profile-scoped
+  Treehole after the profile/DM runtime starts. It does not require Home join.
+- Desktop Treehole runtime now tracks `profile` and `home` scopes separately.
+  Home bootstrap switches to a Home-scoped Treehole, while leaving Home closes
+  only Home-scoped Treehole state and restores the profile-scoped Treehole.
 
 ### 2. Make Request And Chat UX Match On Both Clients
 

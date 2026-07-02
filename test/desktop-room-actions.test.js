@@ -50,7 +50,7 @@ function createHarness(overrides = {}) {
       canPost: () => true
     }),
     onChanged: () => calls.push(['render']),
-    openTreehole: (bootstrapKey) => calls.push(['treehole.open', bootstrapKey]),
+    openTreehole: (bootstrapKey, scope) => calls.push(['treehole.open', bootstrapKey, scope]),
     setContextFormDraft: (draft) => calls.push(['form.draft', draft]),
     setHomeJoinDetails: (nextDetails) => {
       homeJoinDetails = nextDetails
@@ -103,7 +103,7 @@ test('desktop room actions create a host home without restarting social runtimes
       'home.join',
       { homeJoinDetails: { ownerProfileId: null, profileId: 'profile-1', roomKey: 'created-room' } }
     ],
-    ['treehole.open', undefined],
+    ['treehole.open', null, 'profile'],
     ['home.requestHomeHello'],
     ['render']
   ])
@@ -298,5 +298,10 @@ test('desktop room actions leave home and reset local state', async () => {
   assert.equal(harness.session, null)
   assert.equal(harness.homeJoinDetails, null)
   assert.deepEqual(harness.state, { notice: 'Show My QR or add a friend.', view: 'lobby' })
-  assert.deepEqual(harness.calls, [['runtime.closeHome'], ['treehole.configure'], ['render']])
+  assert.deepEqual(harness.calls, [
+    ['runtime.closeHome'],
+    ['treehole.configure'],
+    ['treehole.open', null, 'profile'],
+    ['render']
+  ])
 })

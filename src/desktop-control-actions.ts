@@ -115,7 +115,7 @@ export function createDesktopControlActions({
   >
   getTreeholeRuntime: () => TreeholeRuntime
   onChanged?: () => void
-  openTreehole: (bootstrapKey?: unknown) => unknown | Promise<unknown>
+  openTreehole: (bootstrapKey?: unknown, scope?: 'profile' | 'home') => unknown | Promise<unknown>
   readLocalAvatarMediaBytes?: AvatarMediaBytesReader
   setHomeJoinDetails: (details: HomeJoinDetails) => void
   setNotice: (notice: string) => void
@@ -231,7 +231,7 @@ export function createDesktopControlActions({
         })
         configureTreeholeRuntime()
       }
-      await openTreehole(result.bootstrapKey)
+      await openTreehole(result.bootstrapKey, 'home')
       sendTreeholeWriter(result.sendWriterPeer)
       return
     }

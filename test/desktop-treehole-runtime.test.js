@@ -126,6 +126,42 @@ test('desktop treehole runtime opens, publishes state, and closes lifecycle reso
   assert.deepEqual(treehole.calls.at(-1), ['close'])
 })
 
+test('desktop treehole runtime switches between profile and Home scopes', async () => {
+  const { runtime, treehole } = createRuntime()
+
+  await runtime.open({ scope: 'profile' })
+  assert.equal(treehole.options.storage, '/home/test/kepos-treehole-dddddddddddddddd-host')
+
+  await runtime.open({ bootstrapKey: 'e'.repeat(64), scope: 'home' })
+
+  assert.deepEqual(
+    treehole.calls.filter(([name]) => name === 'close'),
+    [['close']]
+  )
+  assert.equal(
+    treehole.options.storage,
+    '/home/test/kepos-treehole-dddddddddddddddd-eeeeeeeeeeeeeeee'
+  )
+})
+
+test('desktop treehole runtime closeHome preserves profile scoped treehole', async () => {
+  const { runtime, treehole } = createRuntime()
+
+  await runtime.open({ scope: 'profile' })
+  await runtime.closeHome()
+  assert.deepEqual(
+    treehole.calls.filter(([name]) => name === 'close'),
+    []
+  )
+
+  await runtime.open({ bootstrapKey: 'e'.repeat(64), scope: 'home' })
+  await runtime.closeHome()
+  assert.deepEqual(
+    treehole.calls.filter(([name]) => name === 'close'),
+    [['close'], ['close']]
+  )
+})
+
 test('desktop treehole runtime refreshes state after post comment and like', async () => {
   const { emitted, runtime, treehole } = createRuntime()
 

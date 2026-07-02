@@ -36,6 +36,7 @@ type HomeRuntime = {
 
 type TreeholeRuntime = {
   canPost(): boolean
+  close?(): unknown | Promise<unknown>
 }
 
 type RoomActionPayload = {
@@ -95,18 +96,23 @@ export function createDesktopRoomActions({
   getProfileContext: (displayName?: string) => DesktopProfileContext
   getTreeholeRuntime: () => TreeholeRuntime
   onChanged?: () => void
-  openTreehole: (bootstrapKey?: unknown) => unknown | Promise<unknown>
+  openTreehole: (bootstrapKey?: unknown, scope?: 'profile' | 'home') => unknown | Promise<unknown>
   setContextFormDraft?: (draft: Record<string, unknown>) => void
   setHomeJoinDetails: (details: DesktopHomeJoinDetails['homeJoinDetails'] | null) => void
   setSession: (session: unknown) => void
   updateState: (updater: (state: DesktopState) => DesktopState) => void
 }): DesktopRoomActions {
-  async function leaveHome(): Promise<void> {
+  async function leaveHome({
+    restoreProfileTreehole = true
+  }: { restoreProfileTreehole?: boolean } = {}): Promise<void> {
     await closeHome()
     setSession(null)
     setHomeJoinDetails(null)
     configureTreeholeRuntime()
     updateState(() => createInitialState())
+    if (restoreProfileTreehole) {
+      await openTreehole(null, 'profile')
+    }
     onChanged()
   }
 
@@ -117,7 +123,7 @@ export function createDesktopRoomActions({
     mode,
     roomKey
   }: RoomActionPayload = {}): Promise<void> {
-    await leaveHome()
+    await leaveHome({ restoreProfileTreehole: false })
 
     const nick = displayName?.trim() || getCurrentDisplayName()
     const { contactBook, profile } = getProfileContext(nick)
@@ -161,9 +167,10 @@ export function createDesktopRoomActions({
     await getHomeRuntime().join({ homeJoinDetails: homeJoin.homeJoinDetails })
 
     if (createTreehole) {
-      await openTreehole()
+      await openTreehole(null, 'profile')
       getHomeRuntime().requestHomeHello()
     } else {
+      await getTreeholeRuntime().close?.()
       updateState((state) =>
         setDesktopTreehole(state, {
           canPost: getTreeholeRuntime().canPost(),

@@ -17,6 +17,7 @@ type DesktopHomeRuntimeLike = {
 }
 
 type DesktopTreeholeRuntimeLike = {
+  closeHome?(): unknown | Promise<unknown>
   close(): unknown | Promise<unknown>
   configure(context: unknown): unknown
 }
@@ -107,7 +108,7 @@ export function createDesktopBackendRuntime({
   }
 
   async function closeHome() {
-    return await Promise.all([home.leave(), treehole.close()])
+    return await Promise.all([home.leave(), treehole.closeHome?.() ?? treehole.close()])
   }
 
   return {

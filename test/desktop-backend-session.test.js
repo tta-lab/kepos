@@ -130,6 +130,7 @@ test('desktop backend session starts direct messages before joining a home', asy
   const controllerState = createControllerState()
   const changes = []
   const starts = []
+  const treeholeOpens = []
   const profileRequestRuntimes = []
 
   createDesktopBackendSession({
@@ -151,7 +152,7 @@ test('desktop backend session starts direct messages before joining a home', asy
         closeAll: () => Promise.resolve(),
         configure: () => {}
       },
-      treeholeRuntime: { canPost: () => false }
+      treeholeRuntime: { canPost: () => false, open: (payload) => treeholeOpens.push(payload) }
     }),
     getCurrentDisplayName: () => 'Desktop',
     getProfileContext: () => createProfileContext(),
@@ -173,6 +174,14 @@ test('desktop backend session starts direct messages before joining a home', asy
       nick: 'Desktop',
       profile: createProfileContext().profile,
       storage: createProfileContext().storage
+    }
+  ])
+  assert.deepEqual(treeholeOpens, [
+    {
+      bootstrapKey: null,
+      initialPosts: [],
+      initialStatus: 'closed',
+      scope: 'profile'
     }
   ])
   assert.deepEqual(changes, ['changed'])
@@ -258,7 +267,7 @@ test('desktop backend session keeps runtime DM changes in controller state', () 
           closeAll: () => Promise.resolve(),
           configure: () => {}
         },
-        treeholeRuntime: { canPost: () => false }
+        treeholeRuntime: { canPost: () => false, open: () => {} }
       }
     },
     getCurrentDisplayName: () => 'Desktop',
@@ -336,7 +345,7 @@ test('desktop backend session persists outgoing friend requests and delivery upd
           closeAll: () => Promise.resolve(),
           configure: () => {}
         },
-        treeholeRuntime: { canPost: () => false }
+        treeholeRuntime: { canPost: () => false, open: () => {} }
       }
     },
     getCurrentDisplayName: () => 'Desktop',
@@ -419,7 +428,7 @@ test('desktop backend session records incoming profile-level friend requests', a
         closeAll: () => Promise.resolve(),
         configure: () => {}
       },
-      treeholeRuntime: { canPost: () => false }
+      treeholeRuntime: { canPost: () => false, open: () => {} }
     }),
     getCurrentDisplayName: () => 'Desktop',
     getProfileContext: () => context,
@@ -509,7 +518,7 @@ test('desktop backend session accepts profile-level requests and returns invites
           closeAll: () => Promise.resolve(),
           configure: () => {}
         },
-        treeholeRuntime: { canPost: () => false }
+        treeholeRuntime: { canPost: () => false, open: () => {} }
       }
     },
     getCurrentDisplayName: () => 'Desktop',
@@ -597,7 +606,7 @@ test('desktop backend session replies with local Home descriptor after profile D
         closeAll: () => Promise.resolve(),
         configure: () => {}
       },
-      treeholeRuntime: { canPost: () => false }
+      treeholeRuntime: { canPost: () => false, open: () => {} }
     }),
     getCurrentDisplayName: () => 'Desktop',
     getProfileContext: () => context,
@@ -650,7 +659,7 @@ test('desktop backend session keeps runtime transport debug in controller state'
           closeAll: () => Promise.resolve(),
           configure: () => {}
         },
-        treeholeRuntime: { canPost: () => false }
+        treeholeRuntime: { canPost: () => false, open: () => {} }
       }
     },
     getCurrentDisplayName: () => 'Desktop',

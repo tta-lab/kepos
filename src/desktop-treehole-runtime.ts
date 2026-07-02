@@ -25,13 +25,14 @@ export function createDesktopTreeholeRuntime({
   let homeJoinDetails: DesktopTreeholeJoinDetails | null = null
   let treehole: TreeholeBaseLike | null = null
   let treeholeOpening: Promise<void> | null = null
+  let treeholeScope: DesktopTreeholeScope | null = null
   let treeholeSwarm: TreeholeSwarm | null = null
   let treeholeStatePublisher: TreeholeStatePublisher | null = null
   const addedWriters = new Set<string>()
 
   function configure(nextContext: DesktopTreeholeContext | null | undefined): Promise<void> | void {
-    session = nextContext?.session || null
-    homeJoinDetails = nextContext?.homeJoinDetails || null
+    session = nextContext?.treeholeSession || nextContext?.session || null
+    homeJoinDetails = nextContext?.treeholeHomeJoinDetails || nextContext?.homeJoinDetails || null
     treehole?.updateTreeholePolicy?.(homeJoinDetails?.treeholePolicy)
 
     if (treehole) {
@@ -44,13 +45,18 @@ export function createDesktopTreeholeRuntime({
   function open({
     bootstrapKey = null,
     initialPosts = [],
-    initialStatus = 'ready'
+    initialStatus = 'ready',
+    scope = bootstrapKey ? 'home' : 'profile'
   }: DesktopTreeholeOpenOptions = {}): Promise<void> | undefined {
-    if (treehole) return
+    if (treehole && treeholeScope === scope) return
     if (treeholeOpening) return treeholeOpening
     if (!session) return
 
-    treeholeOpening = openOnce({ bootstrapKey, initialPosts, initialStatus }).finally(() => {
+    if (treehole) {
+      return close().then(() => open({ bootstrapKey, initialPosts, initialStatus, scope }))
+    }
+
+    treeholeOpening = openOnce({ bootstrapKey, initialPosts, initialStatus, scope }).finally(() => {
       treeholeOpening = null
     })
     return treeholeOpening
@@ -59,7 +65,8 @@ export function createDesktopTreeholeRuntime({
   async function openOnce({
     bootstrapKey,
     initialPosts,
-    initialStatus
+    initialStatus,
+    scope
   }: Required<DesktopTreeholeOpenOptions>): Promise<void> {
     if (!session) return
 
@@ -74,6 +81,7 @@ export function createDesktopTreeholeRuntime({
         treeholePolicy: homeJoinDetails?.treeholePolicy
       })
     )
+    treeholeScope = scope
 
     treeholeSwarm = createSwarm()
     treeholeSwarm.on('connection', (socket) => {
@@ -100,7 +108,14 @@ export function createDesktopTreeholeRuntime({
     treeholeStatePublisher = null
     await treehole?.close()
     treehole = null
+    treeholeScope = null
     addedWriters.clear()
+  }
+
+  async function closeHome(): Promise<void> {
+    if (treeholeScope === 'home') {
+      await close()
+    }
   }
 
   async function post(payload: TreeholeTextPayload): Promise<void> {
@@ -227,6 +242,7 @@ export function createDesktopTreeholeRuntime({
     addWriter,
     canPost,
     close,
+    closeHome,
     configure,
     createBootstrapControl,
     createWriterControl,
@@ -326,13 +342,18 @@ type DesktopTreeholeJoinDetails = {
 type DesktopTreeholeContext = {
   homeJoinDetails?: DesktopTreeholeJoinDetails | null
   session?: DesktopTreeholeSession | null
+  treeholeHomeJoinDetails?: DesktopTreeholeJoinDetails | null
+  treeholeSession?: DesktopTreeholeSession | null
 }
 
 type DesktopTreeholeOpenOptions = {
   bootstrapKey?: string | null
   initialPosts?: Array<Record<string, unknown>>
   initialStatus?: string
+  scope?: DesktopTreeholeScope
 }
+
+type DesktopTreeholeScope = 'profile' | 'home'
 
 type TreeholeTextPayload = {
   createdAt?: number
@@ -372,6 +393,7 @@ export type DesktopTreeholeRuntime = {
   addWriter(message: Partial<TreeholeWriterControl>): Promise<boolean>
   canPost(): boolean
   close(): Promise<void>
+  closeHome(): Promise<void>
   comment(payload: TreeholeCommentPayload): Promise<void>
   configure(nextContext?: DesktopTreeholeContext | null): Promise<void> | void
   createBootstrapControl(remoteProfileId: string): TreeholeBootstrapControl | null

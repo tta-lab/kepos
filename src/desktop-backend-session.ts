@@ -15,6 +15,7 @@ import {
 } from './profile-friend-request-transport.ts'
 import type { ProfileFriendRequestDeliveryState } from './profile-friend-request-delivery.ts'
 import { updateOutgoingFriendRequestDeliveryState, type ContactBook } from './contact-book.ts'
+import { createTreeholePolicyFromContactBook } from './contact-book-storage.ts'
 import type { MessageRequest } from './message-request.ts'
 import type { DmInvite } from './dm-invite.ts'
 import type { LocalProfile } from './profile.ts'
@@ -246,9 +247,31 @@ export function createDesktopBackendSession({
 
   function configureTreeholeRuntime() {
     if (!backendRuntime) throw new Error('Desktop backend runtime is unavailable')
+    const { contactBook, profile } = getProfileContext()
+    const homeJoinDetails = controllerState.getHomeJoinDetails()
+    const session = controllerState.getSession()
+    const profileTreeholeSession =
+      profile?.id && profile.homeRoom?.roomKey
+        ? {
+            nick: getCurrentDisplayName(),
+            profileId: profile.id,
+            roomKey: profile.homeRoom.roomKey
+          }
+        : null
+    const profileTreeholeJoinDetails =
+      profile?.id && profile.identity
+        ? {
+            identity: profile.identity,
+            ownerProfileId: profile.id,
+            treeholePolicy: createTreeholePolicyFromContactBook(contactBook)
+          }
+        : null
+
     backendRuntime.configure({
-      homeJoinDetails: controllerState.getHomeJoinDetails(),
-      session: controllerState.getSession()
+      homeJoinDetails,
+      session,
+      treeholeHomeJoinDetails: homeJoinDetails || profileTreeholeJoinDetails,
+      treeholeSession: session || profileTreeholeSession
     })
   }
 
@@ -259,6 +282,8 @@ export function createDesktopBackendSession({
     if (!dmRuntime) throw new Error('Desktop DM runtime is unavailable')
     controllerState.setDmSession(await dmRuntime.start({ nick, profile, storage }))
     await startProfileRequestRuntime(profile)
+    configureTreeholeRuntime()
+    await openTreehole(null, 'profile')
     onChanged()
   }
 
@@ -330,13 +355,17 @@ export function createDesktopBackendSession({
     return await (backendRuntime.closeHome?.() ?? Promise.all([backendRuntime.closeAll()]))
   }
 
-  async function openTreehole(bootstrapKey: string | null = null) {
+  async function openTreehole(
+    bootstrapKey: string | null = null,
+    scope: 'profile' | 'home' = bootstrapKey ? 'home' : 'profile'
+  ) {
     configureTreeholeRuntime()
     if (!treeholeRuntime) throw new Error('Desktop treehole runtime is unavailable')
     await treeholeRuntime.open({
       bootstrapKey,
       initialPosts: controllerState.getState().treeholePosts,
-      initialStatus: controllerState.getState().treeholeStatus
+      initialStatus: controllerState.getState().treeholeStatus,
+      scope
     })
   }
 
@@ -409,7 +438,7 @@ type DesktopBackendSession = {
   controlActions: Record<string, unknown>
   dmRuntime: DesktopDmRuntime
   homeRuntime: DesktopHomeRuntime
-  openTreehole: (bootstrapKey?: string | null) => Promise<void>
+  openTreehole: (bootstrapKey?: string | null, scope?: 'profile' | 'home') => Promise<void>
   roomActions: Record<string, unknown>
   treeholeRuntime: DesktopTreeholeRuntime
 }
@@ -479,6 +508,7 @@ type DesktopTreeholeRuntime = {
     bootstrapKey: string | null
     initialPosts: unknown[]
     initialStatus: string
+    scope?: 'profile' | 'home'
   }) => unknown | Promise<unknown>
 }
 
