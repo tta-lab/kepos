@@ -1497,6 +1497,14 @@ test('mobile request sent state is derived from restored contact book', async ()
 test('mobile recent profile posts cache is durable across app restart', async () => {
   const source = await readMobileSource()
   const bootstrap = await readMobileProfileBootstrapSource()
+  const leaveRoom = source.slice(
+    source.indexOf('function leaveRoom()'),
+    source.indexOf('function sendMessage()')
+  )
+  const startProfileBackend = source.slice(
+    source.indexOf('function startProfileBackend('),
+    source.indexOf('function getOrCreateBackendRpc(')
+  )
   const treeholeStateHandler = source.slice(
     source.indexOf('if (req.command === RPC_TREEHOLE_STATE)'),
     source.indexOf('if (req.command === RPC_ERROR)')
@@ -1511,6 +1519,13 @@ test('mobile recent profile posts cache is durable across app restart', async ()
   )
   assert.match(bootstrap, /profileRecentPostCache,/)
   assert.match(source, /setProfileRecentPostCache\(profile\.profileRecentPostCache\)/)
+  assert.match(
+    startProfileBackend,
+    /backendTreeholeOwnerProfileIdRef\.current = payload\.profileId/
+  )
+  assert.match(startProfileBackend, /setActiveHomeOwnerProfileId\(payload\.profileId\)/)
+  assert.match(leaveRoom, /backendTreeholeOwnerProfileIdRef\.current = profileId \|\| ''/)
+  assert.match(leaveRoom, /setActiveHomeOwnerProfileId\(profileId \|\| ''\)/)
   assert.match(treeholeStateHandler, /updateProfileRecentPostCache\(current,/)
   assert.match(treeholeStateHandler, /saveProfileRecentPostCacheToFileSystem\(/)
 })

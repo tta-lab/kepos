@@ -203,6 +203,9 @@ Already implemented before this plan:
 - Android Profile QR and Debug Home QR are now computed separately. The normal
   Profile QR calculation does not pass `homeRoom` or depend on `homeRoomKey`;
   only the advanced Debug Home QR calculation receives Home data.
+- Android profile-scoped Treehole state is attributed to the local profile when
+  the profile service starts and again after leaving Home, so local posts can
+  update the profile recent-post cache without entering Home.
 
 Still open:
 

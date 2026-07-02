@@ -880,7 +880,8 @@ export default function App() {
   function leaveRoom() {
     rpcRef.current?.request(RPC_LEAVE).send(JSON.stringify({}))
     setSession(null)
-    setActiveHomeOwnerProfileId('')
+    backendTreeholeOwnerProfileIdRef.current = profileId || ''
+    setActiveHomeOwnerProfileId(profileId || '')
     setDraft('')
     setDmDraft('')
     setProfileRequestTarget(null)
@@ -1134,6 +1135,8 @@ export default function App() {
   }) {
     try {
       const nextRpc = getOrCreateBackendRpc()
+      backendTreeholeOwnerProfileIdRef.current = payload.profileId
+      setActiveHomeOwnerProfileId(payload.profileId)
       nextRpc.request(RPC_PROFILE_START).send(JSON.stringify(payload))
       setRpc(nextRpc)
       setNotice('Profile ready.')

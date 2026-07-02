@@ -215,6 +215,8 @@ test('V1 active profile and DM only social plan keeps Home out of normal social 
   assert.match(plan, /source-level route increasingly clean; release proof still open/)
   assert.match(plan, /Android Profile QR and Debug Home QR are now computed separately/)
   assert.match(plan, /does not pass `homeRoom` or depend on `homeRoomKey`/)
+  assert.match(plan, /Android profile-scoped Treehole state is attributed to the local profile/)
+  assert.match(plan, /update the profile recent-post cache without entering Home/)
 })
 
 test('V1 previous profile and DM first release plan demotes Home from social delivery', async () => {
