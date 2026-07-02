@@ -159,12 +159,12 @@ test('desktop trust actions mark repeated profile QR requests as pending', () =>
         },
         canOpenProfile: true,
         canSendRequest: false,
-        copy: 'You already sent a request. Wait for them to accept.',
+        copy: 'Your request is pending. Wait for them to accept.',
         displayName: 'Ada',
         profileId: 'friend',
         relationshipState: 'outgoing_request',
         shortProfileId: 'friend...friend',
-        statusLabel: 'Request sent'
+        statusLabel: 'Request pending'
       }
     ]
   ])

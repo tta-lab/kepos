@@ -183,7 +183,7 @@ test('desktop render presenter pushes the full room snapshot to React UI', () =>
   assert.equal(calls.find(([name]) => name === 'people')[1].trustedContacts[0].alias, 'Ada')
   assert.equal(
     calls.find(([name]) => name === 'people')[1].outgoingRequests[0].statusLabel,
-    'Request sent'
+    'Request pending'
   )
   assert.equal(calls.find(([name]) => name === 'treeholePosts')[1][0].text, 'hello tree')
 })

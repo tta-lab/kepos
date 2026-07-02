@@ -7,6 +7,7 @@ import {
   formatOutgoingRequestTitle,
   formatRequestPreview
 } from '../src/mobile-product-copy.ts'
+import { formatProfileFriendRequestDeliveryState } from '../src/profile-friend-request-transport.ts'
 import {
   MobileRequestActionButton,
   type MobileRequestActionButtonStyles
@@ -34,6 +35,7 @@ export type RequestManagerTheme = {
 
 export type OutgoingFriendRequest = {
   alias?: string | null
+  deliveryState?: string | null
   profileId: string
   text?: string | null
 }
@@ -80,7 +82,9 @@ export function OutgoingRequestManager({
             <Text style={styles.requestPreview}>{formatRequestPreview(request.text)}</Text>
           </View>
           <View style={styles.trustMeta}>
-            <Text style={styles.trustStatus}>Request sent</Text>
+            <Text style={styles.trustStatus}>
+              {formatProfileFriendRequestDeliveryState(request.deliveryState)}
+            </Text>
           </View>
         </View>
       ))}

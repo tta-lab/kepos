@@ -75,7 +75,7 @@ test('cross-device recipe defines the final V1 normal product proof packet', asy
   assert.doesNotMatch(recipe, /Profile QR and Home QR scan both passed/)
   assert.match(recipe, /Android scans the desktop Profile QR through the camera/)
   assert.match(recipe, /Android sends a friend request/)
-  assert.match(recipe, /Android still shows the outgoing request as Request sent after restart/)
+  assert.match(recipe, /Android still shows the outgoing request as Request pending after restart/)
   assert.match(recipe, /Desktop ignores the friend request/)
   assert.match(recipe, /chooses Allow requests/)
   assert.match(recipe, /Desktop accepts the second friend request/)

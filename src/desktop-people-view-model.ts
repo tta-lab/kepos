@@ -2,6 +2,7 @@ import type { ContactBook, ContactBookContact, MessageRequestContact } from './c
 import { getBlockedContactCopy } from './blocked-contact-copy.ts'
 import { isContactTrusted, listBlockedContacts } from './contact-book.ts'
 import { createContactProfileViewModel } from './contact-profile-view-model.ts'
+import { formatProfileFriendRequestDeliveryState } from './profile-friend-request-transport.ts'
 import type { ProfileAvatarViewModel } from './profile-avatar-view-model.ts'
 
 type ShortenProfileId = (profileId: string) => string
@@ -197,8 +198,8 @@ function createOutgoingRequestViewModel({
   return {
     profileId: request.profileId,
     profileLabel: label,
-    requestedAtLabel: `Sent ${formatTrustTime(request.requestedAt, formatDate)}`,
-    statusLabel: 'Request sent',
+    requestedAtLabel: `Queued ${formatTrustTime(request.requestedAt, formatDate)}`,
+    statusLabel: formatProfileFriendRequestDeliveryState(request.deliveryState),
     textPreview: formatDesktopRequestPreview(request.text),
     title: `${label} has not accepted yet.`
   }

@@ -33,6 +33,7 @@ export type MessageRequestContact = {
   alias?: string
   avatarMediaSnapshot?: AvatarMediaReference
   avatarUriSnapshot?: string
+  deliveryState?: string
   displayNameSnapshot?: string
   homeAddress?: string
   homeExpiresAt?: number
@@ -480,6 +481,7 @@ export function recordMessageRequest(
     requestedAt,
     requestId,
     proof,
+    deliveryState,
     senderEncryptionPublicKey,
     source,
     text
@@ -541,6 +543,7 @@ export function recordMessageRequest(
       requestedAt,
       requestId,
       proof,
+      deliveryState: cleanOptionalString(deliveryState),
       ...withProfileSnapshots(profileSnapshots),
       senderEncryptionPublicKey: cleanOptionalString(senderEncryptionPublicKey),
       source: cleanOptionalString(source),
@@ -570,6 +573,7 @@ export function recordOutgoingFriendRequest(
     requestedAt,
     requestId,
     proof,
+    deliveryState,
     senderEncryptionPublicKey,
     source,
     text
@@ -631,6 +635,7 @@ export function recordOutgoingFriendRequest(
       requestedAt,
       requestId,
       proof,
+      deliveryState: cleanOptionalString(deliveryState),
       ...withProfileSnapshots(profileSnapshots),
       senderEncryptionPublicKey: cleanOptionalString(senderEncryptionPublicKey),
       source: cleanOptionalString(source),

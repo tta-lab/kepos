@@ -155,8 +155,8 @@ test('desktop people view model formats outgoing friend requests for rendering',
     {
       profileId,
       profileLabel: 'Ada',
-      requestedAtLabel: 'Sent Jan 1, 1970',
-      statusLabel: 'Request sent',
+      requestedAtLabel: 'Queued Jan 1, 1970',
+      statusLabel: 'Request pending',
       textPreview: 'hello',
       title: 'Ada has not accepted yet.'
     }

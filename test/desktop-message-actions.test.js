@@ -32,7 +32,7 @@ test('desktop message actions send home chat through the home runtime', () => {
   assert.deepEqual(renders, ['render'])
 })
 
-test('desktop message actions send direct messages through the dm runtime', () => {
+test('desktop message actions send direct messages through the dm runtime without Home control', async () => {
   const broadcasts = []
   const calls = []
   const renders = []
@@ -55,7 +55,7 @@ test('desktop message actions send direct messages through the dm runtime', () =
     onChanged: () => renders.push('render')
   })
 
-  actions.sendDmMessage({ text: '  dm  ', toProfileId: 'friend' })
+  await actions.sendDmMessage({ text: '  dm  ', toProfileId: 'friend' })
 
   assert.equal(calls.length, 1)
   assert.equal(calls[0].createdAt, 456)
@@ -63,7 +63,7 @@ test('desktop message actions send direct messages through the dm runtime', () =
   assert.equal(calls[0].requestId, 'id-1')
   assert.equal(calls[0].text, 'dm')
   assert.equal(calls[0].toProfileId, 'friend')
-  assert.deepEqual(broadcasts, [{ type: 'control' }])
+  assert.deepEqual(broadcasts, [])
   assert.deepEqual(renders, ['render'])
 })
 
@@ -106,7 +106,7 @@ test('desktop message actions ignore blank read marker profiles', () => {
   assert.deepEqual(calls, [])
 })
 
-test('desktop message actions record outgoing friend requests when direct send creates a request', () => {
+test('desktop message actions record queued outgoing friend requests when direct send creates a request', async () => {
   const savedBooks = []
   let nextId = 0
   const actions = createDesktopMessageActions({
@@ -133,14 +133,15 @@ test('desktop message actions record outgoing friend requests when direct send c
     saveContactBook: (book) => savedBooks.push(book)
   })
 
-  actions.sendDmMessage({ text: '  hello  ', toProfileId: 'friend' })
+  await actions.sendDmMessage({ text: '  hello  ', toProfileId: 'friend' })
 
   assert.equal(savedBooks.length, 1)
+  assert.equal(savedBooks[0].outgoingRequestsByProfileId.get('friend').deliveryState, 'queued')
   assert.equal(savedBooks[0].outgoingRequestsByProfileId.get('friend').requestId, 'id-1')
   assert.equal(savedBooks[0].outgoingRequestsByProfileId.get('friend').text, 'hello')
 })
 
-test('desktop message actions preserve scanned Home descriptors on outgoing friend requests', () => {
+test('desktop message actions preserve scanned Home descriptors on outgoing friend requests', async () => {
   const savedBooks = []
   const avatarMedia = createAvatarMediaReference({
     bytes: Uint8Array.from([1, 2, 3]),
@@ -194,7 +195,7 @@ test('desktop message actions preserve scanned Home descriptors on outgoing frie
     saveContactBook: (book) => savedBooks.push(book)
   })
 
-  actions.sendDmMessage({ text: 'hello', toProfileId: 'friend' })
+  await actions.sendDmMessage({ text: 'hello', toProfileId: 'friend' })
 
   assert.equal(savedBooks[0].outgoingRequestsByProfileId.get('friend').homeAddress, 'c'.repeat(64))
   assert.equal(savedBooks[0].outgoingRequestsByProfileId.get('friend').homeRoomKey, 'd'.repeat(64))
@@ -216,7 +217,7 @@ test('desktop message actions preserve scanned Home descriptors on outgoing frie
   )
 })
 
-test('desktop message actions do not send duplicate outgoing friend requests', () => {
+test('desktop message actions do not send duplicate outgoing friend requests', async () => {
   const calls = []
   const requestedBook = recordOutgoingFriendRequest(
     createContactBook({ ownerProfileId: 'local' }),
@@ -243,9 +244,9 @@ test('desktop message actions do not send duplicate outgoing friend requests', (
     setNotice: (notice) => calls.push(['notice', notice])
   })
 
-  actions.sendDmMessage({ text: 'again', toProfileId: 'friend' })
+  await actions.sendDmMessage({ text: 'again', toProfileId: 'friend' })
 
-  assert.deepEqual(calls, [['notice', 'You already sent a request. Wait for them to accept.']])
+  assert.deepEqual(calls, [['notice', 'Your request is pending. Wait for them to accept.']])
 })
 
 test('desktop message actions do not broadcast signed DM bodies over Home by default', () => {

@@ -66,6 +66,26 @@ Home should not be:
 
 ## Implementation Plan
 
+## Current Implementation Status
+
+Phase 1 and the boundary part of Phase 2 are implemented:
+
+- mobile Profile QR friend request sending no longer calls `enterRequestTargetHome`
+- mobile friend requests no longer send `RPC_DM_SEND` through the Home backend
+- desktop message request sending no longer requires `homeRuntime.isJoined()`
+- desktop message request sending no longer forwards new requests through Home control
+- `src/profile-friend-request-transport.ts` owns the profile-to-profile delivery boundary
+- outgoing requests are recorded as `queued` and shown as "Request pending" until a real transport accepts or acknowledges them
+
+Still open:
+
+- connect the profile-level P2P route
+- update delivery state after transport progress
+- add receiver-side profile request listening
+- remove the temporary Home-control request path after the profile route handles real delivery
+
+The current product behavior is intentionally honest: a request can be queued locally without claiming the other side received it.
+
 ### Phase 1: Stop Treating Home As Friend Request Delivery
 
 Change tests and docs so they expect this:

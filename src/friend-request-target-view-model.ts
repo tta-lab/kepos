@@ -1,4 +1,5 @@
 import { getContact, isContactRevoked, isContactTrusted, type ContactBook } from './contact-book.ts'
+import { formatProfileFriendRequestDeliveryState } from './profile-friend-request-transport.ts'
 import {
   createProfileAvatarViewModel,
   type ProfileAvatarViewModel,
@@ -105,16 +106,17 @@ export function createFriendRequestTargetViewModel({
   }
 
   if (contactBook?.outgoingRequestsByProfileId?.has(target.profileId)) {
+    const request = contactBook.outgoingRequestsByProfileId.get(target.profileId)
     return createView({
       avatar,
       avatarMediaSnapshot,
       avatarUri,
       canSendRequest: false,
-      copy: 'You already sent a request. Wait for them to accept.',
+      copy: 'Your request is pending. Wait for them to accept.',
       displayName,
       relationshipState: 'outgoing_request',
       shortProfileId: shortenProfileId(target.profileId),
-      statusLabel: 'Request sent',
+      statusLabel: formatProfileFriendRequestDeliveryState(request?.deliveryState),
       target
     })
   }

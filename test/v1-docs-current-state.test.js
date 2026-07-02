@@ -430,7 +430,7 @@ test('V1 smoke docs include the desktop Pear Bare smoke path', async () => {
   assert.match(recipe, /npm run smoke:desktop:pear/)
   assert.match(recipe, /npm run smoke:desktop:contacts:pear/)
   assert.match(recipe, /npm run smoke:two-device:debug:pear/)
-  assert.match(recipe, /Android still shows the outgoing request as Request sent after restart/)
+  assert.match(recipe, /Android still shows the outgoing request as Request pending after restart/)
   assert.match(recipe, /message request rows remain after app restart/)
   assert.match(recipe, /revoked contacts leave trusted contact lists/)
   assert.match(recipe, /revoked contacts leave Chat recipient options/)
@@ -825,10 +825,10 @@ test('V1 smoke guide uses Chat product language for user steps', async () => {
   assert.match(dependencyOrder, /trusted contacts as Chat recipient options/)
   assert.match(crossDevice, /Chat setup and body traffic stay separate from room chat/)
   assert.match(crossDevice, /durable Chat messages survive restart/)
-  assert.match(crossDevice, /Android shows the request as Request sent before acceptance/)
+  assert.match(crossDevice, /Android shows the request as Request pending before acceptance/)
   assert.match(
     crossDevice,
-    /Android still shows the outgoing request as Request sent after restart/
+    /Android still shows the outgoing request as Request pending after restart/
   )
   assert.match(crossDevice, /Desktop ignores the friend request/)
   assert.match(crossDevice, /chooses Allow requests/)

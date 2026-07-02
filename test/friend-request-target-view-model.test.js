@@ -59,7 +59,7 @@ test('friend request target view model marks an outgoing request as pending', ()
   assert.deepEqual(view(book), {
     canOpenProfile: true,
     canSendRequest: false,
-    copy: 'You already sent a request. Wait for them to accept.',
+    copy: 'Your request is pending. Wait for them to accept.',
     displayName: 'Ada',
     avatar: createProfileAvatarViewModel({
       avatarUri: 'kepos://avatar/ada',
@@ -70,7 +70,7 @@ test('friend request target view model marks an outgoing request as pending', ()
     profileId: 'profile-ada',
     relationshipState: 'outgoing_request',
     shortProfileId: 'short:profile-ada',
-    statusLabel: 'Request sent'
+    statusLabel: 'Request pending'
   })
 })
 

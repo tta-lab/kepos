@@ -536,6 +536,12 @@ test('mobile local avatar uri can be edited and restored before sharing Profile 
   assert.match(bootstrap, /loadMobileProfileDocument/)
   assert.match(source, /saveMobileProfileDocument/)
   assert.match(source, /loadMobileRuntimeProfile\(/)
+  assert.match(
+    source,
+    /loadDmSessionMessagesFromFileSystem\(\{[\s\S]*ownerProfileId: profile\.profileId/
+  )
+  assert.match(source, /restoreDirectMessageSession\(\{[\s\S]*localProfileId: profile\.profileId/)
+  assert.match(source, /setDmSession\(nextDmSession\)/)
   assert.doesNotMatch(source, /async function loadMobileProfile\(/)
   assert.match(source, /async function updateLocalAvatarUri\(value: string\)/)
   assert.match(source, /setLocalAvatarMedia\(null\)/)
@@ -727,7 +733,7 @@ test('mobile direct contact chips and revoke actions expose trust state', async 
   assert.doesNotMatch(source, /function MessageRequestManager\(/)
   assert.match(requestComponents, /export type OutgoingRequestManagerProps = \{/)
   assert.match(outgoingRequestManager, /title='Sent requests'/)
-  assert.match(outgoingRequestManager, /Request sent/)
+  assert.match(outgoingRequestManager, /formatProfileFriendRequestDeliveryState/)
   assert.match(outgoingRequestManager, /formatOutgoingRequestTitle\(request\)/)
   assert.match(contactChip, /accessibilityRole='button'/)
   assert.match(contactChip, /accessibilityState=\{\{ selected \}\}/)
@@ -1113,7 +1119,7 @@ test('mobile request sent state is derived from restored contact book', async ()
   assert.match(peoplePane, /<OutgoingRequestManager[\s\S]*styles=\{styles\}/)
   assert.match(peoplePane, /<OutgoingRequestManager[\s\S]*theme=\{theme\}/)
   assert.match(outgoingRequestManager, /title='Sent requests'/)
-  assert.match(outgoingRequestManager, /Request sent/)
+  assert.match(outgoingRequestManager, /formatProfileFriendRequestDeliveryState/)
 })
 
 test('mobile recent profile posts cache is durable across app restart', async () => {
@@ -1328,10 +1334,6 @@ test('mobile composer sends trimmed text payloads', async () => {
     source.indexOf('function sendMessageRequest()'),
     source.indexOf('function sendTreeholePost()')
   )
-  const enterRequestTargetHome = source.slice(
-    source.indexOf('function enterRequestTargetHome('),
-    source.indexOf('async function sendMessageRequest()')
-  )
   const sendTreeholePost = source.slice(
     source.indexOf('function sendTreeholePost()'),
     source.indexOf('function sendTreeholeComment(')
@@ -1348,32 +1350,14 @@ test('mobile composer sends trimmed text payloads', async () => {
   assert.match(sendMessageRequest, /const cleanText = normalizeComposerText\(dmDraft\)/)
   assert.match(sendMessageRequest, /createFriendRequestTargetViewModel\(/)
   assert.match(sendMessageRequest, /if \(!requestTargetView\.canSendRequest\)/)
-  assert.match(
-    sendMessageRequest,
-    /const requestRpc = await enterRequestTargetHome\(requestTargetView\)/
-  )
-  assert.match(sendMessageRequest, /if \(!requestRpc\) return/)
-  assert.match(sendMessageRequest, /requestRpc\.request\(RPC_DM_SEND\)\.send/)
-  assert.match(enterRequestTargetHome, /activeHomeOwnerProfileId === requestTarget\.profileId/)
-  assert.match(
-    enterRequestTargetHome,
-    /const homeDescriptor = asRecord\(requestTarget\.homeDescriptor\)/
-  )
-  assert.match(enterRequestTargetHome, /createHomeJoinSessionFromAddress\(/)
-  assert.match(enterRequestTargetHome, /setActiveHomeOwnerProfileId\(ownerProfileId\)/)
-  assert.match(enterRequestTargetHome, /const started = startBackend\(/)
-  assert.match(enterRequestTargetHome, /const joined = await started\.joined/)
-  assert.match(enterRequestTargetHome, /return started\.rpc/)
-  assert.match(
-    sendMessageRequest,
-    /const homeDescriptor = asRecord\(requestTargetView\.homeDescriptor\)/
-  )
-  assert.match(sendMessageRequest, /homeAddress: asString\(homeDescriptor\.address\)/)
-  assert.match(sendMessageRequest, /homeRoomKey: asString\(homeDescriptor\.roomKey\)/)
+  assert.doesNotMatch(sendMessageRequest, /enterRequestTargetHome\(/)
+  assert.doesNotMatch(sendMessageRequest, /requestRpc/)
+  assert.doesNotMatch(sendMessageRequest, /RPC_DM_SEND/)
+  assert.doesNotMatch(sendMessageRequest, /homeDescriptor/)
   assert.match(sendMessageRequest, /avatarMediaSnapshot: requestTargetView\.avatarMediaSnapshot/)
   assert.match(sendMessageRequest, /avatarUriSnapshot: requestTargetView\.avatarUri/)
   assert.match(sendMessageRequest, /displayNameSnapshot: requestTargetView\.displayName/)
-  assert.match(sendMessageRequest, /proof: homeDescriptor\.proof/)
+  assert.match(sendMessageRequest, /deliveryState: 'queued'/)
   assert.match(sendMessageRequest, /toProfileId: cleanRecipient/)
   assert.match(sendMessageRequest, /text: cleanText/)
   assert.doesNotMatch(sendMessageRequest, /text: dmDraft/)

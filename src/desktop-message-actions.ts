@@ -1,6 +1,13 @@
 import { recordOutgoingFriendRequest } from './contact-book.ts'
 import { createFriendRequestTargetViewModel } from './friend-request-target-view-model.ts'
+import {
+  createQueuedProfileFriendRequestTransport,
+  sendProfileFriendRequest,
+  type ProfileFriendRequestTransport
+} from './profile-friend-request-transport.ts'
 import type { ContactBook } from './contact-book.ts'
+import type { MessageRequest } from './message-request.ts'
+import type { SigningIdentity } from './signed-record.ts'
 import { createDefaultSecureId } from './secure-id.ts'
 import type { AvatarMediaReference } from './avatar-media.ts'
 
@@ -39,11 +46,7 @@ type DmSendResult =
   | {
       kind?: string
       message?: unknown
-      request?: {
-        requestId?: string
-        text?: string
-        toProfileId?: string
-      }
+      request?: MessageRequest
     }
   | null
   | undefined
@@ -60,6 +63,11 @@ type DmRuntime = {
   }): DmSendResult
 }
 
+type LocalProfileSnapshot = {
+  identity?: SigningIdentity
+  profileId?: string
+}
+
 type TreeholeRuntime = {
   comment(payload: { createdAt: number; id: string; postId?: string; text: string }): unknown
   like(payload: { createdAt: number; postId?: string }): unknown
@@ -71,7 +79,7 @@ export type DesktopMessageActions = {
   likeTreehole(postId?: string): Promise<void>
   markDmThreadRead(payload?: MessageActionPayload): void
   postTreehole(payload?: MessageActionPayload): Promise<void>
-  sendDmMessage(payload?: MessageActionPayload): void
+  sendDmMessage(payload?: MessageActionPayload): Promise<void>
   sendHomeMessage(payload?: MessageActionPayload): void
 }
 
@@ -81,7 +89,9 @@ export function createDesktopMessageActions({
   getContactBook = () => null,
   getDmRuntime = () => null,
   getDmSession = () => null,
+  getFriendRequestTransport = () => createQueuedProfileFriendRequestTransport(),
   getHomeRuntime = () => null,
+  getLocalProfile = () => null,
   getProfileRequestTarget = () => null,
   getSession = () => null,
   getTreeholeCanPost = () => false,
@@ -97,7 +107,9 @@ export function createDesktopMessageActions({
   getContactBook?: () => ContactBook | null
   getDmRuntime?: () => DmRuntime | null
   getDmSession?: () => unknown
+  getFriendRequestTransport?: () => ProfileFriendRequestTransport | null
   getHomeRuntime?: () => HomeRuntime | null
+  getLocalProfile?: () => LocalProfileSnapshot | null
   getProfileRequestTarget?: () => ProfileRequestTargetSnapshot
   getSession?: () => unknown
   getTreeholeCanPost?: () => boolean
@@ -147,14 +159,14 @@ export function createDesktopMessageActions({
         text: cleanText
       })
     },
-    sendDmMessage({ text, toProfileId } = {}) {
+    async sendDmMessage({ text, toProfileId } = {}) {
       const cleanText = cleanMessageText(text)
-      const homeRuntime = getHomeRuntime()
       const dmRuntime = getDmRuntime()
+      const homeRuntime = getHomeRuntime()
       const contactBook = getContactBook()
       let requestTarget: ReturnType<typeof createFriendRequestTargetViewModel> | null = null
 
-      if (!homeRuntime?.isJoined() || !getDmSession() || !toProfileId || !cleanText) return
+      if (!getDmSession() || !toProfileId || !cleanText) return
       if (contactBook) {
         const profileRequestTarget = getProfileRequestTarget()
         requestTarget = createFriendRequestTargetViewModel({
@@ -177,7 +189,7 @@ export function createDesktopMessageActions({
       }
 
       const result = dmRuntime?.sendMessageOrRequest({
-        broadcastControl: (request) => homeRuntime.broadcastControl(request),
+        broadcastControl: () => {},
         createdAt: now(),
         messageId: createId(),
         requestId: createId(),
@@ -187,6 +199,11 @@ export function createDesktopMessageActions({
 
       if (!result) return
       if (result.kind === 'request') {
+        const deliveryState = await sendDesktopProfileFriendRequest({
+          getFriendRequestTransport,
+          getLocalProfile,
+          request: result.request
+        })
         if (contactBook && result.request?.toProfileId && result.request.requestId) {
           const homeDescriptor = readMatchingHomeDescriptor({
             profileId: result.request.toProfileId,
@@ -204,6 +221,7 @@ export function createDesktopMessageActions({
               homeRoomKey: homeDescriptor?.roomKey,
               profileId: result.request.toProfileId,
               proof: homeDescriptor?.proof,
+              deliveryState,
               requestedAt: now(),
               requestId: result.request.requestId,
               source: 'profile_qr',
@@ -212,7 +230,7 @@ export function createDesktopMessageActions({
           )
         }
       }
-      if (allowHomeDmBodyFallback && result.kind === 'message') {
+      if (allowHomeDmBodyFallback && result.kind === 'message' && homeRuntime) {
         homeRuntime.broadcastControl({
           message: result.message,
           type: 'kepos.dm.body.v1'
@@ -238,6 +256,39 @@ export function createDesktopMessageActions({
       onChanged()
     }
   }
+}
+
+async function sendDesktopProfileFriendRequest({
+  getFriendRequestTransport,
+  getLocalProfile,
+  request
+}: {
+  getFriendRequestTransport: () => ProfileFriendRequestTransport | null
+  getLocalProfile: () => LocalProfileSnapshot | null
+  request?: MessageRequest
+}): Promise<string> {
+  const localProfile = getLocalProfile()
+
+  if (
+    !request ||
+    !localProfile?.profileId ||
+    !localProfile.identity ||
+    localProfile.identity.publicKey !== localProfile.profileId
+  ) {
+    return 'queued'
+  }
+
+  const delivery = await sendProfileFriendRequest({
+    localProfile: {
+      identity: localProfile.identity,
+      profileId: localProfile.profileId
+    },
+    request,
+    targetProfileId: request.toProfileId,
+    transport: getFriendRequestTransport()
+  })
+
+  return delivery.state
 }
 
 function readMatchingHomeDescriptor({

@@ -82,6 +82,22 @@ export function createDesktopBackendSession({
     getDmRuntime: () => dmRuntime,
     getDmSession: () => controllerState.getDmSession(),
     getHomeRuntime: () => homeRuntime,
+    getLocalProfile: () => {
+      const context = getProfileContext() as {
+        profile: {
+          id: string
+          identity: {
+            publicKey: string
+            secretKey: string
+          }
+        }
+      }
+
+      return {
+        identity: context.profile.identity,
+        profileId: context.profile.id
+      }
+    },
     getProfileRequestTarget: () => profileRequestTarget,
     getSession: () => controllerState.getSession(),
     getTreeholeCanPost: () => controllerState.getState().treeholeCanPost,

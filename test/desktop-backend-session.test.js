@@ -242,9 +242,13 @@ test('desktop backend session persists outgoing friend requests from message act
             return {
               kind: 'request',
               request: {
+                createdAt: 1000,
+                fromProfileId: 'a'.repeat(64),
                 requestId: payload.requestId,
+                senderEncryptionPublicKey: 'b'.repeat(64),
                 text: payload.text,
-                toProfileId: payload.toProfileId
+                toProfileId: payload.toProfileId,
+                type: 'kepos.message.request.v1'
               }
             }
           },
@@ -273,7 +277,7 @@ test('desktop backend session persists outgoing friend requests from message act
   })
   await Promise.resolve()
 
-  createdHosts[0].actions.sendDmMessage({
+  await createdHosts[0].actions.sendDmMessage({
     text: 'hello',
     toProfileId: 'b'.repeat(64)
   })

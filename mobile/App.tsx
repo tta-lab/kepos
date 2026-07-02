@@ -140,7 +140,6 @@ import {
   RPC_DM_BODY_SEND,
   RPC_DM_MESSAGE,
   RPC_DM_REVOKE,
-  RPC_DM_SEND,
   RPC_DM_THREAD,
   RPC_JOIN,
   RPC_LEAVE,
@@ -333,7 +332,18 @@ export default function App() {
       createIdentity: () => createIdentityKeyPairFromSeed(Crypto.getRandomBytes(32)),
       fileSystem: FileSystem
     })
-      .then((profile) => {
+      .then(async (profile) => {
+        const messages = await loadDmSessionMessagesFromFileSystem({
+          baseUri: getRequiredMobileDocumentDirectory(FileSystem),
+          fileSystem: FileSystem,
+          ownerProfileId: profile.profileId
+        })
+        const nextDmSession = restoreDirectMessageSession({
+          localProfileId: profile.profileId,
+          messages,
+          nick
+        })
+
         if (!cancelled) {
           setProfileId(profile.profileId)
           setLocalAvatarMedia(profile.avatarMedia || null)
@@ -341,6 +351,8 @@ export default function App() {
           setIdentity(profile.identity)
           setHomeRoomKey(profile.homeRoomKey)
           setContactBook(profile.contactBook)
+          setDmSession(nextDmSession)
+          setDmMessages(nextDmSession.messages)
           setDmThreads(profile.dmThreads)
           setProfileRecentPostCache(profile.profileRecentPostCache)
           setTreeholePolicy(profile.treeholePolicy)
@@ -845,72 +857,7 @@ export default function App() {
     setDraft('')
   }
 
-  async function enterRequestTargetHome(
-    requestTarget: FriendRequestTargetViewModel
-  ): Promise<RpcClient | null> {
-    if (session && activeHomeOwnerProfileId === requestTarget.profileId) return rpc
-
-    const homeDescriptor = asRecord(requestTarget.homeDescriptor)
-    const address = asString(homeDescriptor.address)
-    const ownerProfileId = asString(homeDescriptor.ownerProfileId) || requestTarget.profileId
-    const roomKey = asString(homeDescriptor.roomKey)
-    const policy = asString(homeDescriptor.policy) === 'public' ? 'public' : 'trusted_only'
-
-    if (!address || !roomKey || !identity || !profileId) {
-      setNotice('Enter this Home before sending a friend request.')
-      return null
-    }
-
-    try {
-      const storageBasePath = await getMobileBackendStorageBasePath({ fileSystem: FileSystem })
-      const homeJoin = createHomeJoinSessionFromAddress({
-        address,
-        identity,
-        nick,
-        ownerProfileId,
-        policy,
-        profileId,
-        roomKey
-      })
-      const nextDmSession = await restoreMobileDirectMessageSession()
-      setRoomKey(homeJoin.roomKey)
-      setSession(homeJoin.session)
-      setActiveHomeOwnerProfileId(ownerProfileId)
-      setDmSession(nextDmSession)
-      setDmMessages(nextDmSession.messages)
-      setPeerCount(0)
-      setTreeholePosts([])
-      setTreeholeCanInteract(false)
-      setTreeholeCanPost(false)
-      setTreeholeStatus('waiting')
-
-      const started = startBackend(
-        await createHomeSessionPayload({
-          ...homeJoin,
-          createTreehole: false,
-          nick,
-          storageBasePath,
-          treeholePolicy
-        })
-      )
-      if (!started) return null
-
-      const joined = await started.joined
-      if (!joined) {
-        setNotice('Could not enter this Home yet.')
-        return null
-      }
-
-      return started.rpc
-    } catch (error) {
-      console.error('Could not enter request target home', error)
-      setLastError(errorMessage(error))
-      setNotice('Could not enter this Home.')
-      return null
-    }
-  }
-
-  async function sendMessageRequest() {
+  function sendMessageRequest() {
     const cleanText = normalizeComposerText(dmDraft)
     const cleanRecipient = dmRecipient.trim()
     if (!dmSession || !cleanText || !cleanRecipient) {
@@ -962,10 +909,6 @@ export default function App() {
       return
     }
 
-    const requestRpc = await enterRequestTargetHome(requestTargetView)
-    if (!requestRpc) return
-
-    const homeDescriptor = asRecord(requestTargetView.homeDescriptor)
     const nextSession = appendLocalMessageRequest(dmSession, message)
     if (contactBook) {
       const nextBook = recordOutgoingFriendRequest(contactBook, {
@@ -973,12 +916,8 @@ export default function App() {
         avatarMediaSnapshot: requestTargetView.avatarMediaSnapshot,
         avatarUriSnapshot: requestTargetView.avatarUri,
         displayNameSnapshot: requestTargetView.displayName,
-        homeAddress: asString(homeDescriptor.address),
-        homeExpiresAt: asNumber(homeDescriptor.expiresAt),
-        homePolicy: asString(homeDescriptor.policy),
-        homeRoomKey: asString(homeDescriptor.roomKey),
+        deliveryState: 'queued',
         profileId: message.toProfileId,
-        proof: homeDescriptor.proof,
         requestedAt: message.createdAt,
         requestId: message.requestId,
         source: 'profile_qr',
@@ -1004,14 +943,7 @@ export default function App() {
       setLastError(errorMessage(error))
       setNotice('Could not save this friend request.')
     })
-    requestRpc.request(RPC_DM_SEND).send(
-      JSON.stringify({
-        at: message.createdAt,
-        id: message.requestId,
-        text: message.text,
-        toProfileId: message.toProfileId
-      })
-    )
+    setNotice('Friend request pending.')
     setDmDraft('')
     setProfileRequestTarget(null)
   }
