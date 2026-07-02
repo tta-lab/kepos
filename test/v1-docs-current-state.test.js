@@ -1207,6 +1207,24 @@ test('V1 social delivery baseline keeps Home out of social delivery', async () =
   assert.match(baselinePlan, /Physical smoke is expensive and should only run when asked/)
 })
 
+test('V1 active plan records source-level profile-social hardening as closed', async () => {
+  const plan = await readText(
+    '../docs/v1-friend-home-architecture/27-v1-profile-social-finalization-next-plan.md'
+  )
+
+  assert.match(plan, /Status: source-level low-cost closure is done/)
+  assert.match(plan, /syncContactBook\(\)/)
+  assert.match(plan, /contactBookRef\.current/)
+  assert.match(plan, /allowHomeTrustFallback/)
+  assert.match(plan, /normal Home peer connection is not a hidden social\s+delivery route/)
+  assert.match(plan, /profileRequestRuntime/)
+  assert.match(
+    plan,
+    /remaining blocker is proving the normal\s+product path on real desktop plus physical Android/
+  )
+  assert.doesNotMatch(plan, /remaining blocker is\s+closing stale-state edges/)
+})
+
 test('V1 previous release proof plan names the final readiness bar', async () => {
   const activePlan = await readText(
     '../docs/v1-friend-home-architecture/24-v1-release-proof-next-plan.md'

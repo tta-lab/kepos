@@ -42,9 +42,15 @@ As of 2026-07-03, the source has moved close to the target model:
   `Home / Chat / Contacts / Treehole`
 - Profile QR request-target copy no longer tells users they are joining a Home
 - outgoing friend-request delivery state is stored in ContactBook
+- Android direct ContactBook writes now use one `syncContactBook()` path, so
+  profile-delivery callbacks cannot read stale request state after send, retry,
+  receive, accept, ignore, allow, remove, or revoke paths
 - removed, ignored, pending, and trusted states have visible Contacts surfaces
 - Chat send is gated by the current ContactBook request state on desktop and
   Android
+- Android Home-peer resend of outgoing friend requests is debug-only behind
+  `allowHomeTrustFallback`; normal Home peer connection is not a hidden social
+  delivery route
 - local Treehole posts persist
 - Home entry is exposed as an explicit trusted-profile action
 - the current non-device `npm run v1:gate` passed on commit
@@ -55,13 +61,15 @@ As of 2026-07-03, the source has moved close to the target model:
 - release proof tooling exists through
   `npm run v1:proof:packet` and `npm run v1:proof:check`
 
-The remaining blocker is not a new product model. The remaining blocker is
-closing stale-state edges and proving the product path on real desktop plus
-physical Android.
+The remaining blocker is not a new product model. The source-level hardening
+now has low-cost test coverage. The remaining blocker is proving the normal
+product path on real desktop plus physical Android.
 
 ## Remaining Implementation Work
 
 ### 1. Remove Last Stale-State Gaps
+
+Status: source-level low-cost closure is done.
 
 Audit every path that mutates ContactBook and then depends on asynchronous
 delivery callbacks:
@@ -79,7 +87,16 @@ the React state and the mutable runtime ref in sync in the same step.
 Done means request delivery state cannot be lost only because a callback arrived
 before React committed the next render.
 
+Current evidence:
+
+- `mobile/App.tsx` uses `syncContactBook()` for direct ContactBook writes.
+- `test/mobile-mlp-ui.test.js` proves the send, retry, persist, accept,
+  ignore, allow, remove, revoke, and profile-load paths keep
+  `contactBookRef.current` in sync with React state.
+
 ### 2. Keep Home Out Of Social Delivery
+
+Status: source-level low-cost closure is done.
 
 Recheck desktop and Android normal paths:
 
@@ -94,6 +111,16 @@ None of these should require Home membership, Home peer count, Home QR, or
 direct host/port.
 
 Debug fallback may exist, but it must stay visibly debug-only.
+
+Current evidence:
+
+- desktop friend-request send and retry tests throw if normal profile requests
+  read the Home runtime.
+- desktop request-accept tests prove invite return uses profile transport
+  without joining Home.
+- Android backend tests prove Profile request send and accept use
+  `profileRequestRuntime`, and Home-control request, invite, body, and request
+  resend paths are debug-only.
 
 ### 3. Make Product Parity Honest
 
