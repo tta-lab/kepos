@@ -66,6 +66,11 @@ test('desktop context panel uses product actions for home and people flows', asy
   assert.match(source, /<h1>Kepos<\/h1>/)
   assert.match(source, /<details className='contextGroup homeActions'/)
   assert.equal(/<details className='contextGroup homeActions'[^>]+open>/.test(source), false)
+  assert.equal(
+    source.indexOf("className='contextGroup peopleActions'") <
+      source.indexOf("className='contextGroup homeActions'"),
+    true
+  )
   assert.match(source, /Open your home or enter a trusted live room\./)
   assert.match(source, /Name[\s\S]*id='nickInput'/)
   assert.match(source, /id='avatarFileInput'[\s\S]*type='file'/)

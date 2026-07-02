@@ -120,6 +120,77 @@ export function ContextPanel({
 
   return (
     <>
+      <details className='contextGroup peopleActions' aria-labelledby='peopleActionsTitle' open>
+        <summary className='contextHead'>
+          <SectionTitle id='peopleActionsTitle' icon={<ShieldCheck size={15} />} text='Contacts' />
+          <p className='contextHint'>Show My QR, scan a Profile QR, and start requests.</p>
+        </summary>
+
+        <form
+          id='trustForm'
+          className='panel qrPanel card border border-base-300 bg-base-100/75 shadow-sm'
+          onSubmit={handleProfileRequestTarget}
+        >
+          <PanelHeader
+            eyebrow='Contacts'
+            title='Add friend'
+            description='Paste a Profile QR, then write a request in Chat.'
+          />
+          <div className='actions'>
+            <ActionButton
+              icon={<QrCode size={17} />}
+              id='showLargeProfileQrButton'
+              label='Show My QR'
+              onClick={(event) => actions.showLargeProfileQr({ returnFocus: event.currentTarget })}
+            />
+            <ActionButton
+              icon={<Copy size={17} />}
+              id='copyProfileQrButton'
+              label='Copy Profile QR'
+              onClick={() => actions.copyProfileQr()}
+            />
+          </div>
+          <QrShareOutput
+            detailsId='advancedProfileShare'
+            label='Profile QR details'
+            outputId='profileQrOutput'
+            qrId='profileQrCode'
+            qrLabel='My profile QR code'
+            svg={shareQrOutputs.profileSvg}
+            uri={shareQrOutputs.profileUri}
+          />
+          <label>
+            Profile QR
+            <textarea
+              id='trustQrInput'
+              className='textarea textarea-bordered compactArea min-h-16 w-full resize-y bg-base-100 text-sm normal-case text-base-content'
+              placeholder='Paste Profile QR'
+              spellCheck='false'
+              value={form.trustQrUri}
+              onChange={(event) => updateForm({ trustQrUri: event.target.value })}
+            />
+          </label>
+          <label>
+            Friend name
+            <input
+              id='trustAliasInput'
+              className='input input-bordered input-sm w-full bg-base-100 text-sm normal-case text-base-content'
+              autoComplete='off'
+              placeholder='Ada'
+              value={form.trustAlias}
+              onChange={(event) => updateForm({ trustAlias: event.target.value })}
+            />
+          </label>
+          <ActionButton
+            disabled={!canTrustProfile}
+            icon={<UserPlus size={17} />}
+            id='trustButton'
+            label='Start request'
+            type='submit'
+          />
+        </form>
+      </details>
+
       <details className='contextGroup homeActions' aria-labelledby='homeActionsTitle'>
         <summary className='contextHead'>
           <SectionTitle id='homeActionsTitle' icon={<Home size={15} />} text='Home' />
@@ -262,77 +333,6 @@ export function ContextPanel({
             />
           </form>
         </details>
-      </details>
-
-      <details className='contextGroup peopleActions' aria-labelledby='peopleActionsTitle' open>
-        <summary className='contextHead'>
-          <SectionTitle id='peopleActionsTitle' icon={<ShieldCheck size={15} />} text='Contacts' />
-          <p className='contextHint'>Show My QR, scan a Profile QR, and start requests.</p>
-        </summary>
-
-        <form
-          id='trustForm'
-          className='panel qrPanel card border border-base-300 bg-base-100/75 shadow-sm'
-          onSubmit={handleProfileRequestTarget}
-        >
-          <PanelHeader
-            eyebrow='Contacts'
-            title='Add friend'
-            description='Paste a Profile QR, then write a request in Chat.'
-          />
-          <div className='actions'>
-            <ActionButton
-              icon={<QrCode size={17} />}
-              id='showLargeProfileQrButton'
-              label='Show My QR'
-              onClick={(event) => actions.showLargeProfileQr({ returnFocus: event.currentTarget })}
-            />
-            <ActionButton
-              icon={<Copy size={17} />}
-              id='copyProfileQrButton'
-              label='Copy Profile QR'
-              onClick={() => actions.copyProfileQr()}
-            />
-          </div>
-          <QrShareOutput
-            detailsId='advancedProfileShare'
-            label='Profile QR details'
-            outputId='profileQrOutput'
-            qrId='profileQrCode'
-            qrLabel='My profile QR code'
-            svg={shareQrOutputs.profileSvg}
-            uri={shareQrOutputs.profileUri}
-          />
-          <label>
-            Profile QR
-            <textarea
-              id='trustQrInput'
-              className='textarea textarea-bordered compactArea min-h-16 w-full resize-y bg-base-100 text-sm normal-case text-base-content'
-              placeholder='Paste Profile QR'
-              spellCheck='false'
-              value={form.trustQrUri}
-              onChange={(event) => updateForm({ trustQrUri: event.target.value })}
-            />
-          </label>
-          <label>
-            Friend name
-            <input
-              id='trustAliasInput'
-              className='input input-bordered input-sm w-full bg-base-100 text-sm normal-case text-base-content'
-              autoComplete='off'
-              placeholder='Ada'
-              value={form.trustAlias}
-              onChange={(event) => updateForm({ trustAlias: event.target.value })}
-            />
-          </label>
-          <ActionButton
-            disabled={!canTrustProfile}
-            icon={<UserPlus size={17} />}
-            id='trustButton'
-            label='Start request'
-            type='submit'
-          />
-        </form>
       </details>
     </>
   )

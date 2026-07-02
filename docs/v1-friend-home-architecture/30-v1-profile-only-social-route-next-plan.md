@@ -191,6 +191,9 @@ Evidence added after the descriptor race fix:
   action.
 - Desktop and Android copy now says `Open Home` for the live-room action,
   avoiding `Open my home` as onboarding language.
+- Desktop context now renders the open Contacts/Add friend group before the
+  closed Home group, so the desktop side matches the profile-first onboarding
+  order.
 
 ### 3. Remove Or Quarantine Legacy Product Paths
 
