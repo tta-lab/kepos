@@ -57,6 +57,7 @@ test('final V1 proof packet prints the normal product-path checklist', () => {
   assert.match(packet, /Android scans the desktop Profile QR through the camera/)
   assert.match(packet, /Android sends a friend request/)
   assert.match(packet, /Android shows the request as Request pending before acceptance/)
+  assert.match(packet, /profile-level delivery while Home peer count may be zero/)
   assert.match(packet, /Android still shows the outgoing request as Request pending after restart/)
   assert.match(packet, /Desktop ignores the friend request/)
   assert.match(packet, /Desktop shows Android in Removed \/ ignored and chooses Allow requests/)
@@ -69,6 +70,7 @@ test('final V1 proof packet prints the normal product-path checklist', () => {
   assert.match(packet, /future Home\/Chat access/)
   assert.match(packet, /Treehole posts stay separate/)
   assert.match(packet, /Home\/Treehole path/)
+  assert.match(packet, /do not require Home peer membership/)
   assert.match(packet, /ignored requests stay visible/)
   assert.match(packet, /Allow requests permits a new request without restoring trust/)
   assert.doesNotMatch(packet, /future Home\/DM access/)
@@ -79,9 +81,10 @@ test('final V1 proof packet prints the normal product-path checklist', () => {
     packet,
     /does not replace the normal Profile QR -> request -> ignore -> allow -> request -> accept/
   )
+  assert.match(packet, /Home peer count allowed to stay at zero/)
   assert.match(packet, /V1 ready requires one recorded normal cross-device run/)
   assert.match(packet, /Do not mark V1 ready/)
-  assert.equal((packet.match(/^- \[ \]/gm) || []).length, 36)
+  assert.equal((packet.match(/^- \[ \]/gm) || []).length, 38)
 })
 
 test('final V1 proof packet falls back without touching device state', () => {
@@ -141,19 +144,21 @@ test('final V1 proof packet parses output arguments defensively', () => {
 
 test('final V1 proof packet constants cover the documented release proof', () => {
   assert.equal(FINAL_V1_PREFLIGHT_STEPS.length, 6)
-  assert.equal(FINAL_V1_PROOF_STEPS.length, 23)
-  assert.equal(FINAL_V1_PASSING_CRITERIA.length, 7)
-  assert.equal(FINAL_V1_EVIDENCE_BOUNDARIES.length, 5)
+  assert.equal(FINAL_V1_PROOF_STEPS.length, 24)
+  assert.equal(FINAL_V1_PASSING_CRITERIA.length, 8)
+  assert.equal(FINAL_V1_EVIDENCE_BOUNDARIES.length, 6)
   assert.ok(FINAL_V1_PREFLIGHT_STEPS.some((step) => step.includes('v1:gate')))
   assert.ok(FINAL_V1_PREFLIGHT_STEPS.some((step) => step.includes('dirty-local evidence')))
   assert.ok(FINAL_V1_PREFLIGHT_STEPS.some((step) => step.includes('unlocked')))
   assert.ok(FINAL_V1_PROOF_STEPS.some((step) => step.includes('friend request')))
   assert.ok(FINAL_V1_PROOF_STEPS.some((step) => step.includes('Request pending')))
+  assert.ok(FINAL_V1_PROOF_STEPS.some((step) => step.includes('Home peer count')))
   assert.ok(FINAL_V1_PROOF_STEPS.some((step) => step.includes('ignores the friend request')))
   assert.ok(FINAL_V1_PROOF_STEPS.some((step) => step.includes('Allow requests')))
   assert.ok(FINAL_V1_PROOF_STEPS.some((step) => step.includes('Chat thread')))
   assert.ok(FINAL_V1_PROOF_STEPS.some((step) => step.includes('Home/Chat access')))
   assert.ok(FINAL_V1_PASSING_CRITERIA.some((criterion) => criterion.includes('not Home QR')))
+  assert.ok(FINAL_V1_PASSING_CRITERIA.some((criterion) => criterion.includes('Home peer')))
   assert.ok(FINAL_V1_PASSING_CRITERIA.some((criterion) => criterion.includes('ignored requests')))
   assert.ok(FINAL_V1_PASSING_CRITERIA.some((criterion) => criterion.includes('Treehole posts')))
   assert.ok(
