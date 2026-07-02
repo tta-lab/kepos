@@ -1,7 +1,12 @@
 # Profile-First P2P Delivery Plan
 
 This was the route-decision plan after the failed Profile QR friend request smoke.
-The current execution plan has moved on to `08-v1-im-release-next-plan.md`.
+The current execution path is:
+
+- `12-v1-profile-first-implementation-next-plan.md` for source-level
+  implementation order and low-cost proof
+- `13-v1-home-decoupling-next-plan.md` for the current Home decoupling plan
+- `../v1.21-cross-device-smoke.md` for the final desktop/Android release proof
 
 ## Decision
 
@@ -132,7 +137,7 @@ Phase 1 through Phase 6 are implemented or quarantined in the current branch:
 Still open:
 
 - prove request and accept / invite delivery in cross-device smoke with Home peers at zero
-- finish the V1 IM release polish and evidence packet described in `08`
+- finish the final V1 release proof packet described in `../v1.21-cross-device-smoke.md`
 
 Current execution note:
 
@@ -140,6 +145,8 @@ Current execution note:
 - `07` records the Home-control fallback quarantine and delivery-ack work.
 - `11` records the current V1 profile-first IM product model.
 - `12` owns the active V1 profile-first implementation plan.
+- `13` owns the current Home decoupling next plan.
+- `../v1.21-cross-device-smoke.md` owns the final release proof packet.
 
 The current product behavior is intentionally honest: a request can be queued or searching locally without claiming the other side received it.
 

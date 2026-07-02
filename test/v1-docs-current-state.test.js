@@ -93,7 +93,10 @@ test('V1 docs no longer describe JSX as the current UI source shape', async () =
 test('V1 docs map points agents to the current ready checklist and smoke recipes', async () => {
   const agents = await readText('../AGENTS.md')
   const moc = await readText('../docs/moc.md')
-  const docs = `${agents}\n${moc}`
+  const profileFirst = await readText(
+    '../docs/v1-friend-home-architecture/05-profile-first-next-plan.md'
+  )
+  const docs = `${agents}\n${moc}\n${profileFirst}`
 
   for (const path of [
     'docs/v1.16-final-mlp-ui-ux-refactor.md',
@@ -119,6 +122,14 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
   assert.match(docs, /Use this as the checklist before starting V2 or calling V1 ready/)
   assert.match(docs, /active V1 implementation next plan/)
   assert.match(docs, /low-cost proof/)
+  assert.match(profileFirst, /12-v1-profile-first-implementation-next-plan\.md/)
+  assert.match(profileFirst, /13-v1-home-decoupling-next-plan\.md/)
+  assert.match(profileFirst, /\.\.\/v1\.21-cross-device-smoke\.md/)
+  assert.doesNotMatch(
+    profileFirst,
+    /current execution plan has moved on to `08-v1-im-release-next-plan\.md`/
+  )
+  assert.doesNotMatch(profileFirst, /evidence packet described in `08`/)
 })
 
 test('V1 TypeScript boundary docs describe the current TSX migration state', async () => {
