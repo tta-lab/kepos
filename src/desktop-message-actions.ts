@@ -162,7 +162,6 @@ export function createDesktopMessageActions({
     async sendDmMessage({ text, toProfileId } = {}) {
       const cleanText = cleanMessageText(text)
       const dmRuntime = getDmRuntime()
-      const homeRuntime = getHomeRuntime()
       const contactBook = getContactBook()
       let requestTarget: ReturnType<typeof createFriendRequestTargetViewModel> | null = null
 
@@ -230,8 +229,8 @@ export function createDesktopMessageActions({
           )
         }
       }
-      if (allowHomeDmBodyFallback && result.kind === 'message' && homeRuntime) {
-        homeRuntime.broadcastControl({
+      if (allowHomeDmBodyFallback && result.kind === 'message') {
+        getHomeRuntime()?.broadcastControl({
           message: result.message,
           type: 'kepos.dm.body.v1'
         })

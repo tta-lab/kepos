@@ -111,6 +111,8 @@ Phase 1 through Phase 6 are implemented or quarantined in the current branch:
   `delivered` now means the target runtime received a valid signed frame
 - normal request sending no longer uses `enterRequestTargetHome`
 - normal request sending no longer depends on a Home descriptor
+- desktop normal request actions no longer read Home runtime unless the explicit
+  debug DM-body fallback is enabled for an already accepted message
 - normal friend request and invite delivery no longer uses `RPC_DM_SEND` or
   Home-control request delivery
 

@@ -141,6 +141,39 @@ test('desktop message actions record queued outgoing friend requests when direct
   assert.equal(savedBooks[0].outgoingRequestsByProfileId.get('friend').text, 'hello')
 })
 
+test('desktop message actions create outgoing friend requests without touching Home runtime', async () => {
+  const savedBooks = []
+  let nextId = 0
+  const actions = createDesktopMessageActions({
+    createId: () => `id-${nextId++}`,
+    getContactBook: () => createContactBook({ ownerProfileId: 'local' }),
+    getDmRuntime: () => ({
+      sendMessageOrRequest(payload) {
+        return {
+          kind: 'request',
+          request: {
+            requestId: payload.requestId,
+            text: payload.text,
+            toProfileId: payload.toProfileId
+          }
+        }
+      }
+    }),
+    getDmSession: () => ({ messages: [] }),
+    getHomeRuntime: () => {
+      throw new Error('Home runtime should not be read for profile requests')
+    },
+    now: () => 456,
+    saveContactBook: (book) => savedBooks.push(book)
+  })
+
+  await actions.sendDmMessage({ text: 'hello', toProfileId: 'friend' })
+
+  assert.equal(savedBooks.length, 1)
+  assert.equal(savedBooks[0].outgoingRequestsByProfileId.get('friend').deliveryState, 'queued')
+  assert.equal(savedBooks[0].outgoingRequestsByProfileId.get('friend').requestId, 'id-1')
+})
+
 test('desktop message actions preserve scanned Home descriptors on outgoing friend requests', async () => {
   const savedBooks = []
   const avatarMedia = createAvatarMediaReference({
