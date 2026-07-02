@@ -25,6 +25,8 @@ Already landed:
 - Chat request rows are synthesized from contact book and mobile request state,
   so incoming/outgoing requests can appear in Chat before a durable DM thread
   snapshot exists.
+- Profile detail can now represent trusted, incoming request, outgoing request,
+  ignored, and removed states instead of only trusted contacts.
 - Automated tests cover product-surface fallback, desktop/mobile startup copy,
   debug affordance demotion, and DM path separation.
 
@@ -89,6 +91,10 @@ Acceptance:
   explicit Enter Home
 - Chat works before Home entry when trust/DM state allows it
 - Enter Home is a separate action with separate failure state
+
+Status: profile detail now opens for request and blocked states as well as
+trusted contacts. Remaining polish is physical proof that cross-device delivery
+lands those states on both clients.
 
 ### 4. Keep Debug Paths Available But Quarantined
 

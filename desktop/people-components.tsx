@@ -158,6 +158,13 @@ export function PeopleLists({
                   <p className='muted smallText text-xs text-base-content/65'>{request.preview}</p>
                 </div>
                 <div className='inlineActions flex flex-wrap justify-end gap-2'>
+                  <ActionButton
+                    ariaLabel={`Open ${request.profileLabel} profile`}
+                    className='smallButton'
+                    icon={<User size={15} />}
+                    label='Profile'
+                    onClick={() => actions.openProfile(request.profileId)}
+                  />
                   <RequestActionButton
                     ariaLabel={`Ignore friend request from ${request.title}`}
                     onClick={() => actions.ignoreMessageRequest(request.profileId)}
@@ -204,6 +211,13 @@ export function PeopleLists({
                 <p className='muted smallText text-xs text-base-content/60'>
                   {request.requestedAtLabel}
                 </p>
+                <ActionButton
+                  ariaLabel={`Open ${request.profileLabel} profile`}
+                  className='smallButton'
+                  icon={<User size={15} />}
+                  label='Profile'
+                  onClick={() => actions.openProfile(request.profileId)}
+                />
               </div>
             ))
           )}
@@ -343,6 +357,13 @@ export function PeopleLists({
                   icon={<UserPlus size={15} />}
                   label='Allow requests'
                   onClick={() => actions.allowContactRequests(contact.profileId)}
+                />
+                <ActionButton
+                  ariaLabel={`Open ${contact.profileLabel} profile`}
+                  className='smallButton'
+                  icon={<User size={15} />}
+                  label='Profile'
+                  onClick={() => actions.openProfile(contact.profileId)}
                 />
               </div>
             ))

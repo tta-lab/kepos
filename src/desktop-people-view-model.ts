@@ -12,6 +12,7 @@ export type DesktopPeopleViewModel = {
   blockedContacts: DesktopBlockedContactViewModel[]
   messageRequests: DesktopMessageRequestViewModel[]
   outgoingRequests: DesktopOutgoingRequestViewModel[]
+  profileDetails: DesktopTrustedContactViewModel[]
   trustedContacts: DesktopTrustedContactViewModel[]
 }
 
@@ -27,10 +28,12 @@ export type DesktopBlockedContactViewModel = {
 export type DesktopTrustedContactViewModel = {
   alias: string
   avatar: ProfileAvatarViewModel
+  canRemove?: boolean
   homeActionEnabled: boolean
   homeActionLabel: string
   messageActionLabel: string
   profileId: string
+  recentCopy?: string
   recentTitle: string
   shortProfileId: string
   sourceLabel: string
@@ -73,22 +76,53 @@ export function createDesktopPeopleViewModel({
       blockedContacts: [],
       messageRequests: [],
       outgoingRequests: [],
+      profileDetails: [],
       trustedContacts: []
     }
   }
 
+  const blockedContacts = listBlockedContacts(contactBook)
+  const pendingRequests = Array.from(contactBook.pendingRequestsByProfileId.values())
+  const outgoingRequests = Array.from(contactBook.outgoingRequestsByProfileId.values())
+  const trustedContacts = Array.from(contactBook.contactsByProfileId.values()).filter((contact) =>
+    isContactTrusted(contactBook, contact.profileId)
+  )
+
   return {
-    blockedContacts: listBlockedContacts(contactBook).map((contact) =>
+    blockedContacts: blockedContacts.map((contact) =>
       createBlockedContactViewModel({ contact, formatDate, shortenProfileId })
     ),
-    messageRequests: Array.from(contactBook.pendingRequestsByProfileId.values()).map((request) =>
+    messageRequests: pendingRequests.map((request) =>
       createMessageRequestViewModel({ request, shortenProfileId })
     ),
-    outgoingRequests: Array.from(contactBook.outgoingRequestsByProfileId.values()).map((request) =>
+    outgoingRequests: outgoingRequests.map((request) =>
       createOutgoingRequestViewModel({ formatDate, request, shortenProfileId })
     ),
-    trustedContacts: Array.from(contactBook.contactsByProfileId.values())
-      .filter((contact) => isContactTrusted(contactBook, contact.profileId))
+    profileDetails: [
+      ...trustedContacts.map((contact) =>
+        createTrustedContactViewModel({ contact, formatDate, shortenProfileId })
+      ),
+      ...pendingRequests.map((request) =>
+        createRequestProfileViewModel({
+          formatDate,
+          relationshipState: 'incoming_request',
+          request,
+          shortenProfileId
+        })
+      ),
+      ...outgoingRequests.map((request) =>
+        createRequestProfileViewModel({
+          formatDate,
+          relationshipState: 'outgoing_request',
+          request,
+          shortenProfileId
+        })
+      ),
+      ...blockedContacts.map((contact) =>
+        createBlockedProfileViewModel({ contact, formatDate, shortenProfileId })
+      )
+    ],
+    trustedContacts: trustedContacts
       .map((contact) => createTrustedContactViewModel({ contact, formatDate, shortenProfileId }))
       .sort((left, right) => left.alias.localeCompare(right.alias))
   }
@@ -153,6 +187,74 @@ function createTrustedContactViewModel({
     homeActionLabel: profile.enterHomeLabel,
     messageActionLabel: profile.messageLabel,
     profileId: profile.profileId,
+    recentTitle: profile.recentTitle,
+    shortProfileId: profile.shortProfileId,
+    sourceLabel: profile.sourceLabel,
+    statusLabel: profile.statusLabel,
+    trustedAtLabel: profile.trustedAtLabel
+  }
+}
+
+function createRequestProfileViewModel({
+  formatDate,
+  relationshipState,
+  request,
+  shortenProfileId
+}: {
+  formatDate: FormatDate
+  relationshipState: 'incoming_request' | 'outgoing_request'
+  request: MessageRequestContact
+  shortenProfileId: ShortenProfileId
+}): DesktopTrustedContactViewModel {
+  const profile = createContactProfileViewModel({
+    contact: request,
+    deliveryState: request.deliveryState,
+    formatDate,
+    relationshipState,
+    shortenProfileId
+  })
+
+  return {
+    alias: profile.displayName,
+    avatar: profile.avatar,
+    canRemove: false,
+    homeActionEnabled: profile.enterHomeEnabled,
+    homeActionLabel: profile.enterHomeLabel,
+    messageActionLabel: profile.messageLabel,
+    profileId: profile.profileId,
+    recentCopy: profile.recentCopy,
+    recentTitle: profile.recentTitle,
+    shortProfileId: profile.shortProfileId,
+    sourceLabel: profile.sourceLabel,
+    statusLabel: profile.statusLabel,
+    trustedAtLabel: profile.trustedAtLabel
+  }
+}
+
+function createBlockedProfileViewModel({
+  contact,
+  formatDate,
+  shortenProfileId
+}: {
+  contact: ContactBookContact
+  formatDate: FormatDate
+  shortenProfileId: ShortenProfileId
+}): DesktopTrustedContactViewModel {
+  const profile = createContactProfileViewModel({
+    contact,
+    formatDate,
+    shortenProfileId
+  })
+
+  return {
+    alias: profile.displayName,
+    avatar: profile.avatar,
+    canRemove: false,
+    homeActionEnabled: profile.enterHomeEnabled,
+    homeActionLabel: profile.enterHomeLabel,
+    messageActionLabel: profile.messageLabel,
+    profileId: profile.profileId,
+    recentCopy: profile.recentCopy,
     recentTitle: profile.recentTitle,
     shortProfileId: profile.shortProfileId,
     sourceLabel: profile.sourceLabel,

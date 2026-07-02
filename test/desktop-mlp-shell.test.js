@@ -804,7 +804,10 @@ test('desktop requested message thread rows expose request actions', async () =>
     panes.indexOf('function ProfileAvatar(')
   )
 
-  assert.match(viewModel, /const requestActions = createThreadRequestActions\(thread, messages\)/)
+  assert.match(
+    viewModel,
+    /const requestActions = createThreadRequestActions\(thread, allMessages\)/
+  )
   assert.match(viewModel, /export function findSelectedDmThreadView/)
   assert.match(directPane, /const selectedThread = findSelectedDmThreadView\(/)
   assert.doesNotMatch(panes, /function findSelectedDirectThread\(/)

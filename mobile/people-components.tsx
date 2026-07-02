@@ -158,6 +158,8 @@ export function PeoplePane({
         onTrustAliasChange={onTrustAliasChange}
         onTrustProfile={onTrustProfile}
         onTrustQrChange={onTrustQrChange}
+        outgoingRequests={outgoingRequests}
+        pendingRequests={pendingRequests}
         profileRequestTarget={profileRequestTarget}
         profileRecentPostCache={profileRecentPostCache}
         profileReady={profileReady}
@@ -195,6 +197,8 @@ export type PeopleActionsProps = {
   onTrustAliasChange(value: string): void
   onTrustProfile(): void
   onTrustQrChange(value: string): void
+  outgoingRequests?: OutgoingFriendRequest[]
+  pendingRequests?: IncomingFriendRequest[]
   profileReady: boolean
   profileQrUri: string
   profileRecentPostCache?: ProfileRecentPostCache
@@ -225,6 +229,8 @@ export function PeopleActions({
   onTrustAliasChange,
   onTrustProfile,
   onTrustQrChange,
+  outgoingRequests,
+  pendingRequests,
   profileRequestTarget,
   profileRecentPostCache,
   profileReady,
@@ -402,6 +408,8 @@ export function PeopleActions({
         onEnterContactHome={onEnterContactHome}
         onMessageContact={onMessageContact}
         onRevokeContact={onRevokeContact}
+        outgoingRequests={outgoingRequests}
+        pendingRequests={pendingRequests}
         profileRequestTarget={profileRequestTarget}
         profileRecentPostCache={profileRecentPostCache}
         activeHomeOwnerProfileId={activeHomeOwnerProfileId}
@@ -424,6 +432,8 @@ export type ContactManagerProps = {
   onMessageContact?(profileId: string): void
   onRevokeContact(profileId: string): void
   onSelectedProfileChange(profileId: string | null): void
+  outgoingRequests?: OutgoingFriendRequest[]
+  pendingRequests?: IncomingFriendRequest[]
   profileRecentPostCache?: ProfileRecentPostCache
   profileRequestTarget?: ProfileRequestTarget | null
   selectedProfileId?: string | null
@@ -440,6 +450,8 @@ export function ContactManager({
   onEnterContactHome,
   onMessageContact = () => {},
   onRevokeContact,
+  outgoingRequests,
+  pendingRequests,
   profileRequestTarget,
   profileRecentPostCache,
   selectedProfileId,
@@ -449,6 +461,15 @@ export function ContactManager({
   onSelectedProfileChange
 }: ContactManagerProps) {
   const selectedContact = (contacts || []).find(
+    (contact) => contact.profileId === selectedProfileId
+  )
+  const selectedPendingRequest = (pendingRequests || []).find(
+    (request) => request.profileId === selectedProfileId
+  )
+  const selectedOutgoingRequest = (outgoingRequests || []).find(
+    (request) => request.profileId === selectedProfileId
+  )
+  const selectedBlockedContact = (blockedContacts || []).find(
     (contact) => contact.profileId === selectedProfileId
   )
   const selectedProfile = selectedContact
@@ -462,11 +483,30 @@ export function ContactManager({
         }),
         treeholePosts
       })
-    : createRequestTargetProfileViewModel({
-        requestTarget: toRequestTargetProfileInput(profileRequestTarget),
-        selectedProfileId,
-        shortenProfileId
-      })
+    : selectedPendingRequest
+      ? createMobileRequestProfile({
+          relationshipState: 'incoming_request',
+          request: selectedPendingRequest
+        })
+      : selectedOutgoingRequest
+        ? createMobileRequestProfile({
+            relationshipState: 'outgoing_request',
+            request: selectedOutgoingRequest
+          })
+        : selectedBlockedContact
+          ? {
+              ...createContactProfileViewModel({
+                contact: selectedBlockedContact,
+                formatDate: formatMobileTrustTime,
+                shortenProfileId
+              }),
+              canRemove: false
+            }
+          : createRequestTargetProfileViewModel({
+              requestTarget: toRequestTargetProfileInput(profileRequestTarget),
+              selectedProfileId,
+              shortenProfileId
+            })
 
   return (
     <View style={styles.panel}>
@@ -552,7 +592,13 @@ export function ContactManager({
             contact.alias || contact.displayNameSnapshot || shortenProfileId(contact.profileId)
 
           return (
-            <View key={contact.profileId} style={styles.requestCard}>
+            <Pressable
+              accessibilityLabel={`Open ${profileLabel} profile`}
+              accessibilityRole='button'
+              key={contact.profileId}
+              onPress={() => onSelectedProfileChange(contact.profileId)}
+              style={styles.requestCard}
+            >
               <View style={styles.requestText}>
                 <Text style={styles.requestTitle}>{profileLabel}</Text>
                 <Text style={styles.contactProfile}>{shortenProfileId(contact.profileId)}</Text>
@@ -573,12 +619,37 @@ export function ContactManager({
                   onPress={() => onAllowContactRequests(contact.profileId)}
                 />
               </View>
-            </View>
+            </Pressable>
           )
         })}
       </View>
     </View>
   )
+}
+
+function createMobileRequestProfile({
+  relationshipState,
+  request
+}: {
+  relationshipState: 'incoming_request' | 'outgoing_request'
+  request: IncomingFriendRequest | OutgoingFriendRequest
+}): ContactProfileDetailView {
+  return {
+    ...createContactProfileViewModel({
+      contact: {
+        alias: request.alias || undefined,
+        avatarUriSnapshot: request.avatarUriSnapshot || undefined,
+        displayNameSnapshot: request.displayNameSnapshot || undefined,
+        profileId: request.profileId,
+        source: 'profile_qr'
+      },
+      deliveryState: request.deliveryState,
+      formatDate: formatMobileTrustTime,
+      relationshipState,
+      shortenProfileId
+    }),
+    canRemove: false
+  }
 }
 
 function withMobileProfileRecentPosts<

@@ -35,8 +35,11 @@ export type RequestManagerTheme = {
 
 export type OutgoingFriendRequest = {
   alias?: string | null
+  avatarUriSnapshot?: string | null
   deliveryState?: string | null
+  displayNameSnapshot?: string | null
   profileId: string
+  requestedAt?: number
   text?: string | null
 }
 

@@ -160,6 +160,73 @@ test('contact profile view model presents message-request trust as friendship', 
   assert.equal(profile.sourceLabel, 'From Friend request')
 })
 
+test('contact profile view model formats non-trusted request states', () => {
+  const profileId = 'b'.repeat(64)
+
+  assert.deepEqual(
+    createContactProfileViewModel({
+      contact: {
+        alias: 'Ada',
+        profileId,
+        source: 'profile_qr'
+      },
+      deliveryState: 'delivered',
+      formatDate: () => 'unused',
+      relationshipState: 'outgoing_request',
+      shortenProfileId: (value) => `short:${value}`
+    }),
+    {
+      avatar: {
+        initials: 'A',
+        label: 'Ada avatar',
+        tone: 'avatarTone3'
+      },
+      displayName: 'Ada',
+      enterHomeEnabled: false,
+      enterHomeLabel: 'Enter Home',
+      messageLabel: 'Message',
+      profileId,
+      recentCopy: 'Recent posts will appear after this profile becomes trusted.',
+      recentTitle: 'Recent posts',
+      revokeLabel: 'Request pending',
+      shortProfileId: `short:${profileId}`,
+      sourceLabel: 'From Profile QR',
+      statusLabel: 'Request delivered',
+      trustedAtLabel: 'Not trusted yet'
+    }
+  )
+})
+
+test('contact profile view model formats ignored and removed states', () => {
+  const ignoredProfileId = 'b'.repeat(64)
+  const removedProfileId = 'c'.repeat(64)
+
+  assert.equal(
+    createContactProfileViewModel({
+      contact: {
+        alias: 'Ada',
+        profileId: ignoredProfileId,
+        requestIgnoredAt: 1000
+      },
+      formatDate: (value) => `date:${value}`,
+      shortenProfileId: (value) => `short:${value}`
+    }).trustedAtLabel,
+    'Ignored date:1000'
+  )
+  assert.equal(
+    createContactProfileViewModel({
+      contact: {
+        alias: 'Grace',
+        profileId: removedProfileId,
+        revokedAt: 2000
+      },
+      formatDate: (value) => `date:${value}`,
+      shortenProfileId: (value) => `short:${value}`
+    }).statusLabel,
+    'Removed'
+  )
+})
+
 test('contact profile view model falls back to short fingerprint instead of raw profile id', () => {
   const profileId = 'b'.repeat(64)
 

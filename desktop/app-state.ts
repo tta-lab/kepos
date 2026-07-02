@@ -104,6 +104,7 @@ type PeopleState = {
   blockedContacts: BlockedContactView[]
   messageRequests: MessageRequestView[]
   outgoingRequests: OutgoingRequestView[]
+  profileDetails: TrustedContactView[]
   trustedContacts: TrustedContactView[]
 }
 
@@ -379,7 +380,13 @@ const desktopUiBridge: DesktopUiBridge = {
     desktopUiBridge.setLargeQr(qr)
   },
   setPeople(
-    people = { blockedContacts: [], messageRequests: [], outgoingRequests: [], trustedContacts: [] }
+    people = {
+      blockedContacts: [],
+      messageRequests: [],
+      outgoingRequests: [],
+      profileDetails: [],
+      trustedContacts: []
+    }
   ) {
     desktopUiBridge.setPeople(people)
   },
@@ -453,6 +460,7 @@ export function useDesktopAppModel() {
     blockedContacts: [],
     messageRequests: [],
     outgoingRequests: [],
+    profileDetails: [],
     trustedContacts: []
   })
   const [backendPeopleActions, setPeopleActions] = useState<BackendPeopleActions>(
@@ -555,13 +563,21 @@ export function useDesktopAppModel() {
   )
   const peopleWithRecent = {
     ...people,
+    profileDetails: (people.profileDetails || people.trustedContacts).map((profile) =>
+      withProfileRecentPosts({
+        activeHomeOwnerProfileId,
+        profileRecentPostCache,
+        profile,
+        treeholePosts
+      })
+    ),
     trustedContacts: trustedContactsWithRecent
   }
-  const trustedSelectedProfile = trustedContactsWithRecent.find(
+  const selectedProfileDetail = peopleWithRecent.profileDetails.find(
     (contact) => contact.profileId === selectedProfileId
   )
   const selectedProfile =
-    trustedSelectedProfile ||
+    selectedProfileDetail ||
     (profileRequestTarget?.profileId === selectedProfileId
       ? createRequestTargetProfileViewModel({
           selectedProfileId,

@@ -252,6 +252,72 @@ test('desktop people view model can render before a contact book snapshot arrive
     blockedContacts: [],
     messageRequests: [],
     outgoingRequests: [],
+    profileDetails: [],
     trustedContacts: []
   })
+})
+
+test('desktop people view model exposes profile details for request and blocked rows', () => {
+  const incomingProfileId = 'b'.repeat(64)
+  const outgoingProfileId = 'c'.repeat(64)
+  const ignoredProfileId = 'd'.repeat(64)
+  let book = recordMessageRequest(createContactBook({ ownerProfileId: 'owner-a' }), {
+    alias: 'Incoming Ada',
+    profileId: incomingProfileId,
+    requestedAt: 1000,
+    requestId: 'request-in'
+  })
+  book = recordOutgoingFriendRequest(book, {
+    alias: 'Outgoing Grace',
+    deliveryState: 'delivered',
+    profileId: outgoingProfileId,
+    requestedAt: 1100,
+    requestId: 'request-out'
+  })
+  book = recordMessageRequest(book, {
+    alias: 'Ignored Mina',
+    profileId: ignoredProfileId,
+    requestedAt: 1200,
+    requestId: 'request-ignored'
+  })
+  book = ignoreMessageRequest(book, { ignoredAt: 1300, profileId: ignoredProfileId })
+
+  const viewModel = createDesktopPeopleViewModel({
+    contactBook: book,
+    formatDate: (value) => `date:${value}`,
+    shortenProfileId: (profileId) => `short:${profileId}`
+  })
+
+  assert.deepEqual(
+    viewModel.profileDetails.map((profile) => ({
+      alias: profile.alias,
+      canRemove: profile.canRemove,
+      profileId: profile.profileId,
+      statusLabel: profile.statusLabel,
+      trustedAtLabel: profile.trustedAtLabel
+    })),
+    [
+      {
+        alias: 'Incoming Ada',
+        canRemove: false,
+        profileId: incomingProfileId,
+        statusLabel: 'Incoming request',
+        trustedAtLabel: 'Not trusted yet'
+      },
+      {
+        alias: 'Outgoing Grace',
+        canRemove: false,
+        profileId: outgoingProfileId,
+        statusLabel: 'Request delivered',
+        trustedAtLabel: 'Not trusted yet'
+      },
+      {
+        alias: 'Ignored Mina',
+        canRemove: false,
+        profileId: ignoredProfileId,
+        statusLabel: 'Ignored',
+        trustedAtLabel: 'Ignored date:1300'
+      }
+    ]
+  )
 })
