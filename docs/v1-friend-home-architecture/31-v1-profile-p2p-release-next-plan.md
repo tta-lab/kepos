@@ -86,6 +86,9 @@ Evidence:
   identity, profile id, and ContactBook readiness only. Opening/entering Home
   and showing Debug Home QR depend on `homeReady`, which includes the local
   Home key.
+- Android request acceptance now sends the local Home descriptor only to the
+  requester profile. It no longer sends a duplicate descriptor to the local
+  acceptor profile through `invite.fromProfileId`.
 
 ### 2. Make Desktop And Android Product Logic Match
 

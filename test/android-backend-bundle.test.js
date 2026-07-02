@@ -288,6 +288,7 @@ test('android backend accepts requests and opens DM threads without Home', () =>
   assert.match(acceptMessageRequest, /toProfileId: request\.fromProfileId/)
   assert.match(acceptMessageRequest, /const delivery = await profileRequestRuntime\.send\(invite\)/)
   assert.match(acceptMessageRequest, /sendLocalHomeDescriptor\(request\.fromProfileId\)\.catch/)
+  assert.doesNotMatch(acceptMessageRequest, /sendLocalHomeDescriptor\(invite\.fromProfileId\)/)
   assert.match(acceptMessageRequest, /phase: 'acceptance'/)
   assert.match(acceptMessageRequest, /await saveBackendDmThread\(thread\)/)
   assert.match(acceptMessageRequest, /await dmRuntime\?\.openThread\(thread\)/)

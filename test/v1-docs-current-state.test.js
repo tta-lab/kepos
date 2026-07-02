@@ -199,6 +199,11 @@ test('V1 active profile P2P release plan owns final release work', async () => {
   assert.match(plan, /Android UI readiness is split between `profileReady` and `homeReady`/)
   assert.match(plan, /Profile QR, Add friend, request paste, and other social actions/)
   assert.match(plan, /Opening\/entering Home\s+and showing Debug Home QR depend on `homeReady`/)
+  assert.match(
+    plan,
+    /Android request acceptance now sends the local Home descriptor only to the\s+requester profile/
+  )
+  assert.match(plan, /no longer sends a duplicate descriptor to the local\s+acceptor profile/)
   assert.match(plan, /Make Desktop And Android Product Logic Match/)
   assert.match(plan, /Keep Debug Surfaces Out Of Onboarding/)
   assert.match(plan, /advanced\/manual Home entry buttons now use `Enter Home`/)
