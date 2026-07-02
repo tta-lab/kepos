@@ -180,6 +180,10 @@ test('package and docs expose the final V1 proof checker', async () => {
     new URL('../docs/v1.21-cross-device-smoke.md', import.meta.url),
     'utf8'
   )
+  const help = await readFile(
+    new URL('../scripts/check-final-v1-proof-packet.mjs', import.meta.url),
+    'utf8'
+  )
 
   assert.equal(
     packageJson.scripts['v1:proof:check'],
@@ -190,5 +194,9 @@ test('package and docs expose the final V1 proof checker', async () => {
   assert.match(recipe, /items are missing or still unchecked/)
   assert.match(recipe, /physical Profile QR scan was not recorded as passing/)
   assert.match(recipe, /desktop and Android Home peer counts are not each recorded as numeric zero/)
+  assert.match(
+    help,
+    /desktop and Android Home peer counts were not\s+each recorded as numeric zero/
+  )
   assert.match(recipe, /worktree state is not clean/)
 })

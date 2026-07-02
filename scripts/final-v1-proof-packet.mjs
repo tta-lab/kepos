@@ -45,7 +45,7 @@ export const FINAL_V1_PROOF_STEPS = [
 
 export const FINAL_V1_PASSING_CRITERIA = [
   'trust starts from Profile QR plus friend request, not Home QR',
-  'request receipt and accept are recorded with Home peer count zero',
+  'request receipt and accept are recorded with desktop and Android Home peer counts zero',
   'outgoing friend requests survive restart, ignored requests stay visible, and Allow requests permits a new request without restoring trust',
   'Home entry is explicit from a trusted profile',
   'Chat rows and Contacts rows open the same trusted profile detail, with Message as the primary post-accept action',
@@ -61,7 +61,7 @@ export const FINAL_V1_EVIDENCE_BOUNDARIES = [
   'Desktop self-run smoke and Pear smoke prove desktop app paths; they do not prove Android camera, Android persistence, or cross-device trust UX.',
   'Android self-run smoke proves local Android create/open/post/restart behavior; it does not prove desktop-to-Android friend request and Chat flow.',
   'Debug two-device smoke proves live transport and persistence sub-paths; it does not replace the normal Profile QR -> request -> ignore -> allow -> request -> accept release path.',
-  'Profile-level request delivery must be proved with Home peer count recorded as zero through request receipt and accept; record the observed peer counts from desktop #peerLabel and Android room-transport-debug when available; Enter Home is a separate post-trust step.',
+  'Profile-level request delivery must be proved with desktop and Android Home peer counts recorded as zero at request receipt and accept/invite return; record desktop #peerLabel and Android room-transport-debug separately when available; Enter Home is a separate post-trust step.',
   'V1 ready requires one recorded normal cross-device run where every product-path checklist item below is checked.'
 ]
 

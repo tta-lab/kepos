@@ -98,7 +98,7 @@ test('final V1 proof packet prints the normal product-path checklist', () => {
   assert.match(packet, /local Treehole posts survive restart/)
   assert.match(packet, /Treehole posts stay separate/)
   assert.match(packet, /Home\/Treehole path/)
-  assert.match(packet, /recorded with Home peer count zero/)
+  assert.match(packet, /recorded with desktop and Android Home peer counts zero/)
   assert.match(packet, /ignored requests stay visible/)
   assert.match(packet, /Allow requests permits a new request without restoring trust/)
   assert.match(packet, /Chat rows and Contacts rows open the same trusted profile detail/)
@@ -110,7 +110,9 @@ test('final V1 proof packet prints the normal product-path checklist', () => {
     packet,
     /does not replace the normal Profile QR -> request -> ignore -> allow -> request -> accept/
   )
-  assert.match(packet, /Home peer count recorded as zero/)
+  assert.match(packet, /desktop and Android Home peer counts recorded as zero/)
+  assert.match(packet, /request receipt and accept\/invite return/)
+  assert.match(packet, /record desktop #peerLabel and Android room-transport-debug separately/)
   assert.match(packet, /desktop #peerLabel/)
   assert.match(packet, /Android room-transport-debug/)
   assert.match(packet, /V1 ready requires one recorded normal cross-device run/)
@@ -197,7 +199,11 @@ test('final V1 proof packet constants cover the documented release proof', () =>
   assert.ok(FINAL_V1_PROOF_STEPS.some((step) => step.includes('local Treehole post')))
   assert.ok(FINAL_V1_PROOF_STEPS.some((step) => step.includes('Home/Chat access')))
   assert.ok(FINAL_V1_PASSING_CRITERIA.some((criterion) => criterion.includes('not Home QR')))
-  assert.ok(FINAL_V1_PASSING_CRITERIA.some((criterion) => criterion.includes('Home peer')))
+  assert.ok(
+    FINAL_V1_PASSING_CRITERIA.some((criterion) =>
+      criterion.includes('desktop and Android Home peer counts zero')
+    )
+  )
   assert.ok(FINAL_V1_PASSING_CRITERIA.some((criterion) => criterion.includes('ignored requests')))
   assert.ok(FINAL_V1_PASSING_CRITERIA.some((criterion) => criterion.includes('Treehole posts')))
   assert.ok(FINAL_V1_PASSING_CRITERIA.some((criterion) => criterion.includes('survive restart')))
