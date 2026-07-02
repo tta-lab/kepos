@@ -22,6 +22,8 @@ Low-cost proof now covers the V1 architecture shape:
   after restart while no Home session is active
 - Android can restore ContactBook and accepted thread metadata from app file
   storage, then render them through the shared Chat thread list
+- local Treehole restart persistence is part of the final proof packet, not an
+  implied side effect of remote Recent posts
 - desktop and Android expose Home, Chat, Contacts, and Treehole as the product
   surfaces
 - Profile QR means add friend; Home QR and raw transport tools are

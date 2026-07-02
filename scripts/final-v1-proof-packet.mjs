@@ -31,13 +31,14 @@ export const FINAL_V1_PROOF_STEPS = [
   'Both sides open the trusted profile detail and see Message as the primary enabled action.',
   'Android opens Chat, selects the desktop contact, opens the same profile detail from the Chat row or current-thread header, then sends a message.',
   'Desktop replies from the same durable Chat thread and can open the same profile detail from the Chat row.',
+  'Desktop creates a local Treehole post before restart.',
   'Restart both apps.',
-  'Both sides still show the trusted contact and the prior Chat thread.',
+  'Both sides still show the trusted contact and the prior Chat thread; Desktop still shows the local Treehole post.',
   'Desktop creates or reopens its Home.',
   'Android opens the desktop contact profile and explicitly chooses Enter Home.',
   'Android reaches the desktop Home without typing a raw Home key.',
-  'Desktop creates a Treehole post.',
-  'Android refreshes or opens the desktop profile Recent posts and sees that post.',
+  'Desktop creates another Treehole post after Home is open.',
+  'Android refreshes or opens the desktop profile Recent posts and sees the post.',
   'Desktop revokes Android from Contacts.',
   'Android can no longer use that trust relationship for future Home/Chat access.'
 ]
@@ -49,6 +50,7 @@ export const FINAL_V1_PASSING_CRITERIA = [
   'Home entry is explicit from a trusted profile',
   'Chat rows and Contacts rows open the same trusted profile detail, with Message as the primary post-accept action',
   'Chat messages are durable across restart',
+  'local Treehole posts survive restart',
   'room chat, Chat, and Treehole posts stay separate',
   "Recent posts load from the trusted profile's Home/Treehole path",
   'revoke removes future access but does not promise to delete already copied data'
