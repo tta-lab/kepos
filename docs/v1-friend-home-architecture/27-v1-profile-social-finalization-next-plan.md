@@ -158,12 +158,22 @@ Current evidence:
 
 ### 4. Run Low-Cost Proof Before Phone Smoke
 
+Status: passed on commit `4d20c34a0ef3db278d4517541f41ca78acac2cad`.
+
 Before using the physical phone again:
 
 ```sh
 npm test -- test/friend-request-target-view-model.test.js test/mobile-mlp-ui.test.js test/desktop-message-actions.test.js
 npm run lint
 ```
+
+Current evidence:
+
+- `npm test -- test/friend-request-target-view-model.test.js test/mobile-mlp-ui.test.js test/desktop-message-actions.test.js`
+  passed with 62 tests on `4d20c34a0ef3db278d4517541f41ca78acac2cad`.
+- `npm run lint` passed on the same commit, including Prettier, lunte,
+  TypeScript typecheck, and platform dependency boundaries.
+- No physical desktop/Android smoke was run for this low-cost proof pass.
 
 If source-level changes touch shared protocol, storage, platform boundary, or
 proof logic, also run:
