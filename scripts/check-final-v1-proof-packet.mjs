@@ -26,8 +26,14 @@ export function validateFinalV1ProofPacket(contents) {
     checkedItems.map((line) => line.replace(/^- \[[xX]\]\s*/, '').trim())
   )
   const placeholders = contents.match(/<[^>\n]+>/g) || []
+  const commitSha = contents.match(/^- Commit SHA: (.+)$/m)?.[1]?.trim() || ''
+  const branch = contents.match(/^- Branch: (.+)$/m)?.[1]?.trim() || ''
   const worktreeState = contents.match(/^- Worktree state: (.+)$/m)?.[1]?.trim() || ''
   const v1Gate = contents.match(/^- `npm run v1:gate`: (.+)$/m)?.[1]?.trim() || ''
+  const desktopMode = contents.match(/^- Desktop mode: (.+)$/m)?.[1]?.trim() || ''
+  const androidDevice = contents.match(/^- Android device: (.+)$/m)?.[1]?.trim() || ''
+  const androidSerial = contents.match(/^- ANDROID_SERIAL: (.+)$/m)?.[1]?.trim() || ''
+  const androidRuntime = contents.match(/^- Android runtime: (.+)$/m)?.[1]?.trim() || ''
   const physicalProfileQr = contents.match(/^- Physical Profile QR scan: (.+)$/m)?.[1]?.trim() || ''
   const requestPeerCountDesktop =
     contents.match(/^- Home peer count at request receipt \(desktop\): (.+)$/m)?.[1]?.trim() || ''
@@ -41,6 +47,9 @@ export function validateFinalV1ProofPacket(contents) {
     contents
       .match(/^- Home peer count at accept\/invite return \(Android\): (.+)$/m)?.[1]
       ?.trim() || ''
+  const peerCountEvidenceSource =
+    contents.match(/^- Home peer count evidence source: (.+)$/m)?.[1]?.trim() || ''
+  const evidence = contents.match(/^- Evidence: (.+)$/m)?.[1]?.trim() || ''
 
   if (!contents.includes('# Final V1 Release Proof Packet')) {
     failures.push('missing final V1 proof packet title')
@@ -71,12 +80,38 @@ export function validateFinalV1ProofPacket(contents) {
     failures.push(`found unresolved placeholders: ${Array.from(new Set(placeholders)).join(', ')}`)
   }
 
+  if (!isCommitShaEvidence(commitSha)) {
+    failures.push('Commit SHA must be recorded as a git SHA')
+  }
+
+  if (!isMeaningfulMetadata(branch)) {
+    failures.push('Branch must be recorded')
+  }
+
   if (worktreeState !== 'clean') {
     failures.push(`worktree state must be clean, found ${worktreeState || 'missing'}`)
   }
 
   if (!isPassedEvidence(v1Gate)) {
     failures.push('`npm run v1:gate` must be recorded as passed')
+  }
+
+  if (!isAllowedDesktopMode(desktopMode)) {
+    failures.push('Desktop mode must be recorded as normal Electron or Pear/Bare worker')
+  }
+
+  if (!isMeaningfulMetadata(androidDevice)) {
+    failures.push('Android device model must be recorded')
+  }
+
+  if (!isMeaningfulMetadata(androidSerial)) {
+    failures.push('ANDROID_SERIAL must be recorded')
+  }
+
+  if (!isAllowedAndroidRuntime(androidRuntime)) {
+    failures.push(
+      'Android runtime must be recorded as Metro/dev-client, installed debug APK, or installed release APK'
+    )
   }
 
   if (!isPassedEvidence(physicalProfileQr)) {
@@ -103,12 +138,45 @@ export function validateFinalV1ProofPacket(contents) {
     )
   }
 
+  if (!hasPeerCountEvidenceSource(peerCountEvidenceSource)) {
+    failures.push('Home peer count evidence source must include desktop and Android evidence')
+  }
+
+  if (!isMeaningfulMetadata(evidence)) {
+    failures.push('Evidence notes or artifact paths must be recorded')
+  }
+
   return {
     checkedItems: checkedItems.length,
     failures,
     ok: failures.length === 0,
     uncheckedItems: uncheckedItems.length
   }
+}
+
+function isMeaningfulMetadata(value) {
+  if (!value || value.includes('<')) return false
+  return value.trim().length > 0
+}
+
+function isCommitShaEvidence(value) {
+  if (!isMeaningfulMetadata(value)) return false
+  return /^[0-9a-f]{7,40}$/i.test(value)
+}
+
+function isAllowedDesktopMode(value) {
+  if (!isMeaningfulMetadata(value)) return false
+  return /^(?:normal Electron|Pear\/Bare worker)$/i.test(value)
+}
+
+function isAllowedAndroidRuntime(value) {
+  if (!isMeaningfulMetadata(value)) return false
+  return /^(?:Metro\/dev-client|installed debug APK|installed release APK)$/i.test(value)
+}
+
+function hasPeerCountEvidenceSource(value) {
+  if (!isMeaningfulMetadata(value)) return false
+  return /desktop/i.test(value) && /android/i.test(value)
 }
 
 function isZeroPeerCountEvidence(value) {
@@ -166,9 +234,8 @@ function printHelp() {
 Checks the recorded Final V1 Release Proof Packet after a manual cross-device run.
 This helper is non-invasive: it only reads the packet and fails if required proof
 items are missing or still unchecked, placeholders remain, the worktree was not
-clean, \`npm run v1:gate\` was not recorded as passed, physical Profile QR scan
-was not recorded as passed, or desktop and Android Home peer counts were not
-each recorded as numeric zero during request receipt and accept/invite return.`)
+clean, run metadata is incomplete, \`npm run v1:gate\` was not recorded as
+passed, physical Profile QR scan was not recorded as passed, or desktop and Android Home peer counts were not each recorded as numeric zero during request receipt and accept/invite return.`)
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {

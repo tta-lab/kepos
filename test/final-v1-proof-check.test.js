@@ -16,7 +16,7 @@ function completedPacket() {
       const outputs = {
         'adb shell getprop ro.product.model': 'Pixel 7a\n',
         'git branch --show-current': 'feat/v1\n',
-        'git rev-parse HEAD': 'abc123\n',
+        'git rev-parse HEAD': 'abc1234\n',
         'git status --porcelain': ''
       }
       return Object.hasOwn(outputs, key)
@@ -94,6 +94,33 @@ test('final V1 proof checker rejects dirty worktree proof', () => {
 
   assert.equal(result.ok, false)
   assert.match(result.failures.join('\n'), /worktree state must be clean/)
+})
+
+test('final V1 proof checker rejects incomplete run metadata', () => {
+  const packet = completedPacket()
+    .replace('- Commit SHA: abc1234', '- Commit SHA: abc')
+    .replace('- Branch: feat/v1', '- Branch: ')
+    .replace('- Desktop mode: normal Electron', '- Desktop mode: browser')
+    .replace('- Android device: Pixel 7a', '- Android device: ')
+    .replace('- ANDROID_SERIAL: usb-1', '- ANDROID_SERIAL: ')
+    .replace('- Android runtime: installed release APK', '- Android runtime: simulator')
+    .replace(
+      '- Home peer count evidence source: desktop #peerLabel and Android room-transport-debug screenshots',
+      '- Home peer count evidence source: desktop screenshot only'
+    )
+    .replace('- Evidence: tmp/final-v1-proof-assets/', '- Evidence: ')
+  const result = validateFinalV1ProofPacket(packet)
+  const failures = result.failures.join('\n')
+
+  assert.equal(result.ok, false)
+  assert.match(failures, /Commit SHA must be recorded as a git SHA/)
+  assert.match(failures, /Branch must be recorded/)
+  assert.match(failures, /Desktop mode must be recorded/)
+  assert.match(failures, /Android device model must be recorded/)
+  assert.match(failures, /ANDROID_SERIAL must be recorded/)
+  assert.match(failures, /Android runtime must be recorded/)
+  assert.match(failures, /Home peer count evidence source must include desktop and Android/)
+  assert.match(failures, /Evidence notes or artifact paths must be recorded/)
 })
 
 test('final V1 proof checker rejects failed physical Profile QR proof', () => {
@@ -192,6 +219,7 @@ test('package and docs expose the final V1 proof checker', async () => {
   assert.match(recipe, /npm run v1:proof:check/)
   assert.match(recipe, /fails if required checklist items/)
   assert.match(recipe, /items are missing or still unchecked/)
+  assert.match(recipe, /run metadata is incomplete/)
   assert.match(recipe, /physical Profile QR scan was not recorded as passing/)
   assert.match(recipe, /desktop and Android Home peer counts are not each recorded as numeric zero/)
   assert.match(
