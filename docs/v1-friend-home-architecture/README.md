@@ -60,18 +60,18 @@ The short version:
       delivery, and final release proof order.
 
 12. `12-v1-profile-first-implementation-next-plan.md`
-    - Active V1 execution plan from the current model to a ready product.
+    - Prior V1 execution plan from the current model to a ready product.
     - Use this for implementation order, low-cost proof, and final release
       evidence.
 
 13. `13-v1-home-decoupling-next-plan.md`
-    - Current next plan for finishing the Home decoupling: Profile/DM own the
+    - Prior next plan for finishing the Home decoupling: Profile/DM own the
       social path, Home is explicit live room after trust.
     - Use this before changing add-friend delivery, DM bootstrap, profile hub,
       or Home entry behavior.
 
 14. `14-v1-product-logic-unification-next-plan.md`
-    - Product-logic unification plan: desktop and Android should share one
+    - Prior product-logic unification plan: desktop and Android should share one
       profile-first IM model and one main product surface vocabulary.
     - Use this before changing navigation labels, request-state copy, profile
       actions, or Home advanced/debug controls.
@@ -83,9 +83,15 @@ The short version:
     - Use this for the previous ready-product plan and release proof context.
 
 16. `16-v1-profile-delivery-next-plan.md`
-    - Current next plan after phone smoke clarified the core rule: profile-level
+    - Previous next plan after phone smoke clarified the core rule: profile-level
       P2P owns friend requests, accepts, and durable DM; Home is only explicit
       live-room entry after trust.
+    - Use this for the profile-delivery cleanup context before `17`.
+
+17. `17-v1-profile-routed-im-next-plan.md`
+    - Active V1 plan: finish Kepos as a profile-routed private IM where
+      friendship, requests, Chat, and profile posts are profile-routed, while
+      Home is only an optional live room after trust.
     - Use this as the active V1 implementation plan.
 
 ## Core Principle

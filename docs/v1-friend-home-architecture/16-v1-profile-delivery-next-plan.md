@@ -1,7 +1,9 @@
 # V1 Profile Delivery Next Plan
 
-This is the current next plan after we rechecked the friend/Home model during
-phone smoke.
+Superseded by `17-v1-profile-routed-im-next-plan.md`.
+
+This was the next plan after we rechecked the friend/Home model during phone
+smoke.
 
 The product rule is now stricter:
 

@@ -103,6 +103,7 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
     'docs/v1.17-ready-im-completion-plan.md',
     'docs/v1-friend-home-architecture/12-v1-profile-first-implementation-next-plan.md',
     'docs/v1-friend-home-architecture/14-v1-product-logic-unification-next-plan.md',
+    'docs/v1-friend-home-architecture/17-v1-profile-routed-im-next-plan.md',
     'docs/v1.20-smoke-guide.md',
     'docs/v1.21-cross-device-smoke.md'
   ]) {
@@ -121,13 +122,14 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
   assert.match(moc, /final V1 release proof packet/)
   assert.match(moc, /tmp\/final-v1-proof\.md/)
   assert.match(docs, /Use this as the checklist before starting V2 or calling V1 ready/)
-  assert.match(docs, /active V1 implementation next plan/)
+  assert.match(docs, /Active V1 profile-routed IM next plan/)
+  assert.match(docs, /profile-routed private IM/)
   assert.match(docs, /low-cost proof/)
   assert.match(profileFirst, /12-v1-profile-first-implementation-next-plan\.md/)
   assert.match(profileFirst, /13-v1-home-decoupling-next-plan\.md/)
   assert.match(profileFirst, /14-v1-product-logic-unification-next-plan\.md/)
   assert.match(profileFirst, /\.\.\/v1\.21-cross-device-smoke\.md/)
-  assert.match(moc, /Current product-logic unification next plan/)
+  assert.match(moc, /Prior product-logic unification next plan/)
   assert.doesNotMatch(
     profileFirst,
     /current execution plan has moved on to `08-v1-im-release-next-plan\.md`/

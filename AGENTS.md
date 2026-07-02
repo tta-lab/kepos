@@ -16,8 +16,12 @@ Use these docs as the current architecture map for Kepos.
 - `docs/v1-friend-home-architecture/09-v1-profile-dm-delivery-next-plan.md`: prior delivery and UX next plan; Profile/DM are the production social path, Home is explicit live-room entry, and direct host:port is debug only.
 - `docs/v1-friend-home-architecture/10-v1-final-product-next-plan.md`: previous V1 finish plan after the Contacts-first/Profile-DM cleanup pass.
 - `docs/v1-friend-home-architecture/11-v1-profile-first-im-next-plan.md`: V1 profile-first IM product model; use this when product nouns or flow semantics are unclear.
-- `docs/v1-friend-home-architecture/12-v1-profile-first-implementation-next-plan.md`: active V1 implementation next plan; use this for implementation order, low-cost proof, production P2P delivery, and final release evidence.
-- `docs/v1-friend-home-architecture/13-v1-home-decoupling-next-plan.md`: current next plan for Home decoupling; Profile/DM own social delivery, Home is explicit live room after trust.
+- `docs/v1-friend-home-architecture/12-v1-profile-first-implementation-next-plan.md`: prior V1 implementation next plan; use this for implementation order, low-cost proof, production P2P delivery, and final release evidence.
+- `docs/v1-friend-home-architecture/13-v1-home-decoupling-next-plan.md`: prior next plan for Home decoupling; Profile/DM own social delivery, Home is explicit live room after trust.
+- `docs/v1-friend-home-architecture/14-v1-product-logic-unification-next-plan.md`: prior plan for desktop/Android product-logic unification.
+- `docs/v1-friend-home-architecture/15-v1-ready-product-next-plan.md`: prior plan for V1 ready-product completion.
+- `docs/v1-friend-home-architecture/16-v1-profile-delivery-next-plan.md`: previous profile-delivery plan after phone smoke clarified that Home is not part of add-friend bootstrap.
+- `docs/v1-friend-home-architecture/17-v1-profile-routed-im-next-plan.md`: active V1 plan; finish Kepos as a profile-routed private IM where friendship, requests, Chat, and profile posts are profile-routed, while Home is only an optional live room after trust.
 - `docs/v1.07-architecture-gaps.md`: remaining architecture gaps for V1 after identity and QR design.
 - `docs/v1.03-limitations.md`: explicit V1 limitations, non-goals, and success bar.
 - `docs/v1.04-tradeoffs.md`: accepted V1 tradeoffs, rejected options, risks, and future escape hatches.
