@@ -333,11 +333,19 @@ Already landed before this plan:
 - Android Chat thread rows now select threads by profile id directly and mark
   that profile's durable thread read, avoiding legacy `remoteProfileId` wrapper
   semantics in the UI callback
+- desktop and Android Chat rows, current-thread headers, request rows, and
+  Contacts rows route profile opening through the same profile detail entry
+  point
+- the current automated V1 gate passes: lint, typecheck, 935 Node tests,
+  TypeScript probes, desktop bundle, Android backend bundle, Expo Android
+  export, and Android APK native-library checks
 
 Still open:
 
-- finish physical Android/Desktop smoke for Profile QR request and accept
-- fix any mobile UI parity gaps found during that smoke
+- finish physical Android/Desktop smoke for Profile QR request and accept,
+  durable Chat send, restart persistence, profile posts, and explicit Home
+  entry
+- fix any UI parity gaps found during that smoke
 - record the final proof packet before calling V1 ready
 
 ## Non-Goals
