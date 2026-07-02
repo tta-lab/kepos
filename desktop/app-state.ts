@@ -545,18 +545,23 @@ export function useDesktopAppModel() {
       setActiveTab('people')
     }
   }
-  const trustedSelectedProfile = people.trustedContacts.find(
+  const trustedContactsWithRecent = people.trustedContacts.map((profile) =>
+    withProfileRecentPosts({
+      activeHomeOwnerProfileId,
+      profileRecentPostCache,
+      profile,
+      treeholePosts
+    })
+  )
+  const peopleWithRecent = {
+    ...people,
+    trustedContacts: trustedContactsWithRecent
+  }
+  const trustedSelectedProfile = trustedContactsWithRecent.find(
     (contact) => contact.profileId === selectedProfileId
   )
   const selectedProfile =
-    (trustedSelectedProfile
-      ? withProfileRecentPosts({
-          activeHomeOwnerProfileId,
-          profileRecentPostCache,
-          profile: trustedSelectedProfile,
-          treeholePosts
-        })
-      : null) ||
+    trustedSelectedProfile ||
     (profileRequestTarget?.profileId === selectedProfileId
       ? createRequestTargetProfileViewModel({
           selectedProfileId,
@@ -580,7 +585,7 @@ export function useDesktopAppModel() {
     homeMessages,
     homeOwner,
     largeQr,
-    people,
+    people: peopleWithRecent,
     peopleActions,
     profileRequestTarget,
     selectedProfile,

@@ -280,6 +280,8 @@ test('desktop People pane lives behind a dedicated component boundary', async ()
   assert.match(people, /id='blockedContactList'/)
   assert.match(people, /Removed \/ ignored/)
   assert.match(people, /Profiles you remove or ignore will appear here\./)
+  assert.match(people, /contact\.recentCopy/)
+  assert.match(people, /contact\.recentPosts/)
   assert.match(people, /profile\.recentPosts/)
   assert.match(people, /<ProfileAvatar avatar=\{contact\.avatar\}/)
   assert.match(people, /<ProfileAvatar avatar=\{profile\.avatar\}/)
@@ -415,6 +417,8 @@ test('desktop app state and bridge live behind a dedicated hook boundary', async
   assert.match(appState, /createProfileRecentPostsViewModel/)
   assert.match(appState, /activeHomeOwnerProfileId/)
   assert.match(appState, /profileRecentPostCache/)
+  assert.match(appState, /const trustedContactsWithRecent = people\.trustedContacts\.map/)
+  assert.match(appState, /people: peopleWithRecent/)
   assert.match(appState, /cachedPostsByProfileId: profileRecentPostCache/)
   assert.match(
     appState,

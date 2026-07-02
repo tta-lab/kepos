@@ -247,8 +247,24 @@ export function PeopleLists({
                       {contact.recentTitle}
                     </p>
                     <p className='text-xs font-semibold text-base-content/60'>
-                      Posts from this profile will appear after you enter their home.
+                      {contact.recentCopy ||
+                        'Posts from this profile will appear after you enter their home.'}
                     </p>
+                    {contact.recentPosts?.length ? (
+                      <div className='mt-2 grid gap-2'>
+                        {contact.recentPosts.map((post) => (
+                          <article
+                            className='rounded-lg border border-base-300 bg-base-100/70 p-2'
+                            key={post.id}
+                          >
+                            <p className='text-sm font-bold text-base-content'>{post.text}</p>
+                            <p className='mt-1 text-xs font-semibold text-base-content/55'>
+                              {post.metaLabel}
+                            </p>
+                          </article>
+                        ))}
+                      </div>
+                    ) : null}
                   </div>
                 </div>
                 <div className='inlineActions flex flex-col items-end gap-2'>
