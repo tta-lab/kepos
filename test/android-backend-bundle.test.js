@@ -204,6 +204,35 @@ test('android backend keeps Home-control friend bootstrap debug-only', () => {
   assert.doesNotMatch(sendProfileMessageRequest, /allowHomeTrustFallback/)
 })
 
+test('android backend starts profile request service without Home join', () => {
+  const source = readFileSync(new URL('../backend/backend.mjs', import.meta.url), 'utf8')
+  const handleProfileStart = sliceBetween(
+    source,
+    'if (req.command === RPC_PROFILE_START)',
+    'if (req.command === RPC_PROFILE_REQUEST_SEND)'
+  )
+  const startProfileService = sliceBetween(
+    source,
+    'async function startProfileService',
+    'function openTreehole'
+  )
+  const sendProfileMessageRequest = sliceBetween(
+    source,
+    'async function sendProfileMessageRequest',
+    'async function acceptMessageRequest'
+  )
+
+  assert.match(handleProfileStart, /await startProfileService\(payload\)/)
+  assert.doesNotMatch(handleProfileStart, /joinRoom/)
+  assert.match(startProfileService, /profileRequestRuntime = createProfileFriendRequestRuntime/)
+  assert.match(startProfileService, /await profileRequestRuntime\.open\(\)/)
+  assert.doesNotMatch(startProfileService, /createP2PRoom/)
+  assert.doesNotMatch(startProfileService, /room\.join/)
+  assert.match(sendProfileMessageRequest, /profileRequestRuntime\.send\(request\)/)
+  assert.doesNotMatch(sendProfileMessageRequest, /room/)
+  assert.doesNotMatch(sendProfileMessageRequest, /allowHomeTrustFallback/)
+})
+
 test('android backend forwards avatar media controls between Home peers and UI', () => {
   const source = readFileSync(new URL('../backend/backend.mjs', import.meta.url), 'utf8')
   const joinRoom = sliceBetween(source, 'async function joinRoom', 'async function leaveRoom')

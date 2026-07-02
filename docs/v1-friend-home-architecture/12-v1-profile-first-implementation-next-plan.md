@@ -52,6 +52,8 @@ Already in source:
 - Profile request transport can send through the target profile topic without
   opening the local inbox first, which keeps request sending independent from
   Home entry and local room lifecycle.
+- Android backend starts the profile request service from `RPC_PROFILE_START`
+  without joining Home.
 - Desktop normal request actions do not read Home runtime; Home is touched only
   for Home chat or explicit debug fallback.
 

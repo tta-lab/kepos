@@ -96,6 +96,8 @@ Phase 1 through Phase 6 are implemented or quarantined in the current branch:
 - `src/profile-friend-request-transport.ts` owns the profile-to-profile delivery boundary
 - desktop starts a profile request listener when the local profile starts
 - Android starts a profile request listener after profile load, before Home entry
+- Android backend can start the profile request service from `RPC_PROFILE_START`
+  without joining Home
 - profile request runtime can send through the target profile topic without
   opening the local inbox first
 - outgoing requests are recorded as `queued`, then updated to `searching` or `sent` from transport callbacks
