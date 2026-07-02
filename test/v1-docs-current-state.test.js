@@ -1214,7 +1214,7 @@ test('V1 active plan records source-level profile-social hardening as closed', a
 
   assert.match(plan, /Status: source-level low-cost closure is done/)
   assert.match(plan, /current non-device `npm run v1:gate` passed on commit/)
-  assert.match(plan, /`64df3a4c6308690afca588860c167836543301d3`/)
+  assert.match(plan, /`f582c546a502572069e04a95b353e09595c39cc2`/)
   assert.match(plan, /967 Node tests/)
   assert.match(plan, /Expo Android export/)
   assert.match(plan, /Android APK\s+native-library checks/)
