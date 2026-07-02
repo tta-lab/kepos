@@ -105,6 +105,9 @@ export type DirectPaneProps = {
   onOpenProfile(profileId: string): void
   onRecipientChange(profileId: string): void
   onSend(): void
+  outgoingRequests?: MessageThreadListProps['outgoingRequests']
+  ownerProfileId?: string | null
+  pendingRequests?: MessageThreadListProps['pendingRequests']
   recipient: string
   resolveAvatarMediaUri?: ResolveAvatarMediaUri | null
   requestTarget?: DirectPaneRequestTarget
@@ -125,6 +128,9 @@ export function DirectPane({
   onOpenProfile,
   onRecipientChange,
   onSend,
+  outgoingRequests,
+  ownerProfileId,
+  pendingRequests,
   recipient,
   resolveAvatarMediaUri = null,
   requestTarget,
@@ -144,6 +150,9 @@ export function DirectPane({
       contacts: threadContacts,
       formatTime: formatMobileThreadTime,
       messages,
+      outgoingRequests,
+      ownerProfileId: ownerProfileId || '',
+      pendingRequests,
       resolveAvatarMediaUri,
       shortenProfileId,
       threads
@@ -176,6 +185,9 @@ export function DirectPane({
         onOpenProfile={onOpenProfile}
         onOpenPeople={onOpenPeople}
         onSelectThread={(thread) => onRecipientChange(thread.remoteProfileId)}
+        outgoingRequests={outgoingRequests}
+        ownerProfileId={ownerProfileId}
+        pendingRequests={pendingRequests}
         selectedProfileId={recipient}
         shortenProfileId={shortenProfileId}
         styles={styles}

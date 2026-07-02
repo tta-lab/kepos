@@ -85,6 +85,24 @@ export type MessageThreadListProps = {
   onOpenPeople(): void
   onOpenProfile(profileId: string): void
   onSelectThread(thread: { remoteProfileId: string }): void
+  outgoingRequests?: {
+    alias?: string | null
+    deliveryState?: string | null
+    profileId: string
+    requestedAt?: number
+    requestId?: string | null
+    text?: string | null
+  }[]
+  ownerProfileId?: string | null
+  pendingRequests?: {
+    alias?: string | null
+    deliveryState?: string | null
+    profileId: string
+    requestedAt?: number
+    requestId?: string | null
+    senderEncryptionPublicKey?: string | null
+    text?: string | null
+  }[]
   selectedProfileId?: string
   shortenProfileId(profileId: string): string
   styles: MessageThreadStyles
@@ -101,6 +119,9 @@ export function MessageThreadList({
   onOpenPeople,
   onOpenProfile,
   onSelectThread,
+  outgoingRequests,
+  ownerProfileId,
+  pendingRequests,
   selectedProfileId,
   shortenProfileId,
   styles,
@@ -111,6 +132,9 @@ export function MessageThreadList({
     contacts,
     formatTime: formatMobileThreadTime,
     messages,
+    outgoingRequests,
+    ownerProfileId: ownerProfileId || '',
+    pendingRequests,
     shortenProfileId,
     threads
   })

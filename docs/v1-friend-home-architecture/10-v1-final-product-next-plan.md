@@ -22,6 +22,9 @@ Already landed:
 - Android DM and friend request send paths are profile/runtime paths, not Home
   entry paths.
 - Desktop Contacts can show recent posts when available.
+- Chat request rows are synthesized from contact book and mobile request state,
+  so incoming/outgoing requests can appear in Chat before a durable DM thread
+  snapshot exists.
 - Automated tests cover product-surface fallback, desktop/mobile startup copy,
   debug affordance demotion, and DM path separation.
 
@@ -70,6 +73,10 @@ Acceptance:
 - incoming request can be accepted or ignored without entering Home
 - accepted request creates or unlocks the contact and DM thread
 - ignored/removed state has an honest recovery path
+
+Status: request rows now appear in Chat from shared request state. The
+remaining work is to prove the physical delivery/accept path creates the same
+state on both devices.
 
 ### 3. Make Contacts The Profile Hub
 

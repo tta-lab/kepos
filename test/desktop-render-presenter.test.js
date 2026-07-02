@@ -162,6 +162,21 @@ test('desktop render presenter pushes the full room snapshot to React UI', () =>
     },
     {
       avatar: {
+        initials: 'G',
+        label: 'Grace avatar',
+        tone: 'avatarTone1'
+      },
+      label: 'Grace',
+      preview: 'You: hi',
+      profileId: 'e'.repeat(64),
+      statusLabel: 'Request pending',
+      threadId: `request:out:${'e'.repeat(64)}:request-1`,
+      timeLabel: '09:30',
+      unreadCount: 0,
+      unreadLabel: ''
+    },
+    {
+      avatar: {
         initials: 'CC',
         label: 'Profile cc avatar',
         tone: 'avatarTone1'

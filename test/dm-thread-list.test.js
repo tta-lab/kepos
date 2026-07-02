@@ -1,7 +1,12 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { createAvatarMediaReference } from '../src/avatar-media.ts'
-import { createContactBook, trustContact } from '../src/contact-book.ts'
+import {
+  createContactBook,
+  recordMessageRequest,
+  recordOutgoingFriendRequest,
+  trustContact
+} from '../src/contact-book.ts'
 import {
   createDmThreadListView,
   filterDirectMessagesForProfile,
@@ -327,6 +332,131 @@ test('adds actions only to incoming requested inbox rows', () => {
     ignoreMessage: incomingRequest
   })
   assert.equal(outgoingRow.requestActions, undefined)
+})
+
+test('creates Chat rows from contact book friend requests without DM thread snapshots', () => {
+  const localProfileId = 'a'.repeat(64)
+  const incomingProfileId = 'e'.repeat(64)
+  const outgoingProfileId = 'f'.repeat(64)
+  const book = recordOutgoingFriendRequest(
+    recordMessageRequest(createContactBook({ ownerProfileId: localProfileId }), {
+      alias: 'Incoming Ada',
+      profileId: incomingProfileId,
+      requestedAt: 1800,
+      requestId: 'request-in',
+      senderEncryptionPublicKey: 'sender-key',
+      text: 'can we talk?'
+    }),
+    {
+      alias: 'Outgoing Grace',
+      deliveryState: 'delivered',
+      profileId: outgoingProfileId,
+      requestedAt: 1700,
+      requestId: 'request-out',
+      text: 'hello'
+    }
+  )
+
+  const rows = createDmThreadListView({
+    contactBook: book,
+    formatTime: (value) => `t:${value}`,
+    shortenProfileId: (value) => value.slice(0, 4),
+    threads: []
+  })
+
+  assert.deepEqual(
+    rows.map((row) => ({
+      label: row.label,
+      preview: row.preview,
+      profileId: row.profileId,
+      statusLabel: row.statusLabel,
+      threadId: row.threadId,
+      timeLabel: row.timeLabel
+    })),
+    [
+      {
+        label: 'Incoming Ada',
+        preview: 'can we talk?',
+        profileId: incomingProfileId,
+        statusLabel: 'Incoming request',
+        threadId: `request:in:${incomingProfileId}:request-in`,
+        timeLabel: 't:1800'
+      },
+      {
+        label: 'Outgoing Grace',
+        preview: 'You: hello',
+        profileId: outgoingProfileId,
+        statusLabel: 'Request delivered',
+        threadId: `request:out:${outgoingProfileId}:request-out`,
+        timeLabel: 't:1700'
+      }
+    ]
+  )
+  assert.deepEqual(rows[0].requestActions, {
+    acceptMessage: {
+      at: 1800,
+      direction: 'in',
+      fromProfileId: incomingProfileId,
+      id: `request:in:${incomingProfileId}:request-in`,
+      requestId: 'request-in',
+      senderEncryptionPublicKey: 'sender-key',
+      text: 'can we talk?',
+      toProfileId: localProfileId,
+      type: 'kepos.message.request.v1'
+    },
+    ignoreMessage: {
+      at: 1800,
+      direction: 'in',
+      fromProfileId: incomingProfileId,
+      id: `request:in:${incomingProfileId}:request-in`,
+      requestId: 'request-in',
+      senderEncryptionPublicKey: 'sender-key',
+      text: 'can we talk?',
+      toProfileId: localProfileId,
+      type: 'kepos.message.request.v1'
+    }
+  })
+  assert.equal(rows[1].requestActions, undefined)
+})
+
+test('creates Chat rows from explicit mobile friend request arrays', () => {
+  const incomingProfileId = 'e'.repeat(64)
+  const outgoingProfileId = 'f'.repeat(64)
+
+  const rows = createDmThreadListView({
+    formatTime: (value) => `t:${value}`,
+    outgoingRequests: [
+      {
+        alias: 'Outgoing Grace',
+        deliveryState: 'searching',
+        profileId: outgoingProfileId,
+        requestedAt: 1700,
+        requestId: 'request-out',
+        text: 'hello'
+      }
+    ],
+    ownerProfileId: 'a'.repeat(64),
+    pendingRequests: [
+      {
+        alias: 'Incoming Ada',
+        profileId: incomingProfileId,
+        requestedAt: 1800,
+        requestId: 'request-in',
+        senderEncryptionPublicKey: 'sender-key',
+        text: 'can we talk?'
+      }
+    ],
+    shortenProfileId: (value) => value.slice(0, 4),
+    threads: []
+  })
+
+  assert.deepEqual(
+    rows.map((row) => [row.label, row.statusLabel, row.preview]),
+    [
+      ['Incoming Ada', 'Incoming request', 'can we talk?'],
+      ['Outgoing Grace', 'Looking for profile', 'You: hello']
+    ]
+  )
 })
 
 test('counts unread incoming direct messages only after an explicit read marker', () => {

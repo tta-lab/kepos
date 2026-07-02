@@ -327,6 +327,9 @@ export function ChatRoom({
             }}
             onRecipientChange={onDmRecipientChange}
             onSend={onSendDm}
+            outgoingRequests={outgoingRequests}
+            ownerProfileId={profileId}
+            pendingRequests={pendingRequests}
             requestTarget={profileRequestTarget}
             recipient={dmRecipient}
             styles={styles}

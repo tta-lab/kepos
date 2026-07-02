@@ -1,4 +1,5 @@
-import type { ContactBook } from './contact-book.ts'
+import type { ContactBook, MessageRequestContact } from './contact-book.ts'
+import { formatProfileFriendRequestDeliveryState } from './profile-friend-request-transport.ts'
 import { getLatestProfileSnapshot, type ProfileSnapshot } from './profile-snapshot.ts'
 import {
   createProfileAvatarViewModel,
@@ -36,11 +37,24 @@ type ThreadContact = {
   profileSnapshots?: ProfileSnapshot[]
 }
 
+type ThreadRequestContact = Omit<
+  MessageRequestContact,
+  'alias' | 'deliveryState' | 'requestId' | 'senderEncryptionPublicKey' | 'text'
+> & {
+  alias?: string | null
+  deliveryState?: string | null
+  requestId?: string | null
+  senderEncryptionPublicKey?: string | null
+  text?: string | null
+}
+
 type ThreadMessage = {
   at?: unknown
   direction?: unknown
   fromProfileId?: unknown
   id?: unknown
+  requestId?: unknown
+  senderEncryptionPublicKey?: unknown
   text?: unknown
   toProfileId?: unknown
   type?: unknown
@@ -49,9 +63,11 @@ type ThreadMessage = {
 type ThreadSnapshot = {
   acceptedAt?: unknown
   createdAt?: unknown
+  deliveryState?: unknown
   remoteProfileId?: unknown
   lastReadAt?: unknown
   requestedAt?: unknown
+  requestDirection?: unknown
   revokedAt?: unknown
   state?: unknown
   threadId?: unknown
@@ -78,6 +94,9 @@ export function createDmThreadListView({
   formatTime,
   lastReadAtByProfileId = null,
   messages = [],
+  outgoingRequests = [],
+  ownerProfileId = '',
+  pendingRequests = [],
   resolveAvatarMediaUri = null,
   shortenProfileId,
   threads = []
@@ -87,21 +106,46 @@ export function createDmThreadListView({
   formatTime: (value: number) => string
   lastReadAtByProfileId?: Map<string, number> | Record<string, number> | null
   messages?: readonly ThreadMessage[]
+  outgoingRequests?: readonly ThreadRequestContact[]
+  ownerProfileId?: string
+  pendingRequests?: readonly ThreadRequestContact[]
   resolveAvatarMediaUri?: ResolveAvatarMediaUri | null
   shortenProfileId: (value: string) => string
   threads?: readonly unknown[]
 }): DmThreadListViewItem[] {
-  return threads
+  const allPendingRequests = mergeRequests(
+    Array.from(contactBook?.pendingRequestsByProfileId?.values() || []),
+    pendingRequests
+  )
+  const allOutgoingRequests = mergeRequests(
+    Array.from(contactBook?.outgoingRequestsByProfileId?.values() || []),
+    outgoingRequests
+  )
+  const allContacts = mergeThreadContacts(contacts, allPendingRequests, allOutgoingRequests)
+  const allMessages = [
+    ...messages,
+    ...createRequestMessages({
+      outgoingRequests: allOutgoingRequests,
+      ownerProfileId: contactBook?.ownerProfileId || ownerProfileId,
+      pendingRequests: allPendingRequests
+    })
+  ]
+
+  return createThreadSnapshots({
+    outgoingRequests: allOutgoingRequests,
+    pendingRequests: allPendingRequests,
+    threads
+  })
     .map(readThreadSnapshot)
     .filter(isVisibleThread)
     .map<DmThreadListInternalItem>((thread) => {
       const profileId = thread.remoteProfileId as string
-      const latestMessage = findLatestDirectMessage(messages, profileId)
-      const requestActions = createThreadRequestActions(thread, messages)
+      const latestMessage = findLatestDirectMessage(allMessages, profileId)
+      const requestActions = createThreadRequestActions(thread, allMessages)
       const statusLabel = formatStatusLabel(thread)
       const unreadCount = countUnreadIncomingMessages({
         lastReadAtByProfileId,
-        messages,
+        messages: allMessages,
         profileId,
         thread
       })
@@ -113,13 +157,22 @@ export function createDmThreadListView({
 
       return {
         avatar: createProfileAvatarViewModel({
-          avatarMediaSnapshot: findContactAvatarMediaSnapshot({ contactBook, contacts, profileId }),
-          avatarUri: findContactAvatarUri({ contactBook, contacts, profileId }),
-          displayName: findContactDisplayName({ contactBook, contacts, profileId }),
+          avatarMediaSnapshot: findContactAvatarMediaSnapshot({
+            contactBook,
+            contacts: allContacts,
+            profileId
+          }),
+          avatarUri: findContactAvatarUri({ contactBook, contacts: allContacts, profileId }),
+          displayName: findContactDisplayName({ contactBook, contacts: allContacts, profileId }),
           profileId,
           resolveAvatarMediaUri
         }),
-        label: findContactLabel({ contactBook, contacts, profileId, shortenProfileId }),
+        label: findContactLabel({
+          contactBook,
+          contacts: allContacts,
+          profileId,
+          shortenProfileId
+        }),
         preview: formatPreview(latestMessage, thread),
         profileId,
         ...(requestActions ? { requestActions } : {}),
@@ -133,6 +186,127 @@ export function createDmThreadListView({
     })
     .sort(compareThreadRows)
     .map(({ sortTimestamp: _sortTimestamp, ...thread }) => thread)
+}
+
+function mergeRequests(
+  primary: readonly ThreadRequestContact[],
+  secondary: readonly ThreadRequestContact[]
+): ThreadRequestContact[] {
+  const byProfileId = new Map<string, ThreadRequestContact>()
+  for (const request of [...primary, ...secondary]) {
+    const profileId = request?.profileId?.trim()
+    if (!profileId || byProfileId.has(profileId)) continue
+    byProfileId.set(profileId, request)
+  }
+  return Array.from(byProfileId.values())
+}
+
+function mergeThreadContacts(
+  contacts: readonly ThreadContact[],
+  pendingRequests: readonly ThreadRequestContact[],
+  outgoingRequests: readonly ThreadRequestContact[]
+): ThreadContact[] {
+  const byProfileId = new Map<string, ThreadContact>()
+
+  for (const contact of contacts) {
+    const profileId = contact?.profileId?.trim()
+    if (!profileId) continue
+    byProfileId.set(profileId, contact)
+  }
+
+  for (const request of [...pendingRequests, ...outgoingRequests]) {
+    const profileId = request?.profileId?.trim()
+    if (!profileId || byProfileId.has(profileId)) continue
+    byProfileId.set(profileId, createRequestThreadContact(request))
+  }
+
+  return Array.from(byProfileId.values())
+}
+
+function createRequestThreadContact(request: ThreadRequestContact): ThreadContact {
+  return {
+    alias: request.alias || undefined,
+    avatarMediaSnapshot: request.avatarMediaSnapshot,
+    avatarUriSnapshot: request.avatarUriSnapshot,
+    displayNameSnapshot: request.displayNameSnapshot,
+    profileId: request.profileId,
+    profileSnapshots: request.profileSnapshots
+  }
+}
+
+function createThreadSnapshots({
+  outgoingRequests,
+  pendingRequests,
+  threads
+}: {
+  outgoingRequests: readonly ThreadRequestContact[]
+  pendingRequests: readonly ThreadRequestContact[]
+  threads: readonly unknown[]
+}): unknown[] {
+  const snapshots = threads.map(readThreadSnapshot)
+  const profilesWithThreads = new Set(
+    snapshots
+      .map((thread) => (typeof thread.remoteProfileId === 'string' ? thread.remoteProfileId : ''))
+      .filter(Boolean)
+  )
+
+  return [
+    ...snapshots,
+    ...pendingRequests
+      .filter((request) => !profilesWithThreads.has(request.profileId))
+      .map((request) => createRequestThreadSnapshot(request, 'in')),
+    ...outgoingRequests
+      .filter((request) => !profilesWithThreads.has(request.profileId))
+      .map((request) => createRequestThreadSnapshot(request, 'out'))
+  ]
+}
+
+function createRequestThreadSnapshot(
+  request: ThreadRequestContact,
+  direction: 'in' | 'out'
+): ThreadSnapshot {
+  return {
+    deliveryState: request.deliveryState,
+    remoteProfileId: request.profileId,
+    requestedAt: request.requestedAt,
+    requestDirection: direction,
+    state: 'requested',
+    threadId: `request:${direction}:${request.profileId}:${request.requestId || request.requestedAt || 'pending'}`
+  }
+}
+
+function createRequestMessages({
+  outgoingRequests,
+  ownerProfileId,
+  pendingRequests
+}: {
+  outgoingRequests: readonly ThreadRequestContact[]
+  ownerProfileId: string
+  pendingRequests: readonly ThreadRequestContact[]
+}): ThreadMessage[] {
+  return [
+    ...pendingRequests.map((request) => ({
+      at: request.requestedAt,
+      direction: 'in',
+      fromProfileId: request.profileId,
+      id: `request:in:${request.profileId}:${request.requestId || request.requestedAt || 'pending'}`,
+      requestId: request.requestId,
+      senderEncryptionPublicKey: request.senderEncryptionPublicKey,
+      text: request.text,
+      toProfileId: ownerProfileId,
+      type: 'kepos.message.request.v1'
+    })),
+    ...outgoingRequests.map((request) => ({
+      at: request.requestedAt,
+      direction: 'out',
+      fromProfileId: ownerProfileId,
+      id: `request:out:${request.profileId}:${request.requestId || request.requestedAt || 'pending'}`,
+      requestId: request.requestId,
+      text: request.text,
+      toProfileId: request.profileId,
+      type: 'kepos.message.request.v1'
+    }))
+  ]
 }
 
 export function filterDirectMessagesForProfile<TMessage>(
@@ -395,7 +569,14 @@ function formatPreview(message: ThreadMessage | null, thread: ThreadSnapshot): s
 }
 
 function formatStatusLabel(thread: ThreadSnapshot): string {
-  return thread.state === 'requested' ? 'Request pending' : 'Accepted thread'
+  if (thread.state !== 'requested') return 'Accepted thread'
+  if (thread.requestDirection === 'in') return 'Incoming request'
+  if (thread.requestDirection === 'out') {
+    return formatProfileFriendRequestDeliveryState(
+      typeof thread.deliveryState === 'string' ? thread.deliveryState : undefined
+    )
+  }
+  return 'Request pending'
 }
 
 function readNumber(value: unknown): number | null {
