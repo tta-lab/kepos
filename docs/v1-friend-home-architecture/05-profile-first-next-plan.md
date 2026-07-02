@@ -103,8 +103,14 @@ Phase 1, Phase 2, and the first request-delivery part of Phase 3 are implemented
 Still open:
 
 - prove request and accept / invite delivery in cross-device smoke with Home peers at zero
-- remove or quarantine the temporary Home-control request and invite compatibility paths after profile delivery is proven in cross-device smoke
 - add an explicit receiver acknowledgement before showing `delivered`
+
+Now completed:
+
+- temporary Home-control request and invite compatibility paths are quarantined
+  behind explicit debug fallback
+- automated tests prove profile-source request accept / invite return without
+  Home membership
 
 Current execution note:
 

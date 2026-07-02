@@ -103,11 +103,14 @@ The profile-level friend request route is now implemented far enough for code-le
 - accepting an incoming request does not require Home membership
 - signed DM invites are sent over the profile request topic
 - desktop and Android route incoming profile-level DM invites into the existing DM invite acceptance path
+- Home-control friend request and DM invite handling is now debug fallback:
+  desktop distinguishes profile-source frames from Home-source frames, Android
+  gates the legacy Home path behind explicit fallback, and automated tests
+  prove request accept / invite return without Home.
 
 The next implementation block is proof and cleanup:
 
 - run cross-device smoke with Home disconnected or peer count at zero through request, accept, and DM thread creation
-- quarantine or remove Home-control request and invite compatibility paths after that proof
 - add an acknowledgement frame only when there is a real receiver ack, not before
 
 The current focused next plan is

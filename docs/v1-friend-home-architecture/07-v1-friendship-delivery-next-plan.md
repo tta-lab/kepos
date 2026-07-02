@@ -27,12 +27,17 @@ Implemented:
 
 Still not finished:
 
-- Home-control request and invite handling still exists as compatibility code.
-- The normal path is source-level separated, but it needs a final quarantine so
-  Home control cannot silently become the add-friend route again.
 - There is no receiver acknowledgement frame yet, so UI must not claim
   `delivered`.
 - Cross-device proof with Home peers at zero is still manual and expensive.
+
+Now completed in source:
+
+- Desktop Home-control request and invite handling is ignored by default.
+- Desktop profile-source request and invite handling stays accepted.
+- Android Home-control request and invite handling is ignored by default.
+- Legacy Android `RPC_DM_SEND` requires explicit Home trust fallback.
+- Automated tests prove request receive, accept, and invite return without Home.
 
 ## Architecture Rule
 
@@ -60,6 +65,8 @@ Home remains valid for:
 
 ### 1. Quarantine Home-Control Friend Bootstrap
 
+Status: implemented in source and tested.
+
 Change Home-control request and invite handling from "normal compatibility
 path" to "explicit debug fallback."
 
@@ -86,6 +93,8 @@ Acceptance:
 
 ### 2. Add Code-Level Proof For Request Accept Without Home
 
+Status: implemented in source and tested.
+
 Add an automated test that proves:
 
 1. A signed request can arrive from the profile route.
@@ -98,6 +107,8 @@ accidentally reintroducing Home as a hidden dependency.
 
 ### 3. Keep Delivery Wording Honest
 
+Status: still open until acknowledgement frames exist.
+
 Until receiver acknowledgement exists:
 
 - `queued` means local request exists.
@@ -108,6 +119,9 @@ Until receiver acknowledgement exists:
 Do not show `delivered` in product UI until an explicit ack frame exists.
 
 ### 4. Align Docs And Smoke Instructions
+
+Status: partly done. Smoke docs still need the final release-proof wording pass
+when manual cross-device proof is ready.
 
 Update smoke docs to say:
 

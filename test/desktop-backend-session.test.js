@@ -372,6 +372,98 @@ test('desktop backend session records incoming profile-level friend requests', a
   assert.deepEqual(incomingRequests, [request])
 })
 
+test('desktop backend session accepts profile-level requests and returns invites without Home', async () => {
+  const controllerState = createControllerState()
+  const savedBooks = []
+  const incomingRequests = []
+  const homeBroadcasts = []
+  const dmAccepts = []
+  const context = createProfileContext()
+  const profileRequestRuntimes = []
+  const remote = createSigningKeyPair()
+  const request = createMessageRequest({
+    createdAt: 1000,
+    fromIdentity: remote,
+    requestId: 'request-1',
+    senderEncryptionPublicKey: createDmEncryptionKeyPair().publicKey,
+    text: 'hello',
+    toProfileId: 'a'.repeat(64)
+  })
+  context.contactBook = {
+    contactsByProfileId: new Map(),
+    outgoingRequestsByProfileId: new Map(),
+    ownerProfileId: 'a'.repeat(64),
+    pendingRequestsByProfileId: new Map()
+  }
+  context.saveContactBook = (book) => {
+    context.contactBook = book
+    savedBooks.push(book)
+  }
+
+  const createdHosts = []
+  createDesktopBackendSession({
+    controllerState,
+    createId: () => 'thread-1',
+    createProfileRequestRuntime: createFakeProfileRequestRuntimeFactory(profileRequestRuntimes),
+    createLocalBackendHost: (options) => {
+      createdHosts.push(options)
+      return {
+        bridge: { label: 'bridge' },
+        dmRuntime: {
+          acceptMessageRequest: (payload) => {
+            dmAccepts.push(payload)
+            return {
+              book: { ...payload.book, acceptedProfileId: payload.remoteProfileId },
+              invite: {
+                inviteId: 'invite-1',
+                requestId: request.requestId,
+                toProfileId: request.fromProfileId,
+                type: 'kepos.dm.invite.v1'
+              }
+            }
+          },
+          appendIncomingRequest: (nextRequest) => incomingRequests.push(nextRequest),
+          getSession: () => controllerState.getDmSession(),
+          loadThreads: () => [],
+          replaceThreads: () => {},
+          start: () => ({ id: 'restored-dm-session', localProfileId: 'a'.repeat(64), messages: [] })
+        },
+        homeRuntime: {
+          broadcastControl: (message) => homeBroadcasts.push(message),
+          isJoined: () => false,
+          sendControl: (peer, message) => homeBroadcasts.push({ peer, message })
+        },
+        runtime: {
+          closeAll: () => Promise.resolve(),
+          configure: () => {}
+        },
+        treeholeRuntime: { canPost: () => false }
+      }
+    },
+    getCurrentDisplayName: () => 'Desktop',
+    getProfileContext: () => context,
+    onChanged: () => {},
+    setContextFormDraft: () => {},
+    setDirectComposerRecipient: () => {},
+    setNotice: () => {},
+    shortenProfileId: (value) => value.slice(0, 8),
+    storageBasePath: '/user-data/kepos/v1',
+    updateState: (updater) => controllerState.updateState(updater)
+  })
+  await flushAsync()
+
+  profileRequestRuntimes[0].options.onRequest(request)
+  await flushAsync()
+  await createdHosts[0].actions.acceptMessageRequest(request)
+
+  assert.deepEqual(incomingRequests, [request])
+  assert.equal(savedBooks.length, 2)
+  assert.equal(dmAccepts[0].remoteProfileId, request.fromProfileId)
+  assert.equal(profileRequestRuntimes[0].sent[0].type, 'kepos.dm.invite.v1')
+  assert.equal(profileRequestRuntimes[0].sent[0].toProfileId, request.fromProfileId)
+  assert.deepEqual(homeBroadcasts, [])
+})
+
 test('desktop backend session keeps runtime transport debug in controller state', () => {
   const controllerState = createControllerState()
   const changes = []
@@ -458,8 +550,13 @@ test('desktop backend session keeps Home DM body fallback debug-only', async () 
   )
 
   assert.match(source, /KEPOS_ALLOW_HOME_DM_BODY_FALLBACK/)
+  assert.match(source, /KEPOS_ALLOW_HOME_TRUST_FALLBACK/)
   assert.match(source, /allowHomeDmBodyFallback,\s*\n\s*createId/)
-  assert.match(source, /allowHomeDmBodyFallback,\s*\n\s*configureTreeholeRuntime/)
+  assert.match(
+    source,
+    /allowHomeDmBodyFallback,\s*\n\s*allowHomeTrustFallback,\s*\n\s*configureTreeholeRuntime/
+  )
+  assert.match(source, /source: 'profile'/)
 })
 
 function createFakeProfileRequestRuntimeFactory(runtimes = []) {

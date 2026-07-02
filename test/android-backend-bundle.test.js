@@ -107,6 +107,7 @@ test('android backend trims outgoing text at the RPC boundary', () => {
   const sendDmBody = sliceBetween(source, 'function sendDmBody', 'async function revokeDmByProfile')
 
   assert.match(source, /let allowHomeDmBodyFallback = false/)
+  assert.match(source, /let allowHomeTrustFallback = false/)
   assert.match(source, /const outgoingMessageRequestsByProfileId = new Map\(\)/)
   assert.doesNotMatch(leaveRoom, /profileRequestRuntime\?\.close\(\)/)
   assert.doesNotMatch(leaveRoom, /dmRuntime\?\.closeAll\(\)/)
@@ -124,7 +125,9 @@ test('android backend trims outgoing text at the RPC boundary', () => {
   assert.match(source, /treeholePolicy = payload\.treeholePolicy \|\| null/)
   assert.match(source, /treehole\?\.updateTreeholePolicy\?\.\(treeholePolicy\)/)
   assert.match(source, /allowHomeDmBodyFallback = payload\.allowHomeDmBodyFallback === true/)
+  assert.match(source, /allowHomeTrustFallback = payload\.allowHomeTrustFallback === true/)
   assert.match(source, /allowHomeDmBodyFallback = false/)
+  assert.match(source, /allowHomeTrustFallback = false/)
   assert.match(source, /function cleanRequiredText\(text\)/)
   assert.match(source, /throw new Error\('Text is required'\)/)
   assert.match(rpcSend, /sendHomeMessage\(payload\)/)
@@ -135,6 +138,8 @@ test('android backend trims outgoing text at the RPC boundary', () => {
   assert.match(postTreehole, /const text = cleanRequiredText\(payload\.text\)/)
   assert.match(commentTreehole, /const text = cleanRequiredText\(payload\.text\)/)
   assert.match(sendMessageRequest, /const text = cleanRequiredText\(payload\.text\)/)
+  assert.match(sendMessageRequest, /if \(!allowHomeTrustFallback\)/)
+  assert.match(sendMessageRequest, /Home trust fallback is not enabled/)
   assert.match(sendProfileMessageRequest, /const text = cleanRequiredText\(payload\.text\)/)
   assert.match(sendProfileMessageRequest, /profileRequestRuntime\.send\(request\)/)
   assert.match(sendProfileMessageRequest, /sendToUI\(RPC_PROFILE_REQUEST_STATE/)
@@ -165,6 +170,38 @@ test('android backend trims outgoing text at the RPC boundary', () => {
   assert.doesNotMatch(commentTreehole, /text: payload\.text/)
   assert.doesNotMatch(sendMessageRequest, /text: payload\.text/)
   assert.doesNotMatch(sendDmBody, /text: payload\.text/)
+})
+
+test('android backend keeps Home-control friend bootstrap debug-only', () => {
+  const source = readFileSync(new URL('../backend/backend.mjs', import.meta.url), 'utf8')
+  const handleMessageRequest = sliceBetween(
+    source,
+    "if (message.type === 'kepos.message.request.v1')",
+    "if (message.type === 'kepos.dm.invite.v1')"
+  )
+  const handleDmInvite = sliceBetween(
+    source,
+    "if (message.type === 'kepos.dm.invite.v1')",
+    "if (message.type === 'kepos.dm.body.v1')"
+  )
+  const sendMessageRequest = sliceBetween(
+    source,
+    'function sendMessageRequest',
+    'async function sendProfileMessageRequest'
+  )
+  const sendProfileMessageRequest = sliceBetween(
+    source,
+    'async function sendProfileMessageRequest',
+    'async function acceptMessageRequest'
+  )
+
+  assert.match(handleMessageRequest, /if \(!allowHomeTrustFallback\)/)
+  assert.match(handleMessageRequest, /verifyMessageRequest\(message\)/)
+  assert.match(handleDmInvite, /if \(!allowHomeTrustFallback\)/)
+  assert.match(handleDmInvite, /await acceptDmInvite\(message\)/)
+  assert.match(sendMessageRequest, /if \(!allowHomeTrustFallback\)/)
+  assert.match(sendProfileMessageRequest, /profileRequestRuntime\.send\(request\)/)
+  assert.doesNotMatch(sendProfileMessageRequest, /allowHomeTrustFallback/)
 })
 
 test('android backend forwards avatar media controls between Home peers and UI', () => {

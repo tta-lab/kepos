@@ -67,7 +67,11 @@ type AvatarMediaBytesReader = (
 ) => Uint8Array | null | Promise<Uint8Array | null>
 
 export type DesktopControlActions = {
-  handleControl(message: ControlMessage, peer?: unknown): Promise<void>
+  handleControl(
+    message: ControlMessage,
+    peer?: unknown,
+    options?: { source?: 'home' | 'profile' }
+  ): Promise<void>
   sendProfileAvatarMedia(peer: unknown): Promise<void>
   sendTreeholeBootstrap(peer: unknown, remoteProfileId?: string): void
   sendTreeholeWriter(peer: unknown): void
@@ -75,6 +79,7 @@ export type DesktopControlActions = {
 
 export function createDesktopControlActions({
   allowHomeDmBodyFallback = false,
+  allowHomeTrustFallback = false,
   configureTreeholeRuntime,
   createControlMessageResult = createDesktopControlMessageResult as unknown as ControlMessageResultFactory,
   createTreeholeControlSendResult = createDesktopTreeholeControlSendResult as unknown as TreeholeControlSendResultFactory,
@@ -92,6 +97,7 @@ export function createDesktopControlActions({
   shortenProfileId
 }: {
   allowHomeDmBodyFallback?: boolean
+  allowHomeTrustFallback?: boolean
   configureTreeholeRuntime: () => void
   createControlMessageResult?: ControlMessageResultFactory
   createTreeholeControlSendResult?: TreeholeControlSendResultFactory
@@ -111,7 +117,13 @@ export function createDesktopControlActions({
   storeAvatarMediaBytesControl?: AvatarMediaBytesControlStore
   shortenProfileId: (profileId?: string) => string
 }): DesktopControlActions {
-  async function handleControl(message: ControlMessage, peer?: unknown): Promise<void> {
+  async function handleControl(
+    message: ControlMessage,
+    peer?: unknown,
+    options: { source?: 'home' | 'profile' } = {}
+  ): Promise<void> {
+    const isProfileSource = options.source === 'profile'
+
     if (message.type === 'kepos.avatar.media.bytes.v1') {
       const context = getProfileContext()
       const result = await storeAvatarMediaBytesControl({
@@ -126,6 +138,8 @@ export function createDesktopControlActions({
     }
 
     if (message.type === 'kepos.message.request.v1') {
+      if (!isProfileSource && !allowHomeTrustFallback) return
+
       const context = getProfileContext()
       const dmRuntime = getDmRuntime()
       const result = await createControlMessageResult({
@@ -146,6 +160,8 @@ export function createDesktopControlActions({
     }
 
     if (message.type === 'kepos.dm.invite.v1') {
+      if (!isProfileSource && !allowHomeTrustFallback) return
+
       const { contactBook, profile } = getProfileContext()
       const result = await createControlMessageResult({
         acceptInviteAsRecipient: (payload: unknown) =>

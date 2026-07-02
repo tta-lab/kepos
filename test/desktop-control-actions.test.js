@@ -121,6 +121,39 @@ test('desktop control actions append incoming message requests', async () => {
     type: 'kepos.message.request.v1'
   }
 
+  await actions.handleControl(message, undefined, { source: 'profile' })
+
+  assert.deepEqual(calls, [
+    ['saveContactBook', { pending: 'friend' }],
+    ['dm.appendIncomingRequest', message],
+    ['notice', 'Friend request received.'],
+    ['render']
+  ])
+})
+
+test('desktop control actions ignore Home-control message requests by default', async () => {
+  const { actions, calls } = createHarness()
+
+  await actions.handleControl(
+    {
+      fromProfileId: 'friend',
+      id: 'request-1',
+      type: 'kepos.message.request.v1'
+    },
+    'peer-1'
+  )
+
+  assert.deepEqual(calls, [])
+})
+
+test('desktop control actions can receive debug Home-control message requests explicitly', async () => {
+  const { actions, calls } = createHarness({ allowHomeTrustFallback: true })
+  const message = {
+    fromProfileId: 'friend',
+    id: 'request-1',
+    type: 'kepos.message.request.v1'
+  }
+
   await actions.handleControl(message, 'peer-1')
 
   assert.deepEqual(calls, [
@@ -134,16 +167,26 @@ test('desktop control actions append incoming message requests', async () => {
 test('desktop control actions accept incoming DM invites', async () => {
   const { actions, calls } = createHarness()
 
-  await actions.handleControl({ type: 'kepos.dm.invite.v1' }, 'peer-1')
+  await actions.handleControl({ type: 'kepos.dm.invite.v1' }, undefined, { source: 'profile' })
 
   assert.deepEqual(calls, [['notice', 'Message thread ready.'], ['render']])
+})
+
+test('desktop control actions ignore Home-control DM invites by default', async () => {
+  const { actions, calls } = createHarness()
+
+  await actions.handleControl({ type: 'kepos.dm.invite.v1' }, 'peer-1')
+
+  assert.deepEqual(calls, [])
 })
 
 test('desktop control actions persist contact book updates from accepted DM invites', async () => {
   const { actions, calls } = createHarness()
   const nextBook = { trusted: 'friend' }
 
-  await actions.handleControl({ nextBook, type: 'kepos.dm.invite.v1' }, 'peer-1')
+  await actions.handleControl({ nextBook, type: 'kepos.dm.invite.v1' }, undefined, {
+    source: 'profile'
+  })
 
   assert.deepEqual(calls, [
     ['saveContactBook', nextBook],

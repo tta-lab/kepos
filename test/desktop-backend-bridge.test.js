@@ -195,8 +195,9 @@ test('desktop controller delegates home transport to a runtime boundary', async 
   )
   assert.match(
     controlActions,
-    /async function handleControl\(message: ControlMessage, peer\?: unknown\)/
+    /async function handleControl\(\s*message: ControlMessage,\s*peer\?: unknown,\s*options: \{ source\?: 'home' \| 'profile' \} = \{\}/
   )
+  assert.match(controlActions, /const isProfileSource = options\.source === 'profile'/)
   assert.match(session, /createDesktopBackendActions/)
   assert.match(backendActions, /joinHome: roomActions\?\.joinHome/)
   assert.match(roomActions, /getHomeRuntime\(\)\.join/)

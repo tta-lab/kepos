@@ -51,6 +51,7 @@ export function createDesktopBackendSession({
   let profileRequestRuntime: ProfileFriendRequestRuntime | null = null
   let treeholeRuntime: DesktopTreeholeRuntime
   const allowHomeDmBodyFallback = env.KEPOS_ALLOW_HOME_DM_BODY_FALLBACK === '1'
+  const allowHomeTrustFallback = env.KEPOS_ALLOW_HOME_TRUST_FALLBACK === '1'
   let profileRequestTarget: unknown = null
   const publishProfileRequestTarget = (target: unknown): void => {
     profileRequestTarget = target || null
@@ -123,6 +124,7 @@ export function createDesktopBackendSession({
   } as never)
   const controlActions = createDesktopControlActions({
     allowHomeDmBodyFallback,
+    allowHomeTrustFallback,
     configureTreeholeRuntime,
     getDmRuntime: () => dmRuntime,
     getHomeJoinDetails: () => controllerState.getHomeJoinDetails(),
@@ -281,10 +283,14 @@ export function createDesktopBackendSession({
       },
       onDiscoveryError: onError,
       onInvite: (invite) => {
-        controlActions.handleControl(invite as Record<string, unknown>).catch(onError)
+        controlActions
+          .handleControl(invite as Record<string, unknown>, undefined, { source: 'profile' })
+          .catch(onError)
       },
       onRequest: (request) => {
-        controlActions.handleControl(request as Record<string, unknown>).catch(onError)
+        controlActions
+          .handleControl(request as Record<string, unknown>, undefined, { source: 'profile' })
+          .catch(onError)
       }
     })
     await profileRequestRuntime.open()
@@ -363,6 +369,7 @@ type DesktopLocalBackendHostFactory = (options: {
 
 type DesktopBackendSessionEnv = {
   KEPOS_ALLOW_HOME_DM_BODY_FALLBACK?: string
+  KEPOS_ALLOW_HOME_TRUST_FALLBACK?: string
   KEPOS_DIRECT_ADVERTISED_HOST?: string
   KEPOS_DIRECT_LISTEN_HOST?: string
 }

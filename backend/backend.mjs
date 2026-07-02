@@ -86,6 +86,7 @@ let dmRuntime = null
 let profileRequestRuntime = null
 let treeholePolicy = null
 let allowHomeDmBodyFallback = false
+let allowHomeTrustFallback = false
 let localAvatarMediaControl = null
 const addedWriters = new Set()
 const outgoingMessageRequestsByProfileId = new Map()
@@ -191,6 +192,7 @@ async function joinRoom(payload) {
   profileId = payload.profileId?.trim() || null
   identity = payload.identity || null
   allowHomeDmBodyFallback = payload.allowHomeDmBodyFallback === true
+  allowHomeTrustFallback = payload.allowHomeTrustFallback === true
   localAvatarMediaControl = payload.localAvatarMediaControl || null
   treeholePolicy = payload.treeholePolicy || null
   await startProfileService(payload)
@@ -254,6 +256,7 @@ async function leaveRoom() {
   homePolicy = 'trusted_only'
   remoteTreeholeSnapshot = null
   allowHomeDmBodyFallback = false
+  allowHomeTrustFallback = false
   localAvatarMediaControl = null
   addedWriters.clear()
 }
@@ -405,6 +408,10 @@ async function handleControl(message, peer) {
   }
 
   if (message.type === 'kepos.message.request.v1') {
+    if (!allowHomeTrustFallback) {
+      return
+    }
+
     if (message.toProfileId === profileId && verifyMessageRequest(message)) {
       sendToUI(RPC_DM_MESSAGE, message)
     }
@@ -413,6 +420,10 @@ async function handleControl(message, peer) {
   }
 
   if (message.type === 'kepos.dm.invite.v1') {
+    if (!allowHomeTrustFallback) {
+      return
+    }
+
     if (message.toProfileId === profileId) {
       await acceptDmInvite(message)
       sendToUI(RPC_DM_INVITE, message)
@@ -622,6 +633,10 @@ async function likeTreehole(payload) {
 }
 
 function sendMessageRequest(payload) {
+  if (!allowHomeTrustFallback) {
+    throw new Error('Home trust fallback is not enabled')
+  }
+
   if (!room) {
     throw new Error('Home is not ready')
   }
