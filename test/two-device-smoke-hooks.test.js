@@ -232,7 +232,7 @@ test('Android lobby uses shared task headers for setup panels', async () => {
   assert.match(quickStart, /<TaskHeader[\s\S]*eyebrow='Start'[\s\S]*title='Start here'/)
   assert.match(
     quickStart,
-    /description=\{[\s\S]*profileReady[\s\S]*\? 'Show My QR or open your home\.'[\s\S]*: 'Setting up your profile\.\.\.'[\s\S]*\}/
+    /description=\{[\s\S]*profileReady[\s\S]*\? 'Show My QR or add a friend\.'[\s\S]*: 'Setting up your profile\.\.\.'[\s\S]*\}/
   )
   assert.match(peopleActions, /<TaskHeader[\s\S]*eyebrow='Advanced'[\s\S]*title='Debug Home QR'/)
   assert.match(
@@ -270,7 +270,7 @@ test('Android normal UI copy avoids backend and address language', async () => {
 
   for (const text of [
     'Show My QR or scan a profile.',
-    'Show My QR or open your home.',
+    'Show My QR or add a friend.',
     'Open my home',
     'Starting home...',
     'Home connection error.'
