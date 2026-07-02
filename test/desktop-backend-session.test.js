@@ -225,7 +225,7 @@ test('desktop backend session keeps runtime DM changes in controller state', () 
   assert.deepEqual(changes, ['changed'])
 })
 
-test('desktop backend session persists outgoing friend requests from message actions', async () => {
+test('desktop backend session persists outgoing friend requests and delivery updates', async () => {
   const controllerState = createControllerState()
   const createdHosts = []
   const savedBooks = []
@@ -237,7 +237,10 @@ test('desktop backend session persists outgoing friend requests from message act
     ownerProfileId: 'a'.repeat(64),
     pendingRequestsByProfileId: new Map()
   }
-  context.saveContactBook = (book) => savedBooks.push(book)
+  context.saveContactBook = (book) => {
+    context.contactBook = book
+    savedBooks.push(book)
+  }
 
   createDesktopBackendSession({
     controllerState,
@@ -299,7 +302,20 @@ test('desktop backend session persists outgoing friend requests from message act
 
   assert.equal(savedBooks.length, 1)
   assert.equal(savedBooks[0].outgoingRequestsByProfileId.get('b'.repeat(64)).requestId, 'id-1')
+  assert.equal(savedBooks[0].outgoingRequestsByProfileId.get('b'.repeat(64)).deliveryState, 'sent')
   assert.equal(profileRequestRuntimes[0].sent[0].requestId, 'id-1')
+
+  profileRequestRuntimes[0].options.onDeliveryState({
+    requestId: 'id-1',
+    state: 'delivered',
+    toProfileId: 'b'.repeat(64)
+  })
+
+  assert.equal(savedBooks.length, 2)
+  assert.equal(
+    savedBooks[1].outgoingRequestsByProfileId.get('b'.repeat(64)).deliveryState,
+    'delivered'
+  )
 })
 
 test('desktop backend session records incoming profile-level friend requests', async () => {

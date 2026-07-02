@@ -56,6 +56,8 @@ Already in source:
   without joining Home.
 - Android persists profile request delivery-state callbacks into the outgoing
   request ContactBook.
+- Desktop persists profile request delivery-state callbacks into the outgoing
+  request ContactBook.
 - Desktop normal request actions do not read Home runtime; Home is touched only
   for Home chat or explicit debug fallback.
 

@@ -103,6 +103,8 @@ Phase 1 through Phase 6 are implemented or quarantined in the current branch:
 - outgoing requests are recorded as `queued`, then updated to `searching` or `sent` from transport callbacks
 - Android applies profile request delivery-state callbacks back into the
   outgoing request ContactBook and persists the update
+- desktop applies profile request delivery-state callbacks back into the
+  outgoing request ContactBook and persists the update
 - leaving Home no longer shuts down Android profile request delivery
 - accepting a friend request no longer requires Home membership on desktop or Android
 - signed DM invites now travel over the same profile-level P2P topic instead of normal Home control broadcast
