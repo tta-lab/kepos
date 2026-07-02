@@ -23,6 +23,7 @@ export type ContactProfileViewModel = {
   displayName: string
   enterHomeEnabled: boolean
   enterHomeLabel: string
+  messageEnabled: boolean
   messageLabel: string
   profileId: string
   recentCopy: string
@@ -80,6 +81,7 @@ export function createContactProfileViewModel({
     displayName,
     enterHomeEnabled: isTrusted && hasUsableHomeDescriptor(contact),
     enterHomeLabel: 'Enter Home',
+    messageEnabled: isTrusted,
     messageLabel: 'Message',
     profileId: contact.profileId,
     recentCopy: formatRecentCopy(state),

@@ -62,6 +62,7 @@ export type TrustedContactView = {
   canRemove?: boolean
   homeActionEnabled: boolean
   homeActionLabel: string
+  messageActionEnabled: boolean
   messageActionLabel: string
   profileId: string
   recentCopy?: string
@@ -426,6 +427,7 @@ function ContactProfileDetail({
         <ActionButton
           ariaLabel={`Message ${profile.alias}`}
           className='smallButton'
+          disabled={!profile.messageActionEnabled}
           icon={<Send size={15} />}
           label={profile.messageActionLabel}
           onClick={() => actions.messageContact(profile.profileId)}

@@ -35,6 +35,7 @@ test('desktop people view model formats trusted contacts for rendering', () => {
       },
       homeActionEnabled: false,
       homeActionLabel: 'Enter Home',
+      messageActionEnabled: true,
       messageActionLabel: 'Message',
       profileId,
       recentTitle: 'Recent posts',

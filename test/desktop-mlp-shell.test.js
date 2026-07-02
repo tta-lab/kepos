@@ -209,6 +209,7 @@ test('desktop people UI uses trusted friends copy', async () => {
   assert.match(source, /\{contact\.recentTitle\}/)
   assert.match(source, /id='contactProfileDetail'/)
   assert.match(source, /ContactProfileDetail/)
+  assert.match(source, /disabled=\{!profile\.messageActionEnabled\}/)
   assert.match(source, /Advanced identity/)
   assert.match(source, /Profile fingerprint/)
   assert.match(source, /actions\.closeProfile/)

@@ -668,6 +668,7 @@ function createRequestTargetProfileViewModel({
     canRemove: profile.canRemove,
     homeActionEnabled: profile.enterHomeEnabled,
     homeActionLabel: profile.enterHomeLabel,
+    messageActionEnabled: profile.messageEnabled,
     messageActionLabel: profile.messageLabel,
     profileId: profile.profileId,
     recentCopy: profile.recentCopy,

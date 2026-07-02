@@ -20,6 +20,7 @@ export type RequestTargetProfileViewModel = {
   displayName: string
   enterHomeEnabled: false
   enterHomeLabel: string
+  messageEnabled: false
   messageLabel: string
   profileId: string
   recentCopy: string
@@ -59,6 +60,7 @@ export function createRequestTargetProfileViewModel({
     displayName,
     enterHomeEnabled: false,
     enterHomeLabel: 'Enter Home',
+    messageEnabled: false,
     messageLabel: 'Message',
     profileId: requestTarget.profileId,
     recentCopy: 'Recent posts will appear after this profile becomes trusted.',

@@ -150,6 +150,14 @@ Required:
 - profile detail exposes `Message`, `Recent posts`, and `Enter Home` when
   allowed
 
+Current evidence:
+
+- shared contact profile models expose `messageEnabled`, so desktop and Android
+  disable `Message` for untrusted, pending, removed, ignored, and scanned
+  request-target profiles
+- trusted profile details keep `Message` enabled; pending/request profiles keep
+  relationship status visible without opening durable Chat prematurely
+
 Why:
 
 V1 lives or dies on whether "I added this person" is visible and understandable.

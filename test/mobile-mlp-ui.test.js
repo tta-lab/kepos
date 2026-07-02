@@ -766,6 +766,7 @@ test('mobile direct contact chips and revoke actions expose trust state', async 
   assert.match(trustedContactRows, /<MobileProfileAvatar avatar=\{profile\.avatar\}/)
   assert.doesNotMatch(trustedContactRows, /profile\.recentCopy/)
   assert.match(contactProfileDetail, /accessibilityLabel=\{`Message \$\{profile\.displayName\}`\}/)
+  assert.match(contactProfileDetail, /disabled=\{!profile\.messageEnabled\}/)
   assert.match(contactProfileDetail, /label=\{profile\.messageLabel\}/)
   assert.match(
     contactProfileDetail,

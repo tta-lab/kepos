@@ -31,6 +31,7 @@ export type DesktopTrustedContactViewModel = {
   canRemove?: boolean
   homeActionEnabled: boolean
   homeActionLabel: string
+  messageActionEnabled: boolean
   messageActionLabel: string
   profileId: string
   recentCopy?: string
@@ -185,6 +186,7 @@ function createTrustedContactViewModel({
     avatar: profile.avatar,
     homeActionEnabled: profile.enterHomeEnabled,
     homeActionLabel: profile.enterHomeLabel,
+    messageActionEnabled: profile.messageEnabled,
     messageActionLabel: profile.messageLabel,
     profileId: profile.profileId,
     recentTitle: profile.recentTitle,
@@ -220,6 +222,7 @@ function createRequestProfileViewModel({
     canRemove: false,
     homeActionEnabled: profile.enterHomeEnabled,
     homeActionLabel: profile.enterHomeLabel,
+    messageActionEnabled: profile.messageEnabled,
     messageActionLabel: profile.messageLabel,
     profileId: profile.profileId,
     recentCopy: profile.recentCopy,
@@ -252,6 +255,7 @@ function createBlockedProfileViewModel({
     canRemove: false,
     homeActionEnabled: profile.enterHomeEnabled,
     homeActionLabel: profile.enterHomeLabel,
+    messageActionEnabled: profile.messageEnabled,
     messageActionLabel: profile.messageLabel,
     profileId: profile.profileId,
     recentCopy: profile.recentCopy,

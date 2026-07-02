@@ -102,6 +102,7 @@ export type ContactProfileDetailView = {
   displayName: string
   enterHomeEnabled?: boolean
   enterHomeLabel: string
+  messageEnabled?: boolean
   messageLabel: string
   profileId: string
   recentCopy?: string
@@ -294,6 +295,7 @@ export function ContactProfileDetail({
           dangerColor={theme.danger}
           styles={styles}
           accessibilityLabel={`Message ${profile.displayName}`}
+          disabled={!profile.messageEnabled}
           icon={Send}
           label={profile.messageLabel}
           onPress={() => onMessageContact(profile.profileId)}
