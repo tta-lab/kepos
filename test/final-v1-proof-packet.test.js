@@ -241,7 +241,13 @@ test('package and docs expose the final V1 proof packet helper', async () => {
     recipe,
     /request receipt and accept are recorded with desktop and Android Home peer\s+counts zero/
   )
+  assert.match(
+    recipe,
+    /Profile-level request delivery must be proved with desktop and Android Home\s+peer counts recorded as zero at request receipt and accept\/invite return/
+  )
+  assert.match(recipe, /Record the observed Home peer count separately for desktop and Android/)
   assert.doesNotMatch(recipe, /request receipt and accept are recorded with Home peer count zero/)
+  assert.doesNotMatch(recipe, /must be proved with Home peer count recorded\s+as zero/)
   assert.match(recipe, /worktree state: clean, dirty-local, or unknown/)
   assert.match(recipe, /commit, worktree state, and Android metadata/)
   assert.match(recipe, /same commit and worktree state being proved/)
