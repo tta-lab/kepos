@@ -8,7 +8,8 @@ import {
   RefreshCw,
   Send,
   User,
-  UserMinus
+  UserMinus,
+  UserPlus
 } from 'lucide-react-native'
 import type { MobileContactLike } from '../src/mobile-product-copy.ts'
 import { formatMobileTrustedContactName } from '../src/mobile-product-copy.ts'
@@ -18,6 +19,8 @@ import type {
   ResolveAvatarMediaUri
 } from '../src/profile-avatar-view-model.ts'
 import {
+  MobileRequestActionButton,
+  type MobileRequestActionButtonStyles,
   MobileSmallActionButton,
   type MobileSmallActionButtonStyles
 } from './action-components.tsx'
@@ -96,11 +99,28 @@ export type ContactProfileRecentPost = {
   text?: string
 }
 
+export type ContactProfileAcceptRequest = {
+  createdAt?: number
+  fromProfileId: string
+  requestId: string
+  senderEncryptionPublicKey: string
+  text?: string | null
+  toProfileId: string
+  type: 'kepos.message.request.v1'
+}
+
+export type ContactProfileIgnoreRequest = {
+  profileId: string
+}
+
 export type ContactProfileDetailView = {
+  acceptRequest?: ContactProfileAcceptRequest
   avatar?: ProfileAvatarViewModel
+  canAllowRequests?: boolean
   canRemove?: boolean
   displayName: string
   enterHomeEnabled?: boolean
+  ignoreRequest?: ContactProfileIgnoreRequest
   enterHomeLabel: string
   messageEnabled?: boolean
   messageLabel: string
@@ -108,6 +128,7 @@ export type ContactProfileDetailView = {
   recentCopy?: string
   recentPosts?: ContactProfileRecentPost[]
   recentTitle?: string
+  relationshipState?: string
   shortProfileId?: string
   sourceLabel?: string
   statusLabel?: string
@@ -115,6 +136,7 @@ export type ContactProfileDetailView = {
 }
 
 export type ContactProfileDetailStyles = MobileProfileAvatarStyles &
+  MobileRequestActionButtonStyles &
   MobileSmallActionButtonStyles & {
     contactIdentity: StyleProp<ViewStyle>
     contactIdentityTitle: StyleProp<ViewStyle>
@@ -140,11 +162,15 @@ export type ContactProfileDetailTheme = {
   accentStrong: string
   danger: string
   ink: string
+  surface: string
 }
 
 export type ContactProfileDetailProps = {
+  onAcceptProfileRequest(request: ContactProfileAcceptRequest): void
+  onAllowContactRequests(profileId: string): void
   onBack(): void
   onEnterContactHome(profileId: string): void
+  onIgnoreProfileRequest(request: ContactProfileIgnoreRequest): void
   onMessageContact(profileId: string): void
   onRevokeContact(profileId: string): void
   profile?: ContactProfileDetailView | null
@@ -249,8 +275,11 @@ export function ProfileRequestTargetCard({
 }
 
 export function ContactProfileDetail({
+  onAcceptProfileRequest,
+  onAllowContactRequests,
   onBack,
   onEnterContactHome,
+  onIgnoreProfileRequest,
   onMessageContact,
   onRevokeContact,
   profile,
@@ -261,6 +290,11 @@ export function ContactProfileDetail({
 
   if (!profile) return null
   const canRemove = profile.canRemove !== false
+  const acceptRequest =
+    profile.relationshipState === 'incoming_request' ? profile.acceptRequest : undefined
+  const ignoreRequest =
+    profile.relationshipState === 'incoming_request' ? profile.ignoreRequest : undefined
+  const canRespondToRequest = Boolean(acceptRequest && ignoreRequest)
 
   return (
     <View
@@ -310,7 +344,36 @@ export function ContactProfileDetail({
           label={profile.enterHomeLabel}
           onPress={() => onEnterContactHome(profile.profileId)}
         />
-        {canRemove ? (
+        {canRespondToRequest && acceptRequest && ignoreRequest ? (
+          <>
+            <MobileRequestActionButton
+              acceptContentColor={theme.surface}
+              ignoreContentColor={theme.ink}
+              onPress={() => onIgnoreProfileRequest(ignoreRequest)}
+              styles={styles}
+              testID='contact-profile-ignore-request-button'
+              variant='ignore'
+            />
+            <MobileRequestActionButton
+              acceptContentColor={theme.surface}
+              ignoreContentColor={theme.ink}
+              onPress={() => onAcceptProfileRequest(acceptRequest)}
+              styles={styles}
+              testID='contact-profile-accept-request-button'
+              variant='accept'
+            />
+          </>
+        ) : profile.canAllowRequests ? (
+          <MobileSmallActionButton
+            accentColor={theme.accentStrong}
+            dangerColor={theme.danger}
+            styles={styles}
+            accessibilityLabel={`Allow requests from ${profile.displayName}`}
+            icon={UserPlus}
+            label='Allow requests'
+            onPress={() => onAllowContactRequests(profile.profileId)}
+          />
+        ) : canRemove ? (
           <MobileSmallActionButton
             accentColor={theme.accentStrong}
             dangerColor={theme.danger}

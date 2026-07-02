@@ -39,6 +39,7 @@ test('desktop people view model formats trusted contacts for rendering', () => {
       messageActionLabel: 'Message',
       profileId,
       recentTitle: 'Recent posts',
+      relationshipState: 'trusted',
       shortProfileId: `short:${profileId}`,
       sourceLabel: 'From Profile QR',
       statusLabel: 'Trusted',
@@ -292,30 +293,42 @@ test('desktop people view model exposes profile details for request and blocked 
   assert.deepEqual(
     viewModel.profileDetails.map((profile) => ({
       alias: profile.alias,
+      acceptMessage: profile.acceptMessage,
       canRemove: profile.canRemove,
       profileId: profile.profileId,
+      relationshipState: profile.relationshipState,
       statusLabel: profile.statusLabel,
       trustedAtLabel: profile.trustedAtLabel
     })),
     [
       {
+        acceptMessage: {
+          fromProfileId: incomingProfileId,
+          nick: 'Incoming Ada',
+          type: 'kepos.message.request.v1'
+        },
         alias: 'Incoming Ada',
         canRemove: false,
         profileId: incomingProfileId,
+        relationshipState: 'incoming_request',
         statusLabel: 'Incoming request',
         trustedAtLabel: 'Not trusted yet'
       },
       {
+        acceptMessage: undefined,
         alias: 'Outgoing Grace',
         canRemove: false,
         profileId: outgoingProfileId,
+        relationshipState: 'outgoing_request',
         statusLabel: 'Request delivered',
         trustedAtLabel: 'Not trusted yet'
       },
       {
+        acceptMessage: undefined,
         alias: 'Ignored Mina',
         canRemove: false,
         profileId: ignoredProfileId,
+        relationshipState: 'ignored',
         statusLabel: 'Ignored',
         trustedAtLabel: 'Ignored date:1300'
       }

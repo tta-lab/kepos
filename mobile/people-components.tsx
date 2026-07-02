@@ -33,6 +33,7 @@ import { PanelEmptyState, TaskHeader } from './panel-components.tsx'
 import {
   ContactProfileDetail,
   MobileProfileAvatar,
+  type ContactProfileIgnoreRequest,
   type ContactProfileDetailView
 } from './profile-components.tsx'
 import {
@@ -154,8 +155,10 @@ export function PeoplePane({
         homeQrUri={homeQrUri}
         myHomeQrUri={myHomeQrUri}
         onHomeQrChange={onHomeQrChange}
+        onAcceptRequest={onAcceptRequest}
         onAllowContactRequests={onAllowContactRequests}
         onEnterContactHome={onEnterContactHome}
+        onIgnoreRequest={onIgnoreRequest}
         onJoinHomeQr={onJoinHomeQr}
         onMessageContact={onMessageContact}
         onRevokeContact={onRevokeContact}
@@ -166,6 +169,7 @@ export function PeoplePane({
         onTrustQrChange={onTrustQrChange}
         outgoingRequests={outgoingRequests}
         pendingRequests={pendingRequests}
+        profileId={profileId}
         profileRequestTarget={profileRequestTarget}
         profileRecentPostCache={profileRecentPostCache}
         profileReady={profileReady}
@@ -191,9 +195,11 @@ export type PeopleActionsProps = {
   canJoinHome: boolean
   homeQrUri: string
   myHomeQrUri: string
+  onAcceptRequest: MessageRequestManagerProps['onAcceptRequest']
   onAllowContactRequests(profileId: string): void
   onEnterContactHome(profileId: string): void
   onHomeQrChange(value: string): void
+  onIgnoreRequest: MessageRequestManagerProps['onIgnoreRequest']
   onJoinHomeQr(): void
   onMessageContact?(profileId: string): void
   onRevokeContact(profileId: string): void
@@ -205,6 +211,7 @@ export type PeopleActionsProps = {
   onTrustQrChange(value: string): void
   outgoingRequests?: OutgoingFriendRequest[]
   pendingRequests?: IncomingFriendRequest[]
+  profileId?: string | null
   profileReady: boolean
   profileQrUri: string
   profileRecentPostCache?: ProfileRecentPostCache
@@ -224,9 +231,11 @@ export function PeopleActions({
   canJoinHome,
   homeQrUri,
   myHomeQrUri,
+  onAcceptRequest,
   onAllowContactRequests,
   onHomeQrChange,
   onEnterContactHome,
+  onIgnoreRequest,
   onJoinHomeQr,
   onMessageContact = () => {},
   onRevokeContact,
@@ -237,6 +246,7 @@ export function PeopleActions({
   onTrustQrChange,
   outgoingRequests,
   pendingRequests,
+  profileId,
   profileRequestTarget,
   profileRecentPostCache,
   profileReady,
@@ -410,12 +420,15 @@ export function PeopleActions({
       <ContactManager
         blockedContacts={blockedContacts}
         contacts={trustedContacts}
+        onAcceptRequest={onAcceptRequest}
         onAllowContactRequests={onAllowContactRequests}
         onEnterContactHome={onEnterContactHome}
+        onIgnoreRequest={onIgnoreRequest}
         onMessageContact={onMessageContact}
         onRevokeContact={onRevokeContact}
         outgoingRequests={outgoingRequests}
         pendingRequests={pendingRequests}
+        profileId={profileId}
         profileRequestTarget={profileRequestTarget}
         profileRecentPostCache={profileRecentPostCache}
         activeHomeOwnerProfileId={activeHomeOwnerProfileId}
@@ -433,13 +446,16 @@ export type ContactManagerProps = {
   activeHomeOwnerProfileId?: string
   blockedContacts?: ContactRecord[]
   contacts?: ContactRecord[]
+  onAcceptRequest: MessageRequestManagerProps['onAcceptRequest']
   onAllowContactRequests(profileId: string): void
   onEnterContactHome(profileId: string): void
+  onIgnoreRequest: MessageRequestManagerProps['onIgnoreRequest']
   onMessageContact?(profileId: string): void
   onRevokeContact(profileId: string): void
   onSelectedProfileChange(profileId: string | null): void
   outgoingRequests?: OutgoingFriendRequest[]
   pendingRequests?: IncomingFriendRequest[]
+  profileId?: string | null
   profileRecentPostCache?: ProfileRecentPostCache
   profileRequestTarget?: ProfileRequestTarget | null
   selectedProfileId?: string | null
@@ -452,12 +468,15 @@ export function ContactManager({
   activeHomeOwnerProfileId,
   blockedContacts,
   contacts,
+  onAcceptRequest,
   onAllowContactRequests,
   onEnterContactHome,
+  onIgnoreRequest,
   onMessageContact = () => {},
   onRevokeContact,
   outgoingRequests,
   pendingRequests,
+  profileId,
   profileRequestTarget,
   profileRecentPostCache,
   selectedProfileId,
@@ -491,6 +510,7 @@ export function ContactManager({
       })
     : selectedPendingRequest
       ? createMobileRequestProfile({
+          localProfileId: profileId,
           relationshipState: 'incoming_request',
           request: selectedPendingRequest
         })
@@ -506,6 +526,7 @@ export function ContactManager({
                 formatDate: formatMobileTrustTime,
                 shortenProfileId
               }),
+              canAllowRequests: true,
               canRemove: false
             }
           : createRequestTargetProfileViewModel({
@@ -532,8 +553,14 @@ export function ContactManager({
         />
       ) : null}
       <ContactProfileDetail
+        onAcceptProfileRequest={onAcceptRequest}
+        onAllowContactRequests={onAllowContactRequests}
         onBack={() => onSelectedProfileChange(null)}
         onEnterContactHome={onEnterContactHome}
+        onIgnoreProfileRequest={(request) => {
+          const pending = findPendingProfileRequest(pendingRequests, request)
+          if (pending) onIgnoreRequest(pending)
+        }}
         onMessageContact={onMessageContact}
         onRevokeContact={onRevokeContact}
         profile={selectedProfile}
@@ -634,12 +661,23 @@ export function ContactManager({
 }
 
 function createMobileRequestProfile({
+  localProfileId,
   relationshipState,
   request
 }: {
+  localProfileId?: string | null
   relationshipState: 'incoming_request' | 'outgoing_request'
   request: IncomingFriendRequest | OutgoingFriendRequest
 }): ContactProfileDetailView {
+  const canAccept = Boolean(
+    relationshipState === 'incoming_request' &&
+    localProfileId &&
+    'requestId' in request &&
+    request.requestId &&
+    'senderEncryptionPublicKey' in request &&
+    request.senderEncryptionPublicKey
+  )
+
   return {
     ...createContactProfileViewModel({
       contact: {
@@ -654,8 +692,29 @@ function createMobileRequestProfile({
       relationshipState,
       shortenProfileId
     }),
-    canRemove: false
+    acceptRequest: canAccept
+      ? {
+          createdAt: request.requestedAt,
+          fromProfileId: request.profileId,
+          requestId: (request as IncomingFriendRequest).requestId || '',
+          senderEncryptionPublicKey:
+            (request as IncomingFriendRequest).senderEncryptionPublicKey || '',
+          text: request.text,
+          toProfileId: localProfileId || '',
+          type: 'kepos.message.request.v1'
+        }
+      : undefined,
+    canRemove: false,
+    ignoreRequest:
+      relationshipState === 'incoming_request' ? { profileId: request.profileId } : undefined
   }
+}
+
+function findPendingProfileRequest(
+  pendingRequests: IncomingFriendRequest[] | undefined,
+  request: ContactProfileIgnoreRequest
+): IncomingFriendRequest | null {
+  return pendingRequests?.find((candidate) => candidate.profileId === request.profileId) || null
 }
 
 function withMobileProfileRecentPosts<

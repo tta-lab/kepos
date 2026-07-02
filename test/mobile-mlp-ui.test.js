@@ -782,6 +782,19 @@ test('mobile direct contact chips and revoke actions expose trust state', async 
   assert.match(contactProfileDetail, /icon=\{UserMinus\}/)
   assert.match(contactProfileDetail, /label='Remove friend'/)
   assert.match(contactProfileDetail, /variant='danger'/)
+  assert.match(contactProfileDetail, /profile\.relationshipState === 'incoming_request'/)
+  assert.match(
+    contactProfileDetail,
+    /<MobileRequestActionButton[\s\S]*testID='contact-profile-ignore-request-button'[\s\S]*variant='ignore'/
+  )
+  assert.match(
+    contactProfileDetail,
+    /<MobileRequestActionButton[\s\S]*testID='contact-profile-accept-request-button'[\s\S]*variant='accept'/
+  )
+  assert.match(
+    contactProfileDetail,
+    /<MobileSmallActionButton[\s\S]*accessibilityLabel=\{`Allow requests from \$\{profile\.displayName\}`\}[\s\S]*icon=\{UserPlus\}[\s\S]*label='Allow requests'[\s\S]*onAllowContactRequests\(profile\.profileId\)/
+  )
   assert.match(contactProfileDetail, /\{profile\.enterHomeEnabled \? \(/)
   assert.match(
     contactProfileDetail,
@@ -792,6 +805,15 @@ test('mobile direct contact chips and revoke actions expose trust state', async 
   assert.doesNotMatch(source, /function ContactProfileDetail\(/)
   assert.match(profileComponents, /export type ContactProfileDetailProps = \{/)
   assert.match(contactManager, /<ContactProfileDetail[\s\S]*profile=\{selectedProfile\}/)
+  assert.match(
+    contactManager,
+    /<ContactProfileDetail[\s\S]*onAcceptProfileRequest=\{onAcceptRequest\}/
+  )
+  assert.match(
+    contactManager,
+    /<ContactProfileDetail[\s\S]*onAllowContactRequests=\{onAllowContactRequests\}/
+  )
+  assert.match(contactManager, /<ContactProfileDetail[\s\S]*onIgnoreProfileRequest=/)
   assert.match(contactManager, /<ContactProfileDetail[\s\S]*styles=\{styles\}/)
   assert.match(contactManager, /<ContactProfileDetail[\s\S]*theme=\{theme\}/)
   assert.match(contactProfileDetail, /testID='contact-profile-detail'/)
@@ -1191,6 +1213,7 @@ test('mobile contacts expose removed and ignored profiles', async () => {
   assert.match(contactManager, /icon=\{ShieldOff\}/)
   assert.match(contactManager, /label='Allow requests'/)
   assert.match(contactManager, /onAllowContactRequests\(contact\.profileId\)/)
+  assert.match(contactManager, /canAllowRequests: true/)
 })
 
 test('mobile request sent state is derived from restored contact book', async () => {

@@ -673,6 +673,7 @@ function createRequestTargetProfileViewModel({
     profileId: profile.profileId,
     recentCopy: profile.recentCopy,
     recentTitle: profile.recentTitle,
+    relationshipState: profile.relationshipState,
     shortProfileId: profile.shortProfileId,
     sourceLabel: profile.sourceLabel,
     statusLabel: profile.statusLabel,

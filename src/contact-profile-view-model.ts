@@ -28,6 +28,7 @@ export type ContactProfileViewModel = {
   profileId: string
   recentCopy: string
   recentTitle: string
+  relationshipState: ContactProfileRelationshipState
   revokeLabel: string
   shortProfileId: string
   sourceLabel: string
@@ -86,6 +87,7 @@ export function createContactProfileViewModel({
     profileId: contact.profileId,
     recentCopy: formatRecentCopy(state),
     recentTitle: 'Recent posts',
+    relationshipState: state,
     revokeLabel: formatRevokeLabel(state),
     shortProfileId,
     sourceLabel: `From ${formatTrustSource(contact.source)}`,

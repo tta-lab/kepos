@@ -57,6 +57,7 @@ export type BlockedContactView = {
 }
 
 export type TrustedContactView = {
+  acceptMessage?: MessageRequestView['acceptMessage']
   alias: string
   avatar?: ProfileAvatarView
   canRemove?: boolean
@@ -72,6 +73,7 @@ export type TrustedContactView = {
     text: string
   }[]
   recentTitle: string
+  relationshipState: string
   shortProfileId: string
   sourceLabel: string
   statusLabel: string
@@ -384,6 +386,11 @@ function ContactProfileDetail({
 }) {
   if (!profile) return null
   const canRemove = profile.canRemove !== false
+  const acceptMessage =
+    profile.relationshipState === 'incoming_request' ? profile.acceptMessage : undefined
+  const canRespondToRequest = Boolean(acceptMessage)
+  const canAllowRequests =
+    profile.relationshipState === 'removed' || profile.relationshipState === 'ignored'
 
   return (
     <section
@@ -440,7 +447,28 @@ function ContactProfileDetail({
           label={profile.homeActionLabel}
           onClick={() => actions.enterContactHome(profile.profileId)}
         />
-        {canRemove ? (
+        {canRespondToRequest && acceptMessage ? (
+          <>
+            <RequestActionButton
+              ariaLabel={`Ignore friend request from ${profile.alias}`}
+              onClick={() => actions.ignoreMessageRequest(profile.profileId)}
+              variant='ignore'
+            />
+            <RequestActionButton
+              ariaLabel={`Accept friend request from ${profile.alias}`}
+              onClick={() => actions.acceptMessageRequest(acceptMessage)}
+              variant='accept'
+            />
+          </>
+        ) : canAllowRequests ? (
+          <ActionButton
+            ariaLabel={`Allow requests from ${profile.alias}`}
+            className='smallButton'
+            icon={<UserPlus size={15} />}
+            label='Allow requests'
+            onClick={() => actions.allowContactRequests(profile.profileId)}
+          />
+        ) : canRemove ? (
           <ActionButton
             ariaLabel={`Remove ${profile.alias} as friend`}
             className='smallButton dangerButton'

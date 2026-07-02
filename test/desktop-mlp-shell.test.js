@@ -592,6 +592,22 @@ test('desktop request and QR dialog actions use clear icons', async () => {
     people,
     /<ActionButton[\s\S]*icon=\{<UserPlus size=\{15\} \/>\}[\s\S]*label='Allow requests'[\s\S]*actions\.allowContactRequests\(contact\.profileId\)/
   )
+  assert.match(
+    people,
+    /const acceptMessage =[\s\S]*profile\.relationshipState === 'incoming_request'/
+  )
+  assert.match(
+    people,
+    /<RequestActionButton[\s\S]*ariaLabel=\{`Ignore friend request from \$\{profile\.alias\}`\}[\s\S]*actions\.ignoreMessageRequest\(profile\.profileId\)[\s\S]*variant='ignore'/
+  )
+  assert.match(
+    people,
+    /<RequestActionButton[\s\S]*ariaLabel=\{`Accept friend request from \$\{profile\.alias\}`\}[\s\S]*actions\.acceptMessageRequest\(acceptMessage\)[\s\S]*variant='accept'/
+  )
+  assert.match(
+    people,
+    /<ActionButton[\s\S]*ariaLabel=\{`Allow requests from \$\{profile\.alias\}`\}[\s\S]*icon=\{<UserPlus size=\{15\} \/>\}[\s\S]*label='Allow requests'[\s\S]*actions\.allowContactRequests\(profile\.profileId\)/
+  )
   assert.match(source, /import \{ Heart, MessageCircle, Send, Sprout, User, UserPlus \}/)
   assert.match(
     panes,

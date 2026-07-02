@@ -25,6 +25,7 @@ export type RequestTargetProfileViewModel = {
   profileId: string
   recentCopy: string
   recentTitle: string
+  relationshipState: 'request_target'
   revokeLabel: string
   shortProfileId: string
   sourceLabel: string
@@ -65,6 +66,7 @@ export function createRequestTargetProfileViewModel({
     profileId: requestTarget.profileId,
     recentCopy: 'Recent posts will appear after this profile becomes trusted.',
     recentTitle: 'Recent posts',
+    relationshipState: 'request_target',
     revokeLabel: 'Request pending',
     shortProfileId: requestTarget.shortProfileId || shortenProfileId(requestTarget.profileId),
     sourceLabel: 'From Profile QR',

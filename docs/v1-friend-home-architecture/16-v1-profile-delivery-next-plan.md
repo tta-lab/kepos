@@ -127,6 +127,25 @@ a session invite, not an authorization or trust invite.
 
 ## Implementation Plan
 
+## Current Implementation Status
+
+Phase 2 has source-level progress:
+
+- shared profile view models expose `relationshipState`
+- scanned request-target profiles are explicitly marked as `request_target`
+- desktop profile detail shows Accept / Ignore for incoming requests
+- desktop profile detail shows Allow requests for ignored or removed profiles
+- Android profile detail shows Accept / Ignore for incoming requests
+- Android profile detail shows Allow requests for ignored or removed profiles
+- trusted profile detail keeps Message enabled, while untrusted/request/blocked
+  profiles keep Message disabled
+
+Still open for Phase 2:
+
+- manual cross-device proof that these detail actions behave correctly on the
+  physical Android screen
+- final visual pass after the remaining Chat-first work is complete
+
 ### Phase 1: Remove Home From Friendship Semantics
 
 Required:

@@ -26,6 +26,7 @@ export type DesktopBlockedContactViewModel = {
 }
 
 export type DesktopTrustedContactViewModel = {
+  acceptMessage?: DesktopMessageRequestViewModel['acceptMessage']
   alias: string
   avatar: ProfileAvatarViewModel
   canRemove?: boolean
@@ -36,6 +37,7 @@ export type DesktopTrustedContactViewModel = {
   profileId: string
   recentCopy?: string
   recentTitle: string
+  relationshipState: string
   shortProfileId: string
   sourceLabel: string
   statusLabel: string
@@ -190,6 +192,7 @@ function createTrustedContactViewModel({
     messageActionLabel: profile.messageLabel,
     profileId: profile.profileId,
     recentTitle: profile.recentTitle,
+    relationshipState: profile.relationshipState,
     shortProfileId: profile.shortProfileId,
     sourceLabel: profile.sourceLabel,
     statusLabel: profile.statusLabel,
@@ -218,6 +221,14 @@ function createRequestProfileViewModel({
 
   return {
     alias: profile.displayName,
+    acceptMessage:
+      relationshipState === 'incoming_request'
+        ? {
+            fromProfileId: request.profileId,
+            nick: request.alias || '',
+            type: 'kepos.message.request.v1'
+          }
+        : undefined,
     avatar: profile.avatar,
     canRemove: false,
     homeActionEnabled: profile.enterHomeEnabled,
@@ -227,6 +238,7 @@ function createRequestProfileViewModel({
     profileId: profile.profileId,
     recentCopy: profile.recentCopy,
     recentTitle: profile.recentTitle,
+    relationshipState: profile.relationshipState,
     shortProfileId: profile.shortProfileId,
     sourceLabel: profile.sourceLabel,
     statusLabel: profile.statusLabel,
@@ -260,6 +272,7 @@ function createBlockedProfileViewModel({
     profileId: profile.profileId,
     recentCopy: profile.recentCopy,
     recentTitle: profile.recentTitle,
+    relationshipState: profile.relationshipState,
     shortProfileId: profile.shortProfileId,
     sourceLabel: profile.sourceLabel,
     statusLabel: profile.statusLabel,
