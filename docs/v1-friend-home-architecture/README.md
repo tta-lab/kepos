@@ -164,9 +164,15 @@ The short version:
     - Use this for the route decision before `31`.
 
 31. `31-v1-profile-p2p-release-next-plan.md`
-    - Active V1 plan: close remaining product-route leaks, align desktop and
+    - Previous V1 plan: close remaining product-route leaks, align desktop and
       Android product logic, keep debug surfaces out of onboarding, and produce
       final release proof for the profile-to-profile P2P private IM.
+    - Use this for release-plan context before `32`.
+
+32. `32-v1-profile-dm-first-release-next-plan.md`
+    - Active V1 plan: finish the profile/DM-first private IM release. Home has
+      no role in friendship, accept, DM bootstrap, or Chat; it is only an
+      explicit trusted live/session surface.
     - Use this for current V1 work before starting V2.
 
 ## Core Principle
@@ -185,6 +191,8 @@ Joining a Home must not be used to deliver the request in the production
 architecture. Friend request, accept, and durable DM delivery must be
 profile-to-profile P2P. Direct host/port is diagnostics only, not a production
 social route.
+
+The current active plan is `32-v1-profile-dm-first-release-next-plan.md`.
 
 Home can host a later activity invite only after trust already exists. It is
 not the trust bootstrap, not the add-friend QR, and not the fallback for normal

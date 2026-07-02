@@ -118,6 +118,7 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
     'docs/v1-friend-home-architecture/29-v1-profile-delivery-home-demotion-next-plan.md',
     'docs/v1-friend-home-architecture/30-v1-profile-only-social-route-next-plan.md',
     'docs/v1-friend-home-architecture/31-v1-profile-p2p-release-next-plan.md',
+    'docs/v1-friend-home-architecture/32-v1-profile-dm-first-release-next-plan.md',
     'docs/v1.20-smoke-guide.md',
     'docs/v1.21-cross-device-smoke.md'
   ]) {
@@ -152,7 +153,8 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
   assert.match(docs, /Previous V1 Home-independent profile delivery plan/)
   assert.match(docs, /Previous V1 profile delivery and Home demotion plan/)
   assert.match(docs, /Previous V1 profile-only social route plan/)
-  assert.match(docs, /Active V1 profile P2P release plan/)
+  assert.match(docs, /Previous V1 profile P2P release plan/)
+  assert.match(docs, /Active V1 profile\/DM-first release plan/)
   assert.match(docs, /profile-routed private IM/)
   assert.match(docs, /profile-to-profile P2P route/)
   assert.match(docs, /Profile is the social address/)
@@ -174,6 +176,7 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
   assert.match(profileFirst, /29-v1-profile-delivery-home-demotion-next-plan\.md/)
   assert.match(profileFirst, /30-v1-profile-only-social-route-next-plan\.md/)
   assert.match(profileFirst, /31-v1-profile-p2p-release-next-plan\.md/)
+  assert.match(profileFirst, /32-v1-profile-dm-first-release-next-plan\.md/)
   assert.match(profileFirst, /\.\.\/v1\.21-cross-device-smoke\.md/)
   assert.match(moc, /Prior product-logic unification next plan/)
   assert.doesNotMatch(
@@ -181,6 +184,35 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
     /current execution plan has moved on to `08-v1-im-release-next-plan\.md`/
   )
   assert.doesNotMatch(profileFirst, /evidence packet described in `08`/)
+})
+
+test('V1 active profile and DM first release plan demotes Home from social delivery', async () => {
+  const plan = await readText(
+    '../docs/v1-friend-home-architecture/32-v1-profile-dm-first-release-next-plan.md'
+  )
+
+  assert.match(plan, /Profile -> friend request -> mutual trust/)
+  assert.match(plan, /DM\/profile delivery -> normal social delivery/)
+  assert.match(plan, /Home -> explicit trusted live space only/)
+  assert.match(plan, /Home should have no relation to adding friends/)
+  assert.match(plan, /private IM built on profile-to-profile P2P delivery/)
+  assert.match(plan, /friend request/)
+  assert.match(plan, /DM bootstrap/)
+  assert.match(plan, /durable pairwise Chat/)
+  assert.match(plan, /post-trust Home descriptor delivery/)
+  assert.match(plan, /Normal social delivery must not use/)
+  assert.match(plan, /Home join/)
+  assert.match(plan, /Home-control request broadcast/)
+  assert.match(plan, /direct host:port/)
+  assert.match(plan, /No step requires entering Home/)
+  assert.match(plan, /Home \/ Chat \/ Contacts \/ Treehole/)
+  assert.match(plan, /Identity -> Profile delivery -> ContactBook trust -> DM/)
+  assert.match(plan, /It is not:\n\n```text\nHome -> friend request -> trust -> Chat/)
+  assert.match(plan, /Remove Remaining Home-Centric Product State/)
+  assert.match(plan, /Make Request And Chat UX Match On Both Clients/)
+  assert.match(plan, /Treat Home As A Post-Trust Activity Surface/)
+  assert.match(plan, /Do not spend phone time until the source-level route is clean/)
+  assert.match(plan, /V1 has one production social delivery model: profile\/DM P2P/)
 })
 
 test('V1 active profile P2P release plan owns final release work', async () => {
