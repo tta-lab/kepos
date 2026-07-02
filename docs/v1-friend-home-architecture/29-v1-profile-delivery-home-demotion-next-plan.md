@@ -128,6 +128,31 @@ Rules:
 This closes the gap created by correctly removing Home descriptors from Profile
 QR.
 
+Status: implemented at source level.
+
+Evidence:
+
+- `src/profile-home-descriptor-frame.ts` defines the pure profile-level Home
+  descriptor frame and verifies that the wrapper sender matches the signed
+  `kepos.home.address.v1` owner.
+- `src/profile-friend-request-transport.ts` carries that frame over the same
+  profile-to-profile P2P route used for friend requests and DM invites.
+- Desktop accepts a friend request, sends the DM invite, then best-effort sends
+  the local signed Home descriptor over profile transport. Receiving desktop
+  code stores it only through the trusted ContactBook descriptor gate.
+- Android backend does the same after request acceptance. Incoming descriptor
+  frames are forwarded to mobile UI, where the mobile ContactBook stores them
+  only for already trusted contacts.
+- Profile QR remains descriptor-free; this delivery route is post-trust and
+  independent of Home control traffic.
+
+Focused proof:
+
+```sh
+npm test -- test/profile-friend-request-transport.test.js test/desktop-control-actions.test.js test/desktop-message-request-actions.test.js test/desktop-backend-session.test.js test/android-backend-bundle.test.js test/mobile-mlp-ui.test.js
+npm run lint
+```
+
 ### 3. Unify Desktop And Android Product Logic
 
 Check both clients against the same model:

@@ -6,6 +6,12 @@ import { verifyDmInvite } from './dm-invite.ts'
 import type { MessageRequest } from './message-request.ts'
 import { verifyMessageRequest } from './message-request.ts'
 import type { ProfileFriendRequestDeliveryState } from './profile-friend-request-delivery.ts'
+import {
+  PROFILE_HOME_DESCRIPTOR,
+  createProfileHomeDescriptorFrame,
+  verifyProfileHomeDescriptorFrame,
+  type ProfileHomeDescriptorFrame
+} from './profile-home-descriptor-frame.ts'
 import type { SigningIdentity } from './signed-record.ts'
 
 const PROFILE_FRIEND_REQUEST_TOPIC_PREFIX = 'kepos-profile-request:v1:'
@@ -31,7 +37,10 @@ export type ProfileFriendRequestLocalProfile = {
   profileId: string
 }
 
-export type ProfileFriendRequestFrame = MessageRequest | DmInvite
+export { createProfileHomeDescriptorFrame, verifyProfileHomeDescriptorFrame }
+export type { ProfileHomeDescriptorFrame }
+
+export type ProfileFriendRequestFrame = MessageRequest | DmInvite | ProfileHomeDescriptorFrame
 
 type ProfileFriendRequestAck = {
   fromProfileId: string
@@ -100,6 +109,7 @@ export function createProfileFriendRequestRuntime({
   localProfileId,
   onDeliveryState = () => {},
   onDiscoveryError = () => {},
+  onHomeDescriptor = () => {},
   onInvite = () => {},
   onRequest = () => {}
 }: {
@@ -108,6 +118,7 @@ export function createProfileFriendRequestRuntime({
   localProfileId: string
   onDeliveryState?: (delivery: ProfileFriendRequestDeliveryUpdate) => void
   onDiscoveryError?: (error: Error) => void
+  onHomeDescriptor?: (frame: ProfileHomeDescriptorFrame) => void
   onInvite?: (invite: DmInvite) => void
   onRequest?: (request: MessageRequest) => void
 }): ProfileFriendRequestRuntime {
@@ -283,6 +294,11 @@ export function createProfileFriendRequestRuntime({
         return
       }
 
+      if (frame.type === PROFILE_HOME_DESCRIPTOR) {
+        onHomeDescriptor(frame)
+        return
+      }
+
       onInvite(frame)
     } catch {
       // Ignore malformed profile request frames; later valid frames should still work.
@@ -339,6 +355,7 @@ export function createProfileFriendRequestRuntime({
   function readValidOutgoingFrame(message: unknown): ProfileFriendRequestFrame | null {
     if (verifyMessageRequest(message)) return message
     if (verifyDmInvite(message)) return message
+    if (verifyProfileHomeDescriptorFrame(message)) return message
     return null
   }
 
@@ -364,6 +381,10 @@ export function createProfileFriendRequestRuntime({
 function frameDeliveryId(frame: ProfileFriendRequestFrame): string {
   if (frame.type === 'kepos.dm.invite.v1') {
     return frame.requestId || frame.inviteId
+  }
+
+  if (frame.type === PROFILE_HOME_DESCRIPTOR) {
+    return frame.descriptorId
   }
 
   return frame.requestId

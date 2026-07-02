@@ -9,6 +9,7 @@ import { createDesktopTrustActions } from './desktop-trust-actions.ts'
 import { createDirectRoomTransport } from './direct-room-transport.ts'
 import {
   createProfileFriendRequestRuntime,
+  type ProfileHomeDescriptorFrame,
   type ProfileFriendRequestRuntime
 } from './profile-friend-request-transport.ts'
 import type { ProfileFriendRequestDeliveryState } from './profile-friend-request-delivery.ts'
@@ -287,6 +288,11 @@ export function createDesktopBackendSession({
           .handleControl(invite as Record<string, unknown>, undefined, { source: 'profile' })
           .catch(onError)
       },
+      onHomeDescriptor: (frame) => {
+        controlActions
+          .handleControl(frame as Record<string, unknown>, undefined, { source: 'profile' })
+          .catch(onError)
+      },
       onRequest: (request) => {
         controlActions
           .handleControl(request as Record<string, unknown>, undefined, { source: 'profile' })
@@ -416,6 +422,7 @@ type ProfileRequestRuntimeFactory = (options: {
     toProfileId: string
   }) => void
   onDiscoveryError?: (error: Error) => void
+  onHomeDescriptor?: (frame: ProfileHomeDescriptorFrame) => void
   onInvite?: (invite: DmInvite) => void
   onRequest?: (request: MessageRequest) => void
 }) => ProfileFriendRequestRuntime

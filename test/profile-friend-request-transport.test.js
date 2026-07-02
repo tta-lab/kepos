@@ -3,16 +3,19 @@ import test from 'node:test'
 import { createDmEncryptionKeyPair, createDmInvite } from '../src/dm-invite.ts'
 import { createMessageRequest } from '../src/message-request.ts'
 import {
+  createProfileHomeDescriptorFrame,
   createProfileFriendRequestRuntime,
   createQueuedProfileFriendRequestTransport,
   deriveProfileFriendRequestTopic,
-  sendProfileFriendRequest
+  sendProfileFriendRequest,
+  verifyProfileHomeDescriptorFrame
 } from '../src/profile-friend-request-transport.ts'
 import {
   formatProfileFriendAcceptanceDeliveryNotice,
   formatProfileFriendRequestDeliveryState
 } from '../src/profile-friend-request-delivery.ts'
 import { createSigningKeyPair } from '../src/signed-record.ts'
+import { createSignedHomeAddressPayload } from '../src/signed-qr-payload.ts'
 
 test('profile friend request transport validates profile-to-profile request shape', async () => {
   const from = createSigningKeyPair()
@@ -307,6 +310,52 @@ test('profile friend request runtime receives verified DM invites once', async (
   assert.deepEqual(received, [JSON.parse(JSON.stringify(invite))])
 })
 
+test('profile friend request runtime receives verified Home descriptors once', async () => {
+  const received = []
+  const local = createSigningKeyPair()
+  const remote = createSigningKeyPair()
+  const frame = createHomeDescriptorFrame({ from: remote, to: local })
+  const swarm = new FakeSwarm()
+  const runtime = createProfileFriendRequestRuntime({
+    createSwarm: () => swarm,
+    localProfileId: local.publicKey,
+    onHomeDescriptor: (nextFrame) => received.push(nextFrame)
+  })
+  const socket = new FakeSocket()
+
+  await runtime.open()
+  swarm.connect(socket)
+  socket.emitData(
+    `${JSON.stringify({
+      ...frame,
+      descriptor: { ...frame.descriptor, roomKey: '0'.repeat(64) }
+    })}\n`
+  )
+  socket.emitData(`${JSON.stringify(frame)}\n`)
+  socket.emitData(`${JSON.stringify(frame)}\n`)
+
+  assert.deepEqual(received, [JSON.parse(JSON.stringify(frame))])
+  assert.deepEqual(JSON.parse(socket.writes[0]), {
+    fromProfileId: local.publicKey,
+    requestId: frame.descriptorId,
+    toProfileId: remote.publicKey,
+    type: 'kepos.profile.request.ack.v1'
+  })
+})
+
+test('profile Home descriptor frame requires a matching signed owner', () => {
+  const from = createSigningKeyPair()
+  const to = createSigningKeyPair()
+  const other = createSigningKeyPair()
+  const frame = createHomeDescriptorFrame({ from, to })
+
+  assert.equal(verifyProfileHomeDescriptorFrame(frame), true)
+  assert.equal(
+    verifyProfileHomeDescriptorFrame({ ...frame, fromProfileId: other.publicKey }),
+    false
+  )
+})
+
 test('profile friend request runtime closes inbox and send swarms', async () => {
   const swarms = []
   const from = createSigningKeyPair()
@@ -357,6 +406,20 @@ function createInvite({ from, to, requestId = 'request-1' }) {
     },
     recipientEncryptionPublicKey: createDmEncryptionKeyPair().publicKey,
     requestId,
+    toProfileId: to.publicKey
+  })
+}
+
+function createHomeDescriptorFrame({ from, to }) {
+  return createProfileHomeDescriptorFrame({
+    descriptor: createSignedHomeAddressPayload({
+      address: 'c'.repeat(64),
+      createdAt: 1002,
+      identity: from,
+      policy: 'trusted_only',
+      roomKey: 'c'.repeat(64)
+    }),
+    descriptorId: 'home-descriptor-1',
     toProfileId: to.publicKey
   })
 }

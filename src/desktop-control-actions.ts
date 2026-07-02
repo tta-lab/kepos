@@ -1,3 +1,8 @@
+import { recordContactHomeDescriptor, type ContactBook } from './contact-book.ts'
+import {
+  verifyProfileHomeDescriptorFrame,
+  type ProfileHomeDescriptorFrame
+} from './profile-friend-request-transport.ts'
 import {
   createDesktopControlMessageResult,
   createDesktopTreeholeControlSendResult
@@ -39,7 +44,7 @@ type HomeJoinDetails = Record<string, unknown>
 
 type ControlMessageResult = {
   appendIncomingRequest?: unknown
-  book?: DesktopProfileContext['contactBook']
+  book?: ContactBook
   bootstrapKey?: unknown
   kind: string
   ownerProfileId?: string
@@ -178,6 +183,30 @@ export function createDesktopControlActions({
       }
       setNotice('Message thread ready.')
       onChanged()
+      return
+    }
+
+    if (message.type === 'kepos.profile.home-descriptor.v1') {
+      if (!isProfileSource || !verifyProfileHomeDescriptorFrame(message)) return
+
+      const context = getProfileContext()
+      const descriptorFrame = message as ProfileHomeDescriptorFrame
+      const descriptor = descriptorFrame.descriptor
+      try {
+        const nextBook = recordContactHomeDescriptor(context.contactBook, {
+          address: descriptor.address,
+          expiresAt: descriptor.expiresAt,
+          ownerProfileId: descriptor.ownerProfileId,
+          policy: descriptor.policy,
+          proof: descriptor.proof,
+          roomKey: descriptor.roomKey
+        })
+        context.saveContactBook(nextBook)
+        setNotice('Home entry details received.')
+        onChanged()
+      } catch {
+        // Ignore descriptors from profiles that are not trusted yet.
+      }
       return
     }
 

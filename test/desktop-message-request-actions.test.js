@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { createDesktopMessageRequestActions } from '../src/desktop-message-request-actions.ts'
+import { createSigningKeyPair } from '../src/signed-record.ts'
 
 function createHarness(overrides = {}) {
   const calls = []
@@ -111,6 +112,40 @@ test('desktop message request actions accept requests without joining Home', asy
     calls.some(([name]) => name === 'home.broadcastControl'),
     false
   )
+})
+
+test('desktop message request actions send Home descriptor over profile transport after accept', async () => {
+  const local = createSigningKeyPair()
+  const remote = createSigningKeyPair()
+  const context = {
+    contactBook: { ownerProfileId: local.publicKey },
+    profile: {
+      homeRoom: {
+        address: 'd'.repeat(64),
+        ownerProfileId: local.publicKey,
+        policy: 'trusted_only',
+        roomKey: 'd'.repeat(64)
+      },
+      id: local.publicKey,
+      identity: local
+    },
+    saveContactBook() {}
+  }
+  const { actions, calls } = createHarness({
+    getProfileContext: () => context
+  })
+
+  await actions.acceptMessageRequest({ fromProfileId: remote.publicKey })
+
+  const sent = calls
+    .filter(([name]) => name === 'profileTransport.send')
+    .map(([, message]) => message)
+  assert.equal(sent[0].type, 'kepos.dm.invite.v1')
+  assert.equal(sent[1].type, 'kepos.profile.home-descriptor.v1')
+  assert.equal(sent[1].fromProfileId, local.publicKey)
+  assert.equal(sent[1].toProfileId, remote.publicKey)
+  assert.equal(sent[1].descriptor.ownerProfileId, local.publicKey)
+  assert.equal(sent[1].descriptor.roomKey, 'd'.repeat(64))
 })
 
 test('desktop message request actions ignore requests and dismiss visible messages', () => {

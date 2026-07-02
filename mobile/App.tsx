@@ -66,6 +66,7 @@ import {
   ignoreMessageRequest,
   listBlockedContacts,
   listTrustedContacts,
+  recordContactHomeDescriptor,
   recordOutgoingFriendRequest,
   recordMessageRequest,
   updateOutgoingFriendRequestDeliveryState
@@ -123,6 +124,7 @@ import { createMobileHomeRoomKey, createMobileMessageId } from '../src/mobile-ru
 import { encodeQrUri } from '../src/signed-qr-payload.ts'
 import { createShareQrPayloads } from '../src/share-qr-service.ts'
 import { readTrustedContactHomeDescriptor } from '../src/signed-qr-scan.ts'
+import { verifyProfileHomeDescriptorFrame } from '../src/profile-home-descriptor-frame.ts'
 import { readRpcPayload } from '../src/rpc-payload.ts'
 import { formatProfileFriendAcceptanceDeliveryNotice } from '../src/profile-friend-request-delivery.ts'
 import type { SigningIdentity } from '../src/signed-record.ts'
@@ -148,6 +150,7 @@ import {
   RPC_LEAVE,
   RPC_MESSAGE,
   RPC_PEER_COUNT,
+  RPC_PROFILE_HOME_DESCRIPTOR,
   RPC_PROFILE_REQUEST_SEND,
   RPC_PROFILE_REQUEST_STATE,
   RPC_PROFILE_START,
@@ -389,6 +392,7 @@ export default function App() {
           setTreeholePolicy(profile.treeholePolicy)
           startProfileBackend({
             identity: profile.identity,
+            homeRoomKey: profile.homeRoomKey,
             nick,
             profileId: profile.profileId,
             storageBasePath,
@@ -1102,6 +1106,7 @@ export default function App() {
 
   function startProfileBackend(payload: {
     identity: SigningIdentity
+    homeRoomKey: string
     nick: string
     profileId: string
     storageBasePath: string
@@ -1158,6 +1163,14 @@ export default function App() {
 
     if (req.command === RPC_PROFILE_REQUEST_STATE) {
       applyProfileRequestDeliveryState(payloadRecord as ProfileRequestDeliveryPayload)
+      return
+    }
+
+    if (req.command === RPC_PROFILE_HOME_DESCRIPTOR) {
+      handleIncomingProfileHomeDescriptor(payloadRecord).catch((error: unknown) => {
+        console.error('Home descriptor unavailable', error)
+        setLastError(errorMessage(error))
+      })
       return
     }
 
@@ -1455,6 +1468,36 @@ export default function App() {
       })
     )
     setNotice('Friend request accepted.')
+  }
+
+  async function handleIncomingProfileHomeDescriptor(frame: unknown) {
+    const currentBook = contactBookRef.current
+    if (!currentBook || !verifyProfileHomeDescriptorFrame(frame)) {
+      return
+    }
+
+    const descriptor = frame.descriptor
+    let nextBook: ContactBook
+    try {
+      nextBook = recordContactHomeDescriptor(currentBook, {
+        address: descriptor.address,
+        expiresAt: descriptor.expiresAt,
+        ownerProfileId: descriptor.ownerProfileId,
+        policy: descriptor.policy,
+        proof: descriptor.proof,
+        roomKey: descriptor.roomKey
+      })
+    } catch {
+      return
+    }
+
+    await saveContactBookToFileSystem({
+      baseUri: getRequiredMobileDocumentDirectory(FileSystem),
+      book: nextBook,
+      fileSystem: FileSystem
+    })
+    syncContactBook(nextBook)
+    setNotice('Home entry details received.')
   }
 
   async function ignoreIncomingMessageRequest(requestInput: unknown) {

@@ -17,7 +17,11 @@ import { acceptDmThread, createDmThread, revokeDmThread } from '../src/dm-thread
 import { createDmThreadRuntime } from '../src/dm-thread-runtime.js'
 import { loadDmThreadsFromFileSystem, saveDmThreadsToFileSystem } from '../src/dm-thread-storage.ts'
 import { createMessageRequest, verifyMessageRequest } from '../src/message-request.ts'
-import { createProfileFriendRequestRuntime } from '../src/profile-friend-request-transport.ts'
+import {
+  createProfileFriendRequestRuntime,
+  createProfileHomeDescriptorFrame
+} from '../src/profile-friend-request-transport.ts'
+import { createSignedHomeAddressPayload } from '../src/signed-qr-payload.ts'
 import { createDirectRoomTransport } from '../src/direct-room-transport.ts'
 import { createP2PRoom } from '../src/p2p-room.ts'
 import { createHomeHello, verifyHomeHello } from '../src/home-presence.ts'
@@ -50,6 +54,7 @@ import {
   RPC_PROFILE_REQUEST_SEND,
   RPC_PROFILE_REQUEST_STATE,
   RPC_PROFILE_START,
+  RPC_PROFILE_HOME_DESCRIPTOR,
   RPC_ROOM_DEBUG,
   RPC_SEND,
   RPC_STATUS,
@@ -76,6 +81,9 @@ let roomKey = null
 let homeAddress = null
 let homeOwnerProfileId = null
 let homePolicy = 'trusted_only'
+let profileHomeAddress = null
+let profileHomeRoomKey = null
+let profileHomePolicy = 'trusted_only'
 let treeholeStorageBasePath = null
 let remoteTreeholeSnapshot = null
 let nick = 'anon'
@@ -187,6 +195,9 @@ async function joinRoom(payload) {
   homeAddress = payload.address || roomKey
   homeOwnerProfileId = payload.ownerProfileId?.trim() || null
   homePolicy = payload.policy || 'trusted_only'
+  profileHomeAddress = homeAddress
+  profileHomeRoomKey = roomKey
+  profileHomePolicy = homePolicy
   treeholeStorageBasePath = payload.storageBasePath
   nick = payload.nick?.trim() || 'anon'
   profileId = payload.profileId?.trim() || null
@@ -265,6 +276,9 @@ async function startProfileService(payload) {
   profileId = payload.profileId?.trim() || profileId
   identity = payload.identity || identity
   nick = payload.nick?.trim() || nick
+  profileHomeRoomKey = payload.homeRoomKey?.trim() || profileHomeRoomKey
+  profileHomeAddress = payload.homeAddress?.trim() || profileHomeRoomKey || profileHomeAddress
+  profileHomePolicy = payload.homePolicy || profileHomePolicy
   treeholeStorageBasePath = payload.storageBasePath || treeholeStorageBasePath
   treeholePolicy = payload.treeholePolicy || treeholePolicy
 
@@ -308,6 +322,7 @@ async function startProfileService(payload) {
         .then(() => sendToUI(RPC_DM_INVITE, invite))
         .catch((error) => sendToUI(RPC_ERROR, { message: error.message }))
     },
+    onHomeDescriptor: (frame) => sendToUI(RPC_PROFILE_HOME_DESCRIPTOR, frame),
     onRequest: (request) => sendToUI(RPC_DM_MESSAGE, request)
   })
   await profileRequestRuntime.open()
@@ -724,6 +739,7 @@ async function acceptMessageRequest(payload) {
   })
 
   const delivery = await profileRequestRuntime.send(invite)
+  sendLocalHomeDescriptor(request.fromProfileId).catch(() => {})
   sendToUI(RPC_PROFILE_REQUEST_STATE, {
     phase: 'acceptance',
     requestId: invite.requestId || invite.inviteId,
@@ -741,6 +757,34 @@ function canAcceptIncomingMessageRequest(request) {
   }
 
   return !treeholePolicy?.revokedProfileIds?.includes(request.fromProfileId)
+}
+
+async function sendLocalHomeDescriptor(toProfileId) {
+  if (!identity || !profileId || !profileRequestRuntime || !profileHomeRoomKey) {
+    return
+  }
+
+  try {
+    const descriptor = createSignedHomeAddressPayload({
+      address: profileHomeAddress || profileHomeRoomKey,
+      identity,
+      policy: profileHomePolicy,
+      roomKey: profileHomeRoomKey
+    })
+    const frame = createProfileHomeDescriptorFrame({
+      descriptor,
+      toProfileId
+    })
+    const delivery = await profileRequestRuntime.send(frame)
+    sendToUI(RPC_PROFILE_REQUEST_STATE, {
+      phase: 'home_descriptor',
+      requestId: frame.descriptorId,
+      state: delivery.state,
+      toProfileId: frame.toProfileId
+    })
+  } catch {
+    // Home entry metadata should not block accepting the friend request.
+  }
 }
 
 async function acceptDmInvite(invite) {

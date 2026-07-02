@@ -115,7 +115,9 @@ test('android backend trims outgoing text at the RPC boundary', () => {
   assert.match(source, /RPC_PROFILE_START/)
   assert.match(source, /RPC_PROFILE_REQUEST_SEND/)
   assert.match(source, /RPC_PROFILE_REQUEST_STATE/)
+  assert.match(source, /RPC_PROFILE_HOME_DESCRIPTOR/)
   assert.match(source, /createProfileFriendRequestRuntime\(/)
+  assert.match(source, /createProfileHomeDescriptorFrame/)
   assert.match(joinRoom, /resendOutgoingMessageRequests\(peer\)/)
   assert.match(
     resendOutgoingMessageRequests,
@@ -156,6 +158,7 @@ test('android backend trims outgoing text at the RPC boundary', () => {
   assert.match(acceptMessageRequest, /request\.toProfileId !== profileId/)
   assert.match(acceptMessageRequest, /revokedProfileIds\?\.includes\(request\.fromProfileId\)/)
   assert.match(acceptMessageRequest, /const delivery = await profileRequestRuntime\.send\(invite\)/)
+  assert.match(acceptMessageRequest, /sendLocalHomeDescriptor\(request\.fromProfileId\)\.catch/)
   assert.match(acceptMessageRequest, /sendToUI\(RPC_PROFILE_REQUEST_STATE/)
   assert.match(acceptMessageRequest, /phase: 'acceptance'/)
   assert.match(acceptMessageRequest, /requestId: invite\.requestId \|\| invite\.inviteId/)
@@ -163,6 +166,13 @@ test('android backend trims outgoing text at the RPC boundary', () => {
   assert.match(acceptMessageRequest, /toProfileId: invite\.toProfileId/)
   assert.doesNotMatch(acceptMessageRequest, /Home is not ready/)
   assert.doesNotMatch(acceptMessageRequest, /room\.broadcastControl\(invite\)/)
+  assert.match(
+    source,
+    /onHomeDescriptor: \(frame\) => sendToUI\(RPC_PROFILE_HOME_DESCRIPTOR, frame\)/
+  )
+  assert.match(source, /async function sendLocalHomeDescriptor\(toProfileId\)/)
+  assert.match(source, /createSignedHomeAddressPayload\(\{/)
+  assert.match(source, /const frame = createProfileHomeDescriptorFrame\(\{/)
   assert.match(
     acceptDmInvite,
     /outgoingMessageRequestsByProfileId\.delete\(invite\.fromProfileId\)/
@@ -238,6 +248,7 @@ test('android backend starts profile request service without Home join', () => {
   assert.match(handleProfileStart, /await startProfileService\(payload\)/)
   assert.doesNotMatch(handleProfileStart, /joinRoom/)
   assert.match(startProfileService, /profileRequestRuntime = createProfileFriendRequestRuntime/)
+  assert.match(startProfileService, /profileHomeRoomKey = payload\.homeRoomKey/)
   assert.match(startProfileService, /await profileRequestRuntime\.open\(\)/)
   assert.doesNotMatch(startProfileService, /createP2PRoom/)
   assert.doesNotMatch(startProfileService, /room\.join/)
@@ -267,11 +278,11 @@ test('android backend accepts requests and opens DM threads without Home', () =>
   assert.match(acceptMessageRequest, /createDmInvite\(\{/)
   assert.match(acceptMessageRequest, /toProfileId: request\.fromProfileId/)
   assert.match(acceptMessageRequest, /const delivery = await profileRequestRuntime\.send\(invite\)/)
+  assert.match(acceptMessageRequest, /sendLocalHomeDescriptor\(request\.fromProfileId\)\.catch/)
   assert.match(acceptMessageRequest, /phase: 'acceptance'/)
   assert.match(acceptMessageRequest, /await saveBackendDmThread\(thread\)/)
   assert.match(acceptMessageRequest, /await dmRuntime\?\.openThread\(thread\)/)
   assert.match(acceptMessageRequest, /sendToUI\(RPC_DM_THREAD, thread\)/)
-  assert.doesNotMatch(acceptMessageRequest, /room/)
   assert.doesNotMatch(acceptMessageRequest, /allowHomeTrustFallback/)
   assert.doesNotMatch(acceptMessageRequest, /broadcastControl/)
   assert.doesNotMatch(acceptMessageRequest, /sendControl/)

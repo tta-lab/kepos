@@ -1,8 +1,12 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
+import { createContactBook, trustContact } from '../src/contact-book.ts'
 import { createAvatarMediaReference } from '../src/avatar-media.ts'
 import { avatarMediaBase64 } from '../src/avatar-media-storage.ts'
 import { createDesktopControlActions } from '../src/desktop-control-actions.ts'
+import { createProfileHomeDescriptorFrame } from '../src/profile-friend-request-transport.ts'
+import { createSignedHomeAddressPayload } from '../src/signed-qr-payload.ts'
+import { createSigningKeyPair } from '../src/signed-record.ts'
 
 function createHarness(overrides = {}) {
   const calls = []
@@ -193,6 +197,76 @@ test('desktop control actions persist contact book updates from accepted DM invi
     ['notice', 'Message thread ready.'],
     ['render']
   ])
+})
+
+test('desktop control actions store profile-delivered Home descriptor only for trusted contacts', async () => {
+  const local = createSigningKeyPair()
+  const remote = createSigningKeyPair()
+  const descriptor = createSignedHomeAddressPayload({
+    address: 'a'.repeat(64),
+    createdAt: 1000,
+    identity: remote,
+    policy: 'trusted_only',
+    roomKey: 'a'.repeat(64)
+  })
+  const frame = createProfileHomeDescriptorFrame({
+    descriptor,
+    descriptorId: 'descriptor-1',
+    toProfileId: local.publicKey
+  })
+  const trustedBook = trustContact(createContactBook({ ownerProfileId: local.publicKey }), {
+    alias: 'Remote',
+    profileId: remote.publicKey,
+    source: 'profile_request',
+    trustedAt: 1001
+  })
+  const savedBooks = []
+  const { actions, calls } = createHarness({
+    getProfileContext: () => ({
+      contactBook: savedBooks.at(-1) || trustedBook,
+      profile: { id: local.publicKey },
+      saveContactBook(book) {
+        savedBooks.push(book)
+      }
+    })
+  })
+
+  await actions.handleControl(frame, undefined, { source: 'profile' })
+
+  const savedContact = savedBooks[0].contactsByProfileId.get(remote.publicKey)
+  assert.equal(savedContact.homeAddress, descriptor.address)
+  assert.equal(savedContact.homeRoomKey, descriptor.roomKey)
+  assert.equal(savedContact.proof, descriptor.proof)
+  assert.deepEqual(calls, [['notice', 'Home entry details received.'], ['render']])
+})
+
+test('desktop control actions ignore untrusted profile-delivered Home descriptors', async () => {
+  const local = createSigningKeyPair()
+  const remote = createSigningKeyPair()
+  const frame = createProfileHomeDescriptorFrame({
+    descriptor: createSignedHomeAddressPayload({
+      address: 'a'.repeat(64),
+      identity: remote,
+      roomKey: 'a'.repeat(64)
+    }),
+    descriptorId: 'descriptor-1',
+    toProfileId: local.publicKey
+  })
+  const savedBooks = []
+  const { actions, calls } = createHarness({
+    getProfileContext: () => ({
+      contactBook: createContactBook({ ownerProfileId: local.publicKey }),
+      profile: { id: local.publicKey },
+      saveContactBook(book) {
+        savedBooks.push(book)
+      }
+    })
+  })
+
+  await actions.handleControl(frame, undefined, { source: 'profile' })
+
+  assert.deepEqual(savedBooks, [])
+  assert.deepEqual(calls, [])
 })
 
 test('desktop control actions route profile DM invites through local invite acceptance context', async () => {

@@ -5,11 +5,13 @@ import {
 import type { ContactBook } from './contact-book.ts'
 import type { DesktopProfileContext } from './desktop-profile-context-core.ts'
 import {
+  createProfileHomeDescriptorFrame,
   createQueuedProfileFriendRequestTransport,
   type ProfileFriendRequestFrame,
   type ProfileFriendRequestTransport
 } from './profile-friend-request-transport.ts'
 import { formatProfileFriendAcceptanceDeliveryNotice } from './profile-friend-request-delivery.ts'
+import { createSignedHomeAddressPayload } from './signed-qr-payload.ts'
 
 type MessageRequestMessage = {
   fromProfileId?: string
@@ -57,7 +59,10 @@ export function createDesktopMessageRequestActions({
   getDmRuntime: () => DmRuntime
   getDmSession: () => unknown
   getFriendRequestTransport?: () => ProfileFriendRequestTransport | null
-  getProfileContext: () => Pick<DesktopProfileContext, 'contactBook' | 'saveContactBook'>
+  getProfileContext: () => Pick<
+    DesktopProfileContext,
+    'contactBook' | 'profile' | 'saveContactBook'
+  >
   ignoreMessageRequest?: MessageRequestIgnore
   now?: () => number
   onChanged?: () => void
@@ -84,6 +89,11 @@ export function createDesktopMessageRequestActions({
     const delivery = await getFriendRequestTransport()?.send(
       result.invite as ProfileFriendRequestFrame
     )
+    void sendLocalHomeDescriptor({
+      context: getProfileContext(),
+      getFriendRequestTransport,
+      toProfileId: message?.fromProfileId || message?.profileId || ''
+    }).catch(() => {})
     setNotice(formatProfileFriendAcceptanceDeliveryNotice(delivery?.state))
     onChanged()
   }
@@ -117,5 +127,37 @@ export function createDesktopMessageRequestActions({
   return {
     acceptMessageRequest: acceptIncomingMessageRequest,
     ignoreMessageRequest: ignoreIncomingMessageRequest
+  }
+}
+
+async function sendLocalHomeDescriptor({
+  context,
+  getFriendRequestTransport,
+  toProfileId
+}: {
+  context: Pick<DesktopProfileContext, 'profile'>
+  getFriendRequestTransport: () => ProfileFriendRequestTransport | null
+  toProfileId: string
+}): Promise<void> {
+  const profile = context.profile
+  const homeRoom = profile?.homeRoom
+  const identity = profile?.identity
+  if (!profile?.id || !identity || !homeRoom?.roomKey || !toProfileId) return
+
+  try {
+    const descriptor = createSignedHomeAddressPayload({
+      address: homeRoom.address || homeRoom.roomKey,
+      identity,
+      policy: homeRoom.policy || 'trusted_only',
+      roomKey: homeRoom.roomKey
+    })
+    await getFriendRequestTransport()?.send(
+      createProfileHomeDescriptorFrame({
+        descriptor,
+        toProfileId
+      })
+    )
+  } catch {
+    // Home entry metadata should not block accepting the friend request.
   }
 }
