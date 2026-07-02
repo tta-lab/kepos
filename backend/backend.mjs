@@ -723,7 +723,13 @@ async function acceptMessageRequest(payload) {
     toProfileId: request.fromProfileId
   })
 
-  await profileRequestRuntime.send(invite)
+  const delivery = await profileRequestRuntime.send(invite)
+  sendToUI(RPC_PROFILE_REQUEST_STATE, {
+    phase: 'acceptance',
+    requestId: invite.requestId || invite.inviteId,
+    state: delivery.state,
+    toProfileId: invite.toProfileId
+  })
   await saveBackendDmThread(thread)
   await dmRuntime?.openThread(thread)
   sendToUI(RPC_DM_THREAD, thread)

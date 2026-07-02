@@ -8,7 +8,10 @@ import {
   deriveProfileFriendRequestTopic,
   sendProfileFriendRequest
 } from '../src/profile-friend-request-transport.ts'
-import { formatProfileFriendRequestDeliveryState } from '../src/profile-friend-request-delivery.ts'
+import {
+  formatProfileFriendAcceptanceDeliveryNotice,
+  formatProfileFriendRequestDeliveryState
+} from '../src/profile-friend-request-delivery.ts'
 import { createSigningKeyPair } from '../src/signed-record.ts'
 
 test('profile friend request transport validates profile-to-profile request shape', async () => {
@@ -78,6 +81,30 @@ test('profile friend request delivery state copy stays transport-specific', () =
   assert.equal(formatProfileFriendRequestDeliveryState('failed'), 'Request failed')
   assert.equal(formatProfileFriendRequestDeliveryState('unknown'), 'Request pending')
   assert.equal(formatProfileFriendRequestDeliveryState(null), 'Request pending')
+})
+
+test('profile friend request acceptance copy is honest about invite delivery', () => {
+  assert.equal(
+    formatProfileFriendAcceptanceDeliveryNotice('queued'),
+    'Friend request accepted locally. Waiting for profile delivery.'
+  )
+  assert.equal(
+    formatProfileFriendAcceptanceDeliveryNotice('searching'),
+    'Friend request accepted locally. Waiting for profile delivery.'
+  )
+  assert.equal(
+    formatProfileFriendAcceptanceDeliveryNotice('sent'),
+    'Friend request accepted. Invite sent.'
+  )
+  assert.equal(
+    formatProfileFriendAcceptanceDeliveryNotice('delivered'),
+    'Friend request accepted. Invite delivered.'
+  )
+  assert.equal(
+    formatProfileFriendAcceptanceDeliveryNotice('failed'),
+    'Friend request accepted locally. Invite delivery failed.'
+  )
+  assert.equal(formatProfileFriendAcceptanceDeliveryNotice(null), 'Friend request accepted.')
 })
 
 test('profile friend request transport rejects Home-style mismatched targets', async () => {

@@ -123,6 +123,7 @@ import { encodeQrUri } from '../src/signed-qr-payload.ts'
 import { createShareQrPayloads } from '../src/share-qr-service.ts'
 import { readTrustedContactHomeDescriptor } from '../src/signed-qr-scan.ts'
 import { readRpcPayload } from '../src/rpc-payload.ts'
+import { formatProfileFriendAcceptanceDeliveryNotice } from '../src/profile-friend-request-delivery.ts'
 import type { SigningIdentity } from '../src/signed-record.ts'
 import type { TransportDebugLabelState } from '../src/transport-debug-label.ts'
 import { Worklet } from 'react-native-bare-kit'
@@ -180,6 +181,7 @@ type BackendStartResult = {
   rpc: RpcClient
 }
 type ProfileRequestDeliveryPayload = {
+  phase?: string
   requestId?: string
   state?: string
   toProfileId?: string
@@ -1244,6 +1246,11 @@ export default function App() {
 
   function applyProfileRequestDeliveryState(delivery: ProfileRequestDeliveryPayload) {
     if (!delivery.toProfileId || !delivery.requestId || !delivery.state) {
+      return
+    }
+
+    if (delivery.phase === 'acceptance') {
+      setNotice(formatProfileFriendAcceptanceDeliveryNotice(delivery.state))
       return
     }
 

@@ -16,3 +16,16 @@ export function formatProfileFriendRequestDeliveryState(
   if (state === 'searching') return 'Looking for profile'
   return 'Request pending'
 }
+
+export function formatProfileFriendAcceptanceDeliveryNotice(
+  state?: ProfileFriendRequestDeliveryState | string | null
+): string {
+  if (state === 'delivered') return 'Friend request accepted. Invite delivered.'
+  if (state === 'sent') return 'Friend request accepted. Invite sent.'
+  if (state === 'failed') return 'Friend request accepted locally. Invite delivery failed.'
+  if (state === 'queued' || state === 'searching') {
+    return 'Friend request accepted locally. Waiting for profile delivery.'
+  }
+
+  return 'Friend request accepted.'
+}

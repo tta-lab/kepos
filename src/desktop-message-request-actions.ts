@@ -9,6 +9,7 @@ import {
   type ProfileFriendRequestFrame,
   type ProfileFriendRequestTransport
 } from './profile-friend-request-transport.ts'
+import { formatProfileFriendAcceptanceDeliveryNotice } from './profile-friend-request-delivery.ts'
 
 type MessageRequestMessage = {
   fromProfileId?: string
@@ -80,8 +81,10 @@ export function createDesktopMessageRequestActions({
     if (!result) return
 
     context.saveContactBook(result.book)
-    await getFriendRequestTransport()?.send(result.invite as ProfileFriendRequestFrame)
-    setNotice('Friend request accepted.')
+    const delivery = await getFriendRequestTransport()?.send(
+      result.invite as ProfileFriendRequestFrame
+    )
+    setNotice(formatProfileFriendAcceptanceDeliveryNotice(delivery?.state))
     onChanged()
   }
 

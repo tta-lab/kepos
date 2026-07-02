@@ -251,6 +251,10 @@ Already landed before this plan:
   profile opening through the same profile detail entry point
 - final proof packet requirements now check the shared profile-detail route and
   Message as the primary trusted action
+- accept now reports profile-route invite delivery state on desktop and Android:
+  queued/searching acceptance is shown as local accept plus waiting for profile
+  delivery, sent/delivered is shown explicitly, and failed delivery is not
+  hidden behind a plain accepted notice
 
 Still open:
 

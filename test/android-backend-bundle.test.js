@@ -151,7 +151,12 @@ test('android backend trims outgoing text at the RPC boundary', () => {
   assert.match(acceptMessageRequest, /verifyMessageRequest\(request\)/)
   assert.match(acceptMessageRequest, /request\.toProfileId !== profileId/)
   assert.match(acceptMessageRequest, /revokedProfileIds\?\.includes\(request\.fromProfileId\)/)
-  assert.match(acceptMessageRequest, /profileRequestRuntime\.send\(invite\)/)
+  assert.match(acceptMessageRequest, /const delivery = await profileRequestRuntime\.send\(invite\)/)
+  assert.match(acceptMessageRequest, /sendToUI\(RPC_PROFILE_REQUEST_STATE/)
+  assert.match(acceptMessageRequest, /phase: 'acceptance'/)
+  assert.match(acceptMessageRequest, /requestId: invite\.requestId \|\| invite\.inviteId/)
+  assert.match(acceptMessageRequest, /state: delivery\.state/)
+  assert.match(acceptMessageRequest, /toProfileId: invite\.toProfileId/)
   assert.doesNotMatch(acceptMessageRequest, /Home is not ready/)
   assert.doesNotMatch(acceptMessageRequest, /room\.broadcastControl\(invite\)/)
   assert.match(

@@ -637,7 +637,16 @@ test('mobile Home startup and RPC store avatar media byte controls', async () =>
     source,
     /import \{[\s\S]*updateOutgoingFriendRequestDeliveryState[\s\S]*\} from '\.\.\/src\/contact-book\.ts'/
   )
+  assert.match(
+    source,
+    /import \{ formatProfileFriendAcceptanceDeliveryNotice \} from '\.\.\/src\/profile-friend-request-delivery\.ts'/
+  )
   assert.match(backendRequestHandler, /applyProfileRequestDeliveryState\(payloadRecord/)
+  assert.match(applyProfileRequestDeliveryState, /delivery\.phase === 'acceptance'/)
+  assert.match(
+    applyProfileRequestDeliveryState,
+    /setNotice\(formatProfileFriendAcceptanceDeliveryNotice\(delivery\.state\)\)/
+  )
   assert.match(applyProfileRequestDeliveryState, /updateOutgoingFriendRequestDeliveryState/)
   assert.match(applyProfileRequestDeliveryState, /deliveryState: delivery\.state \|\| 'queued'/)
   assert.match(applyProfileRequestDeliveryState, /profileId: delivery\.toProfileId \|\| ''/)

@@ -67,9 +67,28 @@ test('desktop message request actions accept requests and sends invites over pro
     ],
     ['saveContactBook', { accepted: 'friend' }],
     ['profileTransport.send', { type: 'kepos.dm.invite.v1' }],
-    ['notice', 'Friend request accepted.'],
+    ['notice', 'Friend request accepted. Invite sent.'],
     ['render']
   ])
+})
+
+test('desktop message request actions show queued acceptance delivery honestly', async () => {
+  const { actions, calls } = createHarness({
+    getFriendRequestTransport: () => ({
+      send(message) {
+        calls.push(['profileTransport.send', message])
+        return { state: 'queued' }
+      }
+    })
+  })
+
+  await actions.acceptMessageRequest({ fromProfileId: 'friend' })
+
+  assert.deepEqual(calls.at(-2), [
+    'notice',
+    'Friend request accepted locally. Waiting for profile delivery.'
+  ])
+  assert.deepEqual(calls.at(-1), ['render'])
 })
 
 test('desktop message request actions accept requests without joining Home', async () => {
