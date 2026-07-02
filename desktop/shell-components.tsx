@@ -1,9 +1,9 @@
 import React from 'react'
 import { House, LogOut, Moon, Send, Sprout, Sun, Users } from 'lucide-react'
-import { getProductSurfaceLabel, getProductSurfaceTitle } from '../src/product-surfaces.ts'
+import { productSurfaceTabs, type ProductSurfaceId } from '../src/product-surfaces.ts'
 import { ActionButton } from './ui-components.tsx'
 
-type ActiveTab = 'chat' | 'dm' | 'treehole' | 'people'
+type ActiveTab = ProductSurfaceId
 type ThemeName = 'light' | 'dark'
 
 type NavBadges = {
@@ -49,6 +49,20 @@ type RailButtonProps = {
   title: string
 }
 
+const RAIL_ICONS: Record<ProductSurfaceId, React.ReactNode> = {
+  chat: <House size={20} />,
+  dm: <Send size={19} />,
+  people: <Users size={19} />,
+  treehole: <Sprout size={19} />
+}
+
+const RAIL_TAB_IDS: Record<ProductSurfaceId, string> = {
+  chat: 'chatTab',
+  dm: 'dmTab',
+  people: 'peopleTab',
+  treehole: 'treeholeTab'
+}
+
 export function AppRail({
   activeTab,
   navBadges,
@@ -62,43 +76,27 @@ export function AppRail({
     <aside className='appRail' aria-label='Kepos views'>
       <div className='mark'>K</div>
       <nav className='railNav' aria-label='Main views' role='tablist'>
-        <RailButton
-          id='chatTab'
-          icon={<House size={20} />}
-          isActive={activeTab === 'chat'}
-          label={getProductSurfaceLabel('chat')}
-          onSelect={() => shellActions.setTab('chat')}
-          title={getProductSurfaceTitle('chat')}
-        />
-        <RailButton
-          id='dmTab'
-          icon={<Send size={19} />}
-          isActive={activeTab === 'dm'}
-          label={getProductSurfaceLabel('dm')}
-          badgeCount={navBadges.direct}
-          onSelect={() => shellActions.setTab('dm')}
-          title={getProductSurfaceTitle('dm')}
-        />
-        <RailButton
-          id='peopleTab'
-          icon={<Users size={19} />}
-          isActive={activeTab === 'people'}
-          label={getProductSurfaceLabel('people')}
-          badgeCount={navBadges.people}
-          onSelect={() => shellActions.setTab('people')}
-          title={getProductSurfaceTitle('people')}
-        />
-        <RailButton
-          id='treeholeTab'
-          icon={<Sprout size={19} />}
-          isActive={activeTab === 'treehole'}
-          label={getProductSurfaceLabel('treehole')}
-          onSelect={() => shellActions.setTab('treehole')}
-          title={getProductSurfaceTitle('treehole')}
-        />
+        {productSurfaceTabs.map((surface) => (
+          <RailButton
+            key={surface.id}
+            id={RAIL_TAB_IDS[surface.id]}
+            icon={RAIL_ICONS[surface.id]}
+            isActive={activeTab === surface.id}
+            label={surface.label}
+            badgeCount={getRailBadgeCount(surface.id, navBadges)}
+            onSelect={() => shellActions.setTab(surface.id)}
+            title={surface.title}
+          />
+        ))}
       </nav>
     </aside>
   )
+}
+
+function getRailBadgeCount(surfaceId: ProductSurfaceId, navBadges: NavBadges): number {
+  if (surfaceId === 'dm') return navBadges.direct
+  if (surfaceId === 'people') return navBadges.people
+  return 0
 }
 
 export function Topbar({

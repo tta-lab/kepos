@@ -132,8 +132,14 @@ test('mobile tabs surface pending direct and people work without changing tab la
   assert.match(viewModel, /message\?\.type === 'kepos\.message\.request\.v1'/)
   assert.match(viewModel, /message\?\.direction === 'in'/)
   assert.match(viewModel, /people: pendingRequests\.length \+ outgoingRequests\.length/)
-  assert.match(roomComponents, /badgeCount=\{tabBadges\.direct\}[\s\S]*testID='dm-tab'/)
-  assert.match(roomComponents, /badgeCount=\{tabBadges\.people\}[\s\S]*testID='people-tab'/)
+  assert.match(roomComponents, /productSurfaceTabs\.map\(\(surface\) =>/)
+  assert.match(
+    roomComponents,
+    /badgeCount=\{getMobileSurfaceBadgeCount\(surface\.id, tabBadges\)\}/
+  )
+  assert.match(roomComponents, /if \(surfaceId === 'dm'\) return tabBadges\.direct/)
+  assert.match(roomComponents, /if \(surfaceId === 'people'\) return tabBadges\.people/)
+  assert.match(roomComponents, /people: 'people-tab'/)
   assert.match(roomComponents, /import \{ TabButton,[\s\S]*\} from '\.\/tab-components\.tsx'/)
   assert.doesNotMatch(source, /function TabButton\(/)
   assert.match(tabComponents, /export type TabButtonProps = \{/)
@@ -150,15 +156,23 @@ test('mobile tabs surface pending direct and people work without changing tab la
   assert.match(copy, /return badgeCount > 99 \? '99\+' : String\(badgeCount\)/)
   assert.match(mobileStyles, /tabBadge: \{/)
   assert.match(mobileStyles, /tabBadgeText: \{/)
-  assert.match(roomComponents, /getProductSurfaceLabel/)
-  assert.match(roomComponents, /icon=\{House\}[\s\S]*label=\{getProductSurfaceLabel\('chat'\)\}/)
+  assert.match(roomComponents, /productSurfaceTabs\.map\(\(surface\) =>/)
+  assert.match(
+    roomComponents,
+    /const MOBILE_TAB_ICONS: Record<ProductSurfaceId, TabButtonProps\['icon'\]> = \{/
+  )
+  assert.match(roomComponents, /chat: House/)
+  assert.match(roomComponents, /dm: Send/)
+  assert.match(roomComponents, /people: Users/)
+  assert.match(roomComponents, /treehole: Sprout/)
+  assert.match(roomComponents, /label=\{surface\.label\}/)
   assert.match(roomComponents, /iconColor=\{theme\.iconMuted\}/)
   assert.match(roomComponents, /selectedIconColor=\{theme\.surface\}/)
   assert.match(roomComponents, /styles=\{styles\}/)
-  assert.match(
-    roomComponents,
-    /testID='dm-tab'[\s\S]*icon=\{Users\}[\s\S]*label=\{getProductSurfaceLabel\('people'\)\}[\s\S]*testID='people-tab'[\s\S]*icon=\{Sprout\}[\s\S]*label=\{getProductSurfaceLabel\('treehole'\)\}/
-  )
+  assert.match(roomComponents, /productSurfaceTabs\.map\(\(surface\) =>/)
+  assert.match(roomComponents, /MOBILE_TAB_ICONS\[surface\.id\]/)
+  assert.match(roomComponents, /label=\{surface\.label\}/)
+  assert.match(roomComponents, /testID=\{MOBILE_TAB_TEST_IDS\[surface\.id\]\}/)
   assert.doesNotMatch(source, /\bDoorOpen,/)
 })
 
@@ -200,10 +214,11 @@ test('mobile startup uses the same four-tab app shell as the active home view', 
   assert.match(roomComponents, /!session \? \(/)
   assert.match(roomComponents, /<HomeStartupPane[\s\S]*onCreateRoom=\{onCreateRoom\}/)
   assert.match(roomComponents, /activeTab === 'chat'/)
-  assert.match(
-    roomComponents,
-    /testID='chat-tab'[\s\S]*testID='dm-tab'[\s\S]*testID='people-tab'[\s\S]*testID='treehole-tab'/
-  )
+  assert.match(roomComponents, /productSurfaceTabs\.map\(\(surface\) =>/)
+  assert.match(roomComponents, /chat: 'chat-tab'/)
+  assert.match(roomComponents, /dm: 'dm-tab'/)
+  assert.match(roomComponents, /people: 'people-tab'/)
+  assert.match(roomComponents, /treehole: 'treehole-tab'/)
   assert.match(lobbyComponents, /export function HomeStartupPane\(/)
   assert.doesNotMatch(lobbyComponents, /PeopleActions/)
   assert.match(productSurfaces, /label: 'Home'/)

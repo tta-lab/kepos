@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Text, View } from 'react-native'
 import { House, LogOut, Send, Sprout, User, Users } from 'lucide-react-native'
 import { createHomeOwnerViewModel } from '../src/home-owner-view-model.ts'
-import { getProductSurfaceLabel } from '../src/product-surfaces.ts'
+import { productSurfaceTabs, type ProductSurfaceId } from '../src/product-surfaces.ts'
 import {
   getMobileRoomKeyPreview,
   getMobileTabBadges,
@@ -58,6 +58,20 @@ type MobileTheme = DirectPaneProps['theme'] &
     inkSoft: string
     surface: string
   }
+
+const MOBILE_TAB_ICONS: Record<ProductSurfaceId, TabButtonProps['icon']> = {
+  chat: House,
+  dm: Send,
+  people: Users,
+  treehole: Sprout
+}
+
+const MOBILE_TAB_TEST_IDS: Record<ProductSurfaceId, string> = {
+  chat: 'chat-tab',
+  dm: 'dm-tab',
+  people: 'people-tab',
+  treehole: 'treehole-tab'
+}
 
 export type ChatRoomProps = {
   activeHomeOwnerProfileId?: string
@@ -393,51 +407,32 @@ export function ChatRoom({
       </View>
 
       <View style={styles.tabs}>
-        <TabButton
-          active={activeTab === 'chat'}
-          icon={House}
-          iconColor={theme.iconMuted}
-          label={getProductSurfaceLabel('chat')}
-          onPress={() => onTabChange('chat')}
-          selectedIconColor={theme.surface}
-          styles={styles}
-          testID='chat-tab'
-        />
-        <TabButton
-          active={activeTab === 'dm'}
-          badgeCount={tabBadges.direct}
-          icon={Send}
-          iconColor={theme.iconMuted}
-          label={getProductSurfaceLabel('dm')}
-          onPress={() => onTabChange('dm')}
-          selectedIconColor={theme.surface}
-          styles={styles}
-          testID='dm-tab'
-        />
-        <TabButton
-          active={activeTab === 'people'}
-          badgeCount={tabBadges.people}
-          icon={Users}
-          iconColor={theme.iconMuted}
-          label={getProductSurfaceLabel('people')}
-          onPress={() => onTabChange('people')}
-          selectedIconColor={theme.surface}
-          styles={styles}
-          testID='people-tab'
-        />
-        <TabButton
-          active={activeTab === 'treehole'}
-          icon={Sprout}
-          iconColor={theme.iconMuted}
-          label={getProductSurfaceLabel('treehole')}
-          onPress={() => onTabChange('treehole')}
-          selectedIconColor={theme.surface}
-          styles={styles}
-          testID='treehole-tab'
-        />
+        {productSurfaceTabs.map((surface) => (
+          <TabButton
+            key={surface.id}
+            active={activeTab === surface.id}
+            badgeCount={getMobileSurfaceBadgeCount(surface.id, tabBadges)}
+            icon={MOBILE_TAB_ICONS[surface.id]}
+            iconColor={theme.iconMuted}
+            label={surface.label}
+            onPress={() => onTabChange(surface.id)}
+            selectedIconColor={theme.surface}
+            styles={styles}
+            testID={MOBILE_TAB_TEST_IDS[surface.id]}
+          />
+        ))}
       </View>
     </View>
   )
+}
+
+function getMobileSurfaceBadgeCount(
+  surfaceId: ProductSurfaceId,
+  tabBadges: ReturnType<typeof getMobileTabBadges>
+): number {
+  if (surfaceId === 'dm') return tabBadges.direct
+  if (surfaceId === 'people') return tabBadges.people
+  return 0
 }
 
 function toPeopleContact(contact: DirectPaneProps['contactOptions'][number]) {

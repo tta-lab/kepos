@@ -171,8 +171,10 @@ test('desktop people UI uses trusted friends copy', async () => {
     'utf8'
   )
 
-  assert.match(source, /id='peopleTab'[\s\S]*title=\{getProductSurfaceTitle\('people'\)\}/)
-  assert.match(source, /label=\{getProductSurfaceLabel\('people'\)\}/)
+  assert.match(source, /productSurfaceTabs\.map\(\(surface\) =>/)
+  assert.match(source, /people: 'peopleTab'/)
+  assert.match(source, /label=\{surface\.label\}/)
+  assert.match(source, /title=\{surface\.title\}/)
   assert.doesNotMatch(source, /<span className='railLabel'>/)
   assert.match(source, /id='peoplePane'/)
   assert.match(
@@ -229,11 +231,11 @@ test('desktop people UI uses trusted friends copy', async () => {
   )
   assert.match(bindings, /revokeContact: \(profileId\) => dispatchCommand\('revokeContact'/)
   assert.equal(source.indexOf("id='contactList'") > source.indexOf("id='peoplePane'"), true)
-  assert.match(source, /onSelect=\{\(\) => shellActions\.setTab\('people'\)\}/)
+  assert.match(source, /onSelect=\{\(\) => shellActions\.setTab\(surface\.id\)\}/)
   assert.match(controller, /createDesktopUiActionBindings/)
   assert.doesNotMatch(controller, /els\.peopleTab\.addEventListener/)
-  assert.match(source, /className=\{activeTab === 'people' \? 'pane' : 'pane hidden'\}/)
-  assert.match(source, /isActive=\{activeTab === 'people'\}/)
+  assert.match(source, /id='peoplePane'/)
+  assert.match(source, /isActive=\{activeTab === surface\.id\}/)
   assert.equal(controller.includes('No trusted contacts'), false)
   assert.equal(controller.includes('notice: `Revoked ${shorten(profileId)}.`'), false)
   assert.match(actions, /setNotice\('Friend removed\.'\)/)
@@ -741,10 +743,10 @@ test('desktop panes label live and durable surfaces', async () => {
     assert.match(source, new RegExp(text), `${text} is missing`)
   }
 
-  assert.match(source, /id='dmTab'[\s\S]*title=\{getProductSurfaceTitle\('dm'\)\}/)
-  assert.match(source, /label=\{getProductSurfaceLabel\('dm'\)\}/)
-  assert.match(source, /id='treeholeTab'[\s\S]*title=\{getProductSurfaceTitle\('treehole'\)\}/)
-  assert.match(source, /label=\{getProductSurfaceLabel\('treehole'\)\}/)
+  assert.match(source, /dm: 'dmTab'/)
+  assert.match(source, /treehole: 'treeholeTab'/)
+  assert.match(source, /label=\{surface\.label\}/)
+  assert.match(source, /title=\{surface\.title\}/)
   assert.match(source, /aria-label='Chat'/)
   assert.equal(source.includes("aria-label='Direct messages'"), false)
   assert.match(source, /aria-label='Treehole posts'/)
@@ -771,7 +773,9 @@ test('desktop panes label live and durable surfaces', async () => {
   assert.match(presenter, /messages: \(dmSession\?\.messages \|\| \[\]\) as DirectMessages/)
   assert.doesNotMatch(source, /<span className='railLabel'>/)
   assert.equal(source.includes("<span className='railLabel'>DM</span>"), false)
-  assert.match(source, /icon=\{<House size=\{20\} \/>\}/)
+  assert.match(source, /const RAIL_ICONS: Record<ProductSurfaceId, React\.ReactNode> = \{/)
+  assert.match(source, /chat: <House size=\{20\} \/>/)
+  assert.match(source, /icon=\{RAIL_ICONS\[surface\.id\]\}/)
   assert.match(source, /Send message/)
   assert.equal(source.includes('Send DM'), false)
   assert.match(
@@ -898,10 +902,11 @@ test('desktop rail surfaces pending direct and people work without changing navi
     /const navBadges = \{[\s\S]*direct: model\.directMessages\.filter\(\(message\) => message\.actions\)\.length,[\s\S]*people: model\.people\.messageRequests\.length \+ \(model\.people\.outgoingRequests \|\| \[\]\)\.length[\s\S]*\}/
   )
   assert.match(app, /<AppRail[\s\S]*navBadges=\{navBadges\}/)
-  assert.match(
-    shell,
-    /id='dmTab'[\s\S]*badgeCount=\{navBadges\.direct\}[\s\S]*id='peopleTab'[\s\S]*badgeCount=\{navBadges\.people\}[\s\S]*id='treeholeTab'/
-  )
+  assert.match(shell, /productSurfaceTabs\.map\(\(surface\) =>/)
+  assert.match(shell, /id=\{RAIL_TAB_IDS\[surface\.id\]\}/)
+  assert.match(shell, /badgeCount=\{getRailBadgeCount\(surface\.id, navBadges\)\}/)
+  assert.match(shell, /if \(surfaceId === 'dm'\) return navBadges\.direct/)
+  assert.match(shell, /if \(surfaceId === 'people'\) return navBadges\.people/)
   assert.match(shell, /function RailButton\(/)
   assert.match(shell, /aria-label=\{getRailButtonLabel\(label, badgeCount\)\}/)
   assert.doesNotMatch(shell, /className='railLabel'/)

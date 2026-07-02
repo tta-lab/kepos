@@ -265,8 +265,9 @@ test('desktop React owns tab and pane active state', async () => {
     source,
     /const \[shellActions, setShellActions\] = useState<ShellActions>\(DEFAULT_SHELL_ACTIONS\)/
   )
-  assert.match(source, /isActive=\{activeTab === 'chat'\}/)
-  assert.match(source, /onSelect=\{\(\) => shellActions\.setTab\('chat'\)\}/)
+  assert.match(source, /productSurfaceTabs\.map\(\(surface\) =>/)
+  assert.match(source, /isActive=\{activeTab === surface\.id\}/)
+  assert.match(source, /onSelect=\{\(\) => shellActions\.setTab\(surface\.id\)\}/)
   assert.match(source, /onClick=\{onSelect\}/)
   assert.match(source, /className=\{isActive \? 'railButton active' : 'railButton'\}/)
   assert.match(source, /className=\{activeTab === 'chat' \? 'pane' : 'pane hidden'\}/)

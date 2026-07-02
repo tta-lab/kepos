@@ -165,10 +165,10 @@ test('Android lobby starts with compact product choices', async () => {
   assert.equal(source.indexOf("label='Scan QR'") > source.indexOf('function PeopleActions'), true)
   assert.doesNotMatch(source, /showPeopleSetup/)
   assert.doesNotMatch(source, /testID='people-setup-toggle'/)
-  assert.match(source, /testID='people-tab'/)
+  assert.match(source, /people: 'people-tab'/)
   assert.equal(source.includes('Contacts setup'), false)
   assert.equal(source.includes('People setup'), false)
-  assert.equal(source.indexOf('<QuickStartPanel') < source.indexOf("testID='people-tab'"), true)
+  assert.equal(source.indexOf('<QuickStartPanel') < source.indexOf("people: 'people-tab'"), true)
   assert.equal(source.indexOf('<PeopleActions') > source.indexOf('function PeoplePane('), true)
   assert.equal(source.includes("label='Nick'"), false)
 })
@@ -647,7 +647,8 @@ test('Android icon-only buttons expose accessible labels', async () => {
 test('Android room tabs use product labels', async () => {
   const source = await readMobileUiSource()
 
-  assert.match(source, /label=\{getProductSurfaceLabel\('dm'\)\}[\s\S]*testID='dm-tab'/)
+  assert.match(source, /productSurfaceTabs\.map\(\(surface\) =>/)
+  assert.match(source, /dm: 'dm-tab'/)
   assert.equal(source.includes("label='DM'"), false)
 })
 
@@ -656,23 +657,18 @@ test('Android room tabs use icons for main navigation', async () => {
   const tabs = sliceBetween(source, '<View style={styles.tabs}>', 'function MobileActionButton(')
   const tabButton = sliceBetween(source, 'function TabButton(', 'function ChatPane(')
 
+  assert.match(tabs, /productSurfaceTabs\.map\(\(surface\) =>/)
   assert.match(
-    tabs,
-    /icon={House}[\s\S]*label=\{getProductSurfaceLabel\('chat'\)\}[\s\S]*testID='chat-tab'/
+    source,
+    /const MOBILE_TAB_ICONS: Record<ProductSurfaceId, TabButtonProps\['icon'\]> = \{/
   )
-  assert.doesNotMatch(tabs, /icon={DoorOpen}[\s\S]*testID='chat-tab'/)
-  assert.match(
-    tabs,
-    /icon={Send}[\s\S]*label=\{getProductSurfaceLabel\('dm'\)\}[\s\S]*testID='dm-tab'/
-  )
-  assert.match(
-    tabs,
-    /icon={Users}[\s\S]*label=\{getProductSurfaceLabel\('people'\)\}[\s\S]*testID='people-tab'/
-  )
-  assert.match(
-    tabs,
-    /icon={Sprout}[\s\S]*label=\{getProductSurfaceLabel\('treehole'\)\}[\s\S]*testID='treehole-tab'/
-  )
+  assert.match(source, /chat: House/)
+  assert.match(source, /dm: Send/)
+  assert.match(source, /people: Users/)
+  assert.match(source, /treehole: Sprout/)
+  assert.match(tabs, /label=\{surface\.label\}/)
+  assert.match(tabs, /testID=\{MOBILE_TAB_TEST_IDS\[surface\.id\]\}/)
+  assert.doesNotMatch(tabs, /DoorOpen/)
   assert.match(
     tabButton,
     /function TabButton\(\{[\s\S]*active,[\s\S]*badgeCount = 0,[\s\S]*icon: Icon,[\s\S]*label,[\s\S]*onPress,[\s\S]*testID/
@@ -844,10 +840,10 @@ test('Android treehole interactions disable when the profile cannot interact', a
 test('Android room has a Contacts tab for QR and trusted contacts', async () => {
   const source = await readMobileUiSource()
 
-  assert.match(source, /testID='people-tab'/)
-  assert.match(source, /label=\{getProductSurfaceLabel\('chat'\)\}/)
-  assert.match(source, /label=\{getProductSurfaceLabel\('people'\)\}/)
-  assert.match(source, /activeTab === 'people'/)
+  assert.match(source, /people: 'people-tab'/)
+  assert.match(source, /productSurfaceTabs\.map\(\(surface\) =>/)
+  assert.match(source, /label=\{surface\.label\}/)
+  assert.match(source, /activeTab === surface\.id/)
   assert.match(source, /<PeoplePane/)
   assert.match(source, /Home QR/)
   assert.match(source, /Add friend/)

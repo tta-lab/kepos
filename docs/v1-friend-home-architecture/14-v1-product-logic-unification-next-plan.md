@@ -179,6 +179,17 @@ acceptance, or durable Chat.
 Use this document as the active product-logic plan after
 `13-v1-home-decoupling-next-plan.md`.
 
+Current implementation status:
+
+- desktop and Android navigation now derive the main product surfaces from
+  `src/product-surfaces.ts`
+- the shared surface order is `Home`, `Chat`, `Contacts`, `Treehole`
+- Home uses the house icon on both clients
+- shared request delivery copy lives outside the transport module, so UI copy
+  and P2P delivery code are no longer coupled
+- the remaining V1 risk is not another product model decision; it is closing
+  parity gaps and proving the normal cross-device path
+
 The next engineering pass should update source and tests in this order:
 
 1. Android navigation and visible UI parity.
@@ -186,3 +197,6 @@ The next engineering pass should update source and tests in this order:
 3. Chat list and profile page parity.
 4. Home QR and raw room controls moved behind Advanced.
 5. Final cross-device proof packet.
+
+Continue with `15-v1-ready-product-next-plan.md` for the current V1 finish
+plan.

@@ -70,6 +70,18 @@ The short version:
     - Use this before changing add-friend delivery, DM bootstrap, profile hub,
       or Home entry behavior.
 
+14. `14-v1-product-logic-unification-next-plan.md`
+    - Product-logic unification plan: desktop and Android should share one
+      profile-first IM model and one main product surface vocabulary.
+    - Use this before changing navigation labels, request-state copy, profile
+      actions, or Home advanced/debug controls.
+
+15. `15-v1-ready-product-next-plan.md`
+    - Current V1 finish plan: lock product parity, make Chat the primary trust
+      result, keep Treehole personal, demote Home to explicit live room, and run
+      the final release proof.
+    - Use this as the next implementation plan before more phone smoke.
+
 ## Core Principle
 
 Product semantics must not depend on the current transport shortcut.
