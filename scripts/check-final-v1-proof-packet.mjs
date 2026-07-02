@@ -96,6 +96,10 @@ export function validateFinalV1ProofPacket(contents) {
     failures.push('`npm run v1:gate` must be recorded as passed')
   }
 
+  if (isCommitShaEvidence(commitSha) && isPassedEvidence(v1Gate) && !v1Gate.includes(commitSha)) {
+    failures.push('`npm run v1:gate` evidence must reference the recorded commit SHA')
+  }
+
   if (!isAllowedDesktopMode(desktopMode)) {
     failures.push('Desktop mode must be recorded as normal Electron or Pear/Bare worker')
   }
@@ -235,7 +239,8 @@ Checks the recorded Final V1 Release Proof Packet after a manual cross-device ru
 This helper is non-invasive: it only reads the packet and fails if required proof
 items are missing or still unchecked, placeholders remain, the worktree was not
 clean, run metadata is incomplete, \`npm run v1:gate\` was not recorded as
-passed, physical Profile QR scan was not recorded as passed, or desktop and Android Home peer counts were not each recorded as numeric zero during request receipt and accept/invite return.`)
+passed for the recorded commit SHA, physical Profile QR scan was not recorded
+as passed, or desktop and Android Home peer counts were not each recorded as numeric zero during request receipt and accept/invite return.`)
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {

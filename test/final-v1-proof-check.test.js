@@ -25,6 +25,7 @@ function completedPacket() {
     }
   })
     .replace('- `npm run v1:gate`: <pass/fail, paste summary>', '- `npm run v1:gate`: passed')
+    .replace('- `npm run v1:gate`: passed', '- `npm run v1:gate`: passed on abc1234')
     .replace(
       '- Desktop mode: <normal Electron | Pear/Bare worker>',
       '- Desktop mode: normal Electron'
@@ -145,6 +146,17 @@ test('final V1 proof checker rejects negated pass wording', () => {
   assert.match(result.failures.join('\n'), /Physical Profile QR scan/)
 })
 
+test('final V1 proof checker rejects v1 gate evidence from a different commit', () => {
+  const packet = completedPacket().replace(
+    '- `npm run v1:gate`: passed on abc1234',
+    '- `npm run v1:gate`: passed on def5678'
+  )
+  const result = validateFinalV1ProofPacket(packet)
+
+  assert.equal(result.ok, false)
+  assert.match(result.failures.join('\n'), /must reference the recorded commit SHA/)
+})
+
 test('final V1 proof checker rejects packets missing required checked items', () => {
   const packet = completedPacket()
     .replace(
@@ -220,11 +232,14 @@ test('package and docs expose the final V1 proof checker', async () => {
   assert.match(recipe, /fails if required checklist items/)
   assert.match(recipe, /items are missing or still unchecked/)
   assert.match(recipe, /run metadata is incomplete/)
+  assert.match(recipe, /same commit and worktree state/)
+  assert.match(recipe, /recorded commit SHA/)
   assert.match(recipe, /physical Profile QR scan was not recorded as passing/)
   assert.match(recipe, /desktop and Android Home peer counts are not each recorded as numeric zero/)
   assert.match(
     help,
     /desktop and Android Home peer counts were not\s+each recorded as numeric zero/
   )
+  assert.match(help, /recorded commit SHA/)
   assert.match(recipe, /worktree state is not clean/)
 })
