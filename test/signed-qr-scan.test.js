@@ -25,19 +25,11 @@ describe('signed QR scan to ContactBook', () => {
     const scanner = createSigningKeyPair()
     const remote = createSigningKeyPair()
     const book = createContactBook({ ownerProfileId: scanner.publicKey })
-    const homeDescriptor = createSignedHomeAddressPayload({
-      address: 'c'.repeat(64),
-      createdAt: 1001,
-      identity: remote,
-      policy: 'trusted_only',
-      roomKey: 'd'.repeat(64)
-    })
     const uri = encodeQrUri(
       createSignedTrustInvitePayload({
         avatarUri: 'kepos://avatar/ada',
         createdAt: 1000,
         displayName: 'Ada Lovelace',
-        homeDescriptor,
         identity: remote
       })
     )
@@ -48,7 +40,6 @@ describe('signed QR scan to ContactBook', () => {
       createdAt: 1000,
       avatarUri: 'kepos://avatar/ada',
       displayName: 'Ada Lovelace',
-      homeDescriptor,
       kind: 'profile_request_target',
       profileId: remote.publicKey
     })
@@ -168,7 +159,7 @@ describe('signed QR scan to ContactBook', () => {
     assert.equal(getContact(result.book, remote.publicKey).avatarUriSnapshot, avatarMedia.uri)
   })
 
-  test('trusted profile QR stores and refreshes the profile-owned Home descriptor', () => {
+  test('profile QR does not store an embedded Home descriptor even after trust exists', () => {
     const scanner = createSigningKeyPair()
     const remote = createSigningKeyPair()
     const book = trustContact(createContactBook({ ownerProfileId: scanner.publicKey }), {
@@ -199,14 +190,9 @@ describe('signed QR scan to ContactBook', () => {
     })
 
     assert.equal(result.kind, 'trust')
-    assert.deepEqual(
-      readTrustedContactHomeDescriptor({ book: result.book, profileId: remote.publicKey }),
-      {
-        address: 'c'.repeat(64),
-        ownerProfileId: remote.publicKey,
-        policy: 'trusted_only',
-        roomKey: 'd'.repeat(64)
-      }
+    assert.throws(
+      () => readTrustedContactHomeDescriptor({ book: result.book, profileId: remote.publicKey }),
+      /does not have a saved Home descriptor/
     )
     assert.equal(getContact(result.book, remote.publicKey).alias, 'Ada local')
   })

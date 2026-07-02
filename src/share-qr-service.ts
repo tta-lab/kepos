@@ -50,7 +50,6 @@ export function createShareQrPayloads({
       avatarMedia,
       avatarUri,
       displayName,
-      homeDescriptor,
       identity
     })
   )

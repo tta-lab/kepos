@@ -412,6 +412,12 @@ describe('contact book', () => {
         source: 'profile_qr'
       }
     )
+    const outgoingRequest = requested.outgoingRequestsByProfileId.get('profile-b')
+
+    assert.equal(outgoingRequest.homeAddress, undefined)
+    assert.equal(outgoingRequest.homePolicy, undefined)
+    assert.equal(outgoingRequest.homeRoomKey, undefined)
+    assert.equal(outgoingRequest.proof, undefined)
 
     const trusted = acceptOutgoingFriendRequest(requested, {
       acceptedAt: 2000,
@@ -426,7 +432,7 @@ describe('contact book', () => {
     assert.equal(getContact(trusted, 'profile-b').source, 'profile_qr')
   })
 
-  test('accepting an outgoing friend request preserves the scanned Home descriptor snapshot', () => {
+  test('outgoing friend requests do not promote Home descriptors into trust', () => {
     const homeProof = {
       createdAt: 1000,
       signature: 'signed-home',
@@ -458,10 +464,6 @@ describe('contact book', () => {
       profileId: 'profile-b',
       aliases: ['Ada'],
       alias: 'Ada',
-      homeAddress: 'c'.repeat(64),
-      homePolicy: 'trusted_only',
-      homeRoomKey: 'd'.repeat(64),
-      proof: homeProof,
       trustedAt: 2000,
       trustScope: 'home',
       source: 'profile_qr'

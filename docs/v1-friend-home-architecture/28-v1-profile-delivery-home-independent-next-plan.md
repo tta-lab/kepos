@@ -80,6 +80,19 @@ As of 2026-07-03:
 - `tmp/final-v1-proof.md` exists as the local proof draft, but it is not
   complete until physical desktop/Android evidence fills the device, QR, peer
   count, restart, and revoke checklist.
+- Profile QR generation no longer embeds the signed Home descriptor. The
+  product can still generate a Debug Home QR, but that descriptor is separate
+  from the normal add-friend QR.
+- Profile QR scanning ignores any embedded Home descriptor from old or manually
+  crafted payloads. Scanning a Profile QR creates a profile request target or
+  profile trust state, not a saved Home descriptor.
+- Outgoing friend requests no longer copy scanned Home descriptors into request
+  state. Accepting a request therefore cannot silently upgrade an add-friend
+  flow into Home entry permission.
+- ContactBook also enforces this at the domain layer: even if a caller passes
+  Home descriptor fields into outgoing friend request creation, accepting that
+  outgoing request creates trust without storing Home address, room key, policy,
+  or Home proof.
 
 This means the remaining risk is product-path proof and any bug found while
 proving it, not another conceptual redesign.
@@ -123,6 +136,20 @@ None of these paths should require:
 Debug fallbacks may remain only behind explicit advanced/debug labels or test
 helpers.
 
+Status: implemented for the Profile QR / outgoing request path. Current
+evidence:
+
+```sh
+npm test -- test/share-qr-service.test.js test/desktop-qr-service.test.js test/signed-qr-scan.test.js test/desktop-message-actions.test.js test/friend-request-target-view-model.test.js test/mobile-qr-actions.test.js
+```
+
+The focused tests prove generated Profile QR payloads omit Home descriptors,
+legacy embedded descriptors are ignored by profile scan/trust code, outgoing
+friend requests do not store Home descriptors, and Debug Home QR remains the
+separate Home descriptor path. `test/contact-book.test.js` also proves the
+domain model does not promote outgoing-request Home fields into trusted contact
+Home descriptors.
+
 ### 3. Make The UX Match The Model
 
 Desktop and Android should expose the same product facts:
@@ -138,6 +165,16 @@ Desktop and Android should expose the same product facts:
 Layout can differ by platform, but the nouns and user flow must not.
 
 ### 4. Final Proof
+
+Before final physical proof, decide and implement the normal post-trust Home
+descriptor route:
+
+- short-term V1 option: trusted user scans a Debug Home QR/session descriptor
+  after friendship exists, then Enter Home uses the saved descriptor
+- better V1/V2 option: accepted profiles exchange signed Home/session
+  descriptors over profile-level P2P after trust
+
+Do not restore Home descriptor embedding in Profile QR to make this easier.
 
 Run the final proof only when source-level checks are clean and the phone is
 ready:

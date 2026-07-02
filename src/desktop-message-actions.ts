@@ -26,20 +26,10 @@ type MessageActionPayload = {
   toProfileId?: string
 }
 
-type HomeDescriptorSnapshot = {
-  address?: string
-  expiresAt?: number | null
-  ownerProfileId?: string
-  policy?: string
-  proof?: unknown
-  roomKey?: string
-}
-
 type ProfileRequestTargetSnapshot = {
   avatarMediaSnapshot?: AvatarMediaReference
   avatarUri?: string
   displayName?: string
-  homeDescriptor?: HomeDescriptorSnapshot
   profileId?: string
 } | null
 
@@ -236,22 +226,13 @@ export function createDesktopMessageActions({
           request: result.request
         })
         if (contactBook && result.request?.toProfileId && result.request.requestId) {
-          const homeDescriptor = readMatchingHomeDescriptor({
-            profileId: result.request.toProfileId,
-            target: getProfileRequestTarget()
-          })
           saveContactBook(
             recordOutgoingFriendRequest(contactBook, {
               alias: result.request.toProfileId.slice(0, 12),
               avatarMediaSnapshot: requestTarget?.avatarMediaSnapshot,
               avatarUriSnapshot: requestTarget?.avatarUri,
               displayNameSnapshot: requestTarget?.displayName,
-              homeAddress: homeDescriptor?.address,
-              homeExpiresAt: homeDescriptor?.expiresAt ?? undefined,
-              homePolicy: homeDescriptor?.policy,
-              homeRoomKey: homeDescriptor?.roomKey,
               profileId: result.request.toProfileId,
-              proof: homeDescriptor?.proof,
               deliveryState,
               requestedAt: now(),
               requestId: result.request.requestId,
@@ -321,20 +302,6 @@ async function sendDesktopProfileFriendRequest({
   })
 
   return delivery.state
-}
-
-function readMatchingHomeDescriptor({
-  profileId,
-  target
-}: {
-  profileId: string
-  target: ProfileRequestTargetSnapshot
-}): HomeDescriptorSnapshot | null {
-  if (!target?.homeDescriptor || target.profileId !== profileId) {
-    return null
-  }
-
-  return target.homeDescriptor
 }
 
 function cleanMessageText(text: unknown): string {

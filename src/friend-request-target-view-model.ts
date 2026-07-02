@@ -10,7 +10,6 @@ type ProfileRequestTarget = {
   avatarMediaSnapshot?: Parameters<ResolveAvatarMediaUri>[0]
   avatarUri?: string
   displayName?: string
-  homeDescriptor?: Record<string, unknown>
   profileId: string
 }
 
@@ -29,7 +28,6 @@ export type FriendRequestTargetViewModel = {
   canSendRequest: boolean
   copy: string
   displayName: string
-  homeDescriptor?: Record<string, unknown>
   profileId: string
   relationshipState: FriendRequestTargetRelationshipState
   shortProfileId: string
@@ -182,7 +180,6 @@ function createView({
     canSendRequest,
     copy,
     displayName,
-    ...(target.homeDescriptor ? { homeDescriptor: target.homeDescriptor } : {}),
     profileId: target.profileId,
     relationshipState,
     shortProfileId,

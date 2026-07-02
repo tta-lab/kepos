@@ -25,7 +25,6 @@ export function readSignedProfileQrRequestTarget({
   avatarUri?: string
   createdAt: number
   displayName: string
-  homeDescriptor?: ReturnType<typeof decodeQrUri>
   kind: 'profile_request_target'
   profileId: string
 } {
@@ -44,7 +43,6 @@ export function readSignedProfileQrRequestTarget({
     ...(payload.avatarUri ? { avatarUri: payload.avatarUri } : {}),
     createdAt: payload.createdAt,
     displayName: payload.displayName,
-    ...(payload.homeDescriptor ? { homeDescriptor: payload.homeDescriptor } : {}),
     kind: 'profile_request_target',
     profileId: payload.profileId
   }
@@ -103,13 +101,9 @@ export function applySignedQrUriToContactBook({
         grant,
         source
       })
-      const nextBook = recordProfileHomeDescriptorIfTrusted({
-        book: trustedBook,
-        homeDescriptor: payload.homeDescriptor
-      })
 
       return {
-        book: nextBook,
+        book: trustedBook,
         kind: 'trust',
         profileId: payload.profileId
       }
@@ -124,13 +118,9 @@ export function applySignedQrUriToContactBook({
       source,
       trustedAt: payload.createdAt
     })
-    const nextBook = recordProfileHomeDescriptorIfTrusted({
-      book: trustedBook,
-      homeDescriptor: payload.homeDescriptor
-    })
 
     return {
-      book: nextBook,
+      book: trustedBook,
       kind: 'trust',
       profileId: payload.profileId
     }
@@ -238,29 +228,4 @@ function canEnterHomeFromLocalContactBook({
 
 function isSignedProfileQrType(type: unknown): boolean {
   return type === 'kepos.trust.invite.v1' || type === 'kepos.trust.invite.v2'
-}
-
-function recordProfileHomeDescriptorIfTrusted({
-  book,
-  homeDescriptor
-}: {
-  book: ContactBook
-  homeDescriptor?: ReturnType<typeof decodeQrUri>
-}): ContactBook {
-  if (!homeDescriptor || homeDescriptor.type !== 'kepos.home.address.v1') {
-    return book
-  }
-
-  if (!isContactTrusted(book, homeDescriptor.ownerProfileId)) {
-    return book
-  }
-
-  return recordContactHomeDescriptor(book, {
-    address: homeDescriptor.address,
-    expiresAt: homeDescriptor.expiresAt,
-    ownerProfileId: homeDescriptor.ownerProfileId,
-    policy: homeDescriptor.policy,
-    proof: homeDescriptor.proof,
-    roomKey: homeDescriptor.roomKey
-  })
 }

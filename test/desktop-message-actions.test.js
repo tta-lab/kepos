@@ -179,7 +179,7 @@ test('desktop message actions create outgoing friend requests without touching H
   assert.equal(savedBooks[0].outgoingRequestsByProfileId.get('friend').requestId, 'id-1')
 })
 
-test('desktop message actions preserve scanned Home descriptors on outgoing friend requests', async () => {
+test('desktop message actions do not copy scanned Home descriptors into outgoing friend requests', async () => {
   const savedBooks = []
   const avatarMedia = createAvatarMediaReference({
     bytes: Uint8Array.from([1, 2, 3]),
@@ -235,8 +235,8 @@ test('desktop message actions preserve scanned Home descriptors on outgoing frie
 
   await actions.sendDmMessage({ text: 'hello', toProfileId: 'friend' })
 
-  assert.equal(savedBooks[0].outgoingRequestsByProfileId.get('friend').homeAddress, 'c'.repeat(64))
-  assert.equal(savedBooks[0].outgoingRequestsByProfileId.get('friend').homeRoomKey, 'd'.repeat(64))
+  assert.equal(savedBooks[0].outgoingRequestsByProfileId.get('friend').homeAddress, undefined)
+  assert.equal(savedBooks[0].outgoingRequestsByProfileId.get('friend').homeRoomKey, undefined)
   assert.equal(
     savedBooks[0].outgoingRequestsByProfileId.get('friend').avatarUriSnapshot,
     avatarMedia.uri
@@ -249,10 +249,7 @@ test('desktop message actions preserve scanned Home descriptors on outgoing frie
     savedBooks[0].outgoingRequestsByProfileId.get('friend').avatarMediaSnapshot,
     avatarMedia
   )
-  assert.deepEqual(
-    savedBooks[0].outgoingRequestsByProfileId.get('friend').proof,
-    homeDescriptor.proof
-  )
+  assert.deepEqual(savedBooks[0].outgoingRequestsByProfileId.get('friend').proof, undefined)
 })
 
 test('desktop message actions retry outgoing friend requests through profile transport', async () => {
