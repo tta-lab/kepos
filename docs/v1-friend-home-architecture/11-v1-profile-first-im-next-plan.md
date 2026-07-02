@@ -15,6 +15,14 @@ Home is only an explicit live room after trust.
 Home must not be used as the normal delivery, authorization, or explanation
 path for adding a friend.
 
+The practical implementation rule is stricter than "hide Home from UI":
+
+```text
+Adding a friend must not depend on Home.
+Home is entered only by an explicit Home action after trust, or by a future
+activity invite between already trusted profiles.
+```
+
 ## Product Rule
 
 V1 should feel like a small private IM, not a room-join tool.
@@ -45,6 +53,7 @@ Home is not:
 - the way to deliver DM bootstrap in the normal path
 - a second permission system beside friendship
 - the first product concept users need to understand
+- an automatic side effect of opening a profile or sending a request
 
 The permission is trust. A Home descriptor is only reachability data for a
 trusted profile's live room.

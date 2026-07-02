@@ -60,6 +60,9 @@ Already in source:
   request ContactBook.
 - Desktop normal request actions do not read Home runtime; Home is touched only
   for Home chat or explicit debug fallback.
+- Android accepted profile-level DM thread/invite state promotes the outgoing
+  request into trusted ContactBook state, updates Treehole policy, and persists
+  the result.
 
 This is enough to stop redesigning the model. The remaining work is proof and
 small fixes found by proof.

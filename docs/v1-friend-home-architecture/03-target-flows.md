@@ -17,7 +17,8 @@ This is the primary V1 path.
 Product rule:
 
 - A did not "join B's Home" as the product action.
-- If the implementation temporarily enters B's Home to deliver the request, the UI should hide that unless there is an error.
+- Production delivery must not temporarily enter B's Home to deliver the
+  request. The request is addressed to B's profile.
 
 ## Flow 2: Enter Friend's Home
 

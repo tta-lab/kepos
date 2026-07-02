@@ -48,6 +48,7 @@ This is the map of content for Kepos architecture docs.
    Previous V1 final product next plan: `docs/v1-friend-home-architecture/10-v1-final-product-next-plan.md`.
    Profile-first IM product model: `docs/v1-friend-home-architecture/11-v1-profile-first-im-next-plan.md`.
    Active V1 implementation next plan: `docs/v1-friend-home-architecture/12-v1-profile-first-implementation-next-plan.md`.
+   Current Home decoupling next plan: `docs/v1-friend-home-architecture/13-v1-home-decoupling-next-plan.md`.
 
 10. `docs/v1.17-ready-im-completion-plan.md`
     - Canonical V1 completion evidence plan and self-review for a ready private IM product on top of P2P infra.
@@ -63,55 +64,62 @@ This is the map of content for Kepos architecture docs.
 
 ## V1 Architecture
 
-1. `docs/v1-friend-home-architecture/12-v1-profile-first-implementation-next-plan.md`
+1. `docs/v1-friend-home-architecture/13-v1-home-decoupling-next-plan.md`
+   - Current next plan: Profile/DM own friendship, request delivery, accept,
+     durable Chat, and profile posts; Home is explicit live room after trust.
+   - Use this before changing add-friend delivery, DM bootstrap, profile hub,
+     or Home entry behavior.
+
+2. `docs/v1-friend-home-architecture/12-v1-profile-first-implementation-next-plan.md`
    - Active V1 implementation next plan: profile-first private IM, Home as
      explicit live room, production P2P delivery, low-cost proof, and final
      release evidence.
    - Use this before changing friend request delivery, Chat/Contacts/Profile
      UX, Home entry, or release proof.
 
-2. `docs/v1-friend-home-architecture/11-v1-profile-first-im-next-plan.md`
+3. `docs/v1-friend-home-architecture/11-v1-profile-first-im-next-plan.md`
    - V1 product model: friendship is profile-to-profile, DM is durable private
      Chat, and Home is only an explicit live room after trust.
    - Use this when the product nouns or flow semantics are unclear.
 
-3. `docs/v1.02-research-backlog.md`
+4. `docs/v1.02-research-backlog.md`
    - Research work that must be complete before implementation.
    - Use this to track library selection and architecture blockers.
 
-4. `docs/v1.03-limitations.md`
+5. `docs/v1.03-limitations.md`
    - What V1 deliberately does not solve.
    - Use this to avoid accidentally expanding scope.
 
-5. `docs/v1.04-tradeoffs.md`
+6. `docs/v1.04-tradeoffs.md`
    - Decisions, rejected options, risks, and future escape hatches.
    - Use this when a design choice is debated.
 
-6. `docs/v1.05-typescript-boundary.md`
+7. `docs/v1.05-typescript-boundary.md`
    - TypeScript boundary for V1 protocol/domain modules versus platform runtime glue.
    - Use this before adding new shared protocol code.
 
-7. `docs/v1.06-identity-security.md`
+8. `docs/v1.06-identity-security.md`
    - Identity, signing, trust, device model, and Keet-grade target.
    - V1 requires real identity signing and verification.
    - V1 does not require seed phrase, device attestation, or multi-device linking.
 
-8. `docs/v1.07-architecture-gaps.md`
+9. `docs/v1.07-architecture-gaps.md`
    - Architecture gaps still blocking V1.
    - Use this as the issue list before implementation.
 
-9. `docs/v1.08-dm-bootstrap-security.md`
-   - DM invite model, message requests, durable thread, revoke, and bootstrap security.
-   - Explicit signed/encrypted invite is the target.
+10. `docs/v1.08-dm-bootstrap-security.md`
+    - DM invite model, message requests, durable thread, revoke, and bootstrap
+      security.
+    - Explicit signed/encrypted invite is the target.
 
-10. `docs/v1.09-treehole-authorization.md`
+11. `docs/v1.09-treehole-authorization.md`
     - Treehole signed events, writer grants, reducer policy, tombstones, and
       owner/trust rules.
 
-11. `docs/v1.10-qr-code-matching.md`
+12. `docs/v1.10-qr-code-matching.md`
     - QR envelope, profile/home/message request payloads, and matching flows.
 
-12. `docs/v1.30-kepos-features.html`
+13. `docs/v1.30-kepos-features.html`
     - Local HTML feature overview.
     - Useful for smoke testing and explaining current features.
 

@@ -591,6 +591,10 @@ test('mobile Home startup and RPC store avatar media byte controls', async () =>
     source.indexOf('function handleBackendRequest('),
     source.indexOf('function applyProfileRequestDeliveryState')
   )
+  const dmThreadHandler = source.slice(
+    source.indexOf('if (req.command === RPC_DM_THREAD)'),
+    source.indexOf('if (req.command === RPC_PEER_COUNT)')
+  )
   const applyProfileRequestDeliveryState = source.slice(
     source.indexOf('function applyProfileRequestDeliveryState'),
     source.indexOf('function startBackend(')
@@ -625,6 +629,20 @@ test('mobile Home startup and RPC store avatar media byte controls', async () =>
   assert.match(applyProfileRequestDeliveryState, /requestId: delivery\.requestId \|\| ''/)
   assert.match(applyProfileRequestDeliveryState, /contactBookRef\.current = nextBook/)
   assert.match(applyProfileRequestDeliveryState, /saveContactBookToFileSystem/)
+  assert.match(
+    dmThreadHandler,
+    /setDmThreads\(\(current\) => upsertDmThread\(current, threadPayload\)\)/
+  )
+  assert.match(
+    dmThreadHandler,
+    /current\?\.outgoingRequestsByProfileId\?\.has\(threadPayload\.remoteProfileId\)/
+  )
+  assert.match(dmThreadHandler, /acceptOutgoingFriendRequest\(current/)
+  assert.match(dmThreadHandler, /profileId: threadPayload\.remoteProfileId/)
+  assert.match(dmThreadHandler, /createTreeholePolicyFromContactBook\(nextBook\)/)
+  assert.match(dmThreadHandler, /contactBookRef\.current = nextBook/)
+  assert.match(dmThreadHandler, /syncTreeholePolicy\(nextPolicy\)/)
+  assert.match(dmThreadHandler, /saveContactBookToFileSystem/)
 })
 
 test('mobile direct contact chips and revoke actions expose trust state', async () => {

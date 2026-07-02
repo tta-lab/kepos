@@ -64,6 +64,12 @@ The short version:
     - Use this for implementation order, low-cost proof, and final release
       evidence.
 
+13. `13-v1-home-decoupling-next-plan.md`
+    - Current next plan for finishing the Home decoupling: Profile/DM own the
+      social path, Home is explicit live room after trust.
+    - Use this before changing add-friend delivery, DM bootstrap, profile hub,
+      or Home entry behavior.
+
 ## Core Principle
 
 Product semantics must not depend on the current transport shortcut.
@@ -76,4 +82,5 @@ It must not mean:
 
 > I want to join their Home room.
 
-Joining a Home should not be used to deliver the request in the target architecture. Friend request and DM delivery must be profile-to-profile P2P.
+Joining a Home must not be used to deliver the request in the production
+architecture. Friend request and DM delivery must be profile-to-profile P2P.
