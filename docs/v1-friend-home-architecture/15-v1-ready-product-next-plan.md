@@ -114,7 +114,7 @@ domain model must not leak those shortcuts into product meaning.
 
 ### Phase 1: Lock The Shared Product Surface
 
-Status: partially done.
+Status: source-complete.
 
 Required:
 
@@ -122,6 +122,15 @@ Required:
 - Home, Chat, Contacts, and Treehole labels stay shared
 - icons stay shared by intent, with Home shown as a house
 - tests fail if either client hand-codes a different tab set
+
+Current evidence:
+
+- desktop rail derives labels, titles, ids, icons, active state, and tab
+  actions from `productSurfaceTabs`
+- Android bottom tabs derive labels, ids, icons, active state, and tab actions
+  from `productSurfaceTabs`
+- `test/product-surfaces.test.js` checks both clients use the shared main-nav
+  source instead of local product-label helpers
 
 Why:
 
