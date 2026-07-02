@@ -42,7 +42,8 @@ This is the map of content for Kepos architecture docs.
 
    Route decision: `docs/v1-friend-home-architecture/05-profile-first-next-plan.md`.
    Full implementation plan: `docs/v1-friend-home-architecture/06-v1-profile-first-implementation-plan.md`.
-   Current next plan: `docs/v1-friend-home-architecture/07-v1-friendship-delivery-next-plan.md`.
+   Previous delivery cleanup plan: `docs/v1-friend-home-architecture/07-v1-friendship-delivery-next-plan.md`.
+   Current V1 IM release plan: `docs/v1-friend-home-architecture/08-v1-im-release-next-plan.md`.
 
 10. `docs/v1.17-ready-im-completion-plan.md`
 

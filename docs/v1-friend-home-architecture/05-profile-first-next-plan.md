@@ -1,6 +1,7 @@
 # Profile-First P2P Delivery Plan
 
-This is the next implementation plan after the failed Profile QR friend request smoke.
+This was the route-decision plan after the failed Profile QR friend request smoke.
+The current execution plan has moved on to `08-v1-im-release-next-plan.md`.
 
 ## Decision
 
@@ -86,7 +87,7 @@ In particular:
 
 ## Current Implementation Status
 
-Phase 1, Phase 2, and the first request-delivery part of Phase 3 are implemented in the current branch:
+Phase 1 through Phase 6 are implemented or quarantined in the current branch:
 
 - mobile Profile QR friend request sending no longer calls `enterRequestTargetHome`
 - mobile friend requests no longer send `RPC_DM_SEND` through the Home backend
@@ -100,24 +101,27 @@ Phase 1, Phase 2, and the first request-delivery part of Phase 3 are implemented
 - accepting a friend request no longer requires Home membership on desktop or Android
 - signed DM invites now travel over the same profile-level P2P topic instead of normal Home control broadcast
 
-Still open:
-
-- prove request and accept / invite delivery in cross-device smoke with Home peers at zero
-
-Now completed:
-
 - temporary Home-control request and invite compatibility paths are quarantined
   behind explicit debug fallback
 - automated tests prove profile-source request accept / invite return without
   Home membership
 - profile request runtime sends an explicit receiver acknowledgement, so
   `delivered` now means the target runtime received a valid signed frame
+- normal request sending no longer uses `enterRequestTargetHome`
+- normal request sending no longer depends on a Home descriptor
+- normal friend request and invite delivery no longer uses `RPC_DM_SEND` or
+  Home-control request delivery
+
+Still open:
+
+- prove request and accept / invite delivery in cross-device smoke with Home peers at zero
+- finish the V1 IM release polish and evidence packet described in `08`
 
 Current execution note:
 
-- The next focused plan is `07-v1-friendship-delivery-next-plan.md`.
-- `05` records the route decision; `07` owns the immediate cleanup and proof
-  work from the current implementation state.
+- `05` records the route decision.
+- `07` records the Home-control fallback quarantine and delivery-ack work.
+- `08` owns the current V1 IM release completion plan.
 
 The current product behavior is intentionally honest: a request can be queued or searching locally without claiming the other side received it.
 
@@ -230,7 +234,7 @@ The user should experience Kepos as private IM plus personal space, not as a roo
 
 ### Phase 6: Remove Home-Based Request Path
 
-After profile-level delivery works:
+Status: implemented for the normal path; remaining work is release proof.
 
 - delete automatic `enterRequestTargetHome` from request sending
 - remove Home descriptor requirement for friend requests

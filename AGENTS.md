@@ -11,7 +11,8 @@ Use these docs as the current architecture map for Kepos.
 - `docs/v1.10-qr-code-matching.md`: QR payloads and matching flows for profile trust, home entry, and message requests.
 - `docs/v1.16-final-mlp-ui-ux-refactor.md`: final V1 MLP person-first UI/UX refactor target: friend request, mutual trust, profile, contacts, messages, recent posts, and explicit home entry.
 - `docs/v1.17-ready-im-completion-plan.md`: canonical V1 completion evidence checklist and self-review for a ready private IM product on top of P2P infra.
-- `docs/v1-friend-home-architecture/07-v1-friendship-delivery-next-plan.md`: current next V1 execution plan for profile-level friend request/accept delivery and Home-control fallback quarantine.
+- `docs/v1-friend-home-architecture/07-v1-friendship-delivery-next-plan.md`: prior V1 execution plan for profile-level friend request/accept delivery and Home-control fallback quarantine.
+- `docs/v1-friend-home-architecture/08-v1-im-release-next-plan.md`: current V1 plan for finishing Kepos as a ready private IM product.
 - `docs/v1.07-architecture-gaps.md`: remaining architecture gaps for V1 after identity and QR design.
 - `docs/v1.03-limitations.md`: explicit V1 limitations, non-goals, and success bar.
 - `docs/v1.04-tradeoffs.md`: accepted V1 tradeoffs, rejected options, risks, and future escape hatches.

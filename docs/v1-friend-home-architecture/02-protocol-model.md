@@ -90,12 +90,18 @@ It should include:
 
 The request should be durable enough that "sent" does not mean "best-effort control packet was broadcast once".
 
-Current V1 gap:
+Historical V1 gap:
 
-- Android currently sends friend requests over the Home control channel.
-- The backend now caches pending outgoing requests and resends them to new peers.
-- This improves reliability, but it is still a transport shortcut.
-- Smoke showed the failure plainly: if Home peers are `online=0`, the request never reaches desktop.
+- Android previously sent friend requests over the Home control channel.
+- The backend cached pending outgoing requests and resent them to new Home peers.
+- This improved reliability, but it was still a transport shortcut.
+- Smoke showed the failure plainly: if Home peers were `online=0`, the request never reached desktop.
+
+Current V1 direction:
+
+- Normal request and invite delivery now goes through the profile-level request runtime.
+- Home-control request and invite handling is debug fallback / legacy compatibility, not the production path.
+- The remaining release bar is cross-device proof that Profile QR request and accept work while Home peer count may stay at zero.
 
 Target direction:
 

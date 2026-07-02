@@ -1,10 +1,11 @@
-# Current Gap And Refactor Plan
+# Historical Gap And Refactor Plan
 
-## Current State
+## Historical State
 
-The current V1 implementation has the right high-level product direction, but the request delivery path is still too coupled to Home.
+This document records the Home-coupled V1 gap that triggered the profile-first
+refactor. It is kept as history and as a guardrail: do not rebuild this shape.
 
-What currently happens on Android:
+What previously happened on Android:
 
 1. Scan Profile QR.
 2. Build a friend request target.
@@ -13,12 +14,12 @@ What currently happens on Android:
 5. Send the signed friend request through the Home control channel.
 6. Backend caches pending outgoing requests and resends them when a new Home peer appears.
 
-This fixes a real bug:
+This fixed a real bug:
 
 - before, the phone could locally record "sent" while desktop received nothing
 - now, request sending waits for Home readiness and resends when peer connection arrives
 
-But it is still not the clean target architecture.
+But it was still not the clean target architecture.
 
 Smoke result:
 
@@ -27,7 +28,22 @@ Smoke result:
 - Both sides showed zero Home peers.
 - Therefore the request was locally recorded but had no working profile-level delivery path.
 
-This confirms the architecture problem. The fix is not direct host:port. The fix is removing Home from friend request delivery.
+This confirmed the architecture problem. The fix was not direct host:port. The fix was removing Home from friend request delivery.
+
+## Current State
+
+The production path has moved to profile-level request delivery:
+
+- Android normal friend request send uses `RPC_PROFILE_REQUEST_SEND`.
+- Desktop outgoing request send uses the profile request runtime.
+- Desktop and Android listen for profile-level request frames outside Home entry.
+- Accepting a friend request can return the signed invite over the profile route.
+- Home-control request and invite handling is ignored by default unless an explicit debug fallback is enabled.
+
+The remaining gap is proof and polish, not the old product model:
+
+- final manual desktop/Android proof still needs to show request receipt and accept while Home peer count may stay at zero
+- the UI still needs to present Chat, Contacts, Profile, Treehole, and explicit Home entry as one coherent IM product
 
 ## Why It Feels Wrong
 
@@ -69,7 +85,7 @@ Keep transport names where they are true, but product-facing modules should say:
 - `ContactProfile`, not `HomeContact`
 - `enterHome`, only for explicit Home entry
 
-Current helper names like `enterRequestTargetHome` are honest about the implementation, but they should stay private and should not spread.
+Old helper names like `enterRequestTargetHome` were honest about the historical implementation, but they should not spread into product-facing code.
 
 ### Step 2: Create A Profile-Level Friend Request Delivery Service
 
@@ -103,7 +119,7 @@ Separate these states:
 - ignored
 - failed or retrying
 
-Current V1 can implement only a subset, but the model should be explicit.
+V1 can implement only a subset, but the model should be explicit.
 
 ### Step 4: Remove Home Transport From Friend Request Delivery
 
@@ -153,7 +169,7 @@ The V1 architecture is clean enough when these statements are true:
 
 ## Short-Term Practical Decision
 
-Do not extend the recent Home-based reliability fix.
+Do not extend the historical Home-based reliability fix.
 
 It was useful because it proved the silent-loss class of bug. But it should be treated as evidence for the refactor:
 

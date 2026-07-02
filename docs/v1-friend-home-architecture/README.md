@@ -9,7 +9,8 @@ The short version:
 - Home should have no role in adding a friend.
 - Profile, Contacts, DM, and Treehole are the main product axis.
 - Home is only a live space after trust, not the social bootstrap.
-- Current V1 code still leaks Home transport into the friend flow. That should be treated as wrong direction, not a production path.
+- Historical V1 code leaked Home transport into the friend flow. That is now
+  quarantined as debug fallback, not a production path.
 
 ## Read Order
 
@@ -38,8 +39,12 @@ The short version:
    - Use this as the full V1 implementation plan.
 
 7. `07-v1-friendship-delivery-next-plan.md`
-   - Current next execution plan after profile-level request and invite delivery landed.
+   - Execution plan that quarantined Home-control fallback and added delivery acknowledgement.
    - Use this before touching Home-control friend bootstrap, request accept, DM invite return, or smoke proof.
+
+8. `08-v1-im-release-next-plan.md`
+   - Current next plan for finishing V1 as a ready private IM product.
+   - Use this before changing Chat, Contacts, Profile, Treehole, Home entry, debug surfaces, or final V1 proof.
 
 ## Core Principle
 
