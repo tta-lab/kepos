@@ -43,18 +43,21 @@ The short version:
    - Use this before touching Home-control friend bootstrap, request accept, DM invite return, or smoke proof.
 
 8. `08-v1-im-release-next-plan.md`
-   - Current next plan for finishing V1 as a ready private IM product.
+   - Prior plan for finishing V1 as a ready private IM product.
    - Use this before changing Chat, Contacts, Profile, Treehole, Home entry, debug surfaces, or final V1 proof.
 
 9. `09-v1-profile-dm-delivery-next-plan.md`
-   - Current delivery and UX plan: Profile/DM are the production social path; Home is explicit live-room entry; direct host:port is debug only.
+   - Prior delivery and UX plan: Profile/DM are the production social path; Home is explicit live-room entry; direct host:port is debug only.
    - Use this before changing friend request delivery, DM delivery, Home entry, direct connection UI, or platform parity.
 
 10. `10-v1-final-product-next-plan.md`
+    - Previous V1 finish plan after the Contacts-first/Profile-DM cleanup pass.
+    - Use this for the pre-`11` source-level cleanup context.
 
-- Active V1 finish plan after the Contacts-first/Profile-DM cleanup pass.
-- Use this before doing remaining V1 product polish, low-cost verification,
-  or final desktop/Android proof.
+11. `11-v1-profile-first-im-next-plan.md`
+    - Active V1 next plan after the Home/add-friend model was rechecked.
+    - Use this as the current source of truth for profile-first IM, Home demotion,
+      production P2P delivery, and final release proof order.
 
 ## Core Principle
 

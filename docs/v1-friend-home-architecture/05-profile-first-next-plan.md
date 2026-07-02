@@ -121,7 +121,7 @@ Current execution note:
 
 - `05` records the route decision.
 - `07` records the Home-control fallback quarantine and delivery-ack work.
-- `08` owns the current V1 IM release completion plan.
+- `11` owns the current V1 profile-first IM completion plan.
 
 The current product behavior is intentionally honest: a request can be queued or searching locally without claiming the other side received it.
 

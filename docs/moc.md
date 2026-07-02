@@ -43,14 +43,14 @@ This is the map of content for Kepos architecture docs.
    Route decision: `docs/v1-friend-home-architecture/05-profile-first-next-plan.md`.
    Full implementation plan: `docs/v1-friend-home-architecture/06-v1-profile-first-implementation-plan.md`.
    Previous delivery cleanup plan: `docs/v1-friend-home-architecture/07-v1-friendship-delivery-next-plan.md`.
-   Current V1 IM release plan: `docs/v1-friend-home-architecture/08-v1-im-release-next-plan.md`.
-   Current delivery and UX next plan: `docs/v1-friend-home-architecture/09-v1-profile-dm-delivery-next-plan.md`.
-   Active V1 final product next plan: `docs/v1-friend-home-architecture/10-v1-final-product-next-plan.md`.
+   Prior V1 IM release plan: `docs/v1-friend-home-architecture/08-v1-im-release-next-plan.md`.
+   Prior delivery and UX next plan: `docs/v1-friend-home-architecture/09-v1-profile-dm-delivery-next-plan.md`.
+   Previous V1 final product next plan: `docs/v1-friend-home-architecture/10-v1-final-product-next-plan.md`.
+   Active V1 profile-first IM next plan: `docs/v1-friend-home-architecture/11-v1-profile-first-im-next-plan.md`.
 
 10. `docs/v1.17-ready-im-completion-plan.md`
-
-- Canonical V1 completion evidence plan and self-review for a ready private IM product on top of P2P infra.
-- Use this as the checklist before starting V2 or calling V1 ready.
+    - Canonical V1 completion evidence plan and self-review for a ready private IM product on top of P2P infra.
+    - Use this as the checklist before starting V2 or calling V1 ready.
 
 11. `docs/v1.20-smoke-guide.md`
     - Desktop and Android manual smoke checklist for V1 parity.
@@ -62,42 +62,49 @@ This is the map of content for Kepos architecture docs.
 
 ## V1 Architecture
 
-1. `docs/v1.02-research-backlog.md`
+1. `docs/v1-friend-home-architecture/11-v1-profile-first-im-next-plan.md`
+   - Active V1 next plan: profile-first private IM, Home as explicit live room,
+     production P2P delivery, and final release proof order.
+   - Use this before changing friend request delivery, Chat/Contacts/Profile
+     UX, Home entry, or release proof.
+
+2. `docs/v1.02-research-backlog.md`
    - Research work that must be complete before implementation.
    - Use this to track library selection and architecture blockers.
 
-2. `docs/v1.03-limitations.md`
+3. `docs/v1.03-limitations.md`
    - What V1 deliberately does not solve.
    - Use this to avoid accidentally expanding scope.
 
-3. `docs/v1.04-tradeoffs.md`
+4. `docs/v1.04-tradeoffs.md`
    - Decisions, rejected options, risks, and future escape hatches.
    - Use this when a design choice is debated.
 
-4. `docs/v1.05-typescript-boundary.md`
+5. `docs/v1.05-typescript-boundary.md`
    - TypeScript boundary for V1 protocol/domain modules versus platform runtime glue.
    - Use this before adding new shared protocol code.
 
-5. `docs/v1.06-identity-security.md`
+6. `docs/v1.06-identity-security.md`
    - Identity, signing, trust, device model, and Keet-grade target.
    - V1 requires real identity signing and verification.
    - V1 does not require seed phrase, device attestation, or multi-device linking.
 
-6. `docs/v1.07-architecture-gaps.md`
+7. `docs/v1.07-architecture-gaps.md`
    - Architecture gaps still blocking V1.
    - Use this as the issue list before implementation.
 
-7. `docs/v1.08-dm-bootstrap-security.md`
+8. `docs/v1.08-dm-bootstrap-security.md`
    - DM invite model, message requests, durable thread, revoke, and bootstrap security.
    - Explicit signed/encrypted invite is the target.
 
-8. `docs/v1.09-treehole-authorization.md`
+9. `docs/v1.09-treehole-authorization.md`
    - Treehole signed events, writer grants, reducer policy, tombstones, and owner/trust rules.
 
-9. `docs/v1.10-qr-code-matching.md`
-   - QR envelope, profile/home/message request payloads, and matching flows.
+10. `docs/v1.10-qr-code-matching.md`
 
-10. `docs/v1.30-kepos-features.html`
+- QR envelope, profile/home/message request payloads, and matching flows.
+
+11. `docs/v1.30-kepos-features.html`
     - Local HTML feature overview.
     - Useful for smoke testing and explaining current features.
 

@@ -1,9 +1,9 @@
 # V1 IM Release Next Plan
 
-This is the current V1 plan after profile-level friend request delivery, invite
+This was the V1 plan after profile-level friend request delivery, invite
 return, Home fallback quarantine, and receiver acknowledgements landed.
 
-The current execution doc is `10-v1-final-product-next-plan.md`. The route
+The current execution doc is `11-v1-profile-first-im-next-plan.md`. The route
 decision remains in `09-v1-profile-dm-delivery-next-plan.md`: Profile/DM
 delivery is the social path, Home is explicit live-room entry, and direct
 host:port is debug only.

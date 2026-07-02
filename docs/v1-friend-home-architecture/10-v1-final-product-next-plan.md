@@ -1,7 +1,11 @@
 # V1 Final Product Next Plan
 
-This is the active next plan for finishing V1 after the Profile/DM route
+This was the active next plan for finishing V1 after the Profile/DM route
 decision and the first UI cleanup pass.
+
+The current execution doc is
+`11-v1-profile-first-im-next-plan.md`, which makes the Home/add-friend split
+explicit and owns the remaining V1 proof order.
 
 The current rule is:
 
