@@ -20,6 +20,7 @@ test('desktop command vocabulary covers the V1 MLP product actions', () => {
     'likeTreehole',
     'markDmThreadRead',
     'postTreehole',
+    'retryOutgoingFriendRequest',
     'revokeContact',
     'sendDmMessage',
     'sendHomeMessage',
