@@ -39,8 +39,8 @@ These rules are not open architecture questions for V1.
 As of 2026-07-03:
 
 - `npm run v1:gate` passed on commit
-  `225ae2048792a3da8494235258af973fdf2b8bf7`.
-- The gate covered lint, typecheck, platform boundaries, 963 Node tests,
+  `3a4ef061b7107d69451399e6d193a5477be8322e`.
+- The gate covered lint, typecheck, platform boundaries, 966 Node tests,
   TypeScript probes, desktop bundles, Android backend Bare bundle, Expo Android
   export, and Android APK native-library checks.
 - `test/final-v1-proof-check.test.js` now rejects misleading proof text such as
