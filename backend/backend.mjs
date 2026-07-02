@@ -748,6 +748,7 @@ async function acceptMessageRequest(payload) {
   })
   await saveBackendDmThread(thread)
   await dmRuntime?.openThread(thread)
+  sendLocalHomeDescriptor(invite.fromProfileId).catch(() => {})
   sendToUI(RPC_DM_THREAD, thread)
 }
 
@@ -806,6 +807,7 @@ async function acceptDmInvite(invite) {
 
   await saveBackendDmThread(thread)
   await dmRuntime?.openThread(thread)
+  sendLocalHomeDescriptor(invite.fromProfileId).catch(() => {})
   sendToUI(RPC_DM_THREAD, thread)
 }
 

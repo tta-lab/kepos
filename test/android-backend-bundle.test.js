@@ -177,6 +177,7 @@ test('android backend trims outgoing text at the RPC boundary', () => {
     acceptDmInvite,
     /outgoingMessageRequestsByProfileId\.delete\(invite\.fromProfileId\)/
   )
+  assert.match(acceptDmInvite, /sendLocalHomeDescriptor\(invite\.fromProfileId\)\.catch/)
   assert.match(canAcceptIncomingDmInvite, /trustedProfileIds\?\.includes\(fromProfileId\)/)
   assert.match(
     canAcceptIncomingDmInvite,

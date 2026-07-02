@@ -269,6 +269,55 @@ test('desktop control actions ignore untrusted profile-delivered Home descriptor
   assert.deepEqual(calls, [])
 })
 
+test('desktop control actions applies pending Home descriptor after DM invite creates trust', async () => {
+  const local = createSigningKeyPair()
+  const remote = createSigningKeyPair()
+  const frame = createProfileHomeDescriptorFrame({
+    descriptor: createSignedHomeAddressPayload({
+      address: 'a'.repeat(64),
+      identity: remote,
+      roomKey: 'a'.repeat(64)
+    }),
+    descriptorId: 'descriptor-1',
+    toProfileId: local.publicKey
+  })
+  const trustedBook = trustContact(createContactBook({ ownerProfileId: local.publicKey }), {
+    alias: 'Remote',
+    profileId: remote.publicKey,
+    source: 'profile_request',
+    trustedAt: 1001
+  })
+  const savedBooks = []
+  const { actions, calls } = createHarness({
+    getProfileContext: () => ({
+      contactBook: savedBooks.at(-1) || createContactBook({ ownerProfileId: local.publicKey }),
+      profile: {
+        dmEncryptionKeyPair: { privateKey: 'dm-private', publicKey: 'dm-public' },
+        id: local.publicKey
+      },
+      saveContactBook(book) {
+        savedBooks.push(book)
+      }
+    })
+  })
+
+  await actions.handleControl(frame, undefined, { source: 'profile' })
+  await actions.handleControl(
+    {
+      fromProfileId: remote.publicKey,
+      nextBook: trustedBook,
+      type: 'kepos.dm.invite.v1'
+    },
+    undefined,
+    { source: 'profile' }
+  )
+
+  const savedContact = savedBooks[0].contactsByProfileId.get(remote.publicKey)
+  assert.equal(savedContact.homeAddress, frame.descriptor.address)
+  assert.equal(savedContact.homeRoomKey, frame.descriptor.roomKey)
+  assert.deepEqual(calls, [['notice', 'Message thread ready.'], ['render']])
+})
+
 test('desktop control actions route profile DM invites through local invite acceptance context', async () => {
   const captured = []
   const context = {

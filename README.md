@@ -133,6 +133,15 @@ Current Android scope:
 - pure text treehole posts
 - writer-key exchange for multiwriter treehole replication
 
+Current V1 social model:
+
+- Profile QR is the normal add-friend path.
+- Friend request, accept, DM bootstrap, and private Chat use profile-to-profile
+  P2P delivery.
+- Home has no role in adding friends; it is an explicit live-room action after
+  trust.
+- Direct host:port is diagnostics only, not a production product route.
+
 Treehole data model:
 
 - `treehole.post.create`

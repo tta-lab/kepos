@@ -480,6 +480,96 @@ test('desktop backend session accepts profile-level requests and returns invites
   assert.deepEqual(homeBroadcasts, [])
 })
 
+test('desktop backend session replies with local Home descriptor after profile DM invite', async () => {
+  const controllerState = createControllerState()
+  const context = createProfileContext()
+  const profileRequestRuntimes = []
+  const local = createSigningKeyPair()
+  const remote = createSigningKeyPair()
+  context.contactBook = {
+    contactsByProfileId: new Map(),
+    outgoingRequestsByProfileId: new Map(),
+    ownerProfileId: local.publicKey,
+    pendingRequestsByProfileId: new Map()
+  }
+  context.profile = {
+    ...context.profile,
+    homeRoom: {
+      ownerProfileId: local.publicKey,
+      policy: 'trusted_only',
+      roomKey: 'd'.repeat(64)
+    },
+    id: local.publicKey,
+    identity: local
+  }
+  context.saveContactBook = (book) => {
+    context.contactBook = book
+  }
+
+  createDesktopBackendSession({
+    controllerState,
+    createId: () => 'thread-1',
+    createProfileRequestRuntime: createFakeProfileRequestRuntimeFactory(profileRequestRuntimes),
+    createLocalBackendHost: () => ({
+      bridge: { label: 'bridge' },
+      dmRuntime: {
+        acceptInviteAsRecipient: (payload) => ({
+          book: {
+            ...payload.contactBook,
+            contactsByProfileId: new Map([
+              [
+                remote.publicKey,
+                {
+                  profileId: remote.publicKey,
+                  source: 'profile_request',
+                  trustedAt: 1000
+                }
+              ]
+            ])
+          }
+        }),
+        getSession: () => controllerState.getDmSession(),
+        loadThreads: () => [],
+        replaceThreads: () => {},
+        start: () => ({ id: 'restored-dm-session', localProfileId: local.publicKey, messages: [] })
+      },
+      homeRuntime: {
+        isJoined: () => false,
+        sendControl() {}
+      },
+      runtime: {
+        closeAll: () => Promise.resolve(),
+        configure: () => {}
+      },
+      treeholeRuntime: { canPost: () => false }
+    }),
+    getCurrentDisplayName: () => 'Desktop',
+    getProfileContext: () => context,
+    onChanged: () => {},
+    setContextFormDraft: () => {},
+    setDirectComposerRecipient: () => {},
+    setNotice: () => {},
+    shortenProfileId: (value) => value.slice(0, 8),
+    storageBasePath: '/user-data/kepos/v1',
+    updateState: (updater) => controllerState.updateState(updater)
+  })
+  await flushAsync()
+
+  profileRequestRuntimes[0].options.onInvite({
+    fromProfileId: remote.publicKey,
+    inviteId: 'invite-1',
+    toProfileId: local.publicKey,
+    type: 'kepos.dm.invite.v1'
+  })
+  await flushAsync()
+  await flushAsync()
+
+  assert.equal(profileRequestRuntimes[0].sent[0].type, 'kepos.profile.home-descriptor.v1')
+  assert.equal(profileRequestRuntimes[0].sent[0].toProfileId, remote.publicKey)
+  assert.equal(profileRequestRuntimes[0].sent[0].descriptor.ownerProfileId, local.publicKey)
+  assert.equal(profileRequestRuntimes[0].sent[0].descriptor.roomKey, 'd'.repeat(64))
+})
+
 test('desktop backend session keeps runtime transport debug in controller state', () => {
   const controllerState = createControllerState()
   const changes = []
@@ -591,7 +681,7 @@ function createFakeProfileRequestRuntimeFactory(runtimes = []) {
       send(request) {
         runtime.sent.push(request)
         options.onDeliveryState?.({
-          requestId: request.requestId,
+          requestId: request.requestId || request.descriptorId,
           state: 'sent',
           toProfileId: request.toProfileId
         })

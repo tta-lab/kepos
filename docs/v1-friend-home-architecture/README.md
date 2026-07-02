@@ -152,9 +152,15 @@ The short version:
       descriptors.
 
 29. `29-v1-profile-delivery-home-demotion-next-plan.md`
-    - Active V1 plan: profile delivery owns social delivery, Profile QR is the
+    - Previous V1 plan: profile delivery owns social delivery, Profile QR is the
       only normal add-friend QR, and Home is only explicit post-trust live
       room/activity space.
+    - Use this for Home demotion context before `30`.
+
+30. `30-v1-profile-only-social-route-next-plan.md`
+    - Active V1 plan: profile-to-profile P2P is the only production social
+      route. Home has no role in adding friends, direct host:port is diagnostics
+      only, and Home entry is explicit after trust.
     - Use this for current V1 work before starting V2.
 
 ## Core Principle

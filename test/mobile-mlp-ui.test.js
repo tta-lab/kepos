@@ -662,11 +662,22 @@ test('mobile Home startup and RPC store avatar media byte controls', async () =>
     /current\?\.outgoingRequestsByProfileId\?\.has\(threadPayload\.remoteProfileId\)/
   )
   assert.match(dmThreadHandler, /acceptOutgoingFriendRequest\(current/)
+  assert.match(dmThreadHandler, /applyPendingProfileHomeDescriptor\(/)
   assert.match(dmThreadHandler, /profileId: threadPayload\.remoteProfileId/)
   assert.match(dmThreadHandler, /createTreeholePolicyFromContactBook\(nextBook\)/)
   assert.match(dmThreadHandler, /contactBookRef\.current = nextBook/)
   assert.match(dmThreadHandler, /syncTreeholePolicy\(nextPolicy\)/)
   assert.match(dmThreadHandler, /saveContactBookToFileSystem/)
+  assert.match(
+    source,
+    /pendingHomeDescriptorFramesRef = useRef\(new Map<string, ProfileHomeDescriptorFrame>\(\)\)/
+  )
+  assert.match(source, /function applyPendingProfileHomeDescriptor\(/)
+  assert.match(source, /function applyProfileHomeDescriptorToBook\(/)
+  assert.match(
+    source,
+    /pendingHomeDescriptorFramesRef\.current\.set\(frame\.descriptor\.ownerProfileId, frame\)/
+  )
 })
 
 test('mobile ContactBook direct writes keep the runtime ref in sync', async () => {

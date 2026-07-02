@@ -66,6 +66,7 @@ import {
   ignoreMessageRequest,
   listBlockedContacts,
   listTrustedContacts,
+  isContactTrusted,
   recordContactHomeDescriptor,
   recordOutgoingFriendRequest,
   recordMessageRequest,
@@ -124,7 +125,10 @@ import { createMobileHomeRoomKey, createMobileMessageId } from '../src/mobile-ru
 import { encodeQrUri } from '../src/signed-qr-payload.ts'
 import { createShareQrPayloads } from '../src/share-qr-service.ts'
 import { readTrustedContactHomeDescriptor } from '../src/signed-qr-scan.ts'
-import { verifyProfileHomeDescriptorFrame } from '../src/profile-home-descriptor-frame.ts'
+import {
+  verifyProfileHomeDescriptorFrame,
+  type ProfileHomeDescriptorFrame
+} from '../src/profile-home-descriptor-frame.ts'
 import { readRpcPayload } from '../src/rpc-payload.ts'
 import { formatProfileFriendAcceptanceDeliveryNotice } from '../src/profile-friend-request-delivery.ts'
 import type { SigningIdentity } from '../src/signed-record.ts'
@@ -301,6 +305,7 @@ export default function App() {
   const rpcRef = useRef<RpcClient | null>(null)
   const workletRef = useRef<WorkletHandle | null>(null)
   const contactBookRef = useRef<ContactBook | null>(null)
+  const pendingHomeDescriptorFramesRef = useRef(new Map<string, ProfileHomeDescriptorFrame>())
   const profileIdRef = useRef<string | null>(null)
   const backendTreeholeOwnerProfileIdRef = useRef('')
   const resolveHomeJoinedRef = useRef<((ready: boolean) => void) | null>(null)
@@ -1205,10 +1210,14 @@ export default function App() {
           return current
         }
 
-        const nextBook = acceptOutgoingFriendRequest(current, {
+        const trustedBook = acceptOutgoingFriendRequest(current, {
           acceptedAt: threadPayload.acceptedAt || Date.now(),
           profileId: threadPayload.remoteProfileId
         })
+        const nextBook = applyPendingProfileHomeDescriptor(
+          trustedBook,
+          threadPayload.remoteProfileId
+        )
         const nextPolicy = createTreeholePolicyFromContactBook(nextBook)
 
         contactBookRef.current = nextBook
@@ -1476,18 +1485,11 @@ export default function App() {
       return
     }
 
-    const descriptor = frame.descriptor
-    let nextBook: ContactBook
-    try {
-      nextBook = recordContactHomeDescriptor(currentBook, {
-        address: descriptor.address,
-        expiresAt: descriptor.expiresAt,
-        ownerProfileId: descriptor.ownerProfileId,
-        policy: descriptor.policy,
-        proof: descriptor.proof,
-        roomKey: descriptor.roomKey
-      })
-    } catch {
+    const nextBook = applyProfileHomeDescriptorToBook(currentBook, frame)
+    if (!nextBook) {
+      if (!isContactTrusted(currentBook, frame.descriptor.ownerProfileId)) {
+        pendingHomeDescriptorFramesRef.current.set(frame.descriptor.ownerProfileId, frame)
+      }
       return
     }
 
@@ -1498,6 +1500,36 @@ export default function App() {
     })
     syncContactBook(nextBook)
     setNotice('Home entry details received.')
+  }
+
+  function applyPendingProfileHomeDescriptor(book: ContactBook, profileId = ''): ContactBook {
+    const pending = pendingHomeDescriptorFramesRef.current.get(profileId)
+    if (!pending) return book
+
+    const nextBook = applyProfileHomeDescriptorToBook(book, pending)
+    if (!nextBook) return book
+
+    pendingHomeDescriptorFramesRef.current.delete(profileId)
+    return nextBook
+  }
+
+  function applyProfileHomeDescriptorToBook(
+    book: ContactBook,
+    frame: ProfileHomeDescriptorFrame
+  ): ContactBook | null {
+    const descriptor = frame.descriptor
+    try {
+      return recordContactHomeDescriptor(book, {
+        address: descriptor.address,
+        expiresAt: descriptor.expiresAt,
+        ownerProfileId: descriptor.ownerProfileId,
+        policy: descriptor.policy,
+        proof: descriptor.proof,
+        roomKey: descriptor.roomKey
+      })
+    } catch {
+      return null
+    }
   }
 
   async function ignoreIncomingMessageRequest(requestInput: unknown) {

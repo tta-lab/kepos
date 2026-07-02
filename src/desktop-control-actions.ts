@@ -1,4 +1,4 @@
-import { recordContactHomeDescriptor, type ContactBook } from './contact-book.ts'
+import { isContactTrusted, recordContactHomeDescriptor, type ContactBook } from './contact-book.ts'
 import {
   verifyProfileHomeDescriptorFrame,
   type ProfileHomeDescriptorFrame
@@ -122,6 +122,8 @@ export function createDesktopControlActions({
   storeAvatarMediaBytesControl?: AvatarMediaBytesControlStore
   shortenProfileId: (profileId?: string) => string
 }): DesktopControlActions {
+  const pendingHomeDescriptorsByProfileId = new Map<string, ProfileHomeDescriptorFrame>()
+
   async function handleControl(
     message: ControlMessage,
     peer?: unknown,
@@ -179,7 +181,9 @@ export function createDesktopControlActions({
       if (!result) return
 
       if (result.book) {
-        getProfileContext().saveContactBook(result.book)
+        getProfileContext().saveContactBook(
+          applyPendingHomeDescriptor(result.book, message.fromProfileId)
+        )
       }
       setNotice('Message thread ready.')
       onChanged()
@@ -191,21 +195,18 @@ export function createDesktopControlActions({
 
       const context = getProfileContext()
       const descriptorFrame = message as ProfileHomeDescriptorFrame
-      const descriptor = descriptorFrame.descriptor
-      try {
-        const nextBook = recordContactHomeDescriptor(context.contactBook, {
-          address: descriptor.address,
-          expiresAt: descriptor.expiresAt,
-          ownerProfileId: descriptor.ownerProfileId,
-          policy: descriptor.policy,
-          proof: descriptor.proof,
-          roomKey: descriptor.roomKey
-        })
+      const nextBook = applyHomeDescriptor(context.contactBook, descriptorFrame)
+      if (nextBook) {
         context.saveContactBook(nextBook)
         setNotice('Home entry details received.')
         onChanged()
-      } catch {
-        // Ignore descriptors from profiles that are not trusted yet.
+      } else if (
+        !isContactTrusted(context.contactBook, descriptorFrame.descriptor.ownerProfileId)
+      ) {
+        pendingHomeDescriptorsByProfileId.set(
+          descriptorFrame.descriptor.ownerProfileId,
+          descriptorFrame
+        )
       }
       return
     }
@@ -288,6 +289,36 @@ export function createDesktopControlActions({
         reference: profile.avatarMedia
       })
     )
+  }
+
+  function applyPendingHomeDescriptor(book: ContactBook, profileId = ''): ContactBook {
+    const pending = pendingHomeDescriptorsByProfileId.get(profileId)
+    if (!pending) return book
+
+    const nextBook = applyHomeDescriptor(book, pending)
+    if (!nextBook) return book
+
+    pendingHomeDescriptorsByProfileId.delete(profileId)
+    return nextBook
+  }
+
+  function applyHomeDescriptor(
+    book: ContactBook,
+    descriptorFrame: ProfileHomeDescriptorFrame
+  ): ContactBook | null {
+    const descriptor = descriptorFrame.descriptor
+    try {
+      return recordContactHomeDescriptor(book, {
+        address: descriptor.address,
+        expiresAt: descriptor.expiresAt,
+        ownerProfileId: descriptor.ownerProfileId,
+        policy: descriptor.policy,
+        proof: descriptor.proof,
+        roomKey: descriptor.roomKey
+      })
+    } catch {
+      return null
+    }
   }
 
   return {

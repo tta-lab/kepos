@@ -1,7 +1,12 @@
 # V1 Profile Delivery And Home Demotion Next Plan
 
-This is the active next plan after
+This was the active next plan after
 `28-v1-profile-delivery-home-independent-next-plan.md`.
+
+It is superseded by
+`30-v1-profile-only-social-route-next-plan.md`, which locks the stricter rule:
+Home has no role in adding friends, and production social delivery is
+profile-to-profile P2P only.
 
 The decision is now stricter than "Home is not required for friend requests":
 Home should have almost no role in the normal IM product path.
@@ -108,7 +113,7 @@ easier.
 - Keep `Home QR` described as advanced/debug.
 - Keep "invite" wording out of add-friend copy unless it means a trusted
   activity/session invite.
-- Keep `AGENTS.md` pointing at this document as the active V1 plan.
+- Keep `AGENTS.md` pointing at the current active V1 plan.
 
 Done means future code work has one source of truth for the V1 product model.
 

@@ -8,6 +8,7 @@ import { createDesktopRoomActions } from './desktop-room-actions.ts'
 import { createDesktopTrustActions } from './desktop-trust-actions.ts'
 import { createDirectRoomTransport } from './direct-room-transport.ts'
 import {
+  createProfileHomeDescriptorFrame,
   createProfileFriendRequestRuntime,
   type ProfileHomeDescriptorFrame,
   type ProfileFriendRequestRuntime
@@ -17,6 +18,7 @@ import { updateOutgoingFriendRequestDeliveryState, type ContactBook } from './co
 import type { MessageRequest } from './message-request.ts'
 import type { DmInvite } from './dm-invite.ts'
 import type { LocalProfile } from './profile.ts'
+import { createSignedHomeAddressPayload } from './signed-qr-payload.ts'
 import {
   createSha256Hex,
   importDesktopProfileAvatarMedia,
@@ -286,6 +288,7 @@ export function createDesktopBackendSession({
       onInvite: (invite) => {
         controlActions
           .handleControl(invite as Record<string, unknown>, undefined, { source: 'profile' })
+          .then(() => sendLocalHomeDescriptor(invite.fromProfileId))
           .catch(onError)
       },
       onHomeDescriptor: (frame) => {
@@ -300,6 +303,31 @@ export function createDesktopBackendSession({
       }
     })
     await profileRequestRuntime.open()
+  }
+
+  async function sendLocalHomeDescriptor(toProfileId = ''): Promise<void> {
+    const { profile } = getProfileContext()
+    const homeRoom = profile?.homeRoom
+    if (!profileRequestRuntime || !profile?.identity || !homeRoom?.roomKey || !toProfileId) {
+      return
+    }
+
+    try {
+      const descriptor = createSignedHomeAddressPayload({
+        address: homeRoom.address || homeRoom.roomKey,
+        identity: profile.identity,
+        policy: homeRoom.policy || 'trusted_only',
+        roomKey: homeRoom.roomKey
+      })
+      await profileRequestRuntime.send(
+        createProfileHomeDescriptorFrame({
+          descriptor,
+          toProfileId
+        })
+      )
+    } catch {
+      // Home entry metadata should not block accepting a DM invite.
+    }
   }
 
   async function closeAllRuntimes(): Promise<unknown[]> {
