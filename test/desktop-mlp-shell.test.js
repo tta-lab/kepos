@@ -825,7 +825,7 @@ test('desktop panes label live and durable surfaces', async () => {
   assert.match(source, /const RAIL_ICONS: Record<ProductSurfaceId, React\.ReactNode> = \{/)
   assert.match(source, /chat: <House size=\{20\} \/>/)
   assert.match(source, /icon=\{RAIL_ICONS\[surface\.id\]\}/)
-  assert.match(source, /Send message/)
+  assert.match(source, /label=\{composerCopy\.sendLabel\}/)
   assert.equal(source.includes('Send DM'), false)
   assert.match(
     source,
@@ -1118,7 +1118,11 @@ test('desktop composers disable unavailable sends', async () => {
     /<ActionButton[\s\S]*className=\{className\}[\s\S]*disabled=\{disabled\}[\s\S]*icon=\{icon\}[\s\S]*id=\{id\}[\s\S]*label=\{label\}[\s\S]*type='submit'/
   )
   assert.match(panes, /<ComposerSubmitButton[\s\S]*id='chatSendButton'[\s\S]*label='Send'/)
-  assert.match(panes, /<ComposerSubmitButton[\s\S]*id='dmSendButton'[\s\S]*label='Send message'/)
+  assert.match(panes, /getDirectChatComposerCopy\(\{[\s\S]*relationshipState/)
+  assert.match(
+    panes,
+    /<ComposerSubmitButton[\s\S]*id='dmSendButton'[\s\S]*label=\{composerCopy\.sendLabel\}/
+  )
   assert.match(panes, /<ComposerSubmitButton[\s\S]*id='treeholeSendButton'[\s\S]*label='Post'/)
   assert.match(presenter, /ui\?\.setControls\(\{/)
   assert.match(

@@ -101,6 +101,12 @@ The reset rule is therefore strict: only the profile relationship state machine
 defines what the user can do. Home, Treehole, Chat, and Contacts are projections
 of that state. They do not invent their own trust rules.
 
+Code size is a symptom, not the root cause. The dangerous part is duplicated
+product ownership: when desktop UI, Android UI, transport glue, and storage each
+decide whether a profile can request, chat, read posts, or enter Home, every UI
+change becomes a partial architecture change. V1 should treat duplicated product
+rules as debt even when the app still runs.
+
 ## Complexity Reset Rule
 
 V1 should now optimize for fewer product truths, not more feature surface.
@@ -126,6 +132,11 @@ What is my relationship with this profile?
 ```
 
 Then the screen derives allowed actions from that answer.
+
+New source work should therefore move product decisions toward shared `src/`
+helpers and view models before polishing platform components. Platform code may
+own layout, touch behavior, keyboard behavior, and native bridge details; it
+should not own the normal social state machine.
 
 ## Keep / Demote / Remove
 
@@ -212,6 +223,9 @@ Current source alignment:
 - Desktop and Android Chat empty-state copy now uses
   `src/direct-chat-empty-copy.ts`, so `request_target` prompts the user to write
   an intro while normal empty Chat keeps trusted-contact guidance.
+- Desktop and Android Chat composer copy now uses
+  `src/direct-chat-composer-copy.ts`, so `request_target` says "Send request"
+  while trusted threads keep normal private-message wording.
 - Desktop and Android Profile detail request actions now call shared
   relationship-state helpers for incoming-request responses and
   removed/ignored recovery instead of branching on raw state strings in
@@ -267,7 +281,7 @@ Current automated evidence:
   the requester enters `outgoing_request`, the owner enters `incoming_request`,
   accept creates mutual trust and accepted Chat threads, Treehole grants follow
   the trusted policy, and Home entry becomes available only after trust.
-- Latest focused source-reset gate passed with 133 tests covering Android
+- Latest focused source-reset gate passed with 161 tests covering Android
   selected Profile projection, direct Chat empty copy, desktop renderer
   structure, relationship-state helpers, and docs current-state checks.
 - `npm run lint` passed after the same source-reset work; this includes

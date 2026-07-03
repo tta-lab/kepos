@@ -3,6 +3,7 @@ import type { StyleProp, TextStyle, ViewStyle } from 'react-native'
 import { FlatList, ScrollView, TextInput, View } from 'react-native'
 import { Plus, Users } from 'lucide-react-native'
 import { getDirectChatEmptyCopy } from '../src/direct-chat-empty-copy.ts'
+import { getDirectChatComposerCopy } from '../src/direct-chat-composer-copy.ts'
 import {
   createDmThreadListView,
   filterDirectMessagesForProfile,
@@ -168,6 +169,10 @@ export function DirectPane({
   const emptyMessageCopy = getDirectChatEmptyCopy({
     relationshipState: requestTarget?.relationshipState
   })
+  const composerCopy = getDirectChatComposerCopy({
+    relationshipState: requestTarget?.relationshipState,
+    threadLabel: selectedThread?.label
+  })
 
   return (
     <View style={styles.directPane}>
@@ -291,9 +296,7 @@ export function DirectPane({
           <TextInput
             onChangeText={onDraftChange}
             onSubmitEditing={onSend}
-            placeholder={
-              selectedThread?.label ? `Message ${selectedThread.label}` : 'Write a message'
-            }
+            placeholder={composerCopy.placeholder}
             placeholderTextColor={theme.placeholder}
             returnKeyType='send'
             style={styles.messageInput}
@@ -301,7 +304,7 @@ export function DirectPane({
             value={draft}
           />
           <MobileSendButton
-            accessibilityLabel='Send message'
+            accessibilityLabel={composerCopy.sendLabel}
             disabled={!draft.trim() || !recipient.trim()}
             onPress={onSend}
             styles={styles}

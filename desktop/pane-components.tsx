@@ -8,6 +8,7 @@ import {
   RequestActionButton
 } from './ui-components.tsx'
 import { getDirectChatEmptyCopy } from '../src/direct-chat-empty-copy.ts'
+import { getDirectChatComposerCopy } from '../src/direct-chat-composer-copy.ts'
 import { filterDirectMessagesForProfile, findSelectedDmThreadView } from '../src/dm-thread-list.ts'
 import type { ProfileRelationshipState } from '../src/profile-relationship-state.ts'
 
@@ -260,6 +261,7 @@ export function DirectPane({
         contactPickerActions={contactPickerActions}
         controls={controls}
         hasRequestTarget={hasRequestTarget}
+        relationshipState={requestTarget?.relationshipState}
         selectedThread={selectedThread}
         setComposer={setComposer}
       />
@@ -545,6 +547,7 @@ function DirectComposer({
   contactPickerActions,
   controls,
   hasRequestTarget,
+  relationshipState,
   selectedThread,
   setComposer
 }: {
@@ -554,9 +557,14 @@ function DirectComposer({
   contactPickerActions: DirectContactPickerActions
   controls: ControlsView
   hasRequestTarget: boolean
+  relationshipState?: ProfileRelationshipState
   selectedThread: DirectThreadView | null
   setComposer: ComposerSetter
 }) {
+  const composerCopy = getDirectChatComposerCopy({
+    relationshipState,
+    threadLabel: selectedThread?.label
+  })
   const canSend =
     controls.canUseDirectComposer &&
     Boolean(composer.text.trim()) &&
@@ -620,9 +628,7 @@ function DirectComposer({
       <textarea
         id='dmInput'
         className='textarea textarea-bordered min-h-24 w-full resize-y bg-base-100 text-base-content'
-        placeholder={
-          selectedThread?.label ? `Message ${selectedThread.label}` : 'Write a private message'
-        }
+        placeholder={composerCopy.placeholder}
         value={composer.text}
         onChange={(event) => setComposer((current) => ({ ...current, text: event.target.value }))}
       />
@@ -630,7 +636,7 @@ function DirectComposer({
         disabled={!canSend}
         icon={<Send size={17} />}
         id='dmSendButton'
-        label='Send message'
+        label={composerCopy.sendLabel}
       />
     </form>
   )

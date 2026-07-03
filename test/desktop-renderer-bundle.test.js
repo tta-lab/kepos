@@ -602,8 +602,10 @@ test('desktop React owns the direct message composer draft and recipient', async
   assert.match(source, /<DirectComposer[\s\S]*selectedThread=\{selectedThread\}/)
   assert.match(
     source,
-    /selectedThread\?\.label \? `Message \$\{selectedThread\.label\}` : 'Write a private message'/
+    /<DirectComposer[\s\S]*relationshipState=\{requestTarget\?\.relationshipState\}/
   )
+  assert.match(source, /getDirectChatComposerCopy\(\{[\s\S]*relationshipState/)
+  assert.match(source, /placeholder=\{composerCopy\.placeholder\}/)
   assert.match(source, /value=\{composer\.text\}/)
   assert.match(controller, /createDesktopUiActionBindings/)
   assert.doesNotMatch(controller, /dmForm: document\.querySelector/)
