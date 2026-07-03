@@ -825,7 +825,7 @@ test('desktop panes label live and durable surfaces', async () => {
   assert.match(source, /const RAIL_ICONS: Record<ProductSurfaceId, React\.ReactNode> = \{/)
   assert.match(source, /chat: <House size=\{20\} \/>/)
   assert.match(source, /icon=\{RAIL_ICONS\[surface\.id\]\}/)
-  assert.match(source, /label=\{composerCopy\.sendLabel\}/)
+  assert.match(source, /label=\{composerState\.sendLabel\}/)
   assert.equal(source.includes('Send DM'), false)
   assert.match(
     source,
@@ -1118,10 +1118,10 @@ test('desktop composers disable unavailable sends', async () => {
     /<ActionButton[\s\S]*className=\{className\}[\s\S]*disabled=\{disabled\}[\s\S]*icon=\{icon\}[\s\S]*id=\{id\}[\s\S]*label=\{label\}[\s\S]*type='submit'/
   )
   assert.match(panes, /<ComposerSubmitButton[\s\S]*id='chatSendButton'[\s\S]*label='Send'/)
-  assert.match(panes, /getDirectChatComposerCopy\(\{[\s\S]*relationshipState/)
+  assert.match(panes, /createDirectChatComposerState\(\{[\s\S]*relationshipState/)
   assert.match(
     panes,
-    /<ComposerSubmitButton[\s\S]*id='dmSendButton'[\s\S]*label=\{composerCopy\.sendLabel\}/
+    /<ComposerSubmitButton[\s\S]*id='dmSendButton'[\s\S]*label=\{composerState\.sendLabel\}/
   )
   assert.match(panes, /<ComposerSubmitButton[\s\S]*id='treeholeSendButton'[\s\S]*label='Post'/)
   assert.match(presenter, /ui\?\.setControls\(\{/)
@@ -1132,8 +1132,9 @@ test('desktop composers disable unavailable sends', async () => {
   assert.match(panes, /<ComposerSubmitButton[\s\S]*disabled=\{!canSend\}/)
   assert.match(
     source,
-    /const canSend =[\s\S]*controls\.canUseDirectComposer &&[\s\S]*Boolean\(composer\.text\.trim\(\)\) &&[\s\S]*Boolean\(composer\.toProfileId\.trim\(\)\)/
+    /createDirectChatComposerState\(\{[\s\S]*enabled: controls\.canUseDirectComposer/
   )
+  assert.match(panes, /<ComposerSubmitButton[\s\S]*disabled=\{!composerState\.canSend\}/)
   assert.match(source, /const canPost = controls\.canPostTreehole && Boolean\(draft\.trim\(\)\)/)
   assert.match(panes, /<ComposerSubmitButton[\s\S]*disabled=\{!canPost\}/)
   assert.match(presenter, /canUseHomeChatComposer: inRoom/)

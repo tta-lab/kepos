@@ -646,8 +646,11 @@ test('Android icon-only buttons expose accessible labels', async () => {
     assert.match(source, new RegExp(`accessibilityLabel=['"]${label}['"]`), `${label} is missing`)
   }
 
-  assert.match(source, /const composerCopy = getDirectChatComposerCopy\(\{[\s\S]*relationshipState/)
-  assert.match(source, /accessibilityLabel=\{composerCopy\.sendLabel\}/)
+  assert.match(
+    source,
+    /const composerState = createDirectChatComposerState\(\{[\s\S]*relationshipState/
+  )
+  assert.match(source, /accessibilityLabel=\{composerState\.sendLabel\}/)
 })
 
 test('Android room tabs use product labels', async () => {

@@ -315,8 +315,9 @@ test('desktop React owns action and composer disabled state', async () => {
   assert.match(source, /disabled=\{!canSend\}/)
   assert.match(
     source,
-    /const canSend =[\s\S]*controls\.canUseDirectComposer &&[\s\S]*Boolean\(composer\.text\.trim\(\)\) &&[\s\S]*Boolean\(composer\.toProfileId\.trim\(\)\)/
+    /createDirectChatComposerState\(\{[\s\S]*enabled: controls\.canUseDirectComposer/
   )
+  assert.match(source, /disabled=\{!composerState\.canSend\}/)
   assert.match(source, /const canPost = controls\.canPostTreehole && Boolean\(draft\.trim\(\)\)/)
   assert.match(source, /disabled=\{!canPost\}/)
   assert.match(
@@ -592,8 +593,9 @@ test('desktop React owns the direct message composer draft and recipient', async
   assert.match(source, /setDirectComposerRecipient\(toProfileId = ''\)/)
   assert.match(
     source,
-    /const canSend =[\s\S]*controls\.canUseDirectComposer &&[\s\S]*Boolean\(composer\.text\.trim\(\)\) &&[\s\S]*Boolean\(composer\.toProfileId\.trim\(\)\)/
+    /createDirectChatComposerState\(\{[\s\S]*enabled: controls\.canUseDirectComposer/
   )
+  assert.match(source, /disabled=\{!composerState\.canSend\}/)
   assert.match(
     source,
     /actions\.sendDirectMessage\(\{\s*text: composer\.text\.trim\(\),\s*toProfileId: composer\.toProfileId\.trim\(\)\s*\}\)/
@@ -604,8 +606,8 @@ test('desktop React owns the direct message composer draft and recipient', async
     source,
     /<DirectComposer[\s\S]*relationshipState=\{requestTarget\?\.relationshipState\}/
   )
-  assert.match(source, /getDirectChatComposerCopy\(\{[\s\S]*relationshipState/)
-  assert.match(source, /placeholder=\{composerCopy\.placeholder\}/)
+  assert.match(source, /createDirectChatComposerState\(\{[\s\S]*relationshipState/)
+  assert.match(source, /placeholder=\{composerState\.placeholder\}/)
   assert.match(source, /value=\{composer\.text\}/)
   assert.match(controller, /createDesktopUiActionBindings/)
   assert.doesNotMatch(controller, /dmForm: document\.querySelector/)

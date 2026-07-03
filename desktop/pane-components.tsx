@@ -8,7 +8,7 @@ import {
   RequestActionButton
 } from './ui-components.tsx'
 import { getDirectChatEmptyCopy } from '../src/direct-chat-empty-copy.ts'
-import { getDirectChatComposerCopy } from '../src/direct-chat-composer-copy.ts'
+import { createDirectChatComposerState } from '../src/direct-chat-composer-state.ts'
 import { filterDirectMessagesForProfile, findSelectedDmThreadView } from '../src/dm-thread-list.ts'
 import type { ProfileRelationshipState } from '../src/profile-relationship-state.ts'
 
@@ -561,14 +561,13 @@ function DirectComposer({
   selectedThread: DirectThreadView | null
   setComposer: ComposerSetter
 }) {
-  const composerCopy = getDirectChatComposerCopy({
+  const composerState = createDirectChatComposerState({
+    draft: composer.text,
+    enabled: controls.canUseDirectComposer,
+    recipientProfileId: composer.toProfileId,
     relationshipState,
     threadLabel: selectedThread?.label
   })
-  const canSend =
-    controls.canUseDirectComposer &&
-    Boolean(composer.text.trim()) &&
-    Boolean(composer.toProfileId.trim())
 
   function setRecipient(toProfileId: string) {
     setComposer((current) => ({ ...current, toProfileId }))
@@ -582,7 +581,7 @@ function DirectComposer({
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!canSend) return
+    if (!composerState.canSend) return
 
     actions.sendDirectMessage({
       text: composer.text.trim(),
@@ -628,15 +627,15 @@ function DirectComposer({
       <textarea
         id='dmInput'
         className='textarea textarea-bordered min-h-24 w-full resize-y bg-base-100 text-base-content'
-        placeholder={composerCopy.placeholder}
+        placeholder={composerState.placeholder}
         value={composer.text}
         onChange={(event) => setComposer((current) => ({ ...current, text: event.target.value }))}
       />
       <ComposerSubmitButton
-        disabled={!canSend}
+        disabled={!composerState.canSend}
         icon={<Send size={17} />}
         id='dmSendButton'
-        label={composerCopy.sendLabel}
+        label={composerState.sendLabel}
       />
     </form>
   )

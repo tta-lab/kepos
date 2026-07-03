@@ -1111,10 +1111,11 @@ test('mobile messages can show thread rows and scanned profile request targets',
   assert.match(directPane, /<DirectThreadHeader[\s\S]*styles=\{styles\}/)
   assert.match(
     directPane,
-    /const composerCopy = getDirectChatComposerCopy\(\{[\s\S]*relationshipState/
+    /const composerState = createDirectChatComposerState\(\{[\s\S]*relationshipState/
   )
-  assert.match(directPane, /placeholder=\{composerCopy\.placeholder\}/)
-  assert.match(directPane, /accessibilityLabel=\{composerCopy\.sendLabel\}/)
+  assert.match(directPane, /placeholder=\{composerState\.placeholder\}/)
+  assert.match(directPane, /accessibilityLabel=\{composerState\.sendLabel\}/)
+  assert.match(directPane, /disabled=\{!composerState\.canSend\}/)
   assert.doesNotMatch(source, /function DirectThreadHeader\(/)
   assert.doesNotMatch(source, /function MessageThreadList\(/)
   assert.match(threadComponents, /export type MessageThreadListProps = \{/)

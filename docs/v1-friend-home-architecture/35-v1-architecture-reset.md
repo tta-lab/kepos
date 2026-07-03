@@ -226,6 +226,9 @@ Current source alignment:
 - Desktop and Android Chat composer copy now uses
   `src/direct-chat-composer-copy.ts`, so `request_target` says "Send request"
   while trusted threads keep normal private-message wording.
+- Desktop and Android Chat composer availability now uses
+  `src/direct-chat-composer-state.ts`, so placeholder text, send label, and
+  enabled state are derived together before platform components render buttons.
 - Desktop and Android Profile QR request-target selection now uses
   `src/profile-request-target-selection.ts`. Scan and paste handlers still own
   platform work such as reading QR text, clearing inputs, and opening Chat, but
@@ -288,7 +291,7 @@ Current code evidence:
 
 Current automated evidence:
 
-- Full source suite passed with 1030 tests after the reset cleanup.
+- Full source suite passed with 1033 tests after the reset cleanup.
 - `test/v1-model-smoke.test.js` now includes the exact Profile-first reset
   flow: Profile QR becomes `request_target`, Chat sends a signed friend request,
   the requester enters `outgoing_request`, the owner enters `incoming_request`,
