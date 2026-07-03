@@ -261,6 +261,7 @@ Current code evidence:
 
 Current automated evidence:
 
+- Full source suite passed with 1015 tests after the reset cleanup.
 - Latest focused source-reset gate passed with 133 tests covering Android
   selected Profile projection, direct Chat empty copy, desktop renderer
   structure, relationship-state helpers, and docs current-state checks.
