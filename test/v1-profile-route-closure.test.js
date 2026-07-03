@@ -190,6 +190,59 @@ test('V1 Profile detail recent posts do not require Home entry', async () => {
   assert.doesNotMatch(recentPostsViewModel, /homeReady|homeRoomKey|enterHome|Home entry/)
 })
 
+test('V1 desktop and Android UI consume shared relationship action models', async () => {
+  const desktopPeople = await readText('../desktop/people-components.tsx')
+  const mobileProfile = await readText('../mobile/profile-components.tsx')
+  const desktopTrustActions = await readText('../src/desktop-trust-actions.ts')
+  const mobileApp = await readText('../mobile/App.tsx')
+  const relationshipState = await readText('../src/profile-relationship-state.ts')
+  const requestTargetSelection = await readText('../src/profile-request-target-selection.ts')
+  const profileDetailActions = await readText('../src/profile-detail-actions.ts')
+
+  const desktopProfileDetail = sliceBetween(
+    desktopPeople,
+    'function ContactProfileDetail',
+    'function ProfileAvatar'
+  )
+  const mobileProfileDetail = sliceBetween(
+    mobileProfile,
+    'export function ContactProfileDetail',
+    'function getMobileAvatarToneStyle'
+  )
+  const mobileChooseProfileRequestTarget = sliceBetween(
+    mobileApp,
+    'function chooseProfileRequestTarget',
+    'async function revokeTrustedContact'
+  )
+  const desktopPrepareProfileRequestTarget = sliceBetween(
+    desktopTrustActions,
+    'function prepareProfileRequestTarget',
+    'function allowContactRequests'
+  )
+
+  assert.match(relationshipState, /export type ProfileRelationshipState/)
+  assert.match(requestTargetSelection, /createFriendRequestTargetViewModel/)
+  assert.match(profileDetailActions, /canRespondToFriendRequestForRelationshipState/)
+  assert.match(profileDetailActions, /canAllowRequestsForRelationshipState/)
+
+  assert.match(desktopProfileDetail, /createProfileDetailActions\(/)
+  assert.match(mobileProfileDetail, /createProfileDetailActions\(/)
+  assert.match(desktopPrepareProfileRequestTarget, /createProfileRequestTargetSelection\(/)
+  assert.match(mobileChooseProfileRequestTarget, /createProfileRequestTargetSelection\(/)
+
+  for (const platformUi of [
+    desktopProfileDetail,
+    mobileProfileDetail,
+    desktopPrepareProfileRequestTarget,
+    mobileChooseProfileRequestTarget
+  ]) {
+    assert.doesNotMatch(
+      platformUi,
+      /relationshipState\s*[!=]==|\.relationshipState\s*[!=]==|case 'request_target'|case 'outgoing_request'|case 'incoming_request'|case 'trusted'|case 'ignored'|case 'removed'/
+    )
+  }
+})
+
 test('V1 visible social wording keeps protocol terms out of the normal path', async () => {
   const desktopContext = await readText('../desktop/context-components.tsx')
   const desktopPanes = await readText('../desktop/pane-components.tsx')
