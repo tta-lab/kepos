@@ -152,13 +152,18 @@ Current code evidence:
   Enter Home remains disabled until trust exists.
 - Desktop and Android Chat hide misleading zero-thread or zero-contact blockers
   when the selected recipient is a scanned request target.
+- Desktop and Android selected Profile projection now flows through shared
+  source-level helpers: relationship state inference,
+  request-target profile projection, recent-post projection, and ordered
+  selected-profile source matching all live in `src/`.
 
 Current automated evidence:
 
-- `npm test` passed with 998 tests after centralizing relationship-state
-  inference.
-- `npm run lint` passed after the same change; this includes typecheck and
-  platform-boundary checks.
+- Latest focused source-reset gate passed with 195 tests covering desktop and
+  Android Profile selection, source matching, Profile route closure, renderer
+  structure, and docs current-state checks.
+- `npm run lint` passed after the same source-reset work; this includes
+  typecheck and platform-boundary checks.
 - Focused model/UI tests cover profile relationship state, friend request target
   view models, contact profile view models, desktop Contacts, desktop Chat, and
   Android Chat/Contacts source structure.
