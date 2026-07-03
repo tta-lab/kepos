@@ -71,8 +71,6 @@ Required projections:
 - That composer must be reachable even when the user has zero contacts.
 - Sending from that composer creates a friend request and moves the relation to
   `outgoing_request`.
-- Until the dedicated composer is implemented on both platforms, Chat may keep
-  the compatibility request composer path as a proof of the same state machine.
 - Contacts and Chat rows must open the same Profile detail for a profile.
 - `trusted` shows Message as the primary action.
 - `Enter Home` is visible only as an explicit post-trust action.
@@ -147,8 +145,6 @@ Keep in V1 normal UI:
 - Profile QR as the social entry point.
 - Friend request target preview after scan or paste.
 - Dedicated friend request composer for `request_target`.
-- Temporary Chat composer compatibility for `request_target` only while the
-  dedicated composer is being implemented.
 - Incoming and outgoing friend request states.
 - Trusted contact Profile detail.
 - Durable Chat thread list and message view.
@@ -198,10 +194,10 @@ Work queue:
    availability.
 2. Move one duplicated decision at a time into shared model helpers or view
    models, then update both platforms to consume that model.
-3. Move `request_target` send UX from "find the Chat composer" to a dedicated
-   friend request dialog/sheet on both platforms. The dialog owns the intro
-   text, send action, pending result, and cancel path; Chat becomes the durable
-   thread surface after the request is sent or accepted.
+3. Keep `request_target` send UX in the dedicated friend request composer on
+   both platforms. The composer owns the intro text, send action, and pending
+   result; Chat becomes the durable thread surface after the request is sent or
+   accepted.
 4. Keep the default screen hierarchy aligned with the V1 product model:
 
    ```text
@@ -247,12 +243,13 @@ Current source alignment:
 - Desktop and Android Chat empty-state copy now uses
   `src/direct-chat-empty-copy.ts`, so `request_target` prompts the user to write
   an intro while normal empty Chat keeps trusted-contact guidance.
-- Desktop and Android Chat composer copy now uses
-  `src/direct-chat-composer-copy.ts`, so `request_target` says "Send request"
-  while trusted threads keep normal private-message wording.
-- This Chat composer request path is now a compatibility proof path. The target
-  product interaction is a dedicated friend request composer dialog/sheet after
-  Profile QR scan, with Chat kept for durable threads.
+- Desktop and Android keep the normal Chat composer copy in
+  `src/direct-chat-composer-copy.ts`, while scanned `request_target` sends are
+  handled by the dedicated friend request composer.
+- Desktop and Android request-target sends now use
+  `src/friend-request-composer-state.ts`, so visibility, normalized intro text,
+  send availability, and request-copy are derived before platform components
+  render the focused composer.
 - Desktop and Android Chat composer availability now uses
   `src/direct-chat-composer-state.ts`, so placeholder text, send label, and
   enabled state are derived together before platform components render buttons.
@@ -301,8 +298,9 @@ Current source alignment:
 1. Keep this document as the current V1 architecture contract.
 2. Keep shared relationship state names and helpers in `src/`.
 3. Keep desktop and Android view models consuming those shared states.
-4. Keep Chat treating `request_target` as a stable composer path on mobile and
-   desktop.
+4. Keep Chat as the selected surface after a Profile QR scan, but keep
+   `request_target` sends in the dedicated friend request composer on mobile
+   and desktop.
 5. Prove the previously failing release state before spending time on full
    physical smoke.
 
