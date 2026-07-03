@@ -984,6 +984,10 @@ test('Android people pane keeps visible empty states', async () => {
     new URL('../mobile/people-components.tsx', import.meta.url),
     'utf8'
   )
+  const mobileProfileSelection = await readFile(
+    new URL('../src/mobile-contact-profile-selection.ts', import.meta.url),
+    'utf8'
+  )
   const messageRequestManager = sliceBetween(
     requestComponents,
     'function MessageRequestManager(',
@@ -992,7 +996,7 @@ test('Android people pane keeps visible empty states', async () => {
   const contactManager = sliceBetween(
     peopleComponents,
     'function ContactManager(',
-    'function toRequestTargetProfileInput('
+    'function formatRecentPostTime('
   )
   const contactProfileDetail = sliceBetween(
     source,
@@ -1006,7 +1010,7 @@ test('Android people pane keeps visible empty states', async () => {
   assert.match(contactManager, /No contacts yet/)
   assert.match(contactManager, /Accepted friends will appear here as contacts\./)
   assert.equal(/return null/.test(contactManager), false)
-  assert.match(source, /from '\.\.\/src\/request-target-profile-view-model\.ts'/)
+  assert.match(mobileProfileSelection, /from '\.\/request-target-profile-view-model\.ts'/)
   assert.doesNotMatch(source, /function createRequestTargetProfileViewModel\(/)
   assert.match(contactProfileDetail, /if \(!profile\) return null/)
 })

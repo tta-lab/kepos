@@ -26,6 +26,13 @@ async function readMobilePeopleComponentsSource() {
   return await readFile(new URL('../mobile/people-components.tsx', import.meta.url), 'utf8')
 }
 
+async function readMobileContactProfileSelectionSource() {
+  return await readFile(
+    new URL('../src/mobile-contact-profile-selection.ts', import.meta.url),
+    'utf8'
+  )
+}
+
 async function readMobileMessageComponentsSource() {
   return await readFile(new URL('../mobile/message-components.tsx', import.meta.url), 'utf8')
 }
@@ -771,10 +778,11 @@ test('mobile direct contact chips and revoke actions expose trust state', async 
   const roomComponents = await readMobileRoomComponentsSource()
   const directComponents = await readMobileDirectComponentsSource()
   const peopleComponents = await readMobilePeopleComponentsSource()
+  const selectionModel = await readMobileContactProfileSelectionSource()
   const requestComponents = await readMobileRequestComponentsSource()
   const contactManager = peopleComponents.slice(
     peopleComponents.indexOf('function ContactManager('),
-    peopleComponents.indexOf('function withMobileProfileRecentPosts(')
+    peopleComponents.indexOf('function formatRecentPostTime(')
   )
   const outgoingRequestManager = requestComponents.slice(
     requestComponents.indexOf('function OutgoingRequestManager('),
@@ -862,11 +870,11 @@ test('mobile direct contact chips and revoke actions expose trust state', async 
   assert.doesNotMatch(trustedContactRows, /label=\{profile\.revokeLabel\}/)
   assert.doesNotMatch(trustedContactRows, /profile\.recentTitle/)
   assert.match(trustedContactRows, /createContactProfileViewModel\(/)
-  assert.match(peopleComponents, /createProfileRecentPostsViewModel\(/)
+  assert.match(selectionModel, /createProfileRecentPostsViewModel\(/)
   assert.match(contactManager, /activeHomeOwnerProfileId/)
   assert.match(contactManager, /treeholePosts/)
   assert.match(source, /profileRecentPostCache/)
-  assert.match(peopleComponents, /cachedPostsByProfileId: profileRecentPostCache/)
+  assert.match(selectionModel, /cachedPostsByProfileId: profileRecentPostCache/)
   assert.doesNotMatch(trustedContactRows, /profile\.recentPosts/)
   assert.match(trustedContactRows, /<MobileProfileAvatar avatar=\{profile\.avatar\}/)
   assert.doesNotMatch(trustedContactRows, /profile\.recentCopy/)
@@ -992,6 +1000,7 @@ test('mobile messages can show thread rows and scanned profile request targets',
   const roomComponents = await readMobileRoomComponentsSource()
   const directComponents = await readMobileDirectComponentsSource()
   const peopleComponents = await readMobilePeopleComponentsSource()
+  const selectionModel = await readMobileContactProfileSelectionSource()
   const profileComponents = await readMobileProfileComponentsSource()
   const threadComponents = await readMobileThreadComponentsSource()
   const directPane = directComponents.slice(directComponents.indexOf('function DirectPane('))
@@ -1146,7 +1155,7 @@ test('mobile messages can show thread rows and scanned profile request targets',
     roomComponents,
     /onOpenProfile=\{\(contactProfileId\) => \{[\s\S]*onContactProfileTargetChange\(contactProfileId\)[\s\S]*onTabChange\('people'\)/
   )
-  assert.match(peopleComponents, /createRequestTargetProfileViewModel\(/)
+  assert.match(selectionModel, /createRequestTargetProfileViewModel\(/)
 })
 
 test('mobile Chat and Contacts share one profile detail route', async () => {
@@ -1177,9 +1186,10 @@ test('mobile Chat and Contacts share one profile detail route', async () => {
     peopleComponents.indexOf('export function PeopleActions('),
     peopleComponents.indexOf('export type ContactManagerProps')
   )
+  const selectionModel = await readMobileContactProfileSelectionSource()
   const contactManager = peopleComponents.slice(
     peopleComponents.indexOf('function ContactManager('),
-    peopleComponents.indexOf('function createMobileRequestProfile(')
+    peopleComponents.indexOf('function formatRecentPostTime(')
   )
   const contactProfileDetail = profileComponents.slice(
     profileComponents.indexOf('function ContactProfileDetail('),
@@ -1210,13 +1220,12 @@ test('mobile Chat and Contacts share one profile detail route', async () => {
     peopleActions,
     /<ContactManager[\s\S]*onSelectedProfileChange=\{onSelectedProfileChange\}/
   )
-  assert.match(contactManager, /const selectedContact = \(contacts \|\| \[\]\)\.find/)
-  assert.match(contactManager, /const selectedPendingRequest = \(pendingRequests \|\| \[\]\)\.find/)
-  assert.match(
-    contactManager,
-    /const selectedOutgoingRequest = \(outgoingRequests \|\| \[\]\)\.find/
-  )
-  assert.match(contactManager, /const selectedBlockedContact = \(blockedContacts \|\| \[\]\)\.find/)
+  assert.match(contactManager, /createMobileSelectedContactProfileViewModel\(/)
+  assert.match(contactManager, /selectedProfileId/)
+  assert.match(selectionModel, /const selectedContact = contacts\.find/)
+  assert.match(selectionModel, /const selectedPendingRequest = pendingRequests\.find/)
+  assert.match(selectionModel, /const selectedOutgoingRequest = outgoingRequests\.find/)
+  assert.match(selectionModel, /const selectedBlockedContact = blockedContacts\.find/)
   assert.match(contactManager, /<ContactProfileDetail[\s\S]*profile=\{selectedProfile\}/)
   assert.match(contactProfileDetail, /label=\{profile\.messageLabel\}/)
   assert.match(contactProfileDetail, /label=\{profile\.enterHomeLabel\}/)
@@ -1232,7 +1241,7 @@ test('mobile small trust and treehole actions share one icon button component', 
   const profileComponents = await readMobileProfileComponentsSource()
   const contactManager = peopleComponents.slice(
     peopleComponents.indexOf('function ContactManager('),
-    peopleComponents.indexOf('function withMobileProfileRecentPosts(')
+    peopleComponents.indexOf('function formatRecentPostTime(')
   )
   const contactProfileDetail = profileComponents.slice(
     profileComponents.indexOf('function ContactProfileDetail('),
@@ -1386,12 +1395,13 @@ test('mobile Home bar shows the current Home owner context', async () => {
 test('mobile contacts expose removed and ignored profiles', async () => {
   const source = await readMobileSource()
   const peopleComponents = await readMobilePeopleComponentsSource()
+  const selectionModel = await readMobileContactProfileSelectionSource()
   const contactManager = peopleComponents.slice(
     peopleComponents.indexOf('function ContactManager('),
-    peopleComponents.indexOf('function withMobileProfileRecentPosts(')
+    peopleComponents.indexOf('function formatRecentPostTime(')
   )
 
-  assert.match(peopleComponents, /from '\.\.\/src\/request-target-profile-view-model\.ts'/)
+  assert.match(selectionModel, /from '\.\/request-target-profile-view-model\.ts'/)
   assert.doesNotMatch(source, /function createRequestTargetProfileViewModel\(/)
   assert.match(source, /allowContactRequests/)
   assert.match(source, /listBlockedContacts/)
@@ -1411,7 +1421,7 @@ test('mobile contacts expose removed and ignored profiles', async () => {
   assert.match(contactManager, /icon=\{ShieldOff\}/)
   assert.match(contactManager, /label='Allow requests'/)
   assert.match(contactManager, /onAllowContactRequests\(contact\.profileId\)/)
-  assert.match(contactManager, /canAllowRequests: true/)
+  assert.match(selectionModel, /canAllowRequests: true/)
 })
 
 test('mobile request sent state is derived from restored contact book', async () => {

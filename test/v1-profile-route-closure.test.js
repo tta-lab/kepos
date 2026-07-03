@@ -142,7 +142,7 @@ test('V1 Profile detail recent posts do not require Home entry', async () => {
   const desktopPeople = await readText('../desktop/people-components.tsx')
   const desktopAppState = await readText('../desktop/app-state.ts')
   const mobileProfile = await readText('../mobile/profile-components.tsx')
-  const mobilePeople = await readText('../mobile/people-components.tsx')
+  const mobileProfileSelection = await readText('../src/mobile-contact-profile-selection.ts')
   const recentPostsViewModel = await readText('../src/profile-recent-posts-view-model.ts')
 
   const desktopProfileDetail = sliceBetween(
@@ -170,11 +170,11 @@ test('V1 Profile detail recent posts do not require Home entry', async () => {
     '<View style={styles.contactRecent}>',
     '<View style={styles.contactIdentity}>'
   )
-  const mobileProfileMapping = sliceBetween(
-    mobilePeople,
-    'function withMobileProfileRecentPosts',
-    'function toRequestTargetProfileInput'
+  const mobileProfileMappingStart = mobileProfileSelection.indexOf(
+    'function withMobileProfileRecentPosts'
   )
+  assert.notEqual(mobileProfileMappingStart, -1, 'missing mobile profile recent-post mapping')
+  const mobileProfileMapping = mobileProfileSelection.slice(mobileProfileMappingStart)
 
   assert.match(desktopRecentPosts, /profile\.recentPosts/)
   assert.doesNotMatch(desktopRecentPosts, /enterContactHome|Refresh posts|Home entry|Home QR/)
