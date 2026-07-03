@@ -114,6 +114,11 @@ Current source alignment:
   so the user can return to Chat and write the request.
 - Desktop and Android both hide misleading zero-contact/zero-thread empty states
   when the selected Chat recipient is a scanned request target.
+- Android Contacts now projects trusted contacts, incoming requests, outgoing
+  requests, removed/ignored profiles, and scanned request targets through
+  `src/mobile-contact-profile-selection.ts` before rendering Profile detail.
+  `mobile/people-components.tsx` composes the UI instead of owning the
+  relationship-state branching.
 
 ## Implementation Order
 
