@@ -59,9 +59,9 @@ test('android backend trims outgoing text at the RPC boundary', () => {
     'async function commentTreehole',
     'async function likeTreehole'
   )
-  const sendMessageRequest = sliceBetween(
+  const sendDebugHomeMessageRequest = sliceBetween(
     source,
-    'function sendMessageRequest',
+    'function sendDebugHomeMessageRequest',
     'async function acceptMessageRequest'
   )
   const sendProfileMessageRequest = sliceBetween(
@@ -69,9 +69,9 @@ test('android backend trims outgoing text at the RPC boundary', () => {
     'async function sendProfileMessageRequest',
     'async function acceptMessageRequest'
   )
-  const resendOutgoingMessageRequests = sliceBetween(
+  const resendDebugHomeMessageRequests = sliceBetween(
     source,
-    'function resendOutgoingMessageRequests',
+    'function resendDebugHomeMessageRequests',
     'function sendTreeholeBootstrap'
   )
   const acceptMessageRequest = sliceBetween(
@@ -121,13 +121,13 @@ test('android backend trims outgoing text at the RPC boundary', () => {
   assert.match(source, /RPC_PROFILE_HOME_DESCRIPTOR/)
   assert.match(source, /createProfileFriendRequestRuntime\(/)
   assert.match(source, /createProfileHomeDescriptorFrame/)
-  assert.match(joinRoom, /resendOutgoingMessageRequests\(peer\)/)
+  assert.match(joinRoom, /resendDebugHomeMessageRequests\(peer\)/)
   assert.match(
-    resendOutgoingMessageRequests,
+    resendDebugHomeMessageRequests,
     /if \(!allowDebugHomeTrustFallback \|\| !room \|\| !peer\)/
   )
-  assert.match(resendOutgoingMessageRequests, /outgoingMessageRequestsByProfileId\.values\(\)/)
-  assert.match(resendOutgoingMessageRequests, /room\.sendControl\(peer, request\)/)
+  assert.match(resendDebugHomeMessageRequests, /outgoingMessageRequestsByProfileId\.values\(\)/)
+  assert.match(resendDebugHomeMessageRequests, /room\.sendControl\(peer, request\)/)
   assert.match(source, /RPC_TREEHOLE_POLICY/)
   assert.match(rpcTreeholePolicy, /await updateTreeholePolicy\(payload\)/)
   assert.match(source, /async function updateTreeholePolicy\(payload\)/)
@@ -152,14 +152,14 @@ test('android backend trims outgoing text at the RPC boundary', () => {
   assert.doesNotMatch(sendHomeMessage, /text: payload\.text/)
   assert.match(postTreehole, /const text = cleanRequiredText\(payload\.text\)/)
   assert.match(commentTreehole, /const text = cleanRequiredText\(payload\.text\)/)
-  assert.match(sendMessageRequest, /const text = cleanRequiredText\(payload\.text\)/)
-  assert.match(sendMessageRequest, /if \(!allowDebugHomeTrustFallback\)/)
-  assert.match(sendMessageRequest, /Home trust fallback is not enabled/)
+  assert.match(sendDebugHomeMessageRequest, /const text = cleanRequiredText\(payload\.text\)/)
+  assert.match(sendDebugHomeMessageRequest, /if \(!allowDebugHomeTrustFallback\)/)
+  assert.match(sendDebugHomeMessageRequest, /Home trust fallback is not enabled/)
   assert.match(sendProfileMessageRequest, /const text = cleanRequiredText\(payload\.text\)/)
   assert.match(sendProfileMessageRequest, /profileRequestRuntime\.send\(request\)/)
   assert.match(sendProfileMessageRequest, /sendToUI\(RPC_PROFILE_REQUEST_STATE/)
   assert.match(
-    sendMessageRequest,
+    sendDebugHomeMessageRequest,
     /outgoingMessageRequestsByProfileId\.set\(request\.toProfileId, request\)/
   )
   assert.match(acceptMessageRequest, /canAcceptIncomingMessageRequest\(request\)/)
@@ -201,7 +201,7 @@ test('android backend trims outgoing text at the RPC boundary', () => {
   assert.doesNotMatch(sendDmBody, /room\.broadcastControl\(message\)/)
   assert.doesNotMatch(postTreehole, /text: payload\.text/)
   assert.doesNotMatch(commentTreehole, /text: payload\.text/)
-  assert.doesNotMatch(sendMessageRequest, /text: payload\.text/)
+  assert.doesNotMatch(sendDebugHomeMessageRequest, /text: payload\.text/)
   assert.doesNotMatch(sendDmBody, /text: payload\.text/)
 })
 
@@ -217,9 +217,9 @@ test('android backend keeps Home-control friend bootstrap debug-only', () => {
     "if (message.type === 'kepos.dm.invite.v1')",
     "if (message.type === 'kepos.dm.body.v1')"
   )
-  const sendMessageRequest = sliceBetween(
+  const sendDebugHomeMessageRequest = sliceBetween(
     source,
-    'function sendMessageRequest',
+    'function sendDebugHomeMessageRequest',
     'async function sendProfileMessageRequest'
   )
   const sendProfileMessageRequest = sliceBetween(
@@ -232,7 +232,7 @@ test('android backend keeps Home-control friend bootstrap debug-only', () => {
   assert.match(handleMessageRequest, /verifyMessageRequest\(message\)/)
   assert.match(handleDmInvite, /if \(!allowDebugHomeTrustFallback\)/)
   assert.match(handleDmInvite, /await acceptDmInvite\(message\)/)
-  assert.match(sendMessageRequest, /if \(!allowDebugHomeTrustFallback\)/)
+  assert.match(sendDebugHomeMessageRequest, /if \(!allowDebugHomeTrustFallback\)/)
   assert.match(sendProfileMessageRequest, /profileRequestRuntime\.send\(request\)/)
   assert.doesNotMatch(sendProfileMessageRequest, /allowDebugHomeTrustFallback/)
 })

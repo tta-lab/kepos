@@ -153,7 +153,7 @@ async function handleRequest(req) {
   }
 
   if (req.command === RPC_DM_SEND) {
-    sendMessageRequest(payload)
+    sendDebugHomeMessageRequest(payload)
     req.reply?.(b4a.from(JSON.stringify({ ok: true })))
     return
   }
@@ -232,7 +232,7 @@ async function joinRoom(payload) {
     onPeer: (peer) => {
       sendHomeHello(peer)
       requestHomeHello(peer)
-      resendOutgoingMessageRequests(peer)
+      resendDebugHomeMessageRequests(peer)
     },
     onPeerCount: (count) => sendToUI(RPC_PEER_COUNT, { count })
   })
@@ -561,7 +561,7 @@ function requestHomeHello(peer = null) {
   room.broadcastControl(request)
 }
 
-function resendOutgoingMessageRequests(peer) {
+function resendDebugHomeMessageRequests(peer) {
   if (!allowDebugHomeTrustFallback || !room || !peer) {
     return
   }
@@ -681,7 +681,7 @@ async function likeTreehole(payload) {
   await sendTreeholeState()
 }
 
-function sendMessageRequest(payload) {
+function sendDebugHomeMessageRequest(payload) {
   if (!allowDebugHomeTrustFallback) {
     throw new Error('Home trust fallback is not enabled')
   }

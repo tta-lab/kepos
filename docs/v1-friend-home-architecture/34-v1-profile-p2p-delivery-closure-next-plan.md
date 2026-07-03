@@ -179,6 +179,9 @@ Already implemented before this plan:
 - Desktop DM runtime no longer accepts or calls a Home `broadcastControl`
   callback when creating normal friend requests; request delivery is returned to
   the profile-request action layer.
+- Android backend Home-control friend request helpers are named as debug Home
+  fallback helpers, while production request send remains
+  `RPC_PROFILE_REQUEST_SEND` -> profile request runtime.
 
 Still open:
 
