@@ -101,6 +101,88 @@ The reset rule is therefore strict: only the profile relationship state machine
 defines what the user can do. Home, Treehole, Chat, and Contacts are projections
 of that state. They do not invent their own trust rules.
 
+## Complexity Reset Rule
+
+V1 should now optimize for fewer product truths, not more feature surface.
+
+The codebase is already large enough that local UI fixes can hide architecture
+debt. The reset therefore has a deletion rule:
+
+- Keep the main model: Profile -> relationship state -> Chat / Profile /
+  Treehole / explicit Home entry.
+- Keep shared model helpers in `src/` as the product source of truth.
+- Keep desktop and Android components as renderers of those view models.
+- Demote Home QR, raw keys, direct host:port, and manual transport controls to
+  Advanced/debug surfaces.
+- Remove or rewrite any normal onboarding, Chat, Contacts, Profile, or
+  Treehole branch that decides product access from Home readiness, room state,
+  raw invite text, or transport debug state.
+
+The target is not to rewrite the whole app. The target is to make every V1
+screen answer the same question in the same way:
+
+```text
+What is my relationship with this profile?
+```
+
+Then the screen derives allowed actions from that answer.
+
+## Keep / Demote / Remove
+
+Keep in V1 normal UI:
+
+- Profile QR as the social entry point.
+- Friend request target preview after scan or paste.
+- Chat composer for `request_target`.
+- Incoming and outgoing friend request states.
+- Trusted contact Profile detail.
+- Durable Chat thread list and message view.
+- My Treehole as my own durable posting surface.
+- Trusted contact Recent posts as profile context.
+- Explicit Enter Home after trust.
+
+Demote to Advanced/debug:
+
+- Home QR as a normal add-friend path.
+- Raw Home key entry.
+- Manual profile id or topic entry.
+- Direct host:port delivery.
+- Transport debug controls.
+
+Remove from normal UI logic:
+
+- Any "no contacts" blocker when a request target is selected.
+- Any friend request send path that requires Home to exist or be joined.
+- Any Profile, Chat, Contacts, or Treehole branch that treats Home join as
+  trust creation.
+- Any duplicate product vocabulary that exposes "message request", "DM invite",
+  "home invite", or "bootstrap" to normal users instead of friend, chat,
+  profile, and home.
+
+## Next Implementation Slice
+
+The next source work should not start from smoke. It should start from a small
+architecture slice:
+
+1. Search desktop and Android UI for normal-path Home QR, raw key, direct, and
+   debug controls.
+2. Move those controls behind a single Advanced/debug boundary on both
+   platforms.
+3. Make the default screen hierarchy show only the V1 product model:
+
+   ```text
+   Home / Chat / Contacts / Treehole
+   ```
+
+   with Profile detail opened from Chat, Contacts, or scan results.
+
+4. Keep tests focused on model and source structure first. Use physical smoke
+   only for the final release-proof path or when a source-level fix cannot be
+   trusted without a device.
+
+This is the practical answer to the current complexity concern: reduce the
+number of visible product routes before adding more polish.
+
 Current source alignment:
 
 - `request_target`, `outgoing_request`, `incoming_request`, `trusted`,

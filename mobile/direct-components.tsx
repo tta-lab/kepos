@@ -164,6 +164,9 @@ export function DirectPane({
   const hasRequestTarget = Boolean(
     requestTarget?.profileId && requestTarget.profileId === recipient
   )
+  const emptyMessageCopy = hasRequestTarget
+    ? 'Write an intro to send this friend request.'
+    : 'Choose a trusted contact and send the first message.'
 
   return (
     <View style={styles.directPane}>
@@ -206,7 +209,9 @@ export function DirectPane({
         contentContainerStyle={styles.messageList}
         data={visibleMessages}
         keyExtractor={(item) => item.id}
-        ListEmptyComponent={<EmptyDirectMessages styles={styles} theme={theme} />}
+        ListEmptyComponent={
+          <EmptyDirectMessages copy={emptyMessageCopy} styles={styles} theme={theme} />
+        }
         renderItem={({ item }) => (
           <DirectBubble
             acceptContentColor={theme.surface}

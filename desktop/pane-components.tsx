@@ -245,6 +245,7 @@ export function DirectPane({
         requestTarget={requestTarget}
       />
       <DirectMessageList
+        hasRequestTarget={hasRequestTarget}
         messages={visibleMessages}
         onAccept={messageActions.acceptMessage}
         onIgnore={messageActions.ignoreMessage}
@@ -709,24 +710,25 @@ function HomeChatList({ messages }: { messages: unknown[] }) {
 }
 
 function DirectMessageList({
+  hasRequestTarget,
   messages,
   onAccept,
   onIgnore
 }: {
+  hasRequestTarget?: boolean
   messages: unknown[]
   onAccept(message: unknown): unknown
   onIgnore(message: unknown): unknown
 }) {
   const visibleMessages = messages.map(readMessageView)
+  const emptyCopy = hasRequestTarget
+    ? 'Write an intro to send this friend request.'
+    : 'Choose a trusted contact and send the first message.'
 
   return (
     <ol id='dmList' className='list bg-base-100' aria-label='Chat'>
       {visibleMessages.length === 0 ? (
-        <ListEmptyState
-          icon={<Send size={18} />}
-          title='No messages yet'
-          copy='Choose a trusted contact and send the first message.'
-        />
+        <ListEmptyState icon={<Send size={18} />} title='No messages yet' copy={emptyCopy} />
       ) : (
         visibleMessages.map((message, index) => {
           const actions = message.actions

@@ -38,6 +38,7 @@ export function EmptyState({ copy, icon: Icon, styles, theme, title }: EmptyStat
 }
 
 export type EmptyMessagesProps = {
+  copy?: string
   styles: EmptyStateStyles
   theme: EmptyStateTheme
 }
@@ -54,15 +55,13 @@ export function EmptyMessages({ styles, theme }: EmptyMessagesProps) {
   )
 }
 
-export function EmptyDirectMessages({ styles, theme }: EmptyMessagesProps) {
+export function EmptyDirectMessages({
+  copy = 'Choose a trusted contact and send the first message.',
+  styles,
+  theme
+}: EmptyMessagesProps) {
   return (
-    <EmptyState
-      copy='Choose a trusted contact and send the first message.'
-      icon={Send}
-      styles={styles}
-      theme={theme}
-      title='No messages yet'
-    />
+    <EmptyState copy={copy} icon={Send} styles={styles} theme={theme} title='No messages yet' />
   )
 }
 

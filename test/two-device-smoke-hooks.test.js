@@ -712,6 +712,7 @@ test('Android direct message empty state avoids DM shorthand', async () => {
   const source = await readMobileUiSource()
 
   assert.match(source, /Choose a trusted contact and send the first message\./)
+  assert.match(source, /Write an intro to send this friend request\./)
   assert.equal(source.includes('send the first DM.'), false)
 })
 
