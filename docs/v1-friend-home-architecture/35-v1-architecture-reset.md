@@ -261,7 +261,12 @@ Current code evidence:
 
 Current automated evidence:
 
-- Full source suite passed with 1015 tests after the reset cleanup.
+- Full source suite passed with 1016 tests after the reset cleanup.
+- `test/v1-model-smoke.test.js` now includes the exact Profile-first reset
+  flow: Profile QR becomes `request_target`, Chat sends a signed friend request,
+  the requester enters `outgoing_request`, the owner enters `incoming_request`,
+  accept creates mutual trust and accepted Chat threads, Treehole grants follow
+  the trusted policy, and Home entry becomes available only after trust.
 - Latest focused source-reset gate passed with 133 tests covering Android
   selected Profile projection, direct Chat empty copy, desktop renderer
   structure, relationship-state helpers, and docs current-state checks.

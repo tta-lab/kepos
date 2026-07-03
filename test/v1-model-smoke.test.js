@@ -5,24 +5,37 @@ import { join } from 'node:path'
 import { describe, test } from 'node:test'
 
 import {
+  canContactAccessHome,
   createContactBook,
   createTreeholePolicyFromContactBook,
   isContactTrusted,
   listTrustedContacts,
+  recordOutgoingFriendRequest,
   revokeContact
 } from '../src/contact-book.ts'
+import { createContactProfileViewModel } from '../src/contact-profile-view-model.ts'
 import { createDmEncryptionKeyPair, verifyDmInvite } from '../src/dm-invite.ts'
+import { acceptDmInviteAsRecipientWithContactBook } from '../src/dm-invite-acceptance.ts'
 import { createSignedDmMessage, verifySignedDmMessage } from '../src/dm-message.ts'
 import { loadDmMessagesFromStorage, saveDmMessagesToStorage } from '../src/dm-message-storage.ts'
 import { createDmThreadRuntime } from '../src/dm-thread-runtime.ts'
 import { isDmThreadActive } from '../src/dm-thread.ts'
+import { createFriendRequestTargetViewModel } from '../src/friend-request-target-view-model.ts'
 import {
   acceptMessageRequestWithInvite,
   openAcceptedMessageRequestInvite
 } from '../src/message-request-acceptance.ts'
 import { applyMessageRequestToContactBook, createMessageRequest } from '../src/message-request.ts'
+import {
+  canRespondToFriendRequestForRelationshipState,
+  resolveProfileRelationshipStateFromBook
+} from '../src/profile-relationship-state.ts'
+import { createRequestTargetProfileViewModel } from '../src/request-target-profile-view-model.ts'
 import { createSigningKeyPair } from '../src/signed-record.ts'
-import { applySignedQrUriToContactBook } from '../src/signed-qr-scan.ts'
+import {
+  applySignedQrUriToContactBook,
+  readSignedProfileQrRequestTarget
+} from '../src/signed-qr-scan.ts'
 import {
   createSignedHomeAddressPayload,
   createSignedTrustInvitePayload,
@@ -32,6 +45,162 @@ import { createTreeholeBase } from '../src/treehole-base.ts'
 import { canGrantTreeholeWriter } from '../src/treehole-policy.ts'
 
 describe('V1 model smoke', () => {
+  test('follows the Profile-first request target flow before Chat, Treehole, and Home access', () => {
+    const owner = createSigningKeyPair()
+    const requester = createSigningKeyPair()
+    const requesterDmEncryption = createDmEncryptionKeyPair()
+    let ownerBook = createContactBook({ ownerProfileId: owner.publicKey })
+    let requesterBook = createContactBook({ ownerProfileId: requester.publicKey })
+    const ownerProfileUri = encodeQrUri(
+      createSignedTrustInvitePayload({
+        createdAt: 1000,
+        displayName: 'Owner',
+        identity: owner
+      })
+    )
+    const ownerHomeUri = encodeQrUri(
+      createSignedHomeAddressPayload({
+        address: 'a'.repeat(64),
+        createdAt: 3000,
+        identity: owner,
+        policy: 'trusted_only',
+        roomKey: 'b'.repeat(64)
+      })
+    )
+
+    const requestTarget = readSignedProfileQrRequestTarget({
+      now: 1001,
+      uri: ownerProfileUri
+    })
+
+    assert.equal(requestTarget.kind, 'profile_request_target')
+    assert.equal(isContactTrusted(requesterBook, owner.publicKey), false)
+    assert.equal(
+      resolveProfileRelationshipStateFromBook({
+        book: requesterBook,
+        profileId: owner.publicKey
+      }),
+      'request_target'
+    )
+
+    const chatTarget = createFriendRequestTargetViewModel({
+      contactBook: requesterBook,
+      target: requestTarget
+    })
+    const profileTarget = createRequestTargetProfileViewModel({
+      requestTarget: chatTarget,
+      selectedProfileId: owner.publicKey
+    })
+
+    assert.equal(chatTarget.relationshipState, 'request_target')
+    assert.equal(chatTarget.canSendRequest, true)
+    assert.equal(profileTarget?.relationshipState, 'request_target')
+    assert.equal(profileTarget?.messageEnabled, true)
+    assert.equal(profileTarget?.enterHomeEnabled, false)
+
+    const request = createMessageRequest({
+      createdAt: 1100,
+      fromIdentity: requester,
+      requestId: 'request-1',
+      senderEncryptionPublicKey: requesterDmEncryption.publicKey,
+      text: 'hello owner',
+      toProfileId: owner.publicKey
+    })
+
+    requesterBook = recordOutgoingFriendRequest(requesterBook, {
+      alias: requestTarget.displayName,
+      displayNameSnapshot: requestTarget.displayName,
+      profileId: owner.publicKey,
+      requestedAt: request.createdAt,
+      requestId: request.requestId,
+      senderEncryptionPublicKey: requesterDmEncryption.publicKey,
+      signedRequest: request,
+      source: 'profile_qr',
+      text: request.text
+    })
+
+    assert.equal(
+      resolveProfileRelationshipStateFromBook({
+        book: requesterBook,
+        profileId: owner.publicKey
+      }),
+      'outgoing_request'
+    )
+    assert.equal(
+      createFriendRequestTargetViewModel({
+        contactBook: requesterBook,
+        target: requestTarget
+      }).canSendRequest,
+      false
+    )
+
+    ownerBook = applyMessageRequestToContactBook(ownerBook, {
+      alias: 'Requester',
+      request,
+      source: 'profile_qr'
+    })
+    const ownerRelationship = resolveProfileRelationshipStateFromBook({
+      book: ownerBook,
+      profileId: requester.publicKey
+    })
+
+    assert.equal(ownerRelationship, 'incoming_request')
+    assert.equal(canRespondToFriendRequestForRelationshipState(ownerRelationship), true)
+
+    const accepted = acceptMessageRequestWithInvite({
+      acceptedAt: 2000,
+      acceptorIdentity: owner,
+      book: ownerBook,
+      remoteProfileId: requester.publicKey,
+      threadId: 'thread-1'
+    })
+    ownerBook = accepted.book
+    const requesterAccepted = acceptDmInviteAsRecipientWithContactBook({
+      acceptedAt: 2001,
+      contactBook: requesterBook,
+      invite: accepted.invite,
+      localProfileId: requester.publicKey,
+      recipientEncryptionKeyPair: requesterDmEncryption
+    })
+    requesterBook = requesterAccepted.book
+
+    assert.equal(isContactTrusted(ownerBook, requester.publicKey), true)
+    assert.equal(isContactTrusted(requesterBook, owner.publicKey), true)
+    assert.equal(ownerBook.pendingRequestsByProfileId.has(requester.publicKey), false)
+    assert.equal(requesterBook.outgoingRequestsByProfileId.has(owner.publicKey), false)
+    assert.equal(isDmThreadActive(accepted.thread), true)
+    assert.equal(isDmThreadActive(requesterAccepted.thread), true)
+
+    const ownerProfile = createContactProfileViewModel({
+      contact: requesterBook.contactsByProfileId.get(owner.publicKey),
+      formatDate: (value) => `date:${value}`,
+      shortenProfileId: (profileId) => profileId
+    })
+    const ownerPolicy = createTreeholePolicyFromContactBook(ownerBook)
+
+    assert.equal(ownerProfile.relationshipState, 'trusted')
+    assert.equal(ownerProfile.messageEnabled, true)
+    assert.equal(
+      canGrantTreeholeWriter({
+        ownerProfileId: owner.publicKey,
+        policy: ownerPolicy,
+        writerProfileId: requester.publicKey
+      }),
+      true
+    )
+
+    const homeJoin = applySignedQrUriToContactBook({
+      book: requesterBook,
+      localProfileId: requester.publicKey,
+      uri: ownerHomeUri
+    })
+
+    assert.equal(homeJoin.kind, 'home')
+    assert.equal(homeJoin.canEnter, true)
+    requesterBook = homeJoin.book
+    assert.equal(canContactAccessHome(requesterBook, owner.publicKey), true)
+  })
+
   test('ties QR trust, trusted home access, treehole writer rights, and accepted DM together', async () => {
     const owner = createSigningKeyPair()
     const peer = createSigningKeyPair()
