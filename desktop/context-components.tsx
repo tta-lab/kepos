@@ -1,8 +1,7 @@
 import React from 'react'
 import { Copy, Home, LogOut, QrCode, ShieldCheck, UserPlus } from 'lucide-react'
+import { createAdvancedSocialActionState } from '../src/advanced-social-action-state.ts'
 import { ActionButton, PanelHeader, SectionTitle } from './ui-components.tsx'
-
-const ROOM_KEY_PATTERN = /^[0-9a-f]{64}$/
 
 type ContextFormState = {
   avatarUri: string
@@ -65,10 +64,14 @@ export function ContextPanel({
   shareQrOutputs: ShareQrOutputs
 }) {
   const displayName = form.displayName.trim() || 'Desktop'
-  const canJoinManualHome =
-    controls.canUseManualHomeJoin && ROOM_KEY_PATTERN.test(form.roomKey.trim())
-  const canJoinHomeQr = controls.canUseHomeQrJoin && Boolean(form.homeQrUri.trim())
-  const canTrustProfile = controls.canUseTrustProfile && Boolean(form.trustQrUri.trim())
+  const actionState = createAdvancedSocialActionState({
+    canUseHomeQrJoin: controls.canUseHomeQrJoin,
+    canUseManualHomeJoin: controls.canUseManualHomeJoin,
+    canUseTrustProfile: controls.canUseTrustProfile,
+    homeQrUri: form.homeQrUri,
+    roomKey: form.roomKey,
+    trustQrUri: form.trustQrUri
+  })
 
   function updateForm(patch: Partial<ContextFormState>) {
     setForm((current) => ({ ...current, ...patch }))
@@ -95,26 +98,26 @@ export function ContextPanel({
 
   function handleManualJoin(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!canJoinManualHome) return
-    actions.joinManualHome({ displayName, roomKey: form.roomKey.trim() })
+    if (!actionState.canJoinManualHome) return
+    actions.joinManualHome({ displayName, roomKey: actionState.roomKey })
   }
 
   function handleHomeQrJoin(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!canJoinHomeQr) return
+    if (!actionState.canJoinHomeQr) return
     actions.joinHomeQr({
       displayName,
-      uri: form.homeQrUri.trim()
+      uri: actionState.homeQrUri
     })
   }
 
   function handleProfileRequestTarget(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!canTrustProfile) return
+    if (!actionState.canTrustProfile) return
     actions.prepareProfileRequestTarget({
       alias: form.trustAlias,
       displayName,
-      uri: form.trustQrUri.trim()
+      uri: actionState.trustQrUri
     })
   }
 
@@ -182,7 +185,7 @@ export function ContextPanel({
             />
           </label>
           <ActionButton
-            disabled={!canTrustProfile}
+            disabled={!actionState.canTrustProfile}
             icon={<UserPlus size={17} />}
             id='trustButton'
             label='Start request'
@@ -266,7 +269,7 @@ export function ContextPanel({
               />
             </label>
             <ActionButton
-              disabled={!canJoinManualHome}
+              disabled={!actionState.canJoinManualHome}
               icon={<LogOut size={17} />}
               id='joinButton'
               label='Enter Home'
@@ -325,7 +328,7 @@ export function ContextPanel({
               />
             </label>
             <ActionButton
-              disabled={!canJoinHomeQr}
+              disabled={!actionState.canJoinHomeQr}
               icon={<LogOut size={17} />}
               id='joinHomeQrButton'
               label='Enter Home'

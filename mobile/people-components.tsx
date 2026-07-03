@@ -11,6 +11,7 @@ import {
   UserPlus,
   Users
 } from 'lucide-react-native'
+import { createAdvancedSocialActionState } from '../src/advanced-social-action-state.ts'
 import { getBlockedContactCopy } from '../src/blocked-contact-copy.ts'
 import type { ContactBookContact } from '../src/contact-book.ts'
 import { createContactProfileViewModel } from '../src/contact-profile-view-model.ts'
@@ -263,7 +264,13 @@ export function PeopleActions({
 }: PeopleActionsProps) {
   const [showAdvancedShare, setShowAdvancedShare] = useState(false)
   const [showHomeQr, setShowHomeQr] = useState(false)
-  const canUseHomeJoin = homeReady && canJoinHome
+  const actionState = createAdvancedSocialActionState({
+    canJoinHome,
+    canUseTrustProfile: profileReady,
+    homeQrUri,
+    homeReady,
+    trustQrUri
+  })
 
   return (
     <>
@@ -311,7 +318,7 @@ export function PeopleActions({
             primaryContentColor={theme.surface}
             styles={styles}
             accessibilityState={{ expanded: showHomeQr }}
-            disabled={!homeReady}
+            disabled={!actionState.canShowHomeQr}
             icon={QrCode}
             label='Show Debug Home QR'
             onPress={() => setShowHomeQr((value) => !value)}
@@ -325,7 +332,7 @@ export function PeopleActions({
             disabledContentColor={theme.placeholder}
             primaryContentColor={theme.surface}
             styles={styles}
-            disabled={!canUseHomeJoin}
+            disabled={!actionState.canScanHomeQr}
             icon={ArrowRight}
             label='Scan Debug Home QR'
             onPress={onScanHomeQr}
@@ -357,7 +364,7 @@ export function PeopleActions({
             disabledContentColor={theme.placeholder}
             primaryContentColor={theme.surface}
             styles={styles}
-            disabled={!canUseHomeJoin || !homeQrUri.trim()}
+            disabled={!actionState.canJoinHomeQr}
             icon={ArrowRight}
             label='Enter Home'
             onPress={onJoinHomeQr}
@@ -387,7 +394,7 @@ export function PeopleActions({
             disabledContentColor={theme.placeholder}
             primaryContentColor={theme.surface}
             styles={styles}
-            disabled={!profileReady || !trustQrUri.trim()}
+            disabled={!actionState.canTrustProfile}
             icon={Plus}
             label='Start request'
             onPress={onTrustProfile}

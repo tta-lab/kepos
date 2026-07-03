@@ -304,9 +304,9 @@ test('desktop React owns action and composer disabled state', async () => {
   assert.match(source, /const \[controls, setControls\] = useState\(DEFAULT_CONTROLS\)/)
   assert.match(source, /disabled=\{!controls\.canCreateHome\}/)
   assert.match(source, /disabled=\{!controls\.canLeaveHome\}/)
-  assert.match(source, /disabled=\{!canJoinManualHome\}/)
-  assert.match(source, /disabled=\{!canJoinHomeQr\}/)
-  assert.match(source, /disabled=\{!canTrustProfile\}/)
+  assert.match(source, /disabled=\{!actionState\.canJoinManualHome\}/)
+  assert.match(source, /disabled=\{!actionState\.canJoinHomeQr\}/)
+  assert.match(source, /disabled=\{!actionState\.canTrustProfile\}/)
   assert.match(source, /canUseHomeChatComposer: false/)
   assert.match(
     source,
@@ -466,7 +466,7 @@ test('desktop React owns context form drafts and QR actions', async () => {
   assert.match(source, /actions\.updateAvatarUri\(\{ avatarUri: value \}\)/)
   assert.match(
     source,
-    /actions\.joinManualHome\(\{ displayName, roomKey: form\.roomKey\.trim\(\) \}\)/
+    /actions\.joinManualHome\(\{ displayName, roomKey: actionState\.roomKey \}\)/
   )
   assert.match(controller, /createDesktopUiActionBindings/)
   assert.doesNotMatch(controller, /lobbyForm: document\.querySelector/)
