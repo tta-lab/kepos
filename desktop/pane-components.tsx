@@ -12,6 +12,7 @@ import { createDirectChatComposerState } from '../src/direct-chat-composer-state
 import { createDirectChatLayoutState } from '../src/direct-chat-layout-state.ts'
 import { filterDirectMessagesForProfile, findSelectedDmThreadView } from '../src/dm-thread-list.ts'
 import type { ProfileRelationshipState } from '../src/profile-relationship-state.ts'
+import { createTextComposerState } from '../src/text-composer-state.ts'
 
 type ActiveTab = 'chat' | 'dm' | 'treehole' | 'people' | string
 
@@ -513,12 +514,15 @@ function HomeChatComposer({
   onSend(payload: { text: string }): unknown
 }) {
   const [draft, setDraft] = useState('')
-  const canSend = controls.canUseHomeChatComposer && Boolean(draft.trim())
+  const composerState = createTextComposerState({
+    draft,
+    enabled: controls.canUseHomeChatComposer
+  })
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!canSend) return
-    onSend({ text: draft.trim() })
+    if (!composerState.canSubmit) return
+    onSend({ text: composerState.text })
     setDraft('')
   }
 
@@ -533,7 +537,7 @@ function HomeChatComposer({
         onChange={(event) => setDraft(event.target.value)}
       />
       <ComposerSubmitButton
-        disabled={!canSend}
+        disabled={!composerState.canSubmit}
         icon={<Send size={17} />}
         id='chatSendButton'
         label='Send'
@@ -651,12 +655,15 @@ function TreeholeComposer({
   onPost(payload: { text: string }): unknown
 }) {
   const [draft, setDraft] = useState('')
-  const canPost = controls.canPostTreehole && Boolean(draft.trim())
+  const composerState = createTextComposerState({
+    draft,
+    enabled: controls.canPostTreehole
+  })
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!canPost) return
-    onPost({ text: draft.trim() })
+    if (!composerState.canSubmit) return
+    onPost({ text: composerState.text })
     setDraft('')
   }
 
@@ -682,7 +689,7 @@ function TreeholeComposer({
         onChange={(event) => setDraft(event.target.value)}
       />
       <ComposerSubmitButton
-        disabled={!canPost}
+        disabled={!composerState.canSubmit}
         icon={<Sprout size={17} />}
         id='treeholeSendButton'
         label='Post'
@@ -932,12 +939,12 @@ function TreeholePostActions({
   post: TreeholePostView
 }) {
   const [draft, setDraft] = useState('')
-  const hasDraft = Boolean(draft.trim())
+  const composerState = createTextComposerState({ draft })
 
   function submitComment(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!draft.trim()) return
-    actions.commentPost({ postId: post.actions.commentPostId, text: draft.trim() })
+    if (!composerState.canSubmit) return
+    actions.commentPost({ postId: post.actions.commentPostId, text: composerState.text })
     setDraft('')
   }
 
@@ -958,7 +965,7 @@ function TreeholePostActions({
         />
         <ComposerSubmitButton
           className='smallButton'
-          disabled={!hasDraft}
+          disabled={!composerState.canSubmit}
           icon={<MessageCircle size={15} />}
           label='Comment'
         />

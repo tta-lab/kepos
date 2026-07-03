@@ -1052,10 +1052,10 @@ test('desktop treehole comment composer disables empty comments', async () => {
 
   assert.match(source, /function TreeholePostActions\(/)
   assert.match(source, /const \[draft, setDraft\] = useState\(''\)/)
-  assert.match(source, /const hasDraft = Boolean\(draft\.trim\(\)\)/)
+  assert.match(source, /const composerState = createTextComposerState\(\{ draft \}\)/)
   assert.match(
     source,
-    /actions\.commentPost\(\{ postId: post\.actions\.commentPostId, text: draft\.trim\(\) \}\)/
+    /actions\.commentPost\(\{ postId: post\.actions\.commentPostId, text: composerState\.text \}\)/
   )
   assert.match(source, /setDraft\(''\)/)
   assert.match(
@@ -1064,7 +1064,7 @@ test('desktop treehole comment composer disables empty comments', async () => {
   )
   assert.match(
     panes,
-    /<ComposerSubmitButton[\s\S]*className='smallButton'[\s\S]*disabled=\{!hasDraft\}[\s\S]*icon=\{<MessageCircle size=\{15\} \/>\}[\s\S]*label='Comment'/
+    /<ComposerSubmitButton[\s\S]*className='smallButton'[\s\S]*disabled=\{!composerState\.canSubmit\}[\s\S]*icon=\{<MessageCircle size=\{15\} \/>\}[\s\S]*label='Comment'/
   )
   assert.match(
     bindings,
@@ -1129,16 +1129,19 @@ test('desktop composers disable unavailable sends', async () => {
   assert.match(presenter, /ui\?\.setControls\(\{/)
   assert.match(
     source,
-    /const canSend = controls\.canUseHomeChatComposer && Boolean\(draft\.trim\(\)\)/
+    /const composerState = createTextComposerState\(\{[\s\S]*draft,[\s\S]*enabled: controls\.canUseHomeChatComposer/
   )
-  assert.match(panes, /<ComposerSubmitButton[\s\S]*disabled=\{!canSend\}/)
+  assert.match(panes, /<ComposerSubmitButton[\s\S]*disabled=\{!composerState\.canSubmit\}/)
   assert.match(
     source,
     /createDirectChatComposerState\(\{[\s\S]*enabled: controls\.canUseDirectComposer/
   )
   assert.match(panes, /<ComposerSubmitButton[\s\S]*disabled=\{!composerState\.canSend\}/)
-  assert.match(source, /const canPost = controls\.canPostTreehole && Boolean\(draft\.trim\(\)\)/)
-  assert.match(panes, /<ComposerSubmitButton[\s\S]*disabled=\{!canPost\}/)
+  assert.match(
+    source,
+    /const composerState = createTextComposerState\(\{[\s\S]*draft,[\s\S]*enabled: controls\.canPostTreehole/
+  )
+  assert.match(panes, /<ComposerSubmitButton[\s\S]*disabled=\{!composerState\.canSubmit\}/)
   assert.match(presenter, /canUseHomeChatComposer: inRoom/)
   assert.match(presenter, /const hasDmSession = Boolean\(dmSession\)/)
   assert.match(presenter, /canUseDirectComposer: hasDmSession && !isActionPending/)

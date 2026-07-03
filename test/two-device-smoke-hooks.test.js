@@ -634,7 +634,7 @@ test('Android home chat disables empty sends like other composers', async () => 
   const source = await readMobileUiSource()
 
   assert.match(source, /testID='chat-send-button'/)
-  assert.match(source, /disabled=\{!draft\.trim\(\)\}/)
+  assert.match(source, /disabled=\{!composerState\.canSubmit\}/)
   assert.match(source, /function MobileSendButton\(/)
   assert.match(source, /disabled && styles\.disabledSendButton/)
 })
@@ -819,13 +819,16 @@ test('Android treehole composer explains owner-only posting', async () => {
   )
   assert.match(source, /canPost={treeholeCanPost}/)
   assert.match(source, /function TreeholePane\(\{\s*canInteract,\s*canPost,/)
-  assert.match(source, /const canSubmitPost = canPost && draft\.trim\(\)/)
+  assert.match(
+    source,
+    /const postComposerState = createTextComposerState\(\{ draft, enabled: canPost \}\)/
+  )
   assert.match(source, /const showOwnerOnlyHint = status === 'ready' && !canPost/)
   assert.match(source, /Only the owner can post here\./)
   assert.match(source, /editable=\{canPost\}/)
   assert.match(source, /!canPost && styles\.disabledTreeholeInput/)
-  assert.match(source, /disabled=\{!canSubmitPost\}/)
-  assert.match(source, /<MobileSendButton[\s\S]*disabled=\{!canSubmitPost\}/)
+  assert.match(source, /disabled=\{!postComposerState\.canSubmit\}/)
+  assert.match(source, /<MobileSendButton[\s\S]*disabled=\{!postComposerState\.canSubmit\}/)
 })
 
 test('Android treehole interactions disable when the profile cannot interact', async () => {
@@ -840,9 +843,12 @@ test('Android treehole interactions disable when the profile cannot interact', a
   assert.match(treeholePane, /function TreeholePane\(\{\s*canInteract,/)
   assert.match(treeholePane, /<TreeholePost[\s\S]*canInteract=\{canInteract\}/)
   assert.match(treeholePost, /function TreeholePost\(\{\s*canInteract,/)
-  assert.match(treeholePost, /const canSubmitComment = canInteract && commentDraft\.trim\(\)/)
+  assert.match(
+    treeholePost,
+    /const commentComposerState = createTextComposerState\(\{[\s\S]*draft: commentDraft,[\s\S]*enabled: canInteract/
+  )
   assert.match(treeholePost, /disabled=\{!canInteract\}/)
-  assert.match(treeholePost, /disabled=\{!canSubmitComment\}/)
+  assert.match(treeholePost, /disabled=\{!commentComposerState\.canSubmit\}/)
   assert.match(treeholePost, /editable=\{canInteract\}/)
   assert.match(treeholePost, /Only trusted friends can comment or like here\./)
 })

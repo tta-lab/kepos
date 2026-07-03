@@ -4,6 +4,7 @@ import { FlatList, Text, TextInput, View } from 'react-native'
 import { Heart, MessageCircle } from 'lucide-react-native'
 import { createMobileTreeholeAuthorAvatar } from '../src/mobile-avatar-view-model.ts'
 import { displayPostAuthor, formatMobilePostTime } from '../src/mobile-product-copy.ts'
+import { createTextComposerState } from '../src/text-composer-state.ts'
 import {
   MobileSendButton,
   MobileSmallActionButton,
@@ -54,7 +55,7 @@ export function TreeholePane({
   styles,
   theme
 }: TreeholePaneProps) {
-  const canSubmitPost = canPost && draft.trim().length > 0
+  const postComposerState = createTextComposerState({ draft, enabled: canPost })
   const showOwnerOnlyHint = status === 'ready' && !canPost
 
   return (
@@ -97,7 +98,7 @@ export function TreeholePane({
         </View>
         <MobileSendButton
           accessibilityLabel='Post to Treehole'
-          disabled={!canSubmitPost}
+          disabled={!postComposerState.canSubmit}
           onPress={onPost}
           styles={styles}
           surfaceColor={theme.surface}
@@ -117,15 +118,18 @@ export function TreeholePost({
   theme
 }: TreeholePostProps) {
   const [commentDraft, setCommentDraft] = useState('')
-  const canSubmitComment = canInteract && commentDraft.trim()
+  const commentComposerState = createTextComposerState({
+    draft: commentDraft,
+    enabled: canInteract
+  })
   const postAvatar = createMobileTreeholeAuthorAvatar(post)
 
   function submitComment() {
-    if (!canSubmitComment) {
+    if (!commentComposerState.canSubmit) {
       return
     }
 
-    onComment({ postId: post.id, text: commentDraft })
+    onComment({ postId: post.id, text: commentComposerState.text })
     setCommentDraft('')
   }
 
@@ -190,7 +194,7 @@ export function TreeholePost({
           />
           <MobileSendButton
             accessibilityLabel='Send comment'
-            disabled={!canSubmitComment}
+            disabled={!commentComposerState.canSubmit}
             onPress={submitComment}
             size='small'
             styles={styles}

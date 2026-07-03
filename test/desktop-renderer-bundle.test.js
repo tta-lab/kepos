@@ -155,13 +155,13 @@ test('desktop React owns the home chat composer draft', async () => {
   assert.match(source, /const \[draft, setDraft\] = useState\(''\)/)
   assert.match(
     source,
-    /const canSend = controls\.canUseHomeChatComposer && Boolean\(draft\.trim\(\)\)/
+    /const composerState = createTextComposerState\(\{[\s\S]*draft,[\s\S]*enabled: controls\.canUseHomeChatComposer/
   )
-  assert.match(source, /onSend\(\{ text: draft\.trim\(\) \}\)/)
+  assert.match(source, /onSend\(\{ text: composerState\.text \}\)/)
   assert.match(source, /setDraft\(''\)/)
   assert.match(source, /value=\{draft\}/)
   assert.match(source, /onChange=\{\(event\) => setDraft\(event\.target\.value\)\}/)
-  assert.match(source, /disabled=\{!canSend\}/)
+  assert.match(source, /disabled=\{!composerState\.canSubmit\}/)
   assert.match(source, /setHomeComposerActions\(actions = DEFAULT_HOME_COMPOSER_ACTIONS\)/)
   assert.match(controller, /createDesktopUiActionBindings/)
   assert.doesNotMatch(controller, /chatForm: document\.querySelector/)
@@ -310,16 +310,19 @@ test('desktop React owns action and composer disabled state', async () => {
   assert.match(source, /canUseHomeChatComposer: false/)
   assert.match(
     source,
-    /const canSend = controls\.canUseHomeChatComposer && Boolean\(draft\.trim\(\)\)/
+    /const composerState = createTextComposerState\(\{[\s\S]*draft,[\s\S]*enabled: controls\.canUseHomeChatComposer/
   )
-  assert.match(source, /disabled=\{!canSend\}/)
+  assert.match(source, /disabled=\{!composerState\.canSubmit\}/)
   assert.match(
     source,
     /createDirectChatComposerState\(\{[\s\S]*enabled: controls\.canUseDirectComposer/
   )
   assert.match(source, /disabled=\{!composerState\.canSend\}/)
-  assert.match(source, /const canPost = controls\.canPostTreehole && Boolean\(draft\.trim\(\)\)/)
-  assert.match(source, /disabled=\{!canPost\}/)
+  assert.match(
+    source,
+    /const composerState = createTextComposerState\(\{[\s\S]*draft,[\s\S]*enabled: controls\.canPostTreehole/
+  )
+  assert.match(source, /disabled=\{!composerState\.canSubmit\}/)
   assert.match(
     source,
     /className=\{[\s\S]*controls\.canPostTreehole \? 'composer tall' : 'composer tall disabledComposer'[\s\S]*\}/
@@ -547,7 +550,7 @@ test('desktop React owns the treehole post list surface', async () => {
   assert.match(source, /onClick=\{\(\) => actions\.likePost\(post\.actions\.likePostId\)\}/)
   assert.match(
     source,
-    /actions\.commentPost\(\{ postId: post\.actions\.commentPostId, text: draft\.trim\(\) \}\)/
+    /actions\.commentPost\(\{ postId: post\.actions\.commentPostId, text: composerState\.text \}\)/
   )
   assert.match(presenter, /ui\?\.setTreeholePosts\(/)
   assert.match(controller, /createDesktopUiActionBindings/)
@@ -560,13 +563,16 @@ test('desktop React owns the treehole main post composer draft', async () => {
 
   assert.match(source, /function TreeholeComposer\(/)
   assert.match(source, /const \[draft, setDraft\] = useState\(''\)/)
-  assert.match(source, /const canPost = controls\.canPostTreehole && Boolean\(draft\.trim\(\)\)/)
-  assert.match(source, /onPost\(\{ text: draft\.trim\(\) \}\)/)
+  assert.match(
+    source,
+    /const composerState = createTextComposerState\(\{[\s\S]*draft,[\s\S]*enabled: controls\.canPostTreehole/
+  )
+  assert.match(source, /onPost\(\{ text: composerState\.text \}\)/)
   assert.match(source, /setDraft\(''\)/)
   assert.match(source, /value=\{draft\}/)
   assert.match(source, /onChange=\{\(event\) => setDraft\(event\.target\.value\)\}/)
   assert.match(source, /disabled=\{!controls\.canPostTreehole\}/)
-  assert.match(source, /disabled=\{!canPost\}/)
+  assert.match(source, /disabled=\{!composerState\.canSubmit\}/)
   assert.match(source, /setTreeholeComposerActions\(actions = DEFAULT_TREEHOLE_COMPOSER_ACTIONS\)/)
   assert.match(controller, /createDesktopUiActionBindings/)
   assert.doesNotMatch(controller, /treeholeForm: document\.querySelector/)

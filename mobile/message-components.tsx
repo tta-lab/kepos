@@ -6,6 +6,7 @@ import {
   formatMobileHomeMessageMeta
 } from '../src/mobile-product-copy.ts'
 import type { ResolveAvatarMediaUri } from '../src/profile-avatar-view-model.ts'
+import { createTextComposerState } from '../src/text-composer-state.ts'
 import {
   MobileSendButton,
   MobileRequestActionButton,
@@ -59,6 +60,8 @@ export function HomeChatPane({
   styles,
   theme
 }: HomeChatPaneProps) {
+  const composerState = createTextComposerState({ draft })
+
   return (
     <>
       <PaneLabel eyebrow='live' styles={styles} title='Live home chat' />
@@ -83,7 +86,7 @@ export function HomeChatPane({
         />
         <MobileSendButton
           accessibilityLabel='Send home message'
-          disabled={!draft.trim()}
+          disabled={!composerState.canSubmit}
           onPress={onSend}
           styles={styles}
           surfaceColor={theme.surface}

@@ -233,6 +233,10 @@ Current source alignment:
   `src/direct-chat-layout-state.ts`, so hiding the thread list and zero-contact
   empty state is derived from one shared selected-recipient/request-target
   check before platform components render layout.
+- Desktop and Android plain text composers now use
+  `src/text-composer-state.ts` for normalized text and submit availability.
+  Home chat, Treehole posting, and Treehole comments no longer each define raw
+  `draft.trim()` availability checks inside platform components.
 - Desktop and Android Profile QR request-target selection now uses
   `src/profile-request-target-selection.ts`. Scan and paste handlers still own
   platform work such as reading QR text, clearing inputs, and opening Chat, but
@@ -295,7 +299,7 @@ Current code evidence:
 
 Current automated evidence:
 
-- Full source suite passed with 1033 tests after the reset cleanup.
+- Full source suite passed with 1038 tests after the reset cleanup.
 - `test/v1-model-smoke.test.js` now includes the exact Profile-first reset
   flow: Profile QR becomes `request_target`, Chat sends a signed friend request,
   the requester enters `outgoing_request`, the owner enters `incoming_request`,
@@ -308,6 +312,9 @@ Current automated evidence:
 - Focused Direct Chat layout, composer, desktop shell, Android UI, renderer
   bundle, two-device hooks, and V1 route-closure tests passed with 173 tests
   after the shared layout-state extraction.
+- Focused text-composer, desktop shell, desktop renderer bundle, Android UI,
+  and two-device hook tests passed with 162 tests after plain text composer
+  availability moved to the shared helper.
 - Focused model/UI tests cover profile relationship state, friend request target
   view models, contact profile view models, desktop Contacts, desktop Chat, and
   Android Chat/Contacts source structure.
