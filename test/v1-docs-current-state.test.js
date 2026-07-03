@@ -196,6 +196,22 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
   assert.doesNotMatch(profileFirst, /evidence packet described in `08`/)
 })
 
+test('V1 architecture reset treats complexity as duplicated product ownership', async () => {
+  const reset = await readText('../docs/v1-friend-home-architecture/35-v1-architecture-reset.md')
+
+  assert.match(reset, /V1 is profile-first and Home-secondary/)
+  assert.match(reset, /Code size is a symptom, not the root cause/)
+  assert.match(reset, /product-state duplication is not/)
+  assert.match(reset, /platform UI is\s+mostly a renderer/)
+  assert.match(reset, /Move one duplicated decision at a time into shared model helpers/)
+  assert.match(reset, /A UI fix is aligned only if/)
+  assert.match(reset, /Physical smoke is intentionally deferred/)
+  assert.doesNotMatch(
+    reset,
+    /The next source work should not start from smoke[\s\S]*Search desktop and Android UI for normal-path Home QR/
+  )
+})
+
 test('V1 active profile P2P delivery closure plan rejects Home and direct production delivery', async () => {
   const agents = await readText('../AGENTS.md')
   const moc = await readText('../docs/moc.md')

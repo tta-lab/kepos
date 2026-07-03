@@ -170,16 +170,31 @@ Remove from normal UI logic:
   "home invite", or "bootstrap" to normal users instead of friend, chat,
   profile, and home.
 
-## Next Implementation Slice
+## Complexity Reduction Work Queue
 
-The next source work should not start from smoke. It should start from a small
-architecture slice:
+The next source work should not start from smoke, and it should not start from
+visual polish. It should keep shrinking product ownership until platform UI is
+mostly a renderer.
 
-1. Search desktop and Android UI for normal-path Home QR, raw key, direct, and
-   debug controls.
-2. Move those controls behind a single Advanced/debug boundary on both
-   platforms.
-3. Make the default screen hierarchy show only the V1 product model:
+Current complexity diagnosis:
+
+- Code size is manageable, but product-state duplication is not.
+- The expensive bugs come from multiple places deciding what friendship, Chat,
+  Treehole, and Home mean.
+- Desktop and Android must not each rediscover the same relationship rules in
+  component branches.
+- Home/debug controls may remain, but only behind Advanced surfaces and never as
+  a normal social path.
+
+Work queue:
+
+1. Keep searching desktop and Android UI for product decisions that should live
+   in shared `src/` helpers: relationship actions, request-target Chat state,
+   profile detail actions, Home entry availability, empty states, and composer
+   availability.
+2. Move one duplicated decision at a time into shared model helpers or view
+   models, then update both platforms to consume that model.
+3. Keep the default screen hierarchy aligned with the V1 product model:
 
    ```text
    Home / Chat / Contacts / Treehole
@@ -192,7 +207,8 @@ architecture slice:
    trusted without a device.
 
 This is the practical answer to the current complexity concern: reduce the
-number of visible product routes before adding more polish.
+number of product truths before adding more polish. A UI fix is aligned only if
+it makes the shared Profile-first relationship model more true.
 
 Current source alignment:
 
@@ -265,6 +281,9 @@ Current source alignment:
   helper for accept/ignore actions. Chat empty copy also uses the shared
   request-send helper, so platform components pass relationship state through
   instead of parsing `request_target` themselves.
+- Android selected-profile blocked/ignored recovery now uses the shared
+  relationship helper for Allow requests instead of hard-coding the action in
+  the platform selection module.
 
 ## Implementation Order
 

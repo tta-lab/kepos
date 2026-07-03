@@ -16,6 +16,7 @@ import {
   type RequestTargetProfileViewModel
 } from './request-target-profile-view-model.ts'
 import {
+  canAllowRequestsForRelationshipState,
   canRespondToFriendRequestForRelationshipState,
   type ProfileRelationshipState
 } from './profile-relationship-state.ts'
@@ -149,13 +150,15 @@ export function createMobileSelectedContactProfileViewModel({
 
   if (selectedSource.kind === 'blocked') {
     const selectedBlockedContact = selectedSource.value as ContactBookContact
+    const profile = createContactProfileViewModel({
+      contact: selectedBlockedContact,
+      formatDate,
+      shortenProfileId
+    })
+
     return {
-      ...createContactProfileViewModel({
-        contact: selectedBlockedContact,
-        formatDate,
-        shortenProfileId
-      }),
-      canAllowRequests: true,
+      ...profile,
+      canAllowRequests: canAllowRequestsForRelationshipState(profile.relationshipState),
       canRemove: false,
       recentPosts: []
     }

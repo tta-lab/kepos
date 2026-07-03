@@ -165,6 +165,8 @@ test('mobile contact profile selection uses shared relationship helpers for requ
     'utf8'
   )
 
+  assert.match(source, /canAllowRequestsForRelationshipState\(profile\.relationshipState\)/)
   assert.match(source, /canRespondToFriendRequestForRelationshipState\(relationshipState\)/)
+  assert.doesNotMatch(source, /canAllowRequests: true/)
   assert.doesNotMatch(source, /relationshipState === 'incoming_request'/)
 })

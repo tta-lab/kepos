@@ -1440,7 +1440,8 @@ test('mobile contacts expose removed and ignored profiles', async () => {
   assert.match(contactManager, /icon=\{ShieldOff\}/)
   assert.match(contactManager, /label='Allow requests'/)
   assert.match(contactManager, /onAllowContactRequests\(contact\.profileId\)/)
-  assert.match(selectionModel, /canAllowRequests: true/)
+  assert.match(selectionModel, /canAllowRequestsForRelationshipState\(profile\.relationshipState\)/)
+  assert.doesNotMatch(selectionModel, /canAllowRequests: true/)
 })
 
 test('mobile request sent state is derived from restored contact book', async () => {
