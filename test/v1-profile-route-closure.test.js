@@ -137,3 +137,55 @@ test('V1 Treehole owner posting does not require Home session on desktop or Andr
   assert.match(backendOpenProfileTreehole, /await openTreehole\(null, 'profile'\)/)
   assert.doesNotMatch(backendOpenProfileTreehole, /room\.join|createP2PRoom/)
 })
+
+test('V1 Profile detail recent posts do not require Home entry', async () => {
+  const desktopPeople = await readText('../desktop/people-components.tsx')
+  const desktopAppState = await readText('../desktop/app-state.ts')
+  const mobileProfile = await readText('../mobile/profile-components.tsx')
+  const mobilePeople = await readText('../mobile/people-components.tsx')
+  const recentPostsViewModel = await readText('../src/profile-recent-posts-view-model.ts')
+
+  const desktopProfileDetail = sliceBetween(
+    desktopPeople,
+    'function ContactProfileDetail',
+    'function ProfileAvatar'
+  )
+  const mobileProfileDetail = sliceBetween(
+    mobileProfile,
+    'export function ContactProfileDetail',
+    'function getMobileAvatarToneStyle'
+  )
+  const desktopRecentPosts = sliceBetween(
+    desktopProfileDetail,
+    "<div className='profileRecent",
+    '<details className='
+  )
+  const desktopProfileMapping = sliceBetween(
+    desktopAppState,
+    'function withProfileRecentPosts',
+    'function formatRecentPostTime'
+  )
+  const mobileRecentPosts = sliceBetween(
+    mobileProfileDetail,
+    '<View style={styles.contactRecent}>',
+    '<View style={styles.contactIdentity}>'
+  )
+  const mobileProfileMapping = sliceBetween(
+    mobilePeople,
+    'function withMobileProfileRecentPosts',
+    'function toRequestTargetProfileInput'
+  )
+
+  assert.match(desktopRecentPosts, /profile\.recentPosts/)
+  assert.doesNotMatch(desktopRecentPosts, /enterContactHome|Refresh posts|Home entry|Home QR/)
+  assert.match(desktopProfileMapping, /cachedPostsByProfileId: profileRecentPostCache/)
+  assert.doesNotMatch(desktopProfileMapping, /enterContactHome|getHomeRuntime|homeRuntime|isJoined/)
+
+  assert.match(mobileRecentPosts, /profile\.recentPosts/)
+  assert.doesNotMatch(mobileRecentPosts, /onEnterContactHome|Refresh posts|Home entry|Home QR/)
+  assert.match(mobileProfileMapping, /cachedPostsByProfileId: profileRecentPostCache/)
+  assert.doesNotMatch(mobileProfileMapping, /onEnterContactHome|homeReady|homeRoomKey|session/)
+
+  assert.match(recentPostsViewModel, /cachedPostsByProfileId\[selectedProfileId \|\| ''\]/)
+  assert.doesNotMatch(recentPostsViewModel, /homeReady|homeRoomKey|enterHome|Home entry/)
+})

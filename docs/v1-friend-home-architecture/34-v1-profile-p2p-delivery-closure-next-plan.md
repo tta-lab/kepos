@@ -185,6 +185,9 @@ Already implemented before this plan:
 - `test/v1-profile-route-closure.test.js` now provides a consolidated
   source-level regression gate for Profile QR, desktop Chat/request actions,
   Android profile delivery, accepted Chat body send, and Treehole owner posting.
+- The same closure gate now also proves desktop and Android Profile detail
+  recent posts render from active or cached profile post state without a
+  Refresh-posts action, Home entry action, Home QR, or Home runtime dependency.
 
 Still open:
 
