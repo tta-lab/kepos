@@ -618,8 +618,9 @@ test('desktop request and QR dialog actions use clear icons', async () => {
     people,
     /<ActionButton[\s\S]*icon=\{<UserPlus size=\{15\} \/>\}[\s\S]*label='Allow requests'[\s\S]*actions\.allowContactRequests\(contact\.profileId\)/
   )
-  assert.match(people, /createProfileDetailActions/)
-  assert.match(people, /const relationshipActions = createProfileDetailActions\(/)
+  assert.match(people, /createProfileDetailState/)
+  assert.match(people, /const profileDetailState = createProfileDetailState\(/)
+  assert.match(people, /const relationshipActions = profileDetailState\.actions/)
   assert.match(people, /relationshipActions\.kind === 'respond'/)
   assert.match(people, /relationshipActions\.kind === 'allow_requests'/)
   assert.match(people, /relationshipActions\.kind === 'remove'/)

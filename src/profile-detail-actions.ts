@@ -28,6 +28,35 @@ export type ProfileDetailActions<TAcceptRequest, TIgnoreRequest> =
       kind: 'none'
     }
 
+export type ProfileDetailState<TAcceptRequest, TIgnoreRequest> = {
+  actions: ProfileDetailActions<TAcceptRequest, TIgnoreRequest>
+  canRemove: boolean
+}
+
+export function createProfileDetailState<TAcceptRequest, TIgnoreRequest>({
+  acceptRequest,
+  canAllowRequests,
+  canRemove,
+  ignoreRequest,
+  relationshipState
+}: ProfileDetailActionsInput<TAcceptRequest, TIgnoreRequest>): ProfileDetailState<
+  TAcceptRequest,
+  TIgnoreRequest
+> {
+  const resolvedCanRemove = canRemove !== false
+
+  return {
+    actions: createProfileDetailActions({
+      acceptRequest,
+      canAllowRequests,
+      canRemove: resolvedCanRemove,
+      ignoreRequest,
+      relationshipState
+    }),
+    canRemove: resolvedCanRemove
+  }
+}
+
 export function createProfileDetailActions<TAcceptRequest, TIgnoreRequest>({
   acceptRequest,
   canAllowRequests,

@@ -225,8 +225,8 @@ test('V1 desktop and Android UI consume shared relationship action models', asyn
   assert.match(profileDetailActions, /canRespondToFriendRequestForRelationshipState/)
   assert.match(profileDetailActions, /canAllowRequestsForRelationshipState/)
 
-  assert.match(desktopProfileDetail, /createProfileDetailActions\(/)
-  assert.match(mobileProfileDetail, /createProfileDetailActions\(/)
+  assert.match(desktopProfileDetail, /createProfileDetailState\(/)
+  assert.match(mobileProfileDetail, /createProfileDetailState\(/)
   assert.match(desktopPrepareProfileRequestTarget, /createProfileRequestTargetSelection\(/)
   assert.match(mobileChooseProfileRequestTarget, /createProfileRequestTargetSelection\(/)
 

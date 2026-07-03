@@ -15,7 +15,7 @@ import {
 } from 'lucide-react'
 import { ActionButton, PaneHeader, RequestActionButton, SectionTitle } from './ui-components.tsx'
 import type { ProfileRelationshipState } from '../src/profile-relationship-state.ts'
-import { createProfileDetailActions } from '../src/profile-detail-actions.ts'
+import { createProfileDetailState } from '../src/profile-detail-actions.ts'
 
 type PeopleActions = {
   acceptMessageRequest(message: MessageRequestView['acceptMessage']): unknown
@@ -401,13 +401,13 @@ function ContactProfileDetail({
   profile?: TrustedContactView | null
 }) {
   if (!profile) return null
-  const canRemove = profile.canRemove !== false
-  const relationshipActions = createProfileDetailActions({
+  const profileDetailState = createProfileDetailState({
     acceptRequest: profile.acceptMessage,
-    canRemove,
+    canRemove: profile.canRemove,
     ignoreRequest: { profileId: profile.profileId },
     relationshipState: profile.relationshipState
   })
+  const relationshipActions = profileDetailState.actions
 
   return (
     <section
@@ -426,7 +426,7 @@ function ContactProfileDetail({
             <div className='trustMeta mt-2 flex flex-wrap gap-1 text-xs text-base-content/65'>
               <span
                 className={
-                  canRemove
+                  profileDetailState.canRemove
                     ? 'badge badge-success badge-sm font-black'
                     : 'badge badge-warning badge-sm font-black'
                 }

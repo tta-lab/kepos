@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { createProfileDetailActions } from '../src/profile-detail-actions.ts'
+import {
+  createProfileDetailActions,
+  createProfileDetailState
+} from '../src/profile-detail-actions.ts'
 
 test('profile detail actions prefer incoming request response', () => {
   const actions = createProfileDetailActions({
@@ -55,5 +58,27 @@ test('profile detail actions fall back to remove or none', () => {
       relationshipState: 'request_target'
     }),
     { kind: 'none' }
+  )
+})
+
+test('profile detail state resolves remove availability before deriving trailing actions', () => {
+  assert.deepEqual(
+    createProfileDetailState({
+      canRemove: false,
+      relationshipState: 'trusted'
+    }),
+    {
+      actions: { kind: 'none' },
+      canRemove: false
+    }
+  )
+  assert.deepEqual(
+    createProfileDetailState({
+      relationshipState: 'trusted'
+    }),
+    {
+      actions: { kind: 'remove' },
+      canRemove: true
+    }
   )
 })

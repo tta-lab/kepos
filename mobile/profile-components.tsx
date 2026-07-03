@@ -10,7 +10,7 @@ import type {
   ResolveAvatarMediaUri
 } from '../src/profile-avatar-view-model.ts'
 import { type ProfileRelationshipState } from '../src/profile-relationship-state.ts'
-import { createProfileDetailActions } from '../src/profile-detail-actions.ts'
+import { createProfileDetailState } from '../src/profile-detail-actions.ts'
 import {
   MobileRequestActionButton,
   type MobileRequestActionButtonStyles,
@@ -284,14 +284,14 @@ export function ContactProfileDetail({
   const [showAdvancedIdentity, setShowAdvancedIdentity] = useState(false)
 
   if (!profile) return null
-  const canRemove = profile.canRemove !== false
-  const relationshipActions = createProfileDetailActions({
+  const profileDetailState = createProfileDetailState({
     acceptRequest: profile.acceptRequest,
     canAllowRequests: profile.canAllowRequests,
-    canRemove,
+    canRemove: profile.canRemove,
     ignoreRequest: profile.ignoreRequest,
     relationshipState: profile.relationshipState
   })
+  const relationshipActions = profileDetailState.actions
 
   return (
     <View

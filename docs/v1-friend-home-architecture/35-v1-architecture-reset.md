@@ -256,8 +256,8 @@ Current source alignment:
   platform components.
 - Desktop and Android Profile detail trailing actions now use
   `src/profile-detail-actions.ts`, so Accept/Ignore, Allow requests, Remove
-  friend, and empty action selection are derived from one relationship action
-  model before platform components render buttons.
+  friend, remove availability, and empty action selection are derived from one
+  relationship detail-state model before platform components render buttons.
 - Desktop Contacts profile-list view models now type `relationshipState` as
   `ProfileRelationshipState` and use the shared incoming-request helper when
   adding accept actions for request profiles.
@@ -304,7 +304,7 @@ Current code evidence:
 
 Current automated evidence:
 
-- Full source suite passed with 1041 tests after the reset cleanup.
+- Full source suite passed with 1042 tests after the reset cleanup.
 - `test/v1-model-smoke.test.js` now includes the exact Profile-first reset
   flow: Profile QR becomes `request_target`, Chat sends a signed friend request,
   the requester enters `outgoing_request`, the owner enters `incoming_request`,
@@ -323,6 +323,9 @@ Current automated evidence:
 - Focused advanced-social-action, desktop shell, desktop renderer bundle,
   two-device hook, and V1 route-closure tests passed with 131 tests after
   Advanced/debug action availability moved to the shared helper.
+- Focused profile-detail-actions, desktop shell, Android UI, and V1
+  route-closure tests passed with 92 tests after Profile detail remove/action
+  state moved to the shared helper.
 - Focused model/UI tests cover profile relationship state, friend request target
   view models, contact profile view models, desktop Contacts, desktop Chat, and
   Android Chat/Contacts source structure.
