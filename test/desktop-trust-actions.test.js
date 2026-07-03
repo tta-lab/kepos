@@ -114,7 +114,7 @@ test('desktop trust actions prepare a friend request target from a profile QR', 
         copy: 'Write an intro in Chat to send a friend request.',
         displayName: 'Ada',
         profileId: 'friend',
-        relationshipState: 'new',
+        relationshipState: 'request_target',
         shortProfileId: 'friend...friend',
         statusLabel: 'Friend request'
       }

@@ -78,6 +78,8 @@ export type DirectPaneStyles = DirectBubbleStyles &
     contactScroller: StyleProp<ViewStyle>
     directComposer: StyleProp<ViewStyle>
     directEmptyContacts: StyleProp<ViewStyle>
+    directMessageList: StyleProp<ViewStyle>
+    directPane: StyleProp<ViewStyle>
     messageInput: StyleProp<TextStyle>
     messageList: StyleProp<ViewStyle>
     recipientInput: StyleProp<TextStyle>
@@ -159,9 +161,12 @@ export function DirectPane({
     })
   })
   const visibleMessages = filterDirectMessagesForProfile(messages, recipient)
+  const hasRequestTarget = Boolean(
+    requestTarget?.profileId && requestTarget.profileId === recipient
+  )
 
   return (
-    <>
+    <View style={styles.directPane}>
       <PaneLabel eyebrow='durable' styles={styles} title='Chat' />
       <DirectThreadHeader
         onOpenProfile={onOpenProfile}
@@ -176,25 +181,27 @@ export function DirectPane({
         requestTarget={requestTarget}
         styles={styles}
       />
-      <MessageThreadList
-        contacts={threadContacts}
-        messages={messages}
-        onAcceptRequest={acceptRequest}
-        onIgnoreRequest={ignoreRequest}
-        onMarkThreadRead={onMarkThreadRead}
-        onOpenProfile={onOpenProfile}
-        onOpenPeople={onOpenPeople}
-        onSelectThread={onRecipientChange}
-        outgoingRequests={outgoingRequests}
-        ownerProfileId={ownerProfileId}
-        pendingRequests={pendingRequests}
-        resolveAvatarMediaUri={resolveAvatarMediaUri}
-        selectedProfileId={recipient}
-        shortenProfileId={shortenProfileId}
-        styles={styles}
-        theme={theme}
-        threads={threads}
-      />
+      {hasRequestTarget ? null : (
+        <MessageThreadList
+          contacts={threadContacts}
+          messages={messages}
+          onAcceptRequest={acceptRequest}
+          onIgnoreRequest={ignoreRequest}
+          onMarkThreadRead={onMarkThreadRead}
+          onOpenProfile={onOpenProfile}
+          onOpenPeople={onOpenPeople}
+          onSelectThread={onRecipientChange}
+          outgoingRequests={outgoingRequests}
+          ownerProfileId={ownerProfileId}
+          pendingRequests={pendingRequests}
+          resolveAvatarMediaUri={resolveAvatarMediaUri}
+          selectedProfileId={recipient}
+          shortenProfileId={shortenProfileId}
+          styles={styles}
+          theme={theme}
+          threads={threads}
+        />
+      )}
       <FlatList
         contentContainerStyle={styles.messageList}
         data={visibleMessages}
@@ -212,6 +219,7 @@ export function DirectPane({
             styles={styles}
           />
         )}
+        style={styles.directMessageList}
       />
 
       <View style={styles.directComposer}>
@@ -232,7 +240,7 @@ export function DirectPane({
               />
             ))}
           </ScrollView>
-        ) : (
+        ) : hasRequestTarget ? null : (
           <View style={styles.directEmptyContacts}>
             <PanelEmptyState
               copy='Trust a friend first, then come back here to write privately.'
@@ -296,7 +304,7 @@ export function DirectPane({
           />
         </View>
       </View>
-    </>
+    </View>
   )
 }
 

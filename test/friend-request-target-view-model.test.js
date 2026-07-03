@@ -44,7 +44,7 @@ test('friend request target view model marks a new profile as sendable', () => {
     }),
     avatarUri: 'kepos://avatar/ada',
     profileId: 'profile-ada',
-    relationshipState: 'new',
+    relationshipState: 'request_target',
     shortProfileId: 'short:profile-ada',
     statusLabel: 'Friend request'
   })
@@ -192,6 +192,9 @@ test('friend request target view model identifies states that block Chat sends',
     shouldBlockChatSendForFriendRequestTarget({ relationshipState: 'outgoing_request' }),
     true
   )
-  assert.equal(shouldBlockChatSendForFriendRequestTarget({ relationshipState: 'new' }), false)
+  assert.equal(
+    shouldBlockChatSendForFriendRequestTarget({ relationshipState: 'request_target' }),
+    false
+  )
   assert.equal(shouldBlockChatSendForFriendRequestTarget({ relationshipState: 'trusted' }), false)
 })

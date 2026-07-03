@@ -1,4 +1,9 @@
 import { getContact, isContactRevoked, isContactTrusted, type ContactBook } from './contact-book.ts'
+import {
+  canSendFriendRequestFromRelationshipState,
+  shouldBlockChatSendForRelationshipState,
+  type ProfileRelationshipState
+} from './profile-relationship-state.ts'
 import { formatProfileFriendRequestDeliveryState } from './profile-friend-request-delivery.ts'
 import {
   createProfileAvatarViewModel,
@@ -13,12 +18,10 @@ type ProfileRequestTarget = {
   profileId: string
 }
 
-export type FriendRequestTargetRelationshipState =
-  | 'blocked'
-  | 'incoming_request'
-  | 'new'
-  | 'outgoing_request'
-  | 'trusted'
+export type FriendRequestTargetRelationshipState = Extract<
+  ProfileRelationshipState,
+  'blocked' | 'incoming_request' | 'outgoing_request' | 'request_target' | 'trusted'
+>
 
 export type FriendRequestTargetViewModel = {
   avatar: ProfileAvatarViewModel
@@ -37,11 +40,7 @@ export type FriendRequestTargetViewModel = {
 export function shouldBlockChatSendForFriendRequestTarget({
   relationshipState
 }: Pick<FriendRequestTargetViewModel, 'relationshipState'>): boolean {
-  return (
-    relationshipState === 'blocked' ||
-    relationshipState === 'incoming_request' ||
-    relationshipState === 'outgoing_request'
-  )
+  return shouldBlockChatSendForRelationshipState(relationshipState)
 }
 
 export function createFriendRequestTargetViewModel({
@@ -151,7 +150,7 @@ export function createFriendRequestTargetViewModel({
     canSendRequest: true,
     copy: 'Write an intro in Chat to send a friend request.',
     displayName,
-    relationshipState: 'new',
+    relationshipState: 'request_target',
     shortProfileId: shortenProfileId(target.profileId),
     statusLabel: 'Friend request',
     target
@@ -177,7 +176,7 @@ function createView({
     ...(avatarMediaSnapshot ? { avatarMediaSnapshot } : {}),
     ...(avatarUri ? { avatarUri } : {}),
     canOpenProfile: true,
-    canSendRequest,
+    canSendRequest: canSendRequest && canSendFriendRequestFromRelationshipState(relationshipState),
     copy,
     displayName,
     profileId: target.profileId,

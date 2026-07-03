@@ -1047,6 +1047,10 @@ test('mobile messages can show thread rows and scanned profile request targets',
   assert.doesNotMatch(chooseProfileRequestTarget, /trustContact/)
   assert.match(directPane, /<ProfileRequestTargetCard[\s\S]*requestTarget=\{requestTarget\}/)
   assert.match(directPane, /<ProfileRequestTargetCard[\s\S]*onOpenProfile=\{onOpenProfile\}/)
+  assert.match(
+    directPane,
+    /const hasRequestTarget = Boolean\(\s*requestTarget\?\.profileId && requestTarget\.profileId === recipient\s*\)/
+  )
   assert.doesNotMatch(source, /function ProfileRequestTargetCard\(/)
   assert.match(profileComponents, /export type ProfileRequestTargetCardProps = \{/)
   assert.match(
@@ -1056,6 +1060,7 @@ test('mobile messages can show thread rows and scanned profile request targets',
   assert.match(directPane, /<MessageThreadList[\s\S]*threads=\{threads\}/)
   assert.match(directPane, /<MessageThreadList[\s\S]*onOpenProfile=\{onOpenProfile\}/)
   assert.match(directPane, /<MessageThreadList[\s\S]*onOpenPeople=\{onOpenPeople\}/)
+  assert.match(directPane, /\{hasRequestTarget \? null : \([\s\S]*<MessageThreadList[\s\S]*\)\}/)
   assert.match(
     directPane,
     /const acceptRequest = \(message: unknown\) =>[\s\S]*Promise\.resolve\(onAcceptRequest\(message as DirectPaneMessage\)\)/
@@ -1074,6 +1079,10 @@ test('mobile messages can show thread rows and scanned profile request targets',
     /<MessageThreadList[\s\S]*resolveAvatarMediaUri=\{resolveAvatarMediaUri\}/
   )
   assert.match(directPane, /<MessageThreadList[\s\S]*styles=\{styles\}/)
+  assert.match(
+    directPane,
+    /\) : hasRequestTarget \? null : \([\s\S]*<View style=\{styles\.directEmptyContacts\}>/
+  )
   assert.match(directPane, /<DirectBubble[\s\S]*contacts=\{contactOptions\}/)
   assert.match(directPane, /const selectedThread = findSelectedDmThreadView\(/)
   assert.match(directPane, /selectedProfileId: recipient/)

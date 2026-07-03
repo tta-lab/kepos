@@ -603,7 +603,16 @@ export function createMobileStyles(theme: MobileThemeTokens) {
     },
     directComposer: {
       borderTopColor: theme.border,
-      borderTopWidth: 1
+      borderTopWidth: 1,
+      flexShrink: 0
+    },
+    directMessageList: {
+      flex: 1,
+      minHeight: 0
+    },
+    directPane: {
+      flex: 1,
+      minHeight: 0
     },
     directThreadHeader: {
       alignItems: 'center',

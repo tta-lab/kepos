@@ -1,0 +1,108 @@
+# V1 Architecture Reset
+
+This is the current V1 reset contract after the physical Android release proof
+found that Profile QR scan worked, but the scanned-profile Chat composer was not
+reachable.
+
+The problem is not only a mobile layout bug. It is a product-state problem:
+Profile, request target, outgoing request, trusted contact, Chat, Treehole, and
+Home are still partly projected by separate UI branches.
+
+## Product Model
+
+V1 is profile-first and Home-secondary.
+
+Normal social path:
+
+```text
+scan Profile QR -> request target -> send request -> pending -> accepted -> Chat / Profile / Treehole
+```
+
+Optional live/session path:
+
+```text
+accepted contact -> Profile detail -> Enter Home
+```
+
+Home is not an authorization route. Home is not part of adding a friend. Home is
+a live surface that becomes available only after trust or an explicit future
+activity invite.
+
+## Relationship State Machine
+
+Every desktop and mobile profile UI must derive from the same relationship
+states:
+
+| State              | Meaning                                                 | Primary actions                                                          |
+| ------------------ | ------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `request_target`   | A Profile QR was scanned but no request was sent yet.   | Message composer sends the friend request. Profile detail is readable.   |
+| `outgoing_request` | This device sent a request and waits for acceptance.    | Show pending state. Retry only if delivery allows it.                    |
+| `incoming_request` | The remote profile sent a request to this device.       | Accept or ignore.                                                        |
+| `trusted`          | The profiles have mutual trust locally.                 | Message, view profile posts, explicit Enter Home if a descriptor exists. |
+| `ignored`          | This device ignored that profile's request.             | Allow requests before a new request can be accepted.                     |
+| `removed`          | This device revoked or removed trust.                   | Allow requests before future trust can be rebuilt.                       |
+| `blocked`          | UI shorthand for states that cannot send a new request. | Explain why the send is blocked.                                         |
+
+Allowed transitions:
+
+```text
+none -> request_target
+request_target -> outgoing_request
+none -> incoming_request
+incoming_request -> trusted
+incoming_request -> ignored
+outgoing_request -> trusted
+trusted -> removed
+ignored -> request_target after Allow requests
+removed -> request_target after Allow requests
+```
+
+No transition may require entering Home.
+
+## UI Contract
+
+Desktop and Android may use different components, but they must consume the same
+relationship model.
+
+Required projections:
+
+- A scanned `request_target` opens Chat with the scanned profile selected.
+- Chat must show a usable composer for `request_target`, even when the user has
+  zero contacts.
+- Sending from that composer creates a friend request and moves the relation to
+  `outgoing_request`.
+- Contacts and Chat rows must open the same Profile detail for a profile.
+- `trusted` shows Message as the primary action.
+- `Enter Home` is visible only as an explicit post-trust action.
+- Treehole local posting does not require Home.
+- Profile recent posts do not require Home.
+
+Forbidden projections:
+
+- Showing "no contacts" as a blocker when a scanned request target exists.
+- Requiring Home readiness, Home peer count, raw Home key, or Debug Home QR to
+  send a friend request.
+- Treating Home join as trust, friendship, or DM bootstrap.
+- Hiding the request composer below nonessential empty states.
+
+## Implementation Order
+
+1. Keep this document as the current V1 architecture contract.
+2. Put shared relationship state names and helpers in `src/`.
+3. Make desktop and Android view models use those shared states.
+4. Fix Chat so `request_target` has a stable composer path on mobile and desktop.
+5. Prove the previously failing release state before spending time on full
+   physical smoke.
+
+## Current Failure That Triggered This Reset
+
+Observed on a physical Pixel 7a release APK:
+
+1. Android scanned the desktop Profile QR successfully.
+2. Android switched to Chat and showed the desktop `profile-request-target-card`.
+3. The screen still showed "No message threads yet" and "No contacts yet".
+4. The `dm-message-input` was not reachable in the UI tree, so the user could
+   not send the friend request.
+
+The fix is to make `request_target` a first-class Chat state, not to add more
+smoke retries.

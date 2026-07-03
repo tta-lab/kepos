@@ -1,5 +1,10 @@
 import type { ContactBookContact } from './contact-book.ts'
 import {
+  canAllowRequestsForRelationshipState,
+  isTrustedRelationshipState,
+  type ProfileRelationshipState
+} from './profile-relationship-state.ts'
+import {
   formatProfileFriendRequestDeliveryState,
   type ProfileFriendRequestDeliveryState
 } from './profile-friend-request-delivery.ts'
@@ -11,12 +16,10 @@ import {
 
 type FormatDate = (value: number) => string
 type ShortenProfileId = (profileId: string) => string
-export type ContactProfileRelationshipState =
-  | 'ignored'
-  | 'incoming_request'
-  | 'outgoing_request'
-  | 'removed'
-  | 'trusted'
+export type ContactProfileRelationshipState = Extract<
+  ProfileRelationshipState,
+  'ignored' | 'incoming_request' | 'outgoing_request' | 'removed' | 'trusted'
+>
 
 export type ContactProfileViewModel = {
   avatar: ProfileAvatarViewModel
@@ -69,7 +72,7 @@ export function createContactProfileViewModel({
   const shortProfileId = shortenProfileId(contact.profileId)
   const displayName = readDisplayName(contact, shortProfileId)
   const state = relationshipState || inferRelationshipState(contact)
-  const isTrusted = state === 'trusted'
+  const isTrusted = isTrustedRelationshipState(state)
 
   return {
     avatar: createProfileAvatarViewModel({
@@ -143,7 +146,7 @@ function formatRecentCopy(state: ContactProfileRelationshipState): string {
 
 function formatRevokeLabel(state: ContactProfileRelationshipState): string {
   if (state === 'trusted') return 'Remove friend'
-  if (state === 'ignored' || state === 'removed') return 'Allow requests'
+  if (canAllowRequestsForRelationshipState(state)) return 'Allow requests'
   return 'Request pending'
 }
 
