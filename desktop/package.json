@@ -1,0 +1,25 @@
+{
+  "name": "kepos-desktop",
+  "productName": "Kepos",
+  "version": "0.1.0",
+  "upgrade": "pear://6jkngbnqj6rzpq1aip3fiqfyc4bh7epfr91qmct1q95djc73whto",
+  "private": true,
+  "type": "module",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "prestart": "npm run desktop:bundle --prefix ..",
+    "start": "electron ."
+  },
+  "dependencies": {
+    "autobase": "^7.28.1",
+    "b4a": "^1.8.1",
+    "bare-tcp": "^2.5.1",
+    "corestore": "^7.10.1",
+    "hypercore-crypto": "^3.7.0",
+    "hyperswarm": "^4.17.0",
+    "pear-runtime": "^1.2.0"
+  },
+  "devDependencies": {
+    "electron": "^42.4.0"
+  }
+}

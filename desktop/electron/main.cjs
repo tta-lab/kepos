@@ -1,0 +1,128 @@
+const path = require('node:path')
+const { app, BrowserWindow, ipcMain } = require('electron')
+const { registerDesktopBackendIpc } = require('./backend-ipc.cjs')
+const { createDesktopBackendWorkerHost } = require('../backend-worker-host.bundle.cjs')
+
+const pkg = require('../package.json')
+
+let mainWindow = null
+let mainBackendWorker = null
+let backendIpc = null
+let pear = null
+
+function createWindow() {
+  process.env.KEPOS_DESKTOP_STORAGE_BASE_PATH = getDesktopStorageBasePath()
+
+  mainWindow = new BrowserWindow({
+    height: 760,
+    show: false,
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+      preload: path.join(__dirname, 'preload.cjs'),
+      sandbox: false
+    },
+    width: 1080
+  })
+
+  if (backendIpc) {
+    backendIpc.setWebContents(mainWindow.webContents)
+  } else {
+    backendIpc = registerDesktopBackendIpc({
+      ipcMain,
+      webContents: mainWindow.webContents
+    })
+  }
+  void connectMainBackend()
+
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.show()
+  })
+
+  void mainWindow.loadFile(path.join(__dirname, '..', 'index.html'))
+}
+
+async function connectMainBackend() {
+  if (!backendIpc || mainBackendWorker) return
+
+  const storageBasePath = getDesktopStorageBasePath()
+  mainBackendWorker = createDesktopBackendWorkerHost({
+    createBackendWorkerStream: pear ? createPearBackendWorkerStream : undefined,
+    storageBasePath,
+    workerEntryPath: path.join(__dirname, '..', 'backend-worker.bundle.cjs')
+  })
+  const backendBridge = await mainBackendWorker.start()
+  backendIpc.connectBackend(backendBridge)
+}
+
+function createPearBackendWorkerStream({ storageBasePath, workerEntryPath }) {
+  if (!pear) throw new Error('pear-runtime is not ready')
+  return pear.run(workerEntryPath, [storageBasePath, JSON.stringify(getWorkerEnv())])
+}
+
+function getWorkerEnv() {
+  return {
+    KEPOS_DIRECT_ADVERTISED_HOST: process.env.KEPOS_DIRECT_ADVERTISED_HOST || '',
+    KEPOS_DIRECT_LISTEN_HOST: process.env.KEPOS_DIRECT_LISTEN_HOST || ''
+  }
+}
+
+async function startPearRuntime() {
+  try {
+    const { default: PearRuntime } = await import('pear-runtime')
+    const runtime = new PearRuntime({
+      ...pkg,
+      app: getAppPath(),
+      dir: path.join(app.getPath('userData'), 'pear-runtime'),
+      name: pkg.productName || pkg.name,
+      storage: path.join(app.getPath('userData'), 'pear-storage'),
+      updates: false
+    })
+
+    runtime.on('error', (error) => {
+      console.error('[pear-runtime]', error)
+    })
+
+    pear = runtime
+    await runtime.ready()
+    return runtime
+  } catch (error) {
+    console.error('[pear-runtime] failed to start', error)
+    return null
+  }
+}
+
+function getAppPath() {
+  if (!app.isPackaged) return null
+  if (process.platform === 'linux' && process.env.APPIMAGE) return process.env.APPIMAGE
+  if (process.platform === 'win32') return process.execPath
+  return path.join(process.resourcesPath, '..', '..')
+}
+
+function getDesktopStorageBasePath() {
+  return path.join(app.getPath('userData'), 'kepos', 'v1')
+}
+
+app.whenReady().then(async () => {
+  if (process.env.KEPOS_DESKTOP_PEAR === '1') await startPearRuntime()
+  createWindow()
+
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+  })
+})
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') app.quit()
+})
+
+app.on('before-quit', (event) => {
+  if (!pear && !mainBackendWorker) return
+
+  event.preventDefault()
+  const runtime = pear
+  const backendWorker = mainBackendWorker
+  pear = null
+  mainBackendWorker = null
+  Promise.allSettled([runtime?.close(), backendWorker?.close()]).finally(() => app.quit())
+})

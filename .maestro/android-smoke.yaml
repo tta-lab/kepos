@@ -1,0 +1,61 @@
+appId: io.guion.kepos
+---
+- launchApp
+- runFlow:
+    when:
+      visible:
+        id: 'home-title'
+    commands:
+      - tapOn:
+          id: 'leave-home-button'
+- extendedWaitUntil:
+    visible:
+      id: 'create-home-button'
+    timeout: 60000
+- tapOn:
+    id: 'people-tab'
+- tapOn:
+    id: 'scan-home-qr-button'
+- assertVisible:
+    id: 'qr-scanner-overlay'
+- tapOn:
+    id: 'qr-scanner-cancel'
+- tapOn:
+    id: 'scan-profile-qr-button'
+- assertVisible:
+    id: 'qr-scanner-overlay'
+- tapOn:
+    id: 'qr-scanner-cancel'
+- tapOn:
+    id: 'create-home-button'
+- extendedWaitUntil:
+    visible:
+      id: 'home-title'
+    timeout: 20000
+- assertVisible:
+    id: 'chat-tab'
+- tapOn:
+    id: 'treehole-tab'
+- assertVisible: 'No posts yet'
+- tapOn:
+    id: 'treehole-post-input'
+- inputText: 'android smoke treehole post'
+- hideKeyboard
+- tapOn:
+    id: 'treehole-post-button'
+- assertVisible: 'android smoke treehole post'
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: 'create-home-button'
+    timeout: 60000
+- tapOn:
+    id: 'create-home-button'
+- extendedWaitUntil:
+    visible:
+      id: 'home-title'
+    timeout: 20000
+- tapOn:
+    id: 'treehole-tab'
+- assertVisible: 'android smoke treehole post'

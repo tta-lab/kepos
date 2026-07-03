@@ -1,0 +1,319 @@
+import assert from 'node:assert/strict'
+import { readFile } from 'node:fs/promises'
+import test from 'node:test'
+
+function readText(path) {
+  return readFile(new URL(path, import.meta.url), 'utf8')
+}
+
+function sliceBetween(source, startMarker, endMarker) {
+  const start = source.indexOf(startMarker)
+  assert.notEqual(start, -1, `missing start marker: ${startMarker}`)
+  const end = source.indexOf(endMarker, start + startMarker.length)
+  assert.notEqual(end, -1, `missing end marker: ${endMarker}`)
+  return source.slice(start, end)
+}
+
+test('V1 normal Profile QR stays independent from Home descriptors', async () => {
+  const shareQr = await readText('../src/share-qr-service.ts')
+  const createShareQrPayloads = sliceBetween(
+    shareQr,
+    'export function createShareQrPayloads',
+    '  return {'
+  )
+  const trustInviteCall = sliceBetween(
+    createShareQrPayloads,
+    'createSignedTrustInvitePayload({',
+    '    })'
+  )
+  const returnBlock = sliceBetween(shareQr, '  return {', '\n  }\n}')
+
+  assert.match(createShareQrPayloads, /createSignedTrustInvitePayload\(\{[\s\S]*identity/)
+  assert.doesNotMatch(trustInviteCall, /homeDescriptor|homeRoom|roomKey/)
+  assert.match(returnBlock, /primaryUri: profileUri/)
+  assert.match(returnBlock, /debugHomeUri: homeUri/)
+  assert.doesNotMatch(returnBlock, /primaryUri: homeUri/)
+})
+
+test('V1 desktop Chat and request actions keep Home out of normal social delivery', async () => {
+  const messageActions = await readText('../src/desktop-message-actions.ts')
+  const dmRuntime = await readText('../src/desktop-dm-runtime.ts')
+  const requestActions = await readText('../src/desktop-message-request-actions.ts')
+
+  const sendDmMessage = sliceBetween(messageActions, 'async sendDmMessage', '    sendHomeMessage')
+  const debugFallback = sliceBetween(
+    sendDmMessage,
+    'if (allowDebugHomeDmBodyFallback',
+    '\n      }\n\n      onChanged()'
+  )
+  const runtimeSend = sliceBetween(
+    dmRuntime,
+    'function sendMessageOrRequest',
+    'function appendIncomingRequest'
+  )
+  const acceptIncoming = sliceBetween(
+    requestActions,
+    'async function acceptIncomingMessageRequest',
+    'function ignoreIncomingMessageRequest'
+  )
+
+  assert.match(sendDmMessage, /sendDesktopProfileFriendRequest\(/)
+  assert.doesNotMatch(sendDmMessage, /broadcastControl: \(\) =>/)
+  assert.doesNotMatch(runtimeSend, /broadcastControl/)
+  assert.match(debugFallback, /getHomeRuntime\(\)\?\.broadcastControl/)
+  assert.doesNotMatch(acceptIncoming, /getHomeRuntime|isJoined|homeRuntime|broadcastControl/)
+  assert.match(acceptIncoming, /getFriendRequestTransport\(\)\?\.send/)
+})
+
+test('V1 Android normal social delivery uses profile runtime, not Home fallback', async () => {
+  const backend = await readText('../backend/backend.mjs')
+  const mobile = await readText('../mobile/App.tsx')
+
+  const sendProfileMessageRequest = sliceBetween(
+    backend,
+    'async function sendProfileMessageRequest',
+    'async function acceptMessageRequest'
+  )
+  const acceptMessageRequest = sliceBetween(
+    backend,
+    'async function acceptMessageRequest',
+    'function canAcceptIncomingMessageRequest'
+  )
+  const sendDmBody = sliceBetween(
+    backend,
+    'function sendDmBody',
+    'async function revokeDmByProfile'
+  )
+  const mobileSendMessageRequest = sliceBetween(
+    mobile,
+    'function sendMessageRequest()',
+    'function retryOutgoingMessageRequest'
+  )
+  const mobileAcceptedThreadBranch = sliceBetween(
+    mobileSendMessageRequest,
+    'if (thread) {',
+    '    if (!requestTargetView.canSendRequest)'
+  )
+
+  assert.match(sendProfileMessageRequest, /profileRequestRuntime\.send\(request\)/)
+  assert.doesNotMatch(sendProfileMessageRequest, /room|allowDebugHomeTrustFallback|directTransport/)
+  assert.match(acceptMessageRequest, /profileRequestRuntime\.send\(invite\)/)
+  assert.doesNotMatch(
+    acceptMessageRequest,
+    /room|broadcastControl|sendControl|allowDebugHomeTrustFallback/
+  )
+  assert.match(sendDmBody, /dmRuntime\.sendMessage/)
+  assert.doesNotMatch(sendDmBody, /room\.send\(|room\.broadcastControl\(message\)/)
+  assert.match(mobileSendMessageRequest, /RPC_PROFILE_REQUEST_SEND/)
+  assert.doesNotMatch(
+    mobileSendMessageRequest,
+    /homeRoomKey|homeReady|directRoomEndpoint|RPC_DM_SEND/
+  )
+  assert.match(mobileAcceptedThreadBranch, /RPC_DM_BODY_SEND/)
+  assert.doesNotMatch(mobileAcceptedThreadBranch, /RPC_PROFILE_REQUEST_SEND|RPC_DM_SEND|RPC_SEND/)
+})
+
+test('V1 Treehole owner posting does not require Home session on desktop or Android', async () => {
+  const desktop = await readText('../src/desktop-message-actions.ts')
+  const mobile = await readText('../mobile/App.tsx')
+  const backend = await readText('../backend/backend.mjs')
+
+  const desktopPostTreehole = sliceBetween(desktop, 'async postTreehole', '    async retryOutgoing')
+  const mobilePostTreehole = sliceBetween(
+    mobile,
+    'function sendTreeholePost()',
+    'function sendTreeholeComment('
+  )
+  const backendOpenProfileTreehole = sliceBetween(
+    backend,
+    'async function openProfileTreehole',
+    'async function openTreehole'
+  )
+
+  assert.match(desktopPostTreehole, /getTreeholeCanPost\(\)/)
+  assert.doesNotMatch(desktopPostTreehole, /getHomeRuntime|getSession|isJoined/)
+  assert.match(mobilePostTreehole, /RPC_TREEHOLE_POST/)
+  assert.doesNotMatch(mobilePostTreehole, /session|homeReady|homeRoomKey/)
+  assert.match(backendOpenProfileTreehole, /await openTreehole\(null, 'profile'\)/)
+  assert.doesNotMatch(backendOpenProfileTreehole, /room\.join|createP2PRoom/)
+})
+
+test('V1 Profile detail recent posts do not require Home entry', async () => {
+  const desktopPeople = await readText('../desktop/people-components.tsx')
+  const desktopProfileSelection = await readText('../src/desktop-profile-selection.ts')
+  const mobileProfile = await readText('../mobile/profile-components.tsx')
+  const mobileProfileSelection = await readText('../src/mobile-contact-profile-selection.ts')
+  const recentPostsViewModel = await readText('../src/profile-recent-posts-view-model.ts')
+
+  const desktopProfileDetail = sliceBetween(
+    desktopPeople,
+    'function ContactProfileDetail',
+    'function ProfileAvatar'
+  )
+  const mobileProfileDetail = sliceBetween(
+    mobileProfile,
+    'export function ContactProfileDetail',
+    'function getMobileAvatarToneStyle'
+  )
+  const desktopRecentPosts = sliceBetween(
+    desktopProfileDetail,
+    "<div className='profileRecent",
+    '<details className='
+  )
+  const desktopProfileMappingStart = desktopProfileSelection.indexOf(
+    'function withDesktopProfileRecentPosts'
+  )
+  assert.notEqual(desktopProfileMappingStart, -1, 'missing desktop profile recent-post mapping')
+  const desktopProfileMapping = desktopProfileSelection.slice(desktopProfileMappingStart)
+  const mobileRecentPosts = sliceBetween(
+    mobileProfileDetail,
+    '<View style={styles.contactRecent}>',
+    '<View style={styles.contactIdentity}>'
+  )
+  const mobileProfileMappingStart = mobileProfileSelection.indexOf(
+    'function withMobileProfileRecentPosts'
+  )
+  assert.notEqual(mobileProfileMappingStart, -1, 'missing mobile profile recent-post mapping')
+  const mobileProfileMapping = mobileProfileSelection.slice(mobileProfileMappingStart)
+
+  assert.match(desktopRecentPosts, /profile\.recentPosts/)
+  assert.doesNotMatch(desktopRecentPosts, /enterContactHome|Refresh posts|Home entry|Home QR/)
+  assert.match(desktopProfileMapping, /cachedPostsByProfileId: profileRecentPostCache/)
+  assert.doesNotMatch(desktopProfileMapping, /enterContactHome|getHomeRuntime|homeRuntime|isJoined/)
+
+  assert.match(mobileRecentPosts, /profile\.recentPosts/)
+  assert.doesNotMatch(mobileRecentPosts, /onEnterContactHome|Refresh posts|Home entry|Home QR/)
+  assert.match(mobileProfileMapping, /cachedPostsByProfileId: profileRecentPostCache/)
+  assert.doesNotMatch(mobileProfileMapping, /onEnterContactHome|homeReady|homeRoomKey|session/)
+
+  assert.match(recentPostsViewModel, /cachedPostsByProfileId\[selectedProfileId \|\| ''\]/)
+  assert.doesNotMatch(recentPostsViewModel, /homeReady|homeRoomKey|enterHome|Home entry/)
+})
+
+test('V1 desktop and Android UI consume shared relationship action models', async () => {
+  const desktopPeople = await readText('../desktop/people-components.tsx')
+  const mobileProfile = await readText('../mobile/profile-components.tsx')
+  const desktopTrustActions = await readText('../src/desktop-trust-actions.ts')
+  const mobileApp = await readText('../mobile/App.tsx')
+  const relationshipState = await readText('../src/profile-relationship-state.ts')
+  const requestTargetSelection = await readText('../src/profile-request-target-selection.ts')
+  const profileDetailActions = await readText('../src/profile-detail-actions.ts')
+
+  const desktopProfileDetail = sliceBetween(
+    desktopPeople,
+    'function ContactProfileDetail',
+    'function ProfileAvatar'
+  )
+  const mobileProfileDetail = sliceBetween(
+    mobileProfile,
+    'export function ContactProfileDetail',
+    'function getMobileAvatarToneStyle'
+  )
+  const mobileChooseProfileRequestTarget = sliceBetween(
+    mobileApp,
+    'function chooseProfileRequestTarget',
+    'async function revokeTrustedContact'
+  )
+  const desktopPrepareProfileRequestTarget = sliceBetween(
+    desktopTrustActions,
+    'function prepareProfileRequestTarget',
+    'function allowContactRequests'
+  )
+
+  assert.match(relationshipState, /export type ProfileRelationshipState/)
+  assert.match(requestTargetSelection, /createFriendRequestTargetViewModel/)
+  assert.match(profileDetailActions, /canRespondToFriendRequestForRelationshipState/)
+  assert.match(profileDetailActions, /canAllowRequestsForRelationshipState/)
+
+  assert.match(desktopProfileDetail, /createProfileDetailState\(/)
+  assert.match(mobileProfileDetail, /createProfileDetailState\(/)
+  assert.match(desktopPrepareProfileRequestTarget, /createProfileRequestTargetSelection\(/)
+  assert.match(mobileChooseProfileRequestTarget, /createProfileRequestTargetSelection\(/)
+
+  for (const platformUi of [
+    desktopProfileDetail,
+    mobileProfileDetail,
+    desktopPrepareProfileRequestTarget,
+    mobileChooseProfileRequestTarget
+  ]) {
+    assert.doesNotMatch(
+      platformUi,
+      /relationshipState\s*[!=]==|\.relationshipState\s*[!=]==|case 'request_target'|case 'outgoing_request'|case 'incoming_request'|case 'trusted'|case 'ignored'|case 'removed'/
+    )
+  }
+})
+
+test('V1 visible social wording keeps protocol terms out of the normal path', async () => {
+  const desktopContext = await readText('../desktop/context-components.tsx')
+  const desktopPanes = await readText('../desktop/pane-components.tsx')
+  const desktopPeople = await readText('../desktop/people-components.tsx')
+  const mobileDirect = await readText('../mobile/direct-components.tsx')
+  const mobileLobby = await readText('../mobile/lobby-components.tsx')
+  const mobilePeople = await readText('../mobile/people-components.tsx')
+
+  const desktopChatPane = sliceBetween(
+    desktopPanes,
+    'export function DirectPane',
+    'function DirectThreadHeader'
+  )
+  const desktopContactsPane = sliceBetween(
+    desktopPeople,
+    'export function PeoplePane',
+    'function ContactProfileDetail'
+  )
+  const desktopAddFriend = sliceBetween(
+    desktopContext,
+    "<details className='contextGroup peopleActions'",
+    "<details className='contextGroup homeActions'"
+  )
+  const desktopDebugHomeQr = sliceBetween(
+    desktopContext,
+    "id='advancedHomeQrControls'",
+    '</details>\n      </details>'
+  )
+  const mobileChatPane = sliceBetween(
+    mobileDirect,
+    'export function DirectPane',
+    'function toThreadContact'
+  )
+  const mobileAddFriend = sliceBetween(
+    mobilePeople,
+    '<TaskHeader',
+    "testID='advanced-share-toggle'"
+  )
+  const mobileDebugHomeQr = sliceBetween(
+    mobilePeople,
+    "description='Debug home descriptor",
+    "placeholder='Profile QR details'"
+  )
+  const mobileManualHome = sliceBetween(
+    mobileLobby,
+    "description='Debug manual Home entry",
+    "testID='manual-home-join-button'"
+  )
+
+  for (const normalSurface of [
+    desktopChatPane,
+    desktopContactsPane,
+    desktopAddFriend,
+    mobileChatPane,
+    mobileAddFriend
+  ]) {
+    assert.doesNotMatch(
+      normalSurface,
+      /\bDM\b|Direct messages|direct messages|direct host:port|host:port|Home QR|home descriptor|raw host|raw room/
+    )
+  }
+
+  assert.match(desktopChatPane, /title='Chat'/)
+  assert.match(desktopAddFriend, /Paste a Profile QR, then write a friend request\./)
+  assert.match(mobileChatPane, /title='Chat'/)
+  assert.match(mobileAddFriend, /Scan a Profile QR, then write a friend request\./)
+
+  assert.match(desktopDebugHomeQr, /title='Debug Home QR'/)
+  assert.match(desktopDebugHomeQr, /it does not create friendship/)
+  assert.match(mobileDebugHomeQr, /title='Debug Home QR'/)
+  assert.match(mobileDebugHomeQr, /it does not create friendship/)
+  assert.match(mobileManualHome, /Debug manual Home entry; not for adding friends\./)
+  assert.match(mobileManualHome, /Diagnostic direct host:port/)
+})

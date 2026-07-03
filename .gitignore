@@ -1,0 +1,16 @@
+node_modules/
+.DS_Store
+.expo/
+android/
+ios/
+desktop/app.bundle.cjs
+desktop/app.bundle.js
+desktop/tailwind.css
+desktop/controller.browser.bundle.js
+desktop/controller.bundle.cjs
+desktop/backend-worker-host.bundle.cjs
+desktop/backend-worker.bundle.cjs
+desktop/local-backend.bundle.cjs
+desktop/local-profile.bundle.cjs
+mobile/app.bundle.mjs
+tmp/
