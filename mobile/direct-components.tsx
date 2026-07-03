@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { StyleProp, TextStyle, ViewStyle } from 'react-native'
-import { FlatList, ScrollView, TextInput, View } from 'react-native'
+import { FlatList, ScrollView, Text, TextInput, View } from 'react-native'
 import { Plus, Users } from 'lucide-react-native'
 import { getDirectChatEmptyCopy } from '../src/direct-chat-empty-copy.ts'
 import { createDirectChatComposerState } from '../src/direct-chat-composer-state.ts'
@@ -10,6 +10,7 @@ import {
   filterDirectMessagesForProfile,
   findSelectedDmThreadView
 } from '../src/dm-thread-list.ts'
+import { createFriendRequestComposerState } from '../src/friend-request-composer-state.ts'
 import { shortenProfileId } from '../src/mobile-product-copy.ts'
 import type { ResolveAvatarMediaUri } from '../src/profile-avatar-view-model.ts'
 import {
@@ -177,6 +178,16 @@ export function DirectPane({
     relationshipState: requestTarget?.relationshipState,
     threadLabel: selectedThread?.label
   })
+  const requestComposerState = createFriendRequestComposerState({
+    draft,
+    recipientProfileId: recipient,
+    requestTarget
+  })
+
+  function handleFriendRequestSend() {
+    if (!requestComposerState.canSend) return
+    onSend()
+  }
 
   return (
     <View style={styles.directPane}>
@@ -194,6 +205,32 @@ export function DirectPane({
         requestTarget={requestTarget}
         styles={styles}
       />
+      {requestComposerState.isVisible ? (
+        <View style={styles.directComposer} testID='friend-request-composer'>
+          <Text style={styles.emptyTitle}>{requestComposerState.title}</Text>
+          <Text style={styles.emptyCopy}>{requestComposerState.copy}</Text>
+          <View style={styles.composer}>
+            <TextInput
+              onChangeText={onDraftChange}
+              onSubmitEditing={handleFriendRequestSend}
+              placeholder={requestComposerState.placeholder}
+              placeholderTextColor={theme.placeholder}
+              returnKeyType='send'
+              style={styles.messageInput}
+              testID='friend-request-input'
+              value={draft}
+            />
+            <MobileSendButton
+              accessibilityLabel={requestComposerState.sendLabel}
+              disabled={!requestComposerState.canSend}
+              onPress={handleFriendRequestSend}
+              styles={styles}
+              surfaceColor={theme.surface}
+              testID='friend-request-send-button'
+            />
+          </View>
+        </View>
+      ) : null}
       {layoutState.hideThreadList ? null : (
         <MessageThreadList
           contacts={threadContacts}
@@ -237,86 +274,88 @@ export function DirectPane({
         style={styles.directMessageList}
       />
 
-      <View style={styles.directComposer}>
-        {contactOptions.length > 0 ? (
-          <ScrollView
-            horizontal
-            contentContainerStyle={styles.contactScroller}
-            showsHorizontalScrollIndicator={false}
-          >
-            {contactOptions.map((contact) => (
-              <MobileContactChip
-                contact={contact}
-                key={contact.profileId}
-                onPress={() => onRecipientChange(contact.profileId)}
-                resolveAvatarMediaUri={resolveAvatarMediaUri}
-                selected={recipient === contact.profileId}
+      {requestComposerState.isVisible ? null : (
+        <View style={styles.directComposer}>
+          {contactOptions.length > 0 ? (
+            <ScrollView
+              horizontal
+              contentContainerStyle={styles.contactScroller}
+              showsHorizontalScrollIndicator={false}
+            >
+              {contactOptions.map((contact) => (
+                <MobileContactChip
+                  contact={contact}
+                  key={contact.profileId}
+                  onPress={() => onRecipientChange(contact.profileId)}
+                  resolveAvatarMediaUri={resolveAvatarMediaUri}
+                  selected={recipient === contact.profileId}
+                  styles={styles}
+                />
+              ))}
+            </ScrollView>
+          ) : layoutState.hideContactEmpty ? null : (
+            <View style={styles.directEmptyContacts}>
+              <PanelEmptyState
+                copy='Trust a friend first, then come back here to write privately.'
+                icon={Users}
+                iconColor={theme.iconMuted}
                 styles={styles}
+                title='No contacts yet'
               />
-            ))}
-          </ScrollView>
-        ) : layoutState.hideContactEmpty ? null : (
-          <View style={styles.directEmptyContacts}>
-            <PanelEmptyState
-              copy='Trust a friend first, then come back here to write privately.'
-              icon={Users}
-              iconColor={theme.iconMuted}
-              styles={styles}
-              title='No contacts yet'
+              <MobileActionButton
+                accentColor={theme.accentStrong}
+                disabledContentColor={theme.placeholder}
+                primaryContentColor={theme.surface}
+                styles={styles}
+                icon={Plus}
+                label='Open Contacts'
+                onPress={onOpenPeople}
+                testID='dm-open-people-button'
+              />
+            </View>
+          )}
+          <MobileAdvancedToggle
+            expanded={showAdvancedDmRecipient}
+            iconColor={theme.inkSoft}
+            onPress={() => setShowAdvancedDmRecipient((value) => !value)}
+            styles={styles}
+            testID='advanced-dm-recipient-toggle'
+            variant='compact'
+          />
+          {showAdvancedDmRecipient ? (
+            <TextInput
+              autoCapitalize='none'
+              autoCorrect={false}
+              onChangeText={onRecipientChange}
+              placeholder='Manual recipient profile id'
+              placeholderTextColor={theme.placeholder}
+              style={styles.recipientInput}
+              testID='dm-recipient-input'
+              value={recipient}
             />
-            <MobileActionButton
-              accentColor={theme.accentStrong}
-              disabledContentColor={theme.placeholder}
-              primaryContentColor={theme.surface}
+          ) : null}
+          <View style={styles.composer}>
+            <TextInput
+              onChangeText={onDraftChange}
+              onSubmitEditing={onSend}
+              placeholder={composerState.placeholder}
+              placeholderTextColor={theme.placeholder}
+              returnKeyType='send'
+              style={styles.messageInput}
+              testID='dm-message-input'
+              value={draft}
+            />
+            <MobileSendButton
+              accessibilityLabel={composerState.sendLabel}
+              disabled={!composerState.canSend}
+              onPress={onSend}
               styles={styles}
-              icon={Plus}
-              label='Open Contacts'
-              onPress={onOpenPeople}
-              testID='dm-open-people-button'
+              surfaceColor={theme.surface}
+              testID='dm-send-button'
             />
           </View>
-        )}
-        <MobileAdvancedToggle
-          expanded={showAdvancedDmRecipient}
-          iconColor={theme.inkSoft}
-          onPress={() => setShowAdvancedDmRecipient((value) => !value)}
-          styles={styles}
-          testID='advanced-dm-recipient-toggle'
-          variant='compact'
-        />
-        {showAdvancedDmRecipient ? (
-          <TextInput
-            autoCapitalize='none'
-            autoCorrect={false}
-            onChangeText={onRecipientChange}
-            placeholder='Manual recipient profile id'
-            placeholderTextColor={theme.placeholder}
-            style={styles.recipientInput}
-            testID='dm-recipient-input'
-            value={recipient}
-          />
-        ) : null}
-        <View style={styles.composer}>
-          <TextInput
-            onChangeText={onDraftChange}
-            onSubmitEditing={onSend}
-            placeholder={composerState.placeholder}
-            placeholderTextColor={theme.placeholder}
-            returnKeyType='send'
-            style={styles.messageInput}
-            testID='dm-message-input'
-            value={draft}
-          />
-          <MobileSendButton
-            accessibilityLabel={composerState.sendLabel}
-            disabled={!composerState.canSend}
-            onPress={onSend}
-            styles={styles}
-            surfaceColor={theme.surface}
-            testID='dm-send-button'
-          />
         </View>
-      </View>
+      )}
     </View>
   )
 }

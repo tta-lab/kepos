@@ -17,7 +17,7 @@ test('profile request target selection creates the shared request-target view', 
   })
 
   assert.equal(selection.profileId, 'profile-ada')
-  assert.equal(selection.notice, 'Write an intro in Chat to send a friend request.')
+  assert.equal(selection.notice, 'Write a friend request to introduce yourself.')
   assert.equal(selection.targetView.displayName, 'Ada')
   assert.equal(selection.targetView.relationshipState, 'request_target')
   assert.equal(selection.targetView.canSendRequest, true)

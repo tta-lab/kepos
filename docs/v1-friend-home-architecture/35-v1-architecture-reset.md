@@ -322,6 +322,10 @@ Current code evidence:
   Enter Home remains disabled until trust exists.
 - Desktop and Android Chat hide misleading zero-thread or zero-contact blockers
   when the selected recipient is a scanned request target.
+- Desktop and Android now render a dedicated friend request composer for the
+  selected `request_target` using `src/friend-request-composer-state.ts`; the
+  normal Chat composer is hidden while that request composer is visible, so
+  scan-to-request no longer depends on finding the durable Chat input.
 - Desktop and Android selected Profile projection now flows through shared
   source-level helpers: relationship state inference,
   request-target profile projection, recent-post projection, and ordered
@@ -334,7 +338,8 @@ Current code evidence:
 
 Current automated evidence:
 
-- Full source suite passed with 1042 tests after the reset cleanup.
+- Full source suite passed with 1046 tests after the dedicated request composer
+  cleanup.
 - `test/v1-model-smoke.test.js` now includes the exact Profile-first reset
   flow: Profile QR becomes `request_target`, Chat sends a signed friend request,
   the requester enters `outgoing_request`, the owner enters `incoming_request`,
@@ -353,6 +358,9 @@ Current automated evidence:
 - Focused advanced-social-action, desktop shell, desktop renderer bundle,
   two-device hook, and V1 route-closure tests passed with 131 tests after
   Advanced/debug action availability moved to the shared helper.
+- Focused friend-request composer, desktop shell, Android UI, two-device hook,
+  V1 route-closure, and renderer bundle tests passed with 194 tests after the
+  dedicated request composer moved to shared state.
 - Focused profile-detail-actions, desktop shell, Android UI, and V1
   route-closure tests passed with 92 tests after Profile detail remove/action
   state moved to the shared helper.

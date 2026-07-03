@@ -1116,6 +1116,11 @@ test('mobile messages can show thread rows and scanned profile request targets',
     directPane,
     /const composerState = createDirectChatComposerState\(\{[\s\S]*relationshipState/
   )
+  assert.match(directPane, /const requestComposerState = createFriendRequestComposerState\(/)
+  assert.match(directPane, /testID='friend-request-composer'/)
+  assert.match(directPane, /testID='friend-request-input'/)
+  assert.match(directPane, /testID='friend-request-send-button'/)
+  assert.match(directPane, /requestComposerState\.isVisible \? null : \(/)
   assert.match(directPane, /placeholder=\{composerState\.placeholder\}/)
   assert.match(directPane, /accessibilityLabel=\{composerState\.sendLabel\}/)
   assert.match(directPane, /disabled=\{!composerState\.canSend\}/)

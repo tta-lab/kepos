@@ -111,7 +111,7 @@ test('desktop trust actions prepare a friend request target from a profile QR', 
         },
         canOpenProfile: true,
         canSendRequest: true,
-        copy: 'Write an intro in Chat to send a friend request.',
+        copy: 'Write a friend request to introduce yourself.',
         displayName: 'Ada',
         profileId: 'friend',
         relationshipState: 'request_target',
@@ -120,7 +120,7 @@ test('desktop trust actions prepare a friend request target from a profile QR', 
       }
     ],
     ['form.draft', { trustAlias: '', trustQrUri: '' }],
-    ['notice', 'Write an intro in Chat to send a friend request.'],
+    ['notice', 'Write a friend request to introduce yourself.'],
     ['render']
   ])
 })

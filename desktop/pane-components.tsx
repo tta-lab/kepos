@@ -11,6 +11,7 @@ import { getDirectChatEmptyCopy } from '../src/direct-chat-empty-copy.ts'
 import { createDirectChatComposerState } from '../src/direct-chat-composer-state.ts'
 import { createDirectChatLayoutState } from '../src/direct-chat-layout-state.ts'
 import { filterDirectMessagesForProfile, findSelectedDmThreadView } from '../src/dm-thread-list.ts'
+import { createFriendRequestComposerState } from '../src/friend-request-composer-state.ts'
 import type { ProfileRelationshipState } from '../src/profile-relationship-state.ts'
 import { createTextComposerState } from '../src/text-composer-state.ts'
 
@@ -219,6 +220,11 @@ export function DirectPane({
     recipientProfileId: selectedProfileId,
     requestTargetProfileId: requestTarget?.profileId
   })
+  const requestComposerState = createFriendRequestComposerState({
+    draft: composer.text,
+    recipientProfileId: selectedProfileId,
+    requestTarget
+  })
 
   function selectThread(profileId: string) {
     const toProfileId = profileId.trim()
@@ -251,23 +257,31 @@ export function DirectPane({
         recipient={selectedProfileId}
         requestTarget={requestTarget}
       />
+      <FriendRequestComposer
+        actions={composerActions}
+        draft={composer.text}
+        requestComposerState={requestComposerState}
+        setComposer={setComposer}
+      />
       <DirectMessageList
         messages={visibleMessages}
         onAccept={messageActions.acceptMessage}
         onIgnore={messageActions.ignoreMessage}
         relationshipState={requestTarget?.relationshipState}
       />
-      <DirectComposer
-        actions={composerActions}
-        composer={composer}
-        contactPicker={contactPicker}
-        contactPickerActions={contactPickerActions}
-        controls={controls}
-        hideContactEmpty={layoutState.hideContactEmpty}
-        relationshipState={requestTarget?.relationshipState}
-        selectedThread={selectedThread}
-        setComposer={setComposer}
-      />
+      {requestComposerState.isVisible ? null : (
+        <DirectComposer
+          actions={composerActions}
+          composer={composer}
+          contactPicker={contactPicker}
+          contactPickerActions={contactPickerActions}
+          controls={controls}
+          hideContactEmpty={layoutState.hideContactEmpty}
+          relationshipState={requestTarget?.relationshipState}
+          selectedThread={selectedThread}
+          setComposer={setComposer}
+        />
+      )}
     </section>
   )
 }
@@ -345,7 +359,7 @@ function ProfileRequestTargetCard({
           />
         </div>
         <p className='text-xs font-semibold text-base-content/65'>
-          {requestTarget.copy || 'Write an intro in Chat to send a friend request.'}
+          {requestTarget.copy || 'Write a friend request to introduce yourself.'}
         </p>
       </div>
     </section>
@@ -642,6 +656,63 @@ function DirectComposer({
         icon={<Send size={17} />}
         id='dmSendButton'
         label={composerState.sendLabel}
+      />
+    </form>
+  )
+}
+
+function FriendRequestComposer({
+  actions,
+  draft,
+  requestComposerState,
+  setComposer
+}: {
+  actions: DirectComposerActions
+  draft: string
+  requestComposerState: ReturnType<typeof createFriendRequestComposerState>
+  setComposer: ComposerSetter
+}) {
+  if (!requestComposerState.isVisible) return null
+
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!requestComposerState.canSend) return
+
+    actions.sendDirectMessage({
+      text: requestComposerState.text,
+      toProfileId: requestComposerState.profileId
+    })
+    setComposer((current) => ({ ...current, text: '' }))
+  }
+
+  return (
+    <form
+      id='friendRequestForm'
+      className='composer tall border-base-300 bg-base-100/90'
+      onSubmit={handleSubmit}
+    >
+      <div className='grid gap-1'>
+        <p className='font-black text-base-content'>{requestComposerState.title}</p>
+        <p className='text-xs font-semibold text-base-content/65'>{requestComposerState.copy}</p>
+      </div>
+      <input
+        id='friendRequestInput'
+        className='input input-bordered w-full bg-base-100 text-base-content'
+        placeholder={requestComposerState.placeholder}
+        autoComplete='off'
+        value={draft}
+        onChange={(event) =>
+          setComposer((current) => ({
+            ...current,
+            text: event.target.value
+          }))
+        }
+      />
+      <ComposerSubmitButton
+        disabled={!requestComposerState.canSend}
+        icon={<Send size={17} />}
+        id='friendRequestSendButton'
+        label={requestComposerState.sendLabel}
       />
     </form>
   )
