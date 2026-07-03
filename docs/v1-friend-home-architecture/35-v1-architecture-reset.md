@@ -123,6 +123,10 @@ Current source alignment:
   detail, and scanned request-target fallback through
   `src/desktop-profile-selection.ts`. `desktop/app-state.ts` keeps React state
   and bridge wiring instead of owning that relationship/profile projection.
+- Desktop and Android selection modules both use
+  `src/profile-selection-source.ts` for ordered source matching. The shared
+  helper chooses the first source whose `profileId` matches the selected
+  profile; platform modules then map that source into their UI view model.
 
 ## Implementation Order
 

@@ -4,6 +4,7 @@ import {
   type ProfileRecentPostsViewModel,
   type ProfileRecentTreeholePost
 } from './profile-recent-posts-view-model.ts'
+import { selectProfileSelectionSource } from './profile-selection-source.ts'
 import {
   createRequestTargetProfileViewModel,
   type RequestTargetProfileInput
@@ -54,6 +55,10 @@ export type DesktopProfileSelectionPeople<
 }
 
 export type DesktopProfileRequestTarget = RequestTargetProfileInput | null
+type DesktopProfileSelectionKind = 'profile_detail' | 'request_target'
+type DesktopProfileSelectionValue<TProfile extends DesktopProfileSelectionProfile> =
+  | TProfile
+  | RequestTargetProfileInput
 
 export function createDesktopProfileSelectionViewModel<
   TBlockedContact,
@@ -111,9 +116,16 @@ export function createDesktopProfileSelectionViewModel<
       treeholePosts
     })
   )
-  const selectedProfileDetail = profileDetails.find(
-    (contact) => contact.profileId === selectedProfileId
-  )
+  const selectedSource = selectProfileSelectionSource<
+    DesktopProfileSelectionKind,
+    DesktopProfileSelectionValue<TProfile & ProfileRecentPostsViewModel>
+  >({
+    groups: [
+      { kind: 'profile_detail', values: profileDetails },
+      { kind: 'request_target', values: profileRequestTarget ? [profileRequestTarget] : [] }
+    ],
+    selectedProfileId
+  })
 
   return {
     people: {
@@ -122,12 +134,13 @@ export function createDesktopProfileSelectionViewModel<
       trustedContacts
     },
     selectedProfile:
-      selectedProfileDetail ||
-      createDesktopRequestTargetProfileViewModel({
-        profileRequestTarget,
-        selectedProfileId,
-        shortenProfileId
-      })
+      selectedSource?.kind === 'profile_detail'
+        ? (selectedSource.value as TProfile & ProfileRecentPostsViewModel)
+        : createDesktopRequestTargetProfileViewModel({
+            profileRequestTarget: selectedSource?.value as RequestTargetProfileInput | undefined,
+            selectedProfileId,
+            shortenProfileId
+          })
   }
 }
 

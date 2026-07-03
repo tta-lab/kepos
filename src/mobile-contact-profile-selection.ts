@@ -9,6 +9,7 @@ import {
   type ProfileRecentPostsViewModel,
   type ProfileRecentTreeholePost
 } from './profile-recent-posts-view-model.ts'
+import { selectProfileSelectionSource } from './profile-selection-source.ts'
 import {
   createRequestTargetProfileViewModel,
   type RequestTargetProfileInput,
@@ -32,6 +33,16 @@ export type MobileContactProfileRequest = {
 }
 
 export type MobileProfileRequestTarget = RequestTargetProfileInput | null
+type MobileProfileSelectionKind =
+  | 'blocked'
+  | 'incoming_request'
+  | 'outgoing_request'
+  | 'request_target'
+  | 'trusted'
+type MobileProfileSelectionValue =
+  | ContactBookContact
+  | MobileContactProfileRequest
+  | RequestTargetProfileInput
 
 export type MobileSelectedContactProfileView = (
   | ContactProfileViewModel
@@ -83,8 +94,23 @@ export function createMobileSelectedContactProfileViewModel({
   shortenProfileId: ShortenProfileId
   treeholePosts?: ProfileRecentTreeholePost[]
 }): MobileSelectedContactProfileView | null {
-  const selectedContact = contacts.find((contact) => contact.profileId === selectedProfileId)
-  if (selectedContact) {
+  const selectedSource = selectProfileSelectionSource<
+    MobileProfileSelectionKind,
+    MobileProfileSelectionValue
+  >({
+    groups: [
+      { kind: 'trusted', values: contacts },
+      { kind: 'incoming_request', values: pendingRequests },
+      { kind: 'outgoing_request', values: outgoingRequests },
+      { kind: 'blocked', values: blockedContacts },
+      { kind: 'request_target', values: profileRequestTarget ? [profileRequestTarget] : [] }
+    ],
+    selectedProfileId
+  })
+  if (!selectedSource) return null
+
+  if (selectedSource.kind === 'trusted') {
+    const selectedContact = selectedSource.value as ContactBookContact
     return withMobileProfileRecentPosts({
       activeHomeOwnerProfileId,
       formatTime,
@@ -98,35 +124,27 @@ export function createMobileSelectedContactProfileViewModel({
     })
   }
 
-  const selectedPendingRequest = pendingRequests.find(
-    (request) => request.profileId === selectedProfileId
-  )
-  if (selectedPendingRequest) {
+  if (selectedSource.kind === 'incoming_request') {
     return createMobileRequestProfile({
       formatDate,
       localProfileId,
       relationshipState: 'incoming_request',
-      request: selectedPendingRequest,
+      request: selectedSource.value as MobileContactProfileRequest,
       shortenProfileId
     })
   }
 
-  const selectedOutgoingRequest = outgoingRequests.find(
-    (request) => request.profileId === selectedProfileId
-  )
-  if (selectedOutgoingRequest) {
+  if (selectedSource.kind === 'outgoing_request') {
     return createMobileRequestProfile({
       formatDate,
       relationshipState: 'outgoing_request',
-      request: selectedOutgoingRequest,
+      request: selectedSource.value as MobileContactProfileRequest,
       shortenProfileId
     })
   }
 
-  const selectedBlockedContact = blockedContacts.find(
-    (contact) => contact.profileId === selectedProfileId
-  )
-  if (selectedBlockedContact) {
+  if (selectedSource.kind === 'blocked') {
+    const selectedBlockedContact = selectedSource.value as ContactBookContact
     return {
       ...createContactProfileViewModel({
         contact: selectedBlockedContact,
@@ -140,7 +158,7 @@ export function createMobileSelectedContactProfileViewModel({
   }
 
   const requestTargetProfile = createRequestTargetProfileViewModel({
-    requestTarget: profileRequestTarget,
+    requestTarget: selectedSource.value as RequestTargetProfileInput,
     selectedProfileId,
     shortenProfileId
   })
