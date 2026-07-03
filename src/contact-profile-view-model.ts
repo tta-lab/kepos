@@ -1,6 +1,7 @@
 import type { ContactBookContact } from './contact-book.ts'
 import {
   canAllowRequestsForRelationshipState,
+  inferStoredContactRelationshipState,
   isTrustedRelationshipState,
   type ProfileRelationshipState
 } from './profile-relationship-state.ts'
@@ -102,9 +103,7 @@ export function createContactProfileViewModel({
 function inferRelationshipState(
   contact: Pick<ContactBookContact, 'requestIgnoredAt' | 'revokedAt' | 'trustedAt'>
 ): ContactProfileRelationshipState {
-  if (contact.revokedAt !== undefined && contact.revokedAt !== null) return 'removed'
-  if (contact.requestIgnoredAt !== undefined && contact.requestIgnoredAt !== null) return 'ignored'
-  return 'trusted'
+  return inferStoredContactRelationshipState(contact)
 }
 
 function hasUsableHomeDescriptor(

@@ -1,6 +1,7 @@
-import { getContact, isContactRevoked, isContactTrusted, type ContactBook } from './contact-book.ts'
+import { getContact, type ContactBook } from './contact-book.ts'
 import {
   canSendFriendRequestFromRelationshipState,
+  resolveProfileRelationshipStateFromBook,
   shouldBlockChatSendForRelationshipState,
   type ProfileRelationshipState
 } from './profile-relationship-state.ts'
@@ -72,8 +73,12 @@ export function createFriendRequestTargetViewModel({
     profileId: target.profileId,
     resolveAvatarMediaUri
   })
+  const relationshipState = resolveProfileRelationshipStateFromBook({
+    book: contactBook,
+    profileId: target.profileId
+  })
 
-  if (contactBook && isContactTrusted(contactBook, target.profileId)) {
+  if (relationshipState === 'trusted') {
     return createView({
       avatar,
       avatarMediaSnapshot,
@@ -88,7 +93,7 @@ export function createFriendRequestTargetViewModel({
     })
   }
 
-  if (contactBook && isContactRevoked(contactBook, target.profileId)) {
+  if (relationshipState === 'removed') {
     return createView({
       avatar,
       avatarMediaSnapshot,
@@ -103,7 +108,7 @@ export function createFriendRequestTargetViewModel({
     })
   }
 
-  if (contact?.requestIgnoredAt !== undefined && contact.requestIgnoredAt !== null) {
+  if (relationshipState === 'ignored') {
     return createView({
       avatar,
       avatarMediaSnapshot,
@@ -118,8 +123,8 @@ export function createFriendRequestTargetViewModel({
     })
   }
 
-  if (contactBook?.outgoingRequestsByProfileId?.has(target.profileId)) {
-    const request = contactBook.outgoingRequestsByProfileId.get(target.profileId)
+  if (relationshipState === 'outgoing_request') {
+    const request = contactBook?.outgoingRequestsByProfileId.get(target.profileId)
     return createView({
       avatar,
       avatarMediaSnapshot,
@@ -134,7 +139,7 @@ export function createFriendRequestTargetViewModel({
     })
   }
 
-  if (contactBook?.pendingRequestsByProfileId?.has(target.profileId)) {
+  if (relationshipState === 'incoming_request') {
     return createView({
       avatar,
       avatarMediaSnapshot,

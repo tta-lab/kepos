@@ -106,6 +106,8 @@ Current source alignment:
 - `request_target`, `outgoing_request`, `incoming_request`, `trusted`,
   `ignored`, `removed`, and `blocked` live in the shared relationship state
   module.
+- ContactBook-to-relationship-state inference also lives in the shared module,
+  so UI view models do not each define their own ordering.
 - Chat view models preserve `ignored` and `removed` as explicit states instead
   of folding them into a generic blocked bucket.
 - Request-target Profile detail keeps Home disabled but keeps Message enabled,

@@ -3,7 +3,9 @@ import test from 'node:test'
 import {
   canAllowRequestsForRelationshipState,
   canSendFriendRequestFromRelationshipState,
+  inferStoredContactRelationshipState,
   isTrustedRelationshipState,
+  resolveProfileRelationshipStateFromBook,
   shouldBlockChatSendForRelationshipState
 } from '../src/profile-relationship-state.ts'
 
@@ -26,4 +28,48 @@ test('profile relationship state limits post-trust actions to explicit states', 
   assert.equal(canAllowRequestsForRelationshipState('ignored'), true)
   assert.equal(canAllowRequestsForRelationshipState('removed'), true)
   assert.equal(canAllowRequestsForRelationshipState('trusted'), false)
+})
+
+test('profile relationship state infers stored contact states in one place', () => {
+  assert.equal(inferStoredContactRelationshipState({ trustedAt: 1000 }), 'trusted')
+  assert.equal(
+    inferStoredContactRelationshipState({ requestIgnoredAt: 2000, trustedAt: 1000 }),
+    'ignored'
+  )
+  assert.equal(
+    inferStoredContactRelationshipState({
+      requestIgnoredAt: 2000,
+      revokedAt: 3000,
+      trustedAt: 1000
+    }),
+    'removed'
+  )
+})
+
+test('profile relationship state resolves the ContactBook social state order', () => {
+  const book = {
+    contactsByProfileId: new Map([
+      ['trusted', { trustedAt: 1000 }],
+      ['removed', { revokedAt: 2000, trustedAt: 1000 }],
+      ['ignored', { requestIgnoredAt: 3000 }]
+    ]),
+    outgoingRequestsByProfileId: new Map([['outgoing', {}]]),
+    pendingRequestsByProfileId: new Map([['incoming', {}]])
+  }
+
+  assert.equal(resolveProfileRelationshipStateFromBook({ book, profileId: 'trusted' }), 'trusted')
+  assert.equal(resolveProfileRelationshipStateFromBook({ book, profileId: 'removed' }), 'removed')
+  assert.equal(resolveProfileRelationshipStateFromBook({ book, profileId: 'ignored' }), 'ignored')
+  assert.equal(
+    resolveProfileRelationshipStateFromBook({ book, profileId: 'outgoing' }),
+    'outgoing_request'
+  )
+  assert.equal(
+    resolveProfileRelationshipStateFromBook({ book, profileId: 'incoming' }),
+    'incoming_request'
+  )
+  assert.equal(
+    resolveProfileRelationshipStateFromBook({ book, profileId: 'new-profile' }),
+    'request_target'
+  )
 })
