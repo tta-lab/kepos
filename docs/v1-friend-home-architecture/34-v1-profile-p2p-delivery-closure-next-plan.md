@@ -123,7 +123,7 @@ Automated proof should fail if old coupling returns:
 Suggested gate before phone smoke:
 
 ```sh
-npm test -- test/v1-docs-current-state.test.js test/product-surfaces.test.js test/mobile-mlp-ui.test.js test/desktop-mlp-shell.test.js test/profile-friend-request-transport.test.js test/desktop-message-request-actions.test.js test/desktop-message-actions.test.js test/android-backend-bundle.test.js
+npm test -- test/v1-profile-route-closure.test.js test/v1-docs-current-state.test.js test/product-surfaces.test.js test/mobile-mlp-ui.test.js test/desktop-mlp-shell.test.js test/profile-friend-request-transport.test.js test/desktop-message-request-actions.test.js test/desktop-message-actions.test.js test/android-backend-bundle.test.js
 npm run lint
 npm run v1:gate
 ```
@@ -182,6 +182,9 @@ Already implemented before this plan:
 - Android backend Home-control friend request helpers are named as debug Home
   fallback helpers, while production request send remains
   `RPC_PROFILE_REQUEST_SEND` -> profile request runtime.
+- `test/v1-profile-route-closure.test.js` now provides a consolidated
+  source-level regression gate for Profile QR, desktop Chat/request actions,
+  Android profile delivery, accepted Chat body send, and Treehole owner posting.
 
 Still open:
 

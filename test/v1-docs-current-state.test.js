@@ -219,6 +219,8 @@ test('V1 active profile P2P delivery closure plan rejects Home and direct produc
   assert.match(plan, /friend request send requires Home readiness/)
   assert.match(plan, /direct host:port appears as production fallback/)
   assert.match(plan, /direct host:port is not needed for the normal path/)
+  assert.match(plan, /test\/v1-profile-route-closure\.test\.js/)
+  assert.match(plan, /consolidated\s+source-level regression gate/)
   assert.match(plan, /source-level cleanup continues; release proof still open/)
   assert.doesNotMatch(plan, /Direct host:port is a production path/)
   assert.doesNotMatch(plan, /Home can bootstrap friend requests/)
