@@ -167,14 +167,14 @@ test('friend request target view model stops requests for ignored and removed co
   const revoked = revokeContact(trusted, { profileId: 'profile-ada', revokedAt: 2000 })
 
   assert.equal(view(ignored).canSendRequest, false)
-  assert.equal(view(ignored).relationshipState, 'blocked')
+  assert.equal(view(ignored).relationshipState, 'ignored')
   assert.equal(view(ignored).statusLabel, 'Ignored')
   assert.equal(
     view(ignored).copy,
     'You ignored this request. Use Allow requests from Contacts before sending again.'
   )
   assert.equal(view(revoked).canSendRequest, false)
-  assert.equal(view(revoked).relationshipState, 'blocked')
+  assert.equal(view(revoked).relationshipState, 'removed')
   assert.equal(view(revoked).statusLabel, 'Removed')
   assert.equal(
     view(revoked).copy,
@@ -192,6 +192,8 @@ test('friend request target view model identifies states that block Chat sends',
     shouldBlockChatSendForFriendRequestTarget({ relationshipState: 'outgoing_request' }),
     true
   )
+  assert.equal(shouldBlockChatSendForFriendRequestTarget({ relationshipState: 'ignored' }), true)
+  assert.equal(shouldBlockChatSendForFriendRequestTarget({ relationshipState: 'removed' }), true)
   assert.equal(
     shouldBlockChatSendForFriendRequestTarget({ relationshipState: 'request_target' }),
     false

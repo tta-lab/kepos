@@ -20,7 +20,13 @@ type ProfileRequestTarget = {
 
 export type FriendRequestTargetRelationshipState = Extract<
   ProfileRelationshipState,
-  'blocked' | 'incoming_request' | 'outgoing_request' | 'request_target' | 'trusted'
+  | 'blocked'
+  | 'ignored'
+  | 'incoming_request'
+  | 'outgoing_request'
+  | 'removed'
+  | 'request_target'
+  | 'trusted'
 >
 
 export type FriendRequestTargetViewModel = {
@@ -90,7 +96,7 @@ export function createFriendRequestTargetViewModel({
       canSendRequest: false,
       copy: 'You removed this friend. Use Allow requests from Contacts before sending again.',
       displayName,
-      relationshipState: 'blocked',
+      relationshipState: 'removed',
       shortProfileId: shortenProfileId(target.profileId),
       statusLabel: 'Removed',
       target
@@ -105,7 +111,7 @@ export function createFriendRequestTargetViewModel({
       canSendRequest: false,
       copy: 'You ignored this request. Use Allow requests from Contacts before sending again.',
       displayName,
-      relationshipState: 'blocked',
+      relationshipState: 'ignored',
       shortProfileId: shortenProfileId(target.profileId),
       statusLabel: 'Ignored',
       target

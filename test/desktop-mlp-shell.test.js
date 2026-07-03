@@ -366,11 +366,18 @@ test('desktop Chat focuses the selected direct thread message list', async () =>
   )
 
   assert.match(panes, /filterDirectMessagesForProfile/)
+  assert.match(directPane, /const selectedProfileId = composer\.toProfileId\.trim\(\)/)
   assert.match(
     directPane,
-    /const visibleMessages = filterDirectMessagesForProfile\(\s*messages,\s*composer\.toProfileId\.trim\(\)\s*\)/
+    /const visibleMessages = filterDirectMessagesForProfile\(messages, selectedProfileId\)/
   )
+  assert.match(
+    directPane,
+    /const hasRequestTarget = Boolean\(\s*requestTarget\?\.profileId && requestTarget\.profileId === selectedProfileId\s*\)/
+  )
+  assert.match(directPane, /\{hasRequestTarget \? null : \([\s\S]*<DirectThreadList/)
   assert.match(directPane, /<DirectMessageList[\s\S]*messages=\{visibleMessages\}/)
+  assert.match(directPane, /<DirectComposer[\s\S]*hasRequestTarget=\{hasRequestTarget\}/)
 })
 
 test('desktop panes share product headers with short guidance', async () => {
@@ -1221,6 +1228,8 @@ test('desktop direct contact picker shows trusted contact avatars', async () => 
   assert.match(viewModel, /createProfileAvatarViewModel/)
   assert.match(viewModel, /avatarUri: contact\.avatarUriSnapshot/)
   assert.match(picker, /<ProfileAvatar avatar=\{contact\.avatar\} \/>/)
+  assert.match(picker, /hideEmpty = false/)
+  assert.match(picker, /if \(visibleContacts\.length === 0 && hideEmpty\) return null/)
 })
 
 test('desktop UI uses Tailwind and daisyUI through Kepos component boundaries', async () => {

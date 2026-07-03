@@ -85,6 +85,34 @@ Forbidden projections:
 - Treating Home join as trust, friendship, or DM bootstrap.
 - Hiding the request composer below nonessential empty states.
 
+## Complexity Diagnosis
+
+The hard part is not that V1 has too many features. The hard part is that older
+iterations let several product paths imply relationship state:
+
+- Profile QR could mean trust invite, request target, or debug payload.
+- Home could look like an entry path into social trust.
+- Chat empty states could treat zero trusted contacts as a blocker, even when a
+  scanned request target already existed.
+- Desktop and Android could render different empty states and action affordances
+  for the same profile.
+
+The reset rule is therefore strict: only the profile relationship state machine
+defines what the user can do. Home, Treehole, Chat, and Contacts are projections
+of that state. They do not invent their own trust rules.
+
+Current source alignment:
+
+- `request_target`, `outgoing_request`, `incoming_request`, `trusted`,
+  `ignored`, `removed`, and `blocked` live in the shared relationship state
+  module.
+- Chat view models preserve `ignored` and `removed` as explicit states instead
+  of folding them into a generic blocked bucket.
+- Request-target Profile detail keeps Home disabled but keeps Message enabled,
+  so the user can return to Chat and write the request.
+- Desktop and Android both hide misleading zero-contact/zero-thread empty states
+  when the selected Chat recipient is a scanned request target.
+
 ## Implementation Order
 
 1. Keep this document as the current V1 architecture contract.

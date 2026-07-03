@@ -207,7 +207,11 @@ export function DirectPane({
     selectedProfileId: composer.toProfileId.trim(),
     threads: threads.map(readDirectThreadView).filter(Boolean) as DirectThreadView[]
   })
-  const visibleMessages = filterDirectMessagesForProfile(messages, composer.toProfileId.trim())
+  const selectedProfileId = composer.toProfileId.trim()
+  const visibleMessages = filterDirectMessagesForProfile(messages, selectedProfileId)
+  const hasRequestTarget = Boolean(
+    requestTarget?.profileId && requestTarget.profileId === selectedProfileId
+  )
 
   function selectThread(profileId: string) {
     const toProfileId = profileId.trim()
@@ -223,19 +227,21 @@ export function DirectPane({
         title='Chat'
         description='Private pairwise threads that survive restarts.'
       />
-      <DirectThreadList
-        onAccept={messageActions.acceptMessage}
-        onIgnore={messageActions.ignoreMessage}
-        onOpenPeople={contactPickerActions.openPeople}
-        onOpenProfile={onOpenProfile}
-        onSelect={selectThread}
-        selectedProfileId={composer.toProfileId.trim()}
-        threads={threads}
-      />
+      {hasRequestTarget ? null : (
+        <DirectThreadList
+          onAccept={messageActions.acceptMessage}
+          onIgnore={messageActions.ignoreMessage}
+          onOpenPeople={contactPickerActions.openPeople}
+          onOpenProfile={onOpenProfile}
+          onSelect={selectThread}
+          selectedProfileId={selectedProfileId}
+          threads={threads}
+        />
+      )}
       <DirectThreadHeader onOpenProfile={onOpenProfile} thread={selectedThread} />
       <ProfileRequestTargetCard
         onOpenProfile={onOpenProfile}
-        recipient={composer.toProfileId.trim()}
+        recipient={selectedProfileId}
         requestTarget={requestTarget}
       />
       <DirectMessageList
@@ -249,6 +255,7 @@ export function DirectPane({
         contactPicker={contactPicker}
         contactPickerActions={contactPickerActions}
         controls={controls}
+        hasRequestTarget={hasRequestTarget}
         selectedThread={selectedThread}
         setComposer={setComposer}
       />
@@ -533,6 +540,7 @@ function DirectComposer({
   contactPicker,
   contactPickerActions,
   controls,
+  hasRequestTarget,
   selectedThread,
   setComposer
 }: {
@@ -541,6 +549,7 @@ function DirectComposer({
   contactPicker: ContactPickerView
   contactPickerActions: DirectContactPickerActions
   controls: ControlsView
+  hasRequestTarget: boolean
   selectedThread: DirectThreadView | null
   setComposer: ComposerSetter
 }) {
@@ -583,6 +592,7 @@ function DirectComposer({
         }}
         contacts={contactPicker.contacts}
         empty={contactPicker.empty}
+        hideEmpty={hasRequestTarget}
         selectedProfileId={composer.toProfileId.trim()}
       />
       <details
@@ -759,16 +769,20 @@ function DirectContactPicker({
   actions,
   contacts,
   empty,
+  hideEmpty = false,
   selectedProfileId
 }: {
   actions: DirectContactPickerActions
   contacts: unknown[]
   empty: ContactPickerView['empty']
+  hideEmpty?: boolean
   selectedProfileId: string
 }) {
   const visibleContacts = contacts
     .map(readContactPickerContact)
     .filter(Boolean) as ContactPickerContactView[]
+
+  if (visibleContacts.length === 0 && hideEmpty) return null
 
   return (
     <div id='dmContactList' className='contactList flex flex-wrap gap-2'>
