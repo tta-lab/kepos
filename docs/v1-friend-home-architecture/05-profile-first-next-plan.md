@@ -34,8 +34,10 @@ The current execution path is:
 - `31-v1-profile-p2p-release-next-plan.md` for the previous V1 profile P2P
 - `32-v1-profile-dm-first-release-next-plan.md` for the previous V1 profile/DM
   first release plan
-- `33-v1-profile-dm-only-social-next-plan.md` for the active V1 profile/DM-only
+- `33-v1-profile-dm-only-social-next-plan.md` for the previous V1 profile/DM-only
   social release plan
+- `34-v1-profile-p2p-delivery-closure-next-plan.md` for the active V1 profile
+  P2P delivery closure plan
 - `../v1.21-cross-device-smoke.md` for the final desktop/Android release proof
 
 ## Decision
@@ -192,7 +194,8 @@ Current execution note:
 - `30` owns the previous V1 profile-only social route plan.
 - `31` owns the previous V1 profile P2P release plan.
 - `32` owns the previous V1 profile/DM-first release plan.
-- `33` owns the active V1 profile/DM-only social release plan.
+- `33` owns the previous V1 profile/DM-only social release plan.
+- `34` owns the active V1 profile P2P delivery closure plan.
 - `../v1.21-cross-device-smoke.md` owns the final release proof packet.
 
 The current product behavior is intentionally honest: a request can be queued or searching locally without claiming the other side received it.

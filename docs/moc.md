@@ -68,7 +68,8 @@ This is the map of content for Kepos architecture docs.
    Previous V1 profile-only social route plan: `docs/v1-friend-home-architecture/30-v1-profile-only-social-route-next-plan.md`.
    Previous V1 profile P2P release plan: `docs/v1-friend-home-architecture/31-v1-profile-p2p-release-next-plan.md`.
    Previous V1 profile/DM-first release plan: `docs/v1-friend-home-architecture/32-v1-profile-dm-first-release-next-plan.md`.
-   Active V1 profile/DM-only social plan: `docs/v1-friend-home-architecture/33-v1-profile-dm-only-social-next-plan.md`.
+   Previous V1 profile/DM-only social plan: `docs/v1-friend-home-architecture/33-v1-profile-dm-only-social-next-plan.md`.
+   Active V1 profile P2P delivery closure plan: `docs/v1-friend-home-architecture/34-v1-profile-p2p-delivery-closure-next-plan.md`.
 
 10. `docs/v1.17-ready-im-completion-plan.md`
     - Canonical V1 completion evidence plan and self-review for a ready private IM product on top of P2P infra.
@@ -84,74 +85,81 @@ This is the map of content for Kepos architecture docs.
 
 ## V1 Architecture
 
-1. `docs/v1-friend-home-architecture/33-v1-profile-dm-only-social-next-plan.md`
-   - Active V1 plan: finish the profile/DM-only normal social path. Profile QR,
-     friend request, accept, Chat, Profile detail, and Treehole must not depend
-     on Home; Home is only explicit post-trust live/session entry.
+1. `docs/v1-friend-home-architecture/34-v1-profile-p2p-delivery-closure-next-plan.md`
+   - Active V1 plan: close production profile-to-profile P2P delivery. Direct
+     host:port is diagnostics only, Home has no role in adding friends, and the
+     final release proof must show Profile QR -> request -> accept -> Chat /
+     Profile posts without entering Home.
    - Use this for current V1 work before starting V2.
 
-2. `docs/v1-friend-home-architecture/32-v1-profile-dm-first-release-next-plan.md`
+2. `docs/v1-friend-home-architecture/33-v1-profile-dm-only-social-next-plan.md`
+   - Previous V1 plan: finish the profile/DM-only normal social path. Profile QR,
+     friend request, accept, Chat, Profile detail, and Treehole must not depend
+     on Home; Home is only explicit post-trust live/session entry.
+   - Use this for the profile/DM-only social rule before `34`.
+
+3. `docs/v1-friend-home-architecture/32-v1-profile-dm-first-release-next-plan.md`
    - Previous V1 plan: finish the profile/DM-first private IM release. Home has
      no role in friendship, accept, DM bootstrap, or Chat; it is only an
      explicit trusted live/session surface.
    - Use this for Treehole scope and Home demotion evidence before `33`.
 
-3. `docs/v1-friend-home-architecture/31-v1-profile-p2p-release-next-plan.md`
+4. `docs/v1-friend-home-architecture/31-v1-profile-p2p-release-next-plan.md`
    - Previous V1 plan: close remaining product-route leaks, align desktop and
      Android product logic, keep debug surfaces out of onboarding, and produce
      final release proof for the profile-to-profile P2P private IM.
    - Use this for release-plan context before `32`.
 
-4. `docs/v1-friend-home-architecture/30-v1-profile-only-social-route-next-plan.md`
+5. `docs/v1-friend-home-architecture/30-v1-profile-only-social-route-next-plan.md`
    - Previous V1 plan: profile-to-profile P2P is the only production social
      route. Home has no role in adding friends, direct host:port is diagnostics
      only, and Home entry is explicit after trust.
    - Use this for the route decision before `31`.
 
-5. `docs/v1-friend-home-architecture/29-v1-profile-delivery-home-demotion-next-plan.md`
+6. `docs/v1-friend-home-architecture/29-v1-profile-delivery-home-demotion-next-plan.md`
    - Previous V1 plan: profile delivery owns social delivery, Profile QR is the
      only normal add-friend QR, and Home is only explicit post-trust live
      room/activity space. It also set the implementation order for post-trust
      Home descriptor delivery and desktop/Android parity.
    - Use this for Home demotion context before `30`.
 
-6. `docs/v1-friend-home-architecture/28-v1-profile-delivery-home-independent-next-plan.md`
+7. `docs/v1-friend-home-architecture/28-v1-profile-delivery-home-independent-next-plan.md`
    - Previous V1 plan: remove Home descriptor coupling from Profile QR and
      make the Home-independent profile delivery rule explicit.
    - Use this for evidence that Profile QR no longer carries or stores Home
      descriptors.
 
-7. `docs/v1-friend-home-architecture/27-v1-profile-social-finalization-next-plan.md`
+8. `docs/v1-friend-home-architecture/27-v1-profile-social-finalization-next-plan.md`
    - Previous V1 plan: finish the profile-social private IM path and produce
      the final physical desktop/Android proof packet.
    - Use this for profile-social finalization context before `28`.
 
-8. `docs/v1-friend-home-architecture/26-v1-readiness-closure-next-plan.md`
+9. `docs/v1-friend-home-architecture/26-v1-readiness-closure-next-plan.md`
    - Previous V1 plan: close readiness for the private IM product and produce
      the final physical desktop/Android proof packet.
    - Use this for readiness-closure context before `27`.
 
-9. `docs/v1-friend-home-architecture/25-v1-profile-route-implementation-next-plan.md`
-   - Previous V1 plan: fix the profile-route implementation and UI parity before
-     the final release proof. Friend request, accept, DM bootstrap, and Chat
-     are profile-routed; Home is only explicit live-room entry after trust.
-   - Use this for profile-route implementation evidence.
+10. `docs/v1-friend-home-architecture/25-v1-profile-route-implementation-next-plan.md`
+    - Previous V1 plan: fix the profile-route implementation and UI parity before
+      the final release proof. Friend request, accept, DM bootstrap, and Chat
+      are profile-routed; Home is only explicit live-room entry after trust.
+    - Use this for profile-route implementation evidence.
 
-10. `docs/v1-friend-home-architecture/24-v1-release-proof-next-plan.md`
+11. `docs/v1-friend-home-architecture/24-v1-release-proof-next-plan.md`
     - Previous V1 plan: finish the final release-proof pass for the profile-first
       private IM product. The release bar is the normal desktop plus physical
       Android path recorded in `tmp/final-v1-proof.md`, checked with
       `npm run v1:proof:check -- --file tmp/final-v1-proof.md`.
     - Use this as the final proof bar before calling V1 ready.
 
-11. `docs/v1-friend-home-architecture/23-v1-social-delivery-release-plan.md`
+12. `docs/v1-friend-home-architecture/23-v1-social-delivery-release-plan.md`
     - Previous V1 plan: finish the private IM release path on profile-social
       P2P. Profile is the social address; Profile QR is the normal add-friend
       path; Debug Home QR is only an advanced live-room transport descriptor;
       Home is explicit after trust.
     - Use this as the product-rule baseline before the release-proof pass.
 
-12. `docs/v1-friend-home-architecture/22-v1-profile-p2p-delivery-next-plan.md`
+13. `docs/v1-friend-home-architecture/22-v1-profile-p2p-delivery-next-plan.md`
 
 - Previous V1 plan: finish production profile-to-profile P2P delivery for
   the private IM product.

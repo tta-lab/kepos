@@ -120,6 +120,7 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
     'docs/v1-friend-home-architecture/31-v1-profile-p2p-release-next-plan.md',
     'docs/v1-friend-home-architecture/32-v1-profile-dm-first-release-next-plan.md',
     'docs/v1-friend-home-architecture/33-v1-profile-dm-only-social-next-plan.md',
+    'docs/v1-friend-home-architecture/34-v1-profile-p2p-delivery-closure-next-plan.md',
     'docs/v1.20-smoke-guide.md',
     'docs/v1.21-cross-device-smoke.md'
   ]) {
@@ -156,7 +157,8 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
   assert.match(docs, /Previous V1 profile-only social route plan/)
   assert.match(docs, /Previous V1 profile P2P release plan/)
   assert.match(docs, /Previous V1 profile\/DM-first release plan/)
-  assert.match(docs, /Active V1 profile\/DM-only social plan/)
+  assert.match(docs, /Previous V1 profile\/DM-only social plan/)
+  assert.match(docs, /Active V1 profile P2P delivery closure plan/)
   assert.match(docs, /profile-routed private IM/)
   assert.match(docs, /profile-to-profile P2P route/)
   assert.match(docs, /Profile is the social address/)
@@ -180,6 +182,7 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
   assert.match(profileFirst, /31-v1-profile-p2p-release-next-plan\.md/)
   assert.match(profileFirst, /32-v1-profile-dm-first-release-next-plan\.md/)
   assert.match(profileFirst, /33-v1-profile-dm-only-social-next-plan\.md/)
+  assert.match(profileFirst, /34-v1-profile-p2p-delivery-closure-next-plan\.md/)
   assert.match(profileFirst, /\.\.\/v1\.21-cross-device-smoke\.md/)
   assert.match(moc, /Prior product-logic unification next plan/)
   assert.doesNotMatch(
@@ -187,6 +190,38 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
     /current execution plan has moved on to `08-v1-im-release-next-plan\.md`/
   )
   assert.doesNotMatch(profileFirst, /evidence packet described in `08`/)
+})
+
+test('V1 active profile P2P delivery closure plan rejects Home and direct production delivery', async () => {
+  const agents = await readText('../AGENTS.md')
+  const moc = await readText('../docs/moc.md')
+  const readme = await readText('../docs/v1-friend-home-architecture/README.md')
+  const profileFirst = await readText(
+    '../docs/v1-friend-home-architecture/05-profile-first-next-plan.md'
+  )
+  const plan = await readText(
+    '../docs/v1-friend-home-architecture/34-v1-profile-p2p-delivery-closure-next-plan.md'
+  )
+  const docs = `${agents}\n${moc}\n${readme}\n${profileFirst}\n${plan}`
+
+  assert.match(docs, /34-v1-profile-p2p-delivery-closure-next-plan\.md/)
+  assert.match(docs, /current active plan is `34-v1-profile-p2p-delivery-closure-next-plan\.md`/)
+  assert.match(docs, /production social delivery uses profile-to-profile P2P only/)
+  assert.match(plan, /Profile P2P delivery is the only production social route/)
+  assert.match(plan, /Home is not involved in adding friends/)
+  assert.match(plan, /Direct host:port is not a production fallback/)
+  assert.match(plan, /Profile QR -> friend request -> accept -> Contact -> Chat \/ Profile posts/)
+  assert.match(plan, /trusted Contact -> Profile detail -> Enter Home/)
+  assert.match(plan, /route by `fromProfileId` and `toProfileId`/)
+  assert.match(plan, /Direct host:port is abandoned as a production path/)
+  assert.match(plan, /diagnostics/)
+  assert.match(plan, /Home is a trusted live\/session surface/)
+  assert.match(plan, /friend request send requires Home readiness/)
+  assert.match(plan, /direct host:port appears as production fallback/)
+  assert.match(plan, /direct host:port is not needed for the normal path/)
+  assert.match(plan, /source-level cleanup continues; release proof still open/)
+  assert.doesNotMatch(plan, /Direct host:port is a production path/)
+  assert.doesNotMatch(plan, /Home can bootstrap friend requests/)
 })
 
 test('V1 active profile and DM only social plan keeps Home out of normal social paths', async () => {

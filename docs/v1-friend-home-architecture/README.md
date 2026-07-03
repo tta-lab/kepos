@@ -176,9 +176,16 @@ The short version:
     - Use this for Treehole scope and Home demotion evidence before `33`.
 
 33. `33-v1-profile-dm-only-social-next-plan.md`
-    - Active V1 plan: finish the profile/DM-only normal social path. Profile QR,
+    - Previous V1 plan: finish the profile/DM-only normal social path. Profile QR,
       friend request, accept, Chat, Profile detail, and Treehole must not depend
       on Home; Home is only explicit post-trust live/session entry.
+    - Use this for the profile/DM-only social rule before `34`.
+
+34. `34-v1-profile-p2p-delivery-closure-next-plan.md`
+    - Active V1 plan: close production profile-to-profile P2P delivery. Direct
+      host:port is diagnostics only, Home has no role in adding friends, and the
+      final release proof must show Profile QR -> request -> accept -> Chat /
+      Profile posts without entering Home.
     - Use this for current V1 work before starting V2.
 
 ## Core Principle
@@ -198,7 +205,7 @@ architecture. Friend request, accept, and durable DM delivery must be
 profile-to-profile P2P. Direct host/port is diagnostics only, not a production
 social route.
 
-The current active plan is `33-v1-profile-dm-only-social-next-plan.md`.
+The current active plan is `34-v1-profile-p2p-delivery-closure-next-plan.md`.
 
 Home can host a later activity invite only after trust already exists. It is
 not the trust bootstrap, not the add-friend QR, and not the fallback for normal
