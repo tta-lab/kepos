@@ -9,11 +9,8 @@ import type {
   ProfileAvatarViewModel,
   ResolveAvatarMediaUri
 } from '../src/profile-avatar-view-model.ts'
-import {
-  canAllowRequestsForRelationshipState,
-  canRespondToFriendRequestForRelationshipState,
-  type ProfileRelationshipState
-} from '../src/profile-relationship-state.ts'
+import { type ProfileRelationshipState } from '../src/profile-relationship-state.ts'
+import { createProfileDetailActions } from '../src/profile-detail-actions.ts'
 import {
   MobileRequestActionButton,
   type MobileRequestActionButtonStyles,
@@ -288,16 +285,13 @@ export function ContactProfileDetail({
 
   if (!profile) return null
   const canRemove = profile.canRemove !== false
-  const acceptRequest = canRespondToFriendRequestForRelationshipState(profile.relationshipState)
-    ? profile.acceptRequest
-    : undefined
-  const ignoreRequest = canRespondToFriendRequestForRelationshipState(profile.relationshipState)
-    ? profile.ignoreRequest
-    : undefined
-  const canRespondToRequest = Boolean(acceptRequest && ignoreRequest)
-  const canAllowRequests =
-    Boolean(profile.canAllowRequests) ||
-    canAllowRequestsForRelationshipState(profile.relationshipState)
+  const relationshipActions = createProfileDetailActions({
+    acceptRequest: profile.acceptRequest,
+    canAllowRequests: profile.canAllowRequests,
+    canRemove,
+    ignoreRequest: profile.ignoreRequest,
+    relationshipState: profile.relationshipState
+  })
 
   return (
     <View
@@ -347,12 +341,12 @@ export function ContactProfileDetail({
           label={profile.enterHomeLabel}
           onPress={() => onEnterContactHome(profile.profileId)}
         />
-        {canRespondToRequest && acceptRequest && ignoreRequest ? (
+        {relationshipActions.kind === 'respond' ? (
           <>
             <MobileRequestActionButton
               acceptContentColor={theme.surface}
               ignoreContentColor={theme.ink}
-              onPress={() => onIgnoreProfileRequest(ignoreRequest)}
+              onPress={() => onIgnoreProfileRequest(relationshipActions.ignoreRequest)}
               styles={styles}
               testID='contact-profile-ignore-request-button'
               variant='ignore'
@@ -360,13 +354,13 @@ export function ContactProfileDetail({
             <MobileRequestActionButton
               acceptContentColor={theme.surface}
               ignoreContentColor={theme.ink}
-              onPress={() => onAcceptProfileRequest(acceptRequest)}
+              onPress={() => onAcceptProfileRequest(relationshipActions.acceptRequest)}
               styles={styles}
               testID='contact-profile-accept-request-button'
               variant='accept'
             />
           </>
-        ) : canAllowRequests ? (
+        ) : relationshipActions.kind === 'allow_requests' ? (
           <MobileSmallActionButton
             accentColor={theme.accentStrong}
             dangerColor={theme.danger}
@@ -376,7 +370,7 @@ export function ContactProfileDetail({
             label='Allow requests'
             onPress={() => onAllowContactRequests(profile.profileId)}
           />
-        ) : canRemove ? (
+        ) : relationshipActions.kind === 'remove' ? (
           <MobileSmallActionButton
             accentColor={theme.accentStrong}
             dangerColor={theme.danger}

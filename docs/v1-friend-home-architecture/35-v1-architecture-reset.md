@@ -238,6 +238,10 @@ Current source alignment:
   relationship-state helpers for incoming-request responses and
   removed/ignored recovery instead of branching on raw state strings in
   platform components.
+- Desktop and Android Profile detail trailing actions now use
+  `src/profile-detail-actions.ts`, so Accept/Ignore, Allow requests, Remove
+  friend, and empty action selection are derived from one relationship action
+  model before platform components render buttons.
 - Desktop Contacts profile-list view models now type `relationshipState` as
   `ProfileRelationshipState` and use the shared incoming-request helper when
   adding accept actions for request profiles.

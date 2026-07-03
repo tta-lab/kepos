@@ -899,14 +899,11 @@ test('mobile direct contact chips and revoke actions expose trust state', async 
   assert.match(contactProfileDetail, /icon=\{UserMinus\}/)
   assert.match(contactProfileDetail, /label=\{profile\.revokeLabel \|\| 'Remove friend'\}/)
   assert.match(contactProfileDetail, /variant='danger'/)
-  assert.match(
-    contactProfileDetail,
-    /canRespondToFriendRequestForRelationshipState\(profile\.relationshipState\)/
-  )
-  assert.match(
-    contactProfileDetail,
-    /canAllowRequestsForRelationshipState\(profile\.relationshipState\)/
-  )
+  assert.match(profileComponents, /createProfileDetailActions/)
+  assert.match(contactProfileDetail, /const relationshipActions = createProfileDetailActions\(/)
+  assert.match(contactProfileDetail, /relationshipActions\.kind === 'respond'/)
+  assert.match(contactProfileDetail, /relationshipActions\.kind === 'allow_requests'/)
+  assert.match(contactProfileDetail, /relationshipActions\.kind === 'remove'/)
   assert.match(
     contactProfileDetail,
     /<MobileRequestActionButton[\s\S]*testID='contact-profile-ignore-request-button'[\s\S]*variant='ignore'/

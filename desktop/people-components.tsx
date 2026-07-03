@@ -14,11 +14,8 @@ import {
   X
 } from 'lucide-react'
 import { ActionButton, PaneHeader, RequestActionButton, SectionTitle } from './ui-components.tsx'
-import {
-  canAllowRequestsForRelationshipState,
-  canRespondToFriendRequestForRelationshipState,
-  type ProfileRelationshipState
-} from '../src/profile-relationship-state.ts'
+import type { ProfileRelationshipState } from '../src/profile-relationship-state.ts'
+import { createProfileDetailActions } from '../src/profile-detail-actions.ts'
 
 type PeopleActions = {
   acceptMessageRequest(message: MessageRequestView['acceptMessage']): unknown
@@ -405,11 +402,12 @@ function ContactProfileDetail({
 }) {
   if (!profile) return null
   const canRemove = profile.canRemove !== false
-  const acceptMessage = canRespondToFriendRequestForRelationshipState(profile.relationshipState)
-    ? profile.acceptMessage
-    : undefined
-  const canRespondToRequest = Boolean(acceptMessage)
-  const canAllowRequests = canAllowRequestsForRelationshipState(profile.relationshipState)
+  const relationshipActions = createProfileDetailActions({
+    acceptRequest: profile.acceptMessage,
+    canRemove,
+    ignoreRequest: { profileId: profile.profileId },
+    relationshipState: profile.relationshipState
+  })
 
   return (
     <section
@@ -466,20 +464,22 @@ function ContactProfileDetail({
           label={profile.homeActionLabel}
           onClick={() => actions.enterContactHome(profile.profileId)}
         />
-        {canRespondToRequest && acceptMessage ? (
+        {relationshipActions.kind === 'respond' ? (
           <>
             <RequestActionButton
               ariaLabel={`Ignore friend request from ${profile.alias}`}
-              onClick={() => actions.ignoreMessageRequest(profile.profileId)}
+              onClick={() =>
+                actions.ignoreMessageRequest(relationshipActions.ignoreRequest.profileId)
+              }
               variant='ignore'
             />
             <RequestActionButton
               ariaLabel={`Accept friend request from ${profile.alias}`}
-              onClick={() => actions.acceptMessageRequest(acceptMessage)}
+              onClick={() => actions.acceptMessageRequest(relationshipActions.acceptRequest)}
               variant='accept'
             />
           </>
-        ) : canAllowRequests ? (
+        ) : relationshipActions.kind === 'allow_requests' ? (
           <ActionButton
             ariaLabel={`Allow requests from ${profile.alias}`}
             className='smallButton'
@@ -487,7 +487,7 @@ function ContactProfileDetail({
             label='Allow requests'
             onClick={() => actions.allowContactRequests(profile.profileId)}
           />
-        ) : canRemove ? (
+        ) : relationshipActions.kind === 'remove' ? (
           <ActionButton
             ariaLabel={`Remove ${profile.alias} as friend`}
             className='smallButton dangerButton'

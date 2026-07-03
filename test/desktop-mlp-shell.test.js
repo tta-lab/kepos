@@ -616,18 +616,18 @@ test('desktop request and QR dialog actions use clear icons', async () => {
     people,
     /<ActionButton[\s\S]*icon=\{<UserPlus size=\{15\} \/>\}[\s\S]*label='Allow requests'[\s\S]*actions\.allowContactRequests\(contact\.profileId\)/
   )
+  assert.match(people, /createProfileDetailActions/)
+  assert.match(people, /const relationshipActions = createProfileDetailActions\(/)
+  assert.match(people, /relationshipActions\.kind === 'respond'/)
+  assert.match(people, /relationshipActions\.kind === 'allow_requests'/)
+  assert.match(people, /relationshipActions\.kind === 'remove'/)
   assert.match(
     people,
-    /canRespondToFriendRequestForRelationshipState\(profile\.relationshipState\)/
+    /<RequestActionButton[\s\S]*ariaLabel=\{`Ignore friend request from \$\{profile\.alias\}`\}[\s\S]*actions\.ignoreMessageRequest\(relationshipActions\.ignoreRequest\.profileId\)[\s\S]*variant='ignore'/
   )
-  assert.match(people, /canAllowRequestsForRelationshipState\(profile\.relationshipState\)/)
   assert.match(
     people,
-    /<RequestActionButton[\s\S]*ariaLabel=\{`Ignore friend request from \$\{profile\.alias\}`\}[\s\S]*actions\.ignoreMessageRequest\(profile\.profileId\)[\s\S]*variant='ignore'/
-  )
-  assert.match(
-    people,
-    /<RequestActionButton[\s\S]*ariaLabel=\{`Accept friend request from \$\{profile\.alias\}`\}[\s\S]*actions\.acceptMessageRequest\(acceptMessage\)[\s\S]*variant='accept'/
+    /<RequestActionButton[\s\S]*ariaLabel=\{`Accept friend request from \$\{profile\.alias\}`\}[\s\S]*actions\.acceptMessageRequest\(relationshipActions\.acceptRequest\)[\s\S]*variant='accept'/
   )
   assert.match(
     people,
