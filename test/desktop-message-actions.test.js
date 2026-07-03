@@ -42,7 +42,6 @@ test('desktop message actions send direct messages through the dm runtime withou
     getDmRuntime: () => ({
       sendMessageOrRequest(payload) {
         calls.push(payload)
-        payload.broadcastControl({ type: 'control' })
         return { ok: true }
       }
     }),
@@ -63,6 +62,7 @@ test('desktop message actions send direct messages through the dm runtime withou
   assert.equal(calls[0].requestId, 'id-1')
   assert.equal(calls[0].text, 'dm')
   assert.equal(calls[0].toProfileId, 'friend')
+  assert.equal('broadcastControl' in calls[0], false)
   assert.deepEqual(broadcasts, [])
   assert.deepEqual(renders, ['render'])
 })

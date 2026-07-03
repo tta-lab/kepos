@@ -51,7 +51,6 @@ type DmSendResult =
 type DmRuntime = {
   markThreadRead?(payload: { profileId: string; readAt: number }): unknown
   sendMessageOrRequest(payload: {
-    broadcastControl(request: unknown): unknown
     createdAt: number
     messageId: string
     requestId: string
@@ -210,7 +209,6 @@ export function createDesktopMessageActions({
       }
 
       const result = dmRuntime?.sendMessageOrRequest({
-        broadcastControl: () => {},
         createdAt: now(),
         messageId: createId(),
         requestId: createId(),

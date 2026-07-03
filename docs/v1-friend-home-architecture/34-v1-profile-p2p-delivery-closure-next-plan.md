@@ -176,6 +176,9 @@ Already implemented before this plan:
   friend path, and labels raw direct host:port as diagnostic.
 - Desktop Contacts copy now uses `Home entry` as a named post-trust action,
   matching the product vocabulary.
+- Desktop DM runtime no longer accepts or calls a Home `broadcastControl`
+  callback when creating normal friend requests; request delivery is returned to
+  the profile-request action layer.
 
 Still open:
 

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 import { createDesktopDmRuntime } from '../src/desktop-dm-runtime.ts'
 
@@ -232,11 +233,9 @@ test('desktop DM runtime ignores read markers for unknown or revoked threads', a
 
 test('desktop DM runtime creates and appends a message request without a thread', async () => {
   const { calls, runtime, sessions } = createRuntime()
-  const broadcasts = []
 
   await runtime.start({ nick: 'Owner', profile, storage: {} })
   const result = runtime.sendMessageOrRequest({
-    broadcastControl: (request) => broadcasts.push(request),
     createdAt: 2,
     messageId: 'message-1',
     requestId: 'request-2',
@@ -245,11 +244,26 @@ test('desktop DM runtime creates and appends a message request without a thread'
   })
 
   assert.equal(result.kind, 'request')
-  assert.equal(broadcasts[0].type, 'kepos.message.request.v1')
-  assert.equal(broadcasts[0].text, 'hello')
+  assert.equal(result.request.type, 'kepos.message.request.v1')
+  assert.equal(result.request.text, 'hello')
   assert.equal(sessions.at(-1).messages[0].direction, 'out')
   assert.equal(sessions.at(-1).messages[0].text, 'hello')
   assert.deepEqual(calls.at(-1), ['saveSessionMessages', sessions.at(-1).messages])
+})
+
+test('desktop DM runtime request creation has no Home control callback', async () => {
+  const source = await readFile(new URL('../src/desktop-dm-runtime.ts', import.meta.url), 'utf8')
+  const sendMessageOrRequest = source.slice(
+    source.indexOf('function sendMessageOrRequest'),
+    source.indexOf('function appendIncomingRequest')
+  )
+  const runtimeType = source.slice(
+    source.indexOf('sendMessageOrRequest(options: {'),
+    source.indexOf('start(options:')
+  )
+
+  assert.doesNotMatch(sendMessageOrRequest, /broadcastControl/)
+  assert.doesNotMatch(runtimeType, /broadcastControl/)
 })
 
 test('desktop DM runtime ignores blank outgoing text', async () => {

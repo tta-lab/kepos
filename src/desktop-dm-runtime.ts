@@ -132,14 +132,12 @@ export function createDesktopDmRuntime({
   }
 
   function sendMessageOrRequest({
-    broadcastControl = () => {},
     createdAt,
     messageId,
     requestId,
     text,
     toProfileId
   }: {
-    broadcastControl?: (request: MessageRequest) => unknown
     createdAt?: number
     messageId: string
     requestId: string
@@ -174,7 +172,6 @@ export function createDesktopDmRuntime({
     dmSession = appendLocalMessageRequest(dmSession, request)
     saveCurrentSessionMessages()
     onSessionChanged(dmSession)
-    broadcastControl(request)
     return { kind: 'request', request } as const
   }
 
@@ -474,7 +471,6 @@ export type DesktopDmRuntime = {
   replaceThreads(threads: DmThread[]): void
   saveThread(thread: DmThread): void
   sendMessageOrRequest(options: {
-    broadcastControl?: (request: MessageRequest) => unknown
     createdAt?: number
     messageId: string
     requestId: string
