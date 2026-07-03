@@ -2,10 +2,8 @@ import {
   recordOutgoingFriendRequest,
   updateOutgoingFriendRequestDeliveryState
 } from './contact-book.ts'
-import {
-  createFriendRequestTargetViewModel,
-  shouldBlockChatSendForFriendRequestTarget
-} from './friend-request-target-view-model.ts'
+import { type FriendRequestTargetViewModel } from './friend-request-target-view-model.ts'
+import { createDirectChatSendGate } from './direct-chat-send-gate.ts'
 import { formatProfileFriendRequestDeliveryState } from './profile-friend-request-delivery.ts'
 import {
   createQueuedProfileFriendRequestTransport,
@@ -188,22 +186,21 @@ export function createDesktopMessageActions({
       const cleanText = cleanMessageText(text)
       const dmRuntime = getDmRuntime()
       const contactBook = getContactBook()
-      let requestTarget: ReturnType<typeof createFriendRequestTargetViewModel> | null = null
+      let requestTarget: FriendRequestTargetViewModel | null = null
 
       if (!getDmSession() || !toProfileId || !cleanText) return
       if (contactBook) {
-        const profileRequestTarget = getProfileRequestTarget()
-        requestTarget = createFriendRequestTargetViewModel({
+        const sendGate = createDirectChatSendGate({
           contactBook,
-          shortenProfileId: (profileId) => `${profileId.slice(0, 8)}...${profileId.slice(-8)}`,
-          target:
-            profileRequestTarget?.profileId === toProfileId
-              ? { ...profileRequestTarget, profileId: toProfileId }
-              : { profileId: toProfileId }
+          profileRequestTarget: getProfileRequestTarget(),
+          recipientProfileId: toProfileId,
+          shortenProfileId: (profileId) => `${profileId.slice(0, 8)}...${profileId.slice(-8)}`
         })
+        if (!sendGate) return
 
-        if (shouldBlockChatSendForFriendRequestTarget(requestTarget)) {
-          setNotice(requestTarget.copy)
+        requestTarget = sendGate.requestTarget
+        if (!sendGate.canSend) {
+          setNotice(sendGate.notice || requestTarget.copy)
           return
         }
       }

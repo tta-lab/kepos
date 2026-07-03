@@ -1801,12 +1801,12 @@ test('mobile composer sends trimmed text payloads', async () => {
   assert.doesNotMatch(acceptedThreadBranch, /RPC_SEND/)
   assert.doesNotMatch(acceptedThreadBranch, /RPC_DM_SEND/)
   assert.doesNotMatch(acceptedThreadBranch, /RPC_PROFILE_REQUEST_SEND/)
-  assert.match(sendMessageRequest, /createFriendRequestTargetViewModel\(/)
-  assert.match(sendMessageRequest, /shouldBlockChatSendForFriendRequestTarget\(requestTargetView\)/)
+  assert.match(sendMessageRequest, /createDirectChatSendGate\(\{/)
+  assert.match(sendMessageRequest, /if \(!sendGate\.canSend\) \{[\s\S]*setNotice/)
   assert.ok(
-    sendMessageRequest.indexOf('shouldBlockChatSendForFriendRequestTarget(requestTargetView)') <
+    sendMessageRequest.indexOf('if (!sendGate.canSend)') <
       sendMessageRequest.indexOf('if (thread)'),
-    'mobile Chat send should check ContactBook request state before accepted thread send'
+    'mobile Chat send should check shared relationship gate before accepted thread send'
   )
   assert.match(sendMessageRequest, /if \(!requestTargetView\.canSendRequest\)/)
   assert.doesNotMatch(sendMessageRequest, /enterRequestTargetHome\(/)

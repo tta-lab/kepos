@@ -45,9 +45,9 @@ import { markDmThreadRead, type DmThread } from '../src/dm-thread.ts'
 import { createContactProfileViewModel } from '../src/contact-profile-view-model.ts'
 import {
   createFriendRequestTargetViewModel,
-  shouldBlockChatSendForFriendRequestTarget,
   type FriendRequestTargetViewModel
 } from '../src/friend-request-target-view-model.ts'
+import { createDirectChatSendGate } from '../src/direct-chat-send-gate.ts'
 import { createMobileTreeholeAuthorAvatar } from '../src/mobile-avatar-view-model.ts'
 import {
   createProfileRecentPostsViewModel,
@@ -944,18 +944,18 @@ export default function App() {
         entry.state === 'accepted' &&
         entry.revokedAt === undefined
     )
-    const requestTargetView = createFriendRequestTargetViewModel({
+    const sendGate = createDirectChatSendGate({
       contactBook,
-      shortenProfileId,
-      target:
-        profileRequestTarget?.profileId === cleanRecipient
-          ? profileRequestTarget
-          : { profileId: cleanRecipient }
+      profileRequestTarget,
+      recipientProfileId: cleanRecipient,
+      shortenProfileId
     })
-    if (shouldBlockChatSendForFriendRequestTarget(requestTargetView)) {
-      setNotice(requestTargetView.copy)
+    if (!sendGate) return
+    if (!sendGate.canSend) {
+      setNotice(sendGate.notice || sendGate.requestTarget.copy)
       return
     }
+    const requestTargetView = sendGate.requestTarget
 
     if (thread) {
       rpcRef.current?.request(RPC_DM_BODY_SEND).send(

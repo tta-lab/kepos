@@ -226,6 +226,9 @@ Current source alignment:
 - Desktop and Android Chat composer copy now uses
   `src/direct-chat-composer-copy.ts`, so `request_target` says "Send request"
   while trusted threads keep normal private-message wording.
+- Desktop and Android Chat send paths now use `src/direct-chat-send-gate.ts`
+  before sending over platform runtimes. The shared gate owns relationship-state
+  blocking for pending, incoming, ignored, and removed profiles.
 - Desktop and Android Profile detail request actions now call shared
   relationship-state helpers for incoming-request responses and
   removed/ignored recovery instead of branching on raw state strings in
@@ -275,15 +278,16 @@ Current code evidence:
 
 Current automated evidence:
 
-- Full source suite passed with 1016 tests after the reset cleanup.
+- Full source suite passed with 1022 tests after the reset cleanup.
 - `test/v1-model-smoke.test.js` now includes the exact Profile-first reset
   flow: Profile QR becomes `request_target`, Chat sends a signed friend request,
   the requester enters `outgoing_request`, the owner enters `incoming_request`,
   accept creates mutual trust and accepted Chat threads, Treehole grants follow
   the trusted policy, and Home entry becomes available only after trust.
-- Latest focused source-reset gate passed with 161 tests covering Android
-  selected Profile projection, direct Chat empty copy, desktop renderer
-  structure, relationship-state helpers, and docs current-state checks.
+- Latest focused source-reset gate passed with 157 tests covering Android
+  selected Profile projection, direct Chat empty/composer copy, shared Chat send
+  gating, desktop renderer/message structure, relationship-state helpers, and
+  docs current-state checks.
 - `npm run lint` passed after the same source-reset work; this includes
   Prettier, lunte, typecheck, and platform-boundary checks.
 - Focused model/UI tests cover profile relationship state, friend request target
