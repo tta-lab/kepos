@@ -227,9 +227,10 @@ Current source alignment:
 ## Implementation Order
 
 1. Keep this document as the current V1 architecture contract.
-2. Put shared relationship state names and helpers in `src/`.
-3. Make desktop and Android view models use those shared states.
-4. Fix Chat so `request_target` has a stable composer path on mobile and desktop.
+2. Keep shared relationship state names and helpers in `src/`.
+3. Keep desktop and Android view models consuming those shared states.
+4. Keep Chat treating `request_target` as a stable composer path on mobile and
+   desktop.
 5. Prove the previously failing release state before spending time on full
    physical smoke.
 
@@ -252,14 +253,19 @@ Current code evidence:
   source-level helpers: relationship state inference,
   request-target profile projection, recent-post projection, and ordered
   selected-profile source matching all live in `src/`.
+- A source audit now finds normal relationship-state equality checks only in
+  shared/domain files: `src/profile-relationship-state.ts` and
+  `src/friend-request-target-view-model.ts`. Desktop and Android components pass
+  relationship state through to shared helpers instead of owning product access
+  checks.
 
 Current automated evidence:
 
-- Latest focused source-reset gate passed with 195 tests covering desktop and
-  Android Profile selection, source matching, Profile route closure, renderer
-  structure, and docs current-state checks.
+- Latest focused source-reset gate passed with 133 tests covering Android
+  selected Profile projection, direct Chat empty copy, desktop renderer
+  structure, relationship-state helpers, and docs current-state checks.
 - `npm run lint` passed after the same source-reset work; this includes
-  typecheck and platform-boundary checks.
+  Prettier, lunte, typecheck, and platform-boundary checks.
 - Focused model/UI tests cover profile relationship state, friend request target
   view models, contact profile view models, desktop Contacts, desktop Chat, and
   Android Chat/Contacts source structure.
@@ -272,8 +278,9 @@ Remaining evidence before calling V1 ready:
 - Full final proof packet in `tmp/final-v1-proof.md`, checked by
   `npm run v1:proof:check -- --file tmp/final-v1-proof.md`.
 
-Current blocker for that last evidence: `adb devices -l` reports no connected
-devices, so the physical Android proof cannot be run in this pass.
+Physical smoke is intentionally deferred until the source model is stable or the
+user asks for device proof; the current reset work is source-level convergence,
+not another smoke retry.
 
 ## Current Failure That Triggered This Reset
 
