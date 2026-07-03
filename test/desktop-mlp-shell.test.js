@@ -371,13 +371,15 @@ test('desktop Chat focuses the selected direct thread message list', async () =>
     directPane,
     /const visibleMessages = filterDirectMessagesForProfile\(messages, selectedProfileId\)/
   )
+  assert.match(directPane, /const layoutState = createDirectChatLayoutState\(/)
+  assert.match(directPane, /recipientProfileId: selectedProfileId/)
+  assert.match(directPane, /requestTargetProfileId: requestTarget\?\.profileId/)
+  assert.match(directPane, /\{layoutState\.hideThreadList \? null : \([\s\S]*<DirectThreadList/)
+  assert.match(directPane, /<DirectMessageList[\s\S]*messages=\{visibleMessages\}/)
   assert.match(
     directPane,
-    /const hasRequestTarget = Boolean\(\s*requestTarget\?\.profileId && requestTarget\.profileId === selectedProfileId\s*\)/
+    /<DirectComposer[\s\S]*hideContactEmpty=\{layoutState\.hideContactEmpty\}/
   )
-  assert.match(directPane, /\{hasRequestTarget \? null : \([\s\S]*<DirectThreadList/)
-  assert.match(directPane, /<DirectMessageList[\s\S]*messages=\{visibleMessages\}/)
-  assert.match(directPane, /<DirectComposer[\s\S]*hasRequestTarget=\{hasRequestTarget\}/)
 })
 
 test('desktop panes share product headers with short guidance', async () => {

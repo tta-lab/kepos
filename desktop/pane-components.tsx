@@ -9,6 +9,7 @@ import {
 } from './ui-components.tsx'
 import { getDirectChatEmptyCopy } from '../src/direct-chat-empty-copy.ts'
 import { createDirectChatComposerState } from '../src/direct-chat-composer-state.ts'
+import { createDirectChatLayoutState } from '../src/direct-chat-layout-state.ts'
 import { filterDirectMessagesForProfile, findSelectedDmThreadView } from '../src/dm-thread-list.ts'
 import type { ProfileRelationshipState } from '../src/profile-relationship-state.ts'
 
@@ -213,9 +214,10 @@ export function DirectPane({
   })
   const selectedProfileId = composer.toProfileId.trim()
   const visibleMessages = filterDirectMessagesForProfile(messages, selectedProfileId)
-  const hasRequestTarget = Boolean(
-    requestTarget?.profileId && requestTarget.profileId === selectedProfileId
-  )
+  const layoutState = createDirectChatLayoutState({
+    recipientProfileId: selectedProfileId,
+    requestTargetProfileId: requestTarget?.profileId
+  })
 
   function selectThread(profileId: string) {
     const toProfileId = profileId.trim()
@@ -231,7 +233,7 @@ export function DirectPane({
         title='Chat'
         description='Private pairwise threads that survive restarts.'
       />
-      {hasRequestTarget ? null : (
+      {layoutState.hideThreadList ? null : (
         <DirectThreadList
           onAccept={messageActions.acceptMessage}
           onIgnore={messageActions.ignoreMessage}
@@ -260,7 +262,7 @@ export function DirectPane({
         contactPicker={contactPicker}
         contactPickerActions={contactPickerActions}
         controls={controls}
-        hasRequestTarget={hasRequestTarget}
+        hideContactEmpty={layoutState.hideContactEmpty}
         relationshipState={requestTarget?.relationshipState}
         selectedThread={selectedThread}
         setComposer={setComposer}
@@ -546,7 +548,7 @@ function DirectComposer({
   contactPicker,
   contactPickerActions,
   controls,
-  hasRequestTarget,
+  hideContactEmpty,
   relationshipState,
   selectedThread,
   setComposer
@@ -556,7 +558,7 @@ function DirectComposer({
   contactPicker: ContactPickerView
   contactPickerActions: DirectContactPickerActions
   controls: ControlsView
-  hasRequestTarget: boolean
+  hideContactEmpty: boolean
   relationshipState?: ProfileRelationshipState
   selectedThread: DirectThreadView | null
   setComposer: ComposerSetter
@@ -603,7 +605,7 @@ function DirectComposer({
         }}
         contacts={contactPicker.contacts}
         empty={contactPicker.empty}
-        hideEmpty={hasRequestTarget}
+        hideEmpty={hideContactEmpty}
         selectedProfileId={composer.toProfileId.trim()}
       />
       <details

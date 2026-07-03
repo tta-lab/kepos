@@ -4,6 +4,7 @@ import { FlatList, ScrollView, TextInput, View } from 'react-native'
 import { Plus, Users } from 'lucide-react-native'
 import { getDirectChatEmptyCopy } from '../src/direct-chat-empty-copy.ts'
 import { createDirectChatComposerState } from '../src/direct-chat-composer-state.ts'
+import { createDirectChatLayoutState } from '../src/direct-chat-layout-state.ts'
 import {
   createDmThreadListView,
   filterDirectMessagesForProfile,
@@ -163,9 +164,10 @@ export function DirectPane({
     })
   })
   const visibleMessages = filterDirectMessagesForProfile(messages, recipient)
-  const hasRequestTarget = Boolean(
-    requestTarget?.profileId && requestTarget.profileId === recipient
-  )
+  const layoutState = createDirectChatLayoutState({
+    recipientProfileId: recipient,
+    requestTargetProfileId: requestTarget?.profileId
+  })
   const emptyMessageCopy = getDirectChatEmptyCopy({
     relationshipState: requestTarget?.relationshipState
   })
@@ -192,7 +194,7 @@ export function DirectPane({
         requestTarget={requestTarget}
         styles={styles}
       />
-      {hasRequestTarget ? null : (
+      {layoutState.hideThreadList ? null : (
         <MessageThreadList
           contacts={threadContacts}
           messages={messages}
@@ -253,7 +255,7 @@ export function DirectPane({
               />
             ))}
           </ScrollView>
-        ) : hasRequestTarget ? null : (
+        ) : layoutState.hideContactEmpty ? null : (
           <View style={styles.directEmptyContacts}>
             <PanelEmptyState
               copy='Trust a friend first, then come back here to write privately.'

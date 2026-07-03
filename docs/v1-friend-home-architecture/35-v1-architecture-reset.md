@@ -229,6 +229,10 @@ Current source alignment:
 - Desktop and Android Chat composer availability now uses
   `src/direct-chat-composer-state.ts`, so placeholder text, send label, and
   enabled state are derived together before platform components render buttons.
+- Desktop and Android Chat request-target layout now uses
+  `src/direct-chat-layout-state.ts`, so hiding the thread list and zero-contact
+  empty state is derived from one shared selected-recipient/request-target
+  check before platform components render layout.
 - Desktop and Android Profile QR request-target selection now uses
   `src/profile-request-target-selection.ts`. Scan and paste handlers still own
   platform work such as reading QR text, clearing inputs, and opening Chat, but
@@ -301,6 +305,9 @@ Current automated evidence:
   V1 route closure, docs current-state checks, and request-target selection.
 - `npm run lint` passed after the same source-reset work; this includes
   Prettier, lunte, typecheck, and platform-boundary checks.
+- Focused Direct Chat layout, composer, desktop shell, Android UI, renderer
+  bundle, two-device hooks, and V1 route-closure tests passed with 173 tests
+  after the shared layout-state extraction.
 - Focused model/UI tests cover profile relationship state, friend request target
   view models, contact profile view models, desktop Contacts, desktop Chat, and
   Android Chat/Contacts source structure.
