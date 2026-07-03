@@ -43,11 +43,9 @@ import {
 } from '../src/dm-thread-list.ts'
 import { markDmThreadRead, type DmThread } from '../src/dm-thread.ts'
 import { createContactProfileViewModel } from '../src/contact-profile-view-model.ts'
-import {
-  createFriendRequestTargetViewModel,
-  type FriendRequestTargetViewModel
-} from '../src/friend-request-target-view-model.ts'
+import type { FriendRequestTargetViewModel } from '../src/friend-request-target-view-model.ts'
 import { createDirectChatSendGate } from '../src/direct-chat-send-gate.ts'
+import { createProfileRequestTargetSelection } from '../src/profile-request-target-selection.ts'
 import { createMobileTreeholeAuthorAvatar } from '../src/mobile-avatar-view-model.ts'
 import {
   createProfileRecentPostsViewModel,
@@ -727,20 +725,17 @@ export default function App() {
 
   function chooseProfileRequestTarget(uri: string, displayNameOverride = '') {
     const target = readMobileProfileRequestTarget({ uri })
-    const cleanDisplayName = displayNameOverride.trim()
-    const targetWithDisplayName = cleanDisplayName
-      ? { ...target, displayName: cleanDisplayName }
-      : target
-    const targetView = createFriendRequestTargetViewModel({
+    const selection = createProfileRequestTargetSelection({
       contactBook,
+      displayNameOverride,
       shortenProfileId,
-      target: targetWithDisplayName
+      target
     })
 
-    setProfileRequestTarget(targetView)
-    setDmRecipient(target.profileId)
+    setProfileRequestTarget(selection.targetView)
+    setDmRecipient(selection.profileId)
     setActiveTab('dm')
-    setNotice(targetView.copy)
+    setNotice(selection.notice)
   }
 
   async function revokeTrustedContact(contactProfileId: string) {

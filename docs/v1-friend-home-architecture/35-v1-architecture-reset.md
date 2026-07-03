@@ -226,6 +226,11 @@ Current source alignment:
 - Desktop and Android Chat composer copy now uses
   `src/direct-chat-composer-copy.ts`, so `request_target` says "Send request"
   while trusted threads keep normal private-message wording.
+- Desktop and Android Profile QR request-target selection now uses
+  `src/profile-request-target-selection.ts`. Scan and paste handlers still own
+  platform work such as reading QR text, clearing inputs, and opening Chat, but
+  the shared helper owns alias override, relationship projection, target
+  preview, and notice copy.
 - Desktop and Android Chat send paths now use `src/direct-chat-send-gate.ts`
   before sending over platform runtimes. The shared gate owns relationship-state
   blocking for pending, incoming, ignored, and removed profiles.
@@ -258,9 +263,10 @@ Current code evidence:
 - Product model is documented here as Profile-first and Home-secondary.
 - Relationship state names and ContactBook-to-state inference are centralized in
   `src/profile-relationship-state.ts`.
-- Desktop and Android Chat send paths call the shared request-target view model
-  before deciding whether a Chat composer send creates a friend request or a
-  normal Chat message.
+- Desktop and Android Profile QR scan or paste paths call the shared
+  request-target selection helper before selecting Chat.
+- Desktop and Android Chat send paths call the shared send gate before deciding
+  whether a composer send creates a friend request or a normal Chat message.
 - Desktop and Android request-target Profile detail uses the same limited
   request-target profile model: Message is enabled for returning to Chat, while
   Enter Home remains disabled until trust exists.

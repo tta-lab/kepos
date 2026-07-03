@@ -3,7 +3,7 @@ import {
   createTreeholePolicyFromContactBook
 } from './contact-book.ts'
 import { createDesktopContactRevoke } from './desktop-revoke-service.ts'
-import { createFriendRequestTargetViewModel } from './friend-request-target-view-model.ts'
+import { createProfileRequestTargetSelection } from './profile-request-target-selection.ts'
 import { readSignedProfileQrRequestTarget } from './signed-qr-scan.ts'
 import type { DmThread } from './dm-thread.ts'
 import type { DesktopProfileContext } from './desktop-profile-context-core.ts'
@@ -92,6 +92,7 @@ export function createDesktopTrustActions({
   }
 
   function prepareProfileRequestTarget({
+    alias = '',
     displayName = 'Desktop',
     uri
   }: ProfileRequestTargetPayload = {}): void {
@@ -101,19 +102,20 @@ export function createDesktopTrustActions({
     const result = readProfileTrustQr({
       uri
     })
-    const targetView = createFriendRequestTargetViewModel({
+    const selection = createProfileRequestTargetSelection({
       contactBook: context.contactBook,
+      displayNameOverride: alias,
       shortenProfileId: (profileId) => `${profileId.slice(0, 8)}...${profileId.slice(-8)}`,
       target: result
     })
 
-    setDirectComposerRecipient(result.profileId)
-    setProfileRequestTarget(targetView)
+    setDirectComposerRecipient(selection.profileId)
+    setProfileRequestTarget(selection.targetView)
     setContextFormDraft({
       trustAlias: '',
       trustQrUri: ''
     })
-    setNotice('Friend request target ready.')
+    setNotice(selection.notice)
     onChanged()
   }
 

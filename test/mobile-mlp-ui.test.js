@@ -1042,7 +1042,7 @@ test('mobile messages can show thread rows and scanned profile request targets',
   assert.match(source, /readMobileProfileRequestTarget/)
   assert.doesNotMatch(source, /applyMobileProfileQrScan/)
   assert.doesNotMatch(source, /await trustProfileQr\(data\)/)
-  assert.match(source, /createFriendRequestTargetViewModel/)
+  assert.match(source, /createProfileRequestTargetSelection/)
   assert.match(
     source,
     /const \[profileRequestTarget, setProfileRequestTarget\] =\s+useState<FriendRequestTargetViewModel \| null>\(null\)/
@@ -1052,13 +1052,16 @@ test('mobile messages can show thread rows and scanned profile request targets',
     /function chooseProfileRequestTarget\(uri: string, displayNameOverride = ''\)/
   )
   assert.match(source, /chooseProfileRequestTarget\(uri, trustAlias\)/)
-  assert.match(source, /setDmRecipient\(target\.profileId\)/)
+  assert.match(source, /setDmRecipient\(selection\.profileId\)/)
   assert.match(source, /setActiveTab\('dm'\)/)
-  assert.match(source, /setNotice\(targetView\.copy\)/)
-  assert.match(source, /contactBook,[\s\S]*shortenProfileId,[\s\S]*target/)
+  assert.match(source, /setNotice\(selection\.notice\)/)
+  assert.match(
+    source,
+    /contactBook,[\s\S]*displayNameOverride,[\s\S]*shortenProfileId,[\s\S]*target/
+  )
   assert.match(chooseProfileRequestTarget, /readMobileProfileRequestTarget\(\{ uri \}\)/)
-  assert.match(chooseProfileRequestTarget, /setProfileRequestTarget\(targetView\)/)
-  assert.match(chooseProfileRequestTarget, /setDmRecipient\(target\.profileId\)/)
+  assert.match(chooseProfileRequestTarget, /setProfileRequestTarget\(selection\.targetView\)/)
+  assert.match(chooseProfileRequestTarget, /setDmRecipient\(selection\.profileId\)/)
   assert.match(chooseProfileRequestTarget, /setActiveTab\('dm'\)/)
   assert.doesNotMatch(chooseProfileRequestTarget, /applyMobileHomeQrScan/)
   assert.doesNotMatch(chooseProfileRequestTarget, /enterContactHome/)

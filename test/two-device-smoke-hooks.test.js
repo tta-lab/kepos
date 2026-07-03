@@ -523,7 +523,8 @@ test('desktop success notices avoid profile id snippets', async () => {
   )
   const source = `${controller}\n${messageRequestActions}\n${controlActions}\n${trustActions}\n${requestDelivery}`
 
-  assert.match(source, /setNotice\('Friend request target ready\.'\)/)
+  assert.match(source, /createProfileRequestTargetSelection\(/)
+  assert.match(source, /setNotice\(selection\.notice\)/)
   assert.match(source, /formatProfileFriendAcceptanceDeliveryNotice/)
   assert.match(source, /'Friend request accepted\. Invite sent\.'/)
   assert.match(source, /'Friend request accepted\.'/)

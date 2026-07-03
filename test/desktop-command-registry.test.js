@@ -264,7 +264,10 @@ test('desktop Profile QR request target command carries QR text alias and displa
     /function prepareProfileRequestTarget\(\{[\s\S]*displayName = 'Desktop',[\s\S]*uri[\s\S]*\}: ProfileRequestTargetPayload = \{\}\)/
   )
   assert.match(actions, /readProfileTrustQr\(\{[\s\S]*uri[\s\S]*\}\)/)
-  assert.match(actions, /setDirectComposerRecipient\(result\.profileId\)/)
+  assert.match(actions, /createProfileRequestTargetSelection\(\{[\s\S]*displayNameOverride: alias/)
+  assert.match(actions, /setDirectComposerRecipient\(selection\.profileId\)/)
+  assert.match(actions, /setProfileRequestTarget\(selection\.targetView\)/)
+  assert.match(actions, /setNotice\(selection\.notice\)/)
   assert.doesNotMatch(bindings, /trustProfileQr|trustProfileUri/)
   assert.doesNotMatch(host, /trustProfileUri/)
   assert.doesNotMatch(backendActions, /trustProfileUri/)
