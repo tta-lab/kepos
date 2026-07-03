@@ -88,8 +88,8 @@ This is the map of content for Kepos architecture docs.
 
 1. `docs/v1-friend-home-architecture/35-v1-architecture-reset.md`
    - Active V1 reset contract: Profile-first, Home-secondary, one relationship
-     state machine, and a required request-target Chat composer path after
-     Profile QR scan.
+     state machine, and a focused friend request composer after Profile QR
+     scan.
    - Use this for current V1 work before starting V2.
 
 2. `docs/v1-friend-home-architecture/34-v1-profile-p2p-delivery-closure-next-plan.md`

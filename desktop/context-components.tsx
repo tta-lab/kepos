@@ -137,7 +137,7 @@ export function ContextPanel({
           <PanelHeader
             eyebrow='Contacts'
             title='Add friend'
-            description='Paste a Profile QR, then write a request in Chat.'
+            description='Paste a Profile QR, then write a friend request.'
           />
           <div className='actions'>
             <ActionButton

@@ -1385,7 +1385,7 @@ test('mobile Contacts hides QR transport controls behind Advanced', async () => 
   assert.equal(peopleActions.includes("title='Home QR'"), false)
   assert.match(
     peopleActions,
-    /description='Scan a Profile QR, then write a request in Chat\.'[\s\S]*title='Add friend'/
+    /description='Scan a Profile QR, then write a friend request\.'[\s\S]*title='Add friend'/
   )
   assert.equal(peopleActions.includes('trust-only setup'), false)
   assert.match(peopleActions, /showAdvancedShare \? \([\s\S]*testID='show-home-qr-button'/)

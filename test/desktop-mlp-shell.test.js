@@ -141,7 +141,7 @@ test('desktop context forms use task panel headers', async () => {
   )
   assert.match(
     context,
-    /id='trustForm'[\s\S]*<PanelHeader[\s\S]*eyebrow='Contacts'[\s\S]*title='Add friend'[\s\S]*description='Paste a Profile QR, then write a request in Chat\.'[\s\S]*\/>/
+    /id='trustForm'[\s\S]*<PanelHeader[\s\S]*eyebrow='Contacts'[\s\S]*title='Add friend'[\s\S]*description='Paste a Profile QR, then write a friend request\.'[\s\S]*\/>/
   )
   assert.match(styles, /\.panelHeader/)
   assert.match(styles, /\.panelTitle/)

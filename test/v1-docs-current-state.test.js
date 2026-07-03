@@ -162,7 +162,7 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
   assert.match(docs, /Previous V1 profile P2P delivery closure plan/)
   assert.match(agents, /35-v1-architecture-reset\.md/)
   assert.match(agents, /one relationship state machine/)
-  assert.match(agents, /usable Chat composer/)
+  assert.match(agents, /focused friend request composer/)
   assert.match(docs, /profile-routed private IM/)
   assert.match(docs, /profile-to-profile P2P route/)
   assert.match(docs, /Profile is the social address/)
@@ -198,14 +198,22 @@ test('V1 docs map points agents to the current ready checklist and smoke recipes
 
 test('V1 architecture reset treats complexity as duplicated product ownership', async () => {
   const reset = await readText('../docs/v1-friend-home-architecture/35-v1-architecture-reset.md')
+  const finalUx = await readText('../docs/v1.16-final-mlp-ui-ux-refactor.md')
+  const completionPlan = await readText('../docs/v1.17-ready-im-completion-plan.md')
 
   assert.match(reset, /V1 is profile-first and Home-secondary/)
+  assert.match(reset, /friend request composer -> send request -> pending/)
+  assert.match(reset, /dedicated friend request composer\s+dialog\/sheet/)
+  assert.match(reset, /Chat may keep\s+the compatibility request composer path/)
   assert.match(reset, /Code size is a symptom, not the root cause/)
   assert.match(reset, /product-state duplication is not/)
   assert.match(reset, /platform UI is\s+mostly a renderer/)
   assert.match(reset, /Move one duplicated decision at a time into shared model helpers/)
   assert.match(reset, /A UI fix is aligned only if/)
   assert.match(reset, /Physical smoke is intentionally deferred/)
+  assert.match(finalUx, /focused\s+friend request composer dialog or sheet/)
+  assert.match(completionPlan, /focused request composer/)
+  assert.match(completionPlan, /dedicated friend request composer/)
   assert.doesNotMatch(
     reset,
     /The next source work should not start from smoke[\s\S]*Search desktop and Android UI for normal-path Home QR/

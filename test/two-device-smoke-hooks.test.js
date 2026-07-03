@@ -240,7 +240,7 @@ test('Android lobby uses shared task headers for setup panels', async () => {
   assert.match(peopleActions, /<TaskHeader[\s\S]*eyebrow='Advanced'[\s\S]*title='Debug Home QR'/)
   assert.match(
     peopleActions,
-    /<TaskHeader[\s\S]*description='Scan a Profile QR, then write a request in Chat\.'[\s\S]*eyebrow='Contacts'[\s\S]*title='Add friend'/
+    /<TaskHeader[\s\S]*description='Scan a Profile QR, then write a friend request\.'[\s\S]*eyebrow='Contacts'[\s\S]*title='Add friend'/
   )
   assert.equal(peopleActions.includes('trust-only setup'), false)
   assert.match(source, /taskHeader: \{/)

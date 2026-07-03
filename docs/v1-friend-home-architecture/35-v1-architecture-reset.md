@@ -15,7 +15,7 @@ V1 is profile-first and Home-secondary.
 Normal social path:
 
 ```text
-scan Profile QR -> request target -> send request -> pending -> accepted -> Chat / Profile / Treehole
+scan Profile QR -> request target -> friend request composer -> send request -> pending -> accepted -> Chat / Profile / Treehole
 ```
 
 Optional live/session path:
@@ -35,7 +35,7 @@ states:
 
 | State              | Meaning                                                 | Primary actions                                                          |
 | ------------------ | ------------------------------------------------------- | ------------------------------------------------------------------------ |
-| `request_target`   | A Profile QR was scanned but no request was sent yet.   | Message composer sends the friend request. Profile detail is readable.   |
+| `request_target`   | A Profile QR was scanned but no request was sent yet.   | Friend request composer sends the request. Profile detail is readable.   |
 | `outgoing_request` | This device sent a request and waits for acceptance.    | Show pending state. Retry only if delivery allows it.                    |
 | `incoming_request` | The remote profile sent a request to this device.       | Accept or ignore.                                                        |
 | `trusted`          | The profiles have mutual trust locally.                 | Message, view profile posts, explicit Enter Home if a descriptor exists. |
@@ -66,11 +66,13 @@ relationship model.
 
 Required projections:
 
-- A scanned `request_target` opens Chat with the scanned profile selected.
-- Chat must show a usable composer for `request_target`, even when the user has
-  zero contacts.
+- A scanned `request_target` opens a dedicated friend request composer
+  dialog/sheet for the scanned profile.
+- That composer must be reachable even when the user has zero contacts.
 - Sending from that composer creates a friend request and moves the relation to
   `outgoing_request`.
+- Until the dedicated composer is implemented on both platforms, Chat may keep
+  the compatibility request composer path as a proof of the same state machine.
 - Contacts and Chat rows must open the same Profile detail for a profile.
 - `trusted` shows Message as the primary action.
 - `Enter Home` is visible only as an explicit post-trust action.
@@ -144,7 +146,9 @@ Keep in V1 normal UI:
 
 - Profile QR as the social entry point.
 - Friend request target preview after scan or paste.
-- Chat composer for `request_target`.
+- Dedicated friend request composer for `request_target`.
+- Temporary Chat composer compatibility for `request_target` only while the
+  dedicated composer is being implemented.
 - Incoming and outgoing friend request states.
 - Trusted contact Profile detail.
 - Durable Chat thread list and message view.
@@ -194,7 +198,11 @@ Work queue:
    availability.
 2. Move one duplicated decision at a time into shared model helpers or view
    models, then update both platforms to consume that model.
-3. Keep the default screen hierarchy aligned with the V1 product model:
+3. Move `request_target` send UX from "find the Chat composer" to a dedicated
+   friend request dialog/sheet on both platforms. The dialog owns the intro
+   text, send action, pending result, and cancel path; Chat becomes the durable
+   thread surface after the request is sent or accepted.
+4. Keep the default screen hierarchy aligned with the V1 product model:
 
    ```text
    Home / Chat / Contacts / Treehole
@@ -202,7 +210,7 @@ Work queue:
 
    with Profile detail opened from Chat, Contacts, or scan results.
 
-4. Keep tests focused on model and source structure first. Use physical smoke
+5. Keep tests focused on model and source structure first. Use physical smoke
    only for the final release-proof path or when a source-level fix cannot be
    trusted without a device.
 
@@ -242,6 +250,9 @@ Current source alignment:
 - Desktop and Android Chat composer copy now uses
   `src/direct-chat-composer-copy.ts`, so `request_target` says "Send request"
   while trusted threads keep normal private-message wording.
+- This Chat composer request path is now a compatibility proof path. The target
+  product interaction is a dedicated friend request composer dialog/sheet after
+  Profile QR scan, with Chat kept for durable threads.
 - Desktop and Android Chat composer availability now uses
   `src/direct-chat-composer-state.ts`, so placeholder text, send label, and
   enabled state are derived together before platform components render buttons.
@@ -351,9 +362,11 @@ Current automated evidence:
 
 Remaining evidence before calling V1 ready:
 
-- Physical Android release proof for the exact failed path:
-  Profile QR scan -> request target -> reachable `dm-message-input` -> send
-  request -> pending -> desktop receives request without entering Home.
+- Physical Android release proof for the exact failed path, updated to the
+  target interaction:
+  Profile QR scan -> request target -> dedicated friend request composer
+  reachable -> send request -> pending -> desktop receives request without
+  entering Home.
 - Full final proof packet in `tmp/final-v1-proof.md`, checked by
   `npm run v1:proof:check -- --file tmp/final-v1-proof.md`.
 

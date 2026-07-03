@@ -39,7 +39,7 @@ Use these docs as the current architecture map for Kepos.
 - `docs/v1-friend-home-architecture/32-v1-profile-dm-first-release-next-plan.md`: previous V1 plan; profile/DM-first private IM release and Treehole profile/Home scope split.
 - `docs/v1-friend-home-architecture/33-v1-profile-dm-only-social-next-plan.md`: previous V1 plan; Profile QR, friend request, accept, Chat, Profile detail, and Treehole must not depend on Home. Home is only explicit post-trust live/session entry.
 - `docs/v1-friend-home-architecture/34-v1-profile-p2p-delivery-closure-next-plan.md`: previous V1 plan; production social delivery uses profile-to-profile P2P only. Direct host:port is diagnostics only, Home has no role in adding friends, and final proof must show Profile QR -> request -> accept -> Chat/Profile posts without entering Home.
-- `docs/v1-friend-home-architecture/35-v1-architecture-reset.md`: active V1 reset contract; Profile-first, Home-secondary, one relationship state machine, and scanned Profile QR must open a usable Chat composer for sending the friend request.
+- `docs/v1-friend-home-architecture/35-v1-architecture-reset.md`: active V1 reset contract; Profile-first, Home-secondary, one relationship state machine, and scanned Profile QR should open a focused friend request composer instead of making users find the normal Chat composer.
 - `docs/v1.07-architecture-gaps.md`: remaining architecture gaps for V1 after identity and QR design.
 - `docs/v1.03-limitations.md`: explicit V1 limitations, non-goals, and success bar.
 - `docs/v1.04-tradeoffs.md`: accepted V1 tradeoffs, rejected options, risks, and future escape hatches.

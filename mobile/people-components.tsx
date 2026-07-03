@@ -276,7 +276,7 @@ export function PeopleActions({
     <>
       <View style={styles.panel}>
         <TaskHeader
-          description='Scan a Profile QR, then write a request in Chat.'
+          description='Scan a Profile QR, then write a friend request.'
           eyebrow='Contacts'
           styles={styles}
           title='Add friend'

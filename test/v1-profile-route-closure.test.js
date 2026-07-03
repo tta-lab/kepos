@@ -306,9 +306,9 @@ test('V1 visible social wording keeps protocol terms out of the normal path', as
   }
 
   assert.match(desktopChatPane, /title='Chat'/)
-  assert.match(desktopAddFriend, /Paste a Profile QR, then write a request in Chat\./)
+  assert.match(desktopAddFriend, /Paste a Profile QR, then write a friend request\./)
   assert.match(mobileChatPane, /title='Chat'/)
-  assert.match(mobileAddFriend, /Scan a Profile QR, then write a request in Chat\./)
+  assert.match(mobileAddFriend, /Scan a Profile QR, then write a friend request\./)
 
   assert.match(desktopDebugHomeQr, /title='Debug Home QR'/)
   assert.match(desktopDebugHomeQr, /it does not create friendship/)
