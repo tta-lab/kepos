@@ -725,7 +725,7 @@ function DirectMessageList({
 }) {
   const visibleMessages = messages.map(readMessageView)
   const emptyCopy = getDirectChatEmptyCopy({
-    relationshipState: readProfileRelationshipState(relationshipState)
+    relationshipState
   })
 
   return (
@@ -768,10 +768,6 @@ function DirectMessageList({
       )}
     </ol>
   )
-}
-
-function readProfileRelationshipState(value: ProfileRelationshipState | undefined) {
-  return value === 'request_target' ? value : null
 }
 
 function DirectContactPicker({

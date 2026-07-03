@@ -219,6 +219,10 @@ Current source alignment:
 - Desktop Contacts profile-list view models now type `relationshipState` as
   `ProfileRelationshipState` and use the shared incoming-request helper when
   adding accept actions for request profiles.
+- Android selected-profile view models now use the shared incoming-request
+  helper for accept/ignore actions. Chat empty copy also uses the shared
+  request-send helper, so platform components pass relationship state through
+  instead of parsing `request_target` themselves.
 
 ## Implementation Order
 

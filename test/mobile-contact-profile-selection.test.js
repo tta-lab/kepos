@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 import { createAvatarMediaReference } from '../src/avatar-media.ts'
 import {
@@ -156,4 +157,14 @@ test('mobile contact profile selection finds pending requests without narrowing 
 
   assert.equal(findPendingProfileRequest(pending, { profileId: 'friend' }), pending[0])
   assert.equal(findPendingProfileRequest(pending, { profileId: 'other' }), null)
+})
+
+test('mobile contact profile selection uses shared relationship helpers for request responses', async () => {
+  const source = await readFile(
+    new URL('../src/mobile-contact-profile-selection.ts', import.meta.url),
+    'utf8'
+  )
+
+  assert.match(source, /canRespondToFriendRequestForRelationshipState\(relationshipState\)/)
+  assert.doesNotMatch(source, /relationshipState === 'incoming_request'/)
 })

@@ -1,4 +1,7 @@
-import type { ProfileRelationshipState } from './profile-relationship-state.ts'
+import {
+  canSendFriendRequestFromRelationshipState,
+  type ProfileRelationshipState
+} from './profile-relationship-state.ts'
 
 export type DirectChatEmptyCopyInput = {
   relationshipState?: ProfileRelationshipState | null
@@ -7,7 +10,7 @@ export type DirectChatEmptyCopyInput = {
 export function getDirectChatEmptyCopy({
   relationshipState
 }: DirectChatEmptyCopyInput = {}): string {
-  if (relationshipState === 'request_target') {
+  if (relationshipState && canSendFriendRequestFromRelationshipState(relationshipState)) {
     return 'Write an intro to send this friend request.'
   }
 

@@ -15,6 +15,10 @@ import {
   type RequestTargetProfileInput,
   type RequestTargetProfileViewModel
 } from './request-target-profile-view-model.ts'
+import {
+  canRespondToFriendRequestForRelationshipState,
+  type ProfileRelationshipState
+} from './profile-relationship-state.ts'
 
 type FormatDate = (value: number) => string
 type FormatTime = (value: number | string | undefined) => string
@@ -186,16 +190,17 @@ function createMobileRequestProfile({
 }: {
   formatDate: FormatDate
   localProfileId?: string | null
-  relationshipState: 'incoming_request' | 'outgoing_request'
+  relationshipState: Extract<ProfileRelationshipState, 'incoming_request' | 'outgoing_request'>
   request: MobileContactProfileRequest
   shortenProfileId: ShortenProfileId
 }): MobileSelectedContactProfileView {
   const canAccept = Boolean(
-    relationshipState === 'incoming_request' &&
+    canRespondToFriendRequestForRelationshipState(relationshipState) &&
     localProfileId &&
     request.requestId &&
     request.senderEncryptionPublicKey
   )
+  const canIgnore = canRespondToFriendRequestForRelationshipState(relationshipState)
 
   return {
     ...createContactProfileViewModel({
@@ -223,8 +228,7 @@ function createMobileRequestProfile({
         }
       : undefined,
     canRemove: false,
-    ignoreRequest:
-      relationshipState === 'incoming_request' ? { profileId: request.profileId } : undefined,
+    ignoreRequest: canIgnore ? { profileId: request.profileId } : undefined,
     recentPosts: []
   }
 }
