@@ -101,7 +101,7 @@ export function HomeStartupPane({
       {showAdvancedJoin ? (
         <View style={styles.panel}>
           <TaskHeader
-            description='Use only when QR joining is unavailable.'
+            description='Debug manual Home entry; not for adding friends.'
             eyebrow='Advanced'
             styles={styles}
             title='Manual home key'
@@ -121,7 +121,7 @@ export function HomeStartupPane({
             autoCapitalize='none'
             autoCorrect={false}
             onChangeText={onDirectRoomEndpointChange}
-            placeholder='Debug direct host:port'
+            placeholder='Diagnostic direct host:port'
             placeholderTextColor={theme.placeholder}
             style={styles.keyInput}
             testID='manual-home-endpoint-input'

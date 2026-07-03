@@ -184,7 +184,7 @@ test('desktop people UI uses trusted friends copy', async () => {
   assert.match(source, /id='peoplePane'/)
   assert.match(
     source,
-    /<PaneHeader[\s\S]*eyebrow='profiles'[\s\S]*title='Contacts'[\s\S]*description='Trusted profiles, Chat, and home entry live here\.'/
+    /<PaneHeader[\s\S]*eyebrow='profiles'[\s\S]*title='Contacts'[\s\S]*description='Trusted profiles, Chat, and Home entry live here\.'/
   )
   assert.match(source, /Profiles/)
   assert.match(source, /No trusted friends yet/)
@@ -413,7 +413,7 @@ test('desktop panes share product headers with short guidance', async () => {
   assert.equal(panes.includes("placeholder='Post to the treehole'"), false)
   assert.match(
     people,
-    /<PaneHeader[\s\S]*eyebrow='profiles'[\s\S]*title='Contacts'[\s\S]*description='Trusted profiles, Chat, and home entry live here\.'[\s\S]*\/>/
+    /<PaneHeader[\s\S]*eyebrow='profiles'[\s\S]*title='Contacts'[\s\S]*description='Trusted profiles, Chat, and Home entry live here\.'[\s\S]*\/>/
   )
   assert.doesNotMatch(panes, /function PaneLabel\(/)
   assert.doesNotMatch(people, /function PaneLabel\(/)

@@ -172,6 +172,10 @@ Already implemented before this plan:
 - Desktop and Android default into Contacts/people-oriented entry state.
 - Home-control request and invite compatibility paths are quarantined behind
   explicit debug fallback.
+- Android manual Home entry copy now says it is diagnostic Home entry, not a
+  friend path, and labels raw direct host:port as diagnostic.
+- Desktop Contacts copy now uses `Home entry` as a named post-trust action,
+  matching the product vocabulary.
 
 Still open:
 
