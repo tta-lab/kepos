@@ -9,7 +9,11 @@ import type {
   ProfileAvatarViewModel,
   ResolveAvatarMediaUri
 } from '../src/profile-avatar-view-model.ts'
-import type { ProfileRelationshipState } from '../src/profile-relationship-state.ts'
+import {
+  canAllowRequestsForRelationshipState,
+  canRespondToFriendRequestForRelationshipState,
+  type ProfileRelationshipState
+} from '../src/profile-relationship-state.ts'
 import {
   MobileRequestActionButton,
   type MobileRequestActionButtonStyles,
@@ -121,7 +125,7 @@ export type ContactProfileDetailView = {
   recentCopy?: string
   recentPosts?: ContactProfileRecentPost[]
   recentTitle?: string
-  relationshipState?: string
+  relationshipState?: ProfileRelationshipState
   revokeLabel?: string
   shortProfileId?: string
   sourceLabel?: string
@@ -284,11 +288,16 @@ export function ContactProfileDetail({
 
   if (!profile) return null
   const canRemove = profile.canRemove !== false
-  const acceptRequest =
-    profile.relationshipState === 'incoming_request' ? profile.acceptRequest : undefined
-  const ignoreRequest =
-    profile.relationshipState === 'incoming_request' ? profile.ignoreRequest : undefined
+  const acceptRequest = canRespondToFriendRequestForRelationshipState(profile.relationshipState)
+    ? profile.acceptRequest
+    : undefined
+  const ignoreRequest = canRespondToFriendRequestForRelationshipState(profile.relationshipState)
+    ? profile.ignoreRequest
+    : undefined
   const canRespondToRequest = Boolean(acceptRequest && ignoreRequest)
+  const canAllowRequests =
+    Boolean(profile.canAllowRequests) ||
+    canAllowRequestsForRelationshipState(profile.relationshipState)
 
   return (
     <View
@@ -357,7 +366,7 @@ export function ContactProfileDetail({
               variant='accept'
             />
           </>
-        ) : profile.canAllowRequests ? (
+        ) : canAllowRequests ? (
           <MobileSmallActionButton
             accentColor={theme.accentStrong}
             dangerColor={theme.danger}

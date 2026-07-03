@@ -212,6 +212,10 @@ Current source alignment:
 - Desktop and Android Chat empty-state copy now uses
   `src/direct-chat-empty-copy.ts`, so `request_target` prompts the user to write
   an intro while normal empty Chat keeps trusted-contact guidance.
+- Desktop and Android Profile detail request actions now call shared
+  relationship-state helpers for incoming-request responses and
+  removed/ignored recovery instead of branching on raw state strings in
+  platform components.
 
 ## Implementation Order
 

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
   canAllowRequestsForRelationshipState,
+  canRespondToFriendRequestForRelationshipState,
   canSendFriendRequestFromRelationshipState,
   inferStoredContactRelationshipState,
   isTrustedRelationshipState,
@@ -28,6 +29,9 @@ test('profile relationship state limits post-trust actions to explicit states', 
   assert.equal(canAllowRequestsForRelationshipState('ignored'), true)
   assert.equal(canAllowRequestsForRelationshipState('removed'), true)
   assert.equal(canAllowRequestsForRelationshipState('trusted'), false)
+  assert.equal(canRespondToFriendRequestForRelationshipState('incoming_request'), true)
+  assert.equal(canRespondToFriendRequestForRelationshipState('outgoing_request'), false)
+  assert.equal(canRespondToFriendRequestForRelationshipState('trusted'), false)
 })
 
 test('profile relationship state infers stored contact states in one place', () => {

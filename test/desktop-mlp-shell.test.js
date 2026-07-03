@@ -618,8 +618,9 @@ test('desktop request and QR dialog actions use clear icons', async () => {
   )
   assert.match(
     people,
-    /const acceptMessage =[\s\S]*profile\.relationshipState === 'incoming_request'/
+    /canRespondToFriendRequestForRelationshipState\(profile\.relationshipState\)/
   )
+  assert.match(people, /canAllowRequestsForRelationshipState\(profile\.relationshipState\)/)
   assert.match(
     people,
     /<RequestActionButton[\s\S]*ariaLabel=\{`Ignore friend request from \$\{profile\.alias\}`\}[\s\S]*actions\.ignoreMessageRequest\(profile\.profileId\)[\s\S]*variant='ignore'/

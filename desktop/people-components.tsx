@@ -14,6 +14,11 @@ import {
   X
 } from 'lucide-react'
 import { ActionButton, PaneHeader, RequestActionButton, SectionTitle } from './ui-components.tsx'
+import {
+  canAllowRequestsForRelationshipState,
+  canRespondToFriendRequestForRelationshipState,
+  type ProfileRelationshipState
+} from '../src/profile-relationship-state.ts'
 
 type PeopleActions = {
   acceptMessageRequest(message: MessageRequestView['acceptMessage']): unknown
@@ -76,7 +81,7 @@ export type TrustedContactView = {
     text: string
   }[]
   recentTitle: string
-  relationshipState: string
+  relationshipState: ProfileRelationshipState
   revokeActionLabel?: string
   shortProfileId: string
   sourceLabel: string
@@ -400,11 +405,11 @@ function ContactProfileDetail({
 }) {
   if (!profile) return null
   const canRemove = profile.canRemove !== false
-  const acceptMessage =
-    profile.relationshipState === 'incoming_request' ? profile.acceptMessage : undefined
+  const acceptMessage = canRespondToFriendRequestForRelationshipState(profile.relationshipState)
+    ? profile.acceptMessage
+    : undefined
   const canRespondToRequest = Boolean(acceptMessage)
-  const canAllowRequests =
-    profile.relationshipState === 'removed' || profile.relationshipState === 'ignored'
+  const canAllowRequests = canAllowRequestsForRelationshipState(profile.relationshipState)
 
   return (
     <section

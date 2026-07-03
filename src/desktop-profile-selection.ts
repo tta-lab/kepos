@@ -9,6 +9,7 @@ import {
   createRequestTargetProfileViewModel,
   type RequestTargetProfileInput
 } from './request-target-profile-view-model.ts'
+import type { ProfileRelationshipState } from './profile-relationship-state.ts'
 
 type FormatTime = (value: number | string | undefined) => string
 type ShortenProfileId = (profileId: string) => string
@@ -30,7 +31,7 @@ export type DesktopProfileSelectionProfile<TAcceptMessage = unknown> = {
   profileId: string
   recentCopy?: string
   recentTitle: string
-  relationshipState: string
+  relationshipState: ProfileRelationshipState
   revokeActionLabel?: string
   shortProfileId: string
   sourceLabel: string

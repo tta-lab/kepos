@@ -83,8 +83,14 @@ export function isTrustedRelationshipState(relationshipState: ProfileRelationshi
   return relationshipState === 'trusted'
 }
 
+export function canRespondToFriendRequestForRelationshipState(
+  relationshipState?: ProfileRelationshipState | null
+): boolean {
+  return relationshipState === 'incoming_request'
+}
+
 export function canAllowRequestsForRelationshipState(
-  relationshipState: ProfileRelationshipState
+  relationshipState?: ProfileRelationshipState | null
 ): boolean {
   return relationshipState === 'ignored' || relationshipState === 'removed'
 }
