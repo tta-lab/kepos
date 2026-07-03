@@ -432,17 +432,22 @@ test('desktop panes share product headers with short guidance', async () => {
 test('desktop app state and bridge live behind a dedicated hook boundary', async () => {
   const source = await readDesktopAppSource()
   const appState = await readFile(new URL('../desktop/app-state.ts', import.meta.url), 'utf8')
+  const profileSelection = await readFile(
+    new URL('../src/desktop-profile-selection.ts', import.meta.url),
+    'utf8'
+  )
 
   assert.match(source, /import \{ useDesktopAppModel \} from '\.\/app-state\.ts'/)
   assert.match(source, /const model = useDesktopAppModel\(\)/)
   assert.match(appState, /export function useDesktopAppModel\(\)/)
   assert.match(appState, /type DesktopUiBridge = \{/)
-  assert.match(appState, /createProfileRecentPostsViewModel/)
+  assert.match(appState, /createDesktopProfileSelectionViewModel/)
+  assert.match(profileSelection, /createProfileRecentPostsViewModel/)
   assert.match(appState, /activeHomeOwnerProfileId/)
   assert.match(appState, /profileRecentPostCache/)
-  assert.match(appState, /const trustedContactsWithRecent = people\.trustedContacts\.map/)
-  assert.match(appState, /people: peopleWithRecent/)
-  assert.match(appState, /cachedPostsByProfileId: profileRecentPostCache/)
+  assert.doesNotMatch(appState, /const trustedContactsWithRecent = people\.trustedContacts\.map/)
+  assert.match(appState, /people: profileSelection\.people/)
+  assert.match(profileSelection, /cachedPostsByProfileId: profileRecentPostCache/)
   assert.match(
     appState,
     /type DesktopGlobal = typeof globalThis & \{ keposDesktopUi: DesktopUiApi \}/

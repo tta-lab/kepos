@@ -140,7 +140,7 @@ test('V1 Treehole owner posting does not require Home session on desktop or Andr
 
 test('V1 Profile detail recent posts do not require Home entry', async () => {
   const desktopPeople = await readText('../desktop/people-components.tsx')
-  const desktopAppState = await readText('../desktop/app-state.ts')
+  const desktopProfileSelection = await readText('../src/desktop-profile-selection.ts')
   const mobileProfile = await readText('../mobile/profile-components.tsx')
   const mobileProfileSelection = await readText('../src/mobile-contact-profile-selection.ts')
   const recentPostsViewModel = await readText('../src/profile-recent-posts-view-model.ts')
@@ -160,11 +160,11 @@ test('V1 Profile detail recent posts do not require Home entry', async () => {
     "<div className='profileRecent",
     '<details className='
   )
-  const desktopProfileMapping = sliceBetween(
-    desktopAppState,
-    'function withProfileRecentPosts',
-    'function formatRecentPostTime'
+  const desktopProfileMappingStart = desktopProfileSelection.indexOf(
+    'function withDesktopProfileRecentPosts'
   )
+  assert.notEqual(desktopProfileMappingStart, -1, 'missing desktop profile recent-post mapping')
+  const desktopProfileMapping = desktopProfileSelection.slice(desktopProfileMappingStart)
   const mobileRecentPosts = sliceBetween(
     mobileProfileDetail,
     '<View style={styles.contactRecent}>',

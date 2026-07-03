@@ -119,6 +119,10 @@ Current source alignment:
   `src/mobile-contact-profile-selection.ts` before rendering Profile detail.
   `mobile/people-components.tsx` composes the UI instead of owning the
   relationship-state branching.
+- Desktop app state now resolves trusted profile recent posts, selected Profile
+  detail, and scanned request-target fallback through
+  `src/desktop-profile-selection.ts`. `desktop/app-state.ts` keeps React state
+  and bridge wiring instead of owning that relationship/profile projection.
 
 ## Implementation Order
 

@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react'
 import {
-  createProfileRecentPostsViewModel,
   type ProfileRecentPostCache,
   type ProfileRecentTreeholePost
 } from '../src/profile-recent-posts-view-model.ts'
@@ -11,7 +10,7 @@ import {
   saveProfileRecentPostCacheToStorage,
   updateProfileRecentPostCache
 } from '../src/profile-recent-post-cache-storage.ts'
-import { createRequestTargetProfileViewModel as createSharedRequestTargetProfileViewModel } from '../src/request-target-profile-view-model.ts'
+import { createDesktopProfileSelectionViewModel } from '../src/desktop-profile-selection.ts'
 import type {
   BlockedContactView,
   MessageRequestView,
@@ -555,37 +554,16 @@ export function useDesktopAppModel() {
       setActiveTab('people')
     }
   }
-  const trustedContactsWithRecent = people.trustedContacts.map((profile) =>
-    withProfileRecentPosts({
-      activeHomeOwnerProfileId,
-      profileRecentPostCache,
-      profile,
-      treeholePosts
-    })
-  )
-  const peopleWithRecent = {
-    ...people,
-    profileDetails: (people.profileDetails || people.trustedContacts).map((profile) =>
-      withProfileRecentPosts({
-        activeHomeOwnerProfileId,
-        profileRecentPostCache,
-        profile,
-        treeholePosts
-      })
-    ),
-    trustedContacts: trustedContactsWithRecent
-  }
-  const selectedProfileDetail = peopleWithRecent.profileDetails.find(
-    (contact) => contact.profileId === selectedProfileId
-  )
-  const selectedProfile =
-    selectedProfileDetail ||
-    (profileRequestTarget?.profileId === selectedProfileId
-      ? createRequestTargetProfileViewModel({
-          selectedProfileId,
-          requestTarget: profileRequestTarget
-        })
-      : null)
+  const profileSelection = createDesktopProfileSelectionViewModel({
+    activeHomeOwnerProfileId,
+    formatTime: formatRecentPostTime,
+    people,
+    profileRecentPostCache,
+    profileRequestTarget,
+    selectedProfileId,
+    shortenProfileId,
+    treeholePosts: treeholePosts as ProfileRecentTreeholePost[]
+  })
 
   return {
     activeTab,
@@ -603,10 +581,10 @@ export function useDesktopAppModel() {
     homeMessages,
     homeOwner,
     largeQr,
-    people: peopleWithRecent,
+    people: profileSelection.people,
     peopleActions,
     profileRequestTarget,
-    selectedProfile,
+    selectedProfile: profileSelection.selectedProfile,
     setContextForm,
     setDirectComposer,
     setTheme,
@@ -620,67 +598,11 @@ export function useDesktopAppModel() {
   }
 }
 
-function withProfileRecentPosts({
-  activeHomeOwnerProfileId,
-  profileRecentPostCache,
-  profile,
-  treeholePosts
-}: {
-  activeHomeOwnerProfileId: string
-  profileRecentPostCache: ProfileRecentPostCache
-  profile: TrustedContactView
-  treeholePosts: unknown[]
-}): TrustedContactView {
-  return {
-    ...profile,
-    ...createProfileRecentPostsViewModel({
-      activeHomeOwnerProfileId,
-      cachedPostsByProfileId: profileRecentPostCache,
-      formatTime: formatRecentPostTime,
-      posts: treeholePosts as ProfileRecentTreeholePost[],
-      selectedProfileId: profile.profileId
-    })
-  }
-}
-
 function formatRecentPostTime(value: number | string | undefined): string {
   return new Date(value ?? Date.now()).toLocaleTimeString([], {
     hour: '2-digit',
     minute: '2-digit'
   })
-}
-
-function createRequestTargetProfileViewModel({
-  selectedProfileId,
-  requestTarget
-}: {
-  selectedProfileId: string
-  requestTarget: ProfileRequestTargetState
-}): TrustedContactView | null {
-  const profile = createSharedRequestTargetProfileViewModel({
-    requestTarget,
-    selectedProfileId,
-    shortenProfileId
-  })
-  if (!profile) return null
-
-  return {
-    alias: profile.displayName,
-    avatar: profile.avatar,
-    canRemove: profile.canRemove,
-    homeActionEnabled: profile.enterHomeEnabled,
-    homeActionLabel: profile.enterHomeLabel,
-    messageActionEnabled: profile.messageEnabled,
-    messageActionLabel: profile.messageLabel,
-    profileId: profile.profileId,
-    recentCopy: profile.recentCopy,
-    recentTitle: profile.recentTitle,
-    relationshipState: profile.relationshipState,
-    shortProfileId: profile.shortProfileId,
-    sourceLabel: profile.sourceLabel,
-    statusLabel: profile.statusLabel,
-    trustedAtLabel: profile.trustedAtLabel
-  }
 }
 
 function shortenProfileId(value: string): string {

@@ -483,6 +483,10 @@ test('desktop React owns context form drafts and QR actions', async () => {
 test('desktop React owns the people list surfaces', async () => {
   const source = await readDesktopUiSource()
   const controller = await readFile(new URL('../desktop/controller.js', import.meta.url), 'utf8')
+  const profileSelection = await readFile(
+    new URL('../src/desktop-profile-selection.ts', import.meta.url),
+    'utf8'
+  )
   const presenter = await readFile(
     new URL('../src/desktop-render-presenter.ts', import.meta.url),
     'utf8'
@@ -496,8 +500,9 @@ test('desktop React owns the people list surfaces', async () => {
   assert.match(source, /setPeopleActions\(actions = DEFAULT_BACKEND_PEOPLE_ACTIONS\)/)
   assert.match(source, /const \[profileRequestTarget, setProfileRequestTarget\]/)
   assert.match(source, /setProfileRequestTarget\(target = null\)/)
-  assert.match(source, /createRequestTargetProfileViewModel\(/)
-  assert.match(source, /profileRequestTarget\?\.profileId === selectedProfileId/)
+  assert.match(source, /createDesktopProfileSelectionViewModel\(/)
+  assert.match(profileSelection, /createRequestTargetProfileViewModel\(/)
+  assert.match(profileSelection, /selectedProfileId/)
   assert.match(
     source,
     /openProfile: \(profileId\) => \{[\s\S]*setSelectedProfileId\(String\(profileId \|\| ''\)\)[\s\S]*setActiveTab\('people'\)/
