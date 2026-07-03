@@ -9,6 +9,7 @@ import type {
   ProfileAvatarViewModel,
   ResolveAvatarMediaUri
 } from '../src/profile-avatar-view-model.ts'
+import type { ProfileRelationshipState } from '../src/profile-relationship-state.ts'
 import {
   MobileRequestActionButton,
   type MobileRequestActionButtonStyles,
@@ -72,6 +73,7 @@ export type ProfileRequestTargetView = {
   copy?: string
   displayName?: string
   profileId: string
+  relationshipState?: ProfileRelationshipState
   shortProfileId?: string
   statusLabel?: string
 }

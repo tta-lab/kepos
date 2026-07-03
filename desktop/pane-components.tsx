@@ -7,7 +7,9 @@ import {
   PaneHeader,
   RequestActionButton
 } from './ui-components.tsx'
+import { getDirectChatEmptyCopy } from '../src/direct-chat-empty-copy.ts'
 import { filterDirectMessagesForProfile, findSelectedDmThreadView } from '../src/dm-thread-list.ts'
+import type { ProfileRelationshipState } from '../src/profile-relationship-state.ts'
 
 type ActiveTab = 'chat' | 'dm' | 'treehole' | 'people' | string
 
@@ -74,6 +76,7 @@ type ProfileRequestTargetView = {
   copy?: string
   displayName?: string
   profileId: string
+  relationshipState?: ProfileRelationshipState
   shortProfileId?: string
   statusLabel?: string
 } | null
@@ -245,10 +248,10 @@ export function DirectPane({
         requestTarget={requestTarget}
       />
       <DirectMessageList
-        hasRequestTarget={hasRequestTarget}
         messages={visibleMessages}
         onAccept={messageActions.acceptMessage}
         onIgnore={messageActions.ignoreMessage}
+        relationshipState={requestTarget?.relationshipState}
       />
       <DirectComposer
         actions={composerActions}
@@ -710,20 +713,20 @@ function HomeChatList({ messages }: { messages: unknown[] }) {
 }
 
 function DirectMessageList({
-  hasRequestTarget,
   messages,
   onAccept,
-  onIgnore
+  onIgnore,
+  relationshipState
 }: {
-  hasRequestTarget?: boolean
   messages: unknown[]
   onAccept(message: unknown): unknown
   onIgnore(message: unknown): unknown
+  relationshipState?: ProfileRelationshipState
 }) {
   const visibleMessages = messages.map(readMessageView)
-  const emptyCopy = hasRequestTarget
-    ? 'Write an intro to send this friend request.'
-    : 'Choose a trusted contact and send the first message.'
+  const emptyCopy = getDirectChatEmptyCopy({
+    relationshipState: readProfileRelationshipState(relationshipState)
+  })
 
   return (
     <ol id='dmList' className='list bg-base-100' aria-label='Chat'>
@@ -765,6 +768,10 @@ function DirectMessageList({
       )}
     </ol>
   )
+}
+
+function readProfileRelationshipState(value: ProfileRelationshipState | undefined) {
+  return value === 'request_target' ? value : null
 }
 
 function DirectContactPicker({

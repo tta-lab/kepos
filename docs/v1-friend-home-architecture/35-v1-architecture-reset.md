@@ -209,6 +209,9 @@ Current source alignment:
   `src/profile-selection-source.ts` for ordered source matching. The shared
   helper chooses the first source whose `profileId` matches the selected
   profile; platform modules then map that source into their UI view model.
+- Desktop and Android Chat empty-state copy now uses
+  `src/direct-chat-empty-copy.ts`, so `request_target` prompts the user to write
+  an intro while normal empty Chat keeps trusted-contact guidance.
 
 ## Implementation Order
 

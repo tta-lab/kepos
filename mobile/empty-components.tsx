@@ -2,6 +2,7 @@ import type { ComponentType } from 'react'
 import type { StyleProp, TextStyle, ViewStyle } from 'react-native'
 import { Text, View } from 'react-native'
 import { MessageCircle, Send, Sprout } from 'lucide-react-native'
+import { getDirectChatEmptyCopy } from '../src/direct-chat-empty-copy.ts'
 import { getMobileTreeholeEmptyCopy } from '../src/mobile-product-copy.ts'
 
 export type EmptyStateIconProps = {
@@ -56,7 +57,7 @@ export function EmptyMessages({ styles, theme }: EmptyMessagesProps) {
 }
 
 export function EmptyDirectMessages({
-  copy = 'Choose a trusted contact and send the first message.',
+  copy = getDirectChatEmptyCopy(),
   styles,
   theme
 }: EmptyMessagesProps) {

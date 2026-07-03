@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { StyleProp, TextStyle, ViewStyle } from 'react-native'
 import { FlatList, ScrollView, TextInput, View } from 'react-native'
 import { Plus, Users } from 'lucide-react-native'
+import { getDirectChatEmptyCopy } from '../src/direct-chat-empty-copy.ts'
 import {
   createDmThreadListView,
   filterDirectMessagesForProfile,
@@ -164,9 +165,9 @@ export function DirectPane({
   const hasRequestTarget = Boolean(
     requestTarget?.profileId && requestTarget.profileId === recipient
   )
-  const emptyMessageCopy = hasRequestTarget
-    ? 'Write an intro to send this friend request.'
-    : 'Choose a trusted contact and send the first message.'
+  const emptyMessageCopy = getDirectChatEmptyCopy({
+    relationshipState: requestTarget?.relationshipState
+  })
 
   return (
     <View style={styles.directPane}>

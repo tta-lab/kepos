@@ -711,8 +711,8 @@ test('Android room tabs expose selected accessibility state', async () => {
 test('Android direct message empty state avoids DM shorthand', async () => {
   const source = await readMobileUiSource()
 
-  assert.match(source, /Choose a trusted contact and send the first message\./)
-  assert.match(source, /Write an intro to send this friend request\./)
+  assert.match(source, /getDirectChatEmptyCopy/)
+  assert.match(source, /relationshipState: requestTarget\?\.relationshipState/)
   assert.equal(source.includes('send the first DM.'), false)
 })
 

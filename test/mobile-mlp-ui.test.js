@@ -487,9 +487,11 @@ test('mobile primary empty states live in checked TSX components', async () => {
   assert.match(emptyComponents, /export function EmptyTreehole\(/)
   assert.match(emptyComponents, /getMobileTreeholeEmptyCopy\(status, \{ canPost \}\)/)
   assert.match(emptyComponents, /copy='Send the first line from this phone\.'/)
-  assert.match(emptyComponents, /copy = 'Choose a trusted contact and send the first message\.'/)
-  assert.match(directComponents, /const emptyMessageCopy = hasRequestTarget/)
-  assert.match(directComponents, /Write an intro to send this friend request\./)
+  assert.match(emptyComponents, /from '\.\.\/src\/direct-chat-empty-copy\.ts'/)
+  assert.match(emptyComponents, /copy = getDirectChatEmptyCopy\(\)/)
+  assert.match(directComponents, /from '\.\.\/src\/direct-chat-empty-copy\.ts'/)
+  assert.match(directComponents, /const emptyMessageCopy = getDirectChatEmptyCopy\(\{/)
+  assert.match(directComponents, /relationshipState: requestTarget\?\.relationshipState/)
   assert.match(
     homeChatPane,
     /ListEmptyComponent=\{<EmptyMessages styles=\{styles\} theme=\{theme\} \/>\}/

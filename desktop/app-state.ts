@@ -11,6 +11,7 @@ import {
   updateProfileRecentPostCache
 } from '../src/profile-recent-post-cache-storage.ts'
 import { createDesktopProfileSelectionViewModel } from '../src/desktop-profile-selection.ts'
+import type { ProfileRelationshipState } from '../src/profile-relationship-state.ts'
 import type {
   BlockedContactView,
   MessageRequestView,
@@ -72,7 +73,7 @@ type ProfileRequestTargetState = {
   canSendRequest?: boolean
   copy?: string
   displayName?: string
-  relationshipState?: string
+  relationshipState?: ProfileRelationshipState
   shortProfileId?: string
   statusLabel?: string
   profileId: string
