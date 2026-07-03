@@ -4,6 +4,10 @@ import { isContactTrusted, listBlockedContacts } from './contact-book.ts'
 import { createContactProfileViewModel } from './contact-profile-view-model.ts'
 import { formatProfileFriendRequestDeliveryState } from './profile-friend-request-delivery.ts'
 import type { ProfileAvatarViewModel } from './profile-avatar-view-model.ts'
+import {
+  canRespondToFriendRequestForRelationshipState,
+  type ProfileRelationshipState
+} from './profile-relationship-state.ts'
 
 type ShortenProfileId = (profileId: string) => string
 type FormatDate = (value: number) => string
@@ -37,7 +41,7 @@ export type DesktopTrustedContactViewModel = {
   profileId: string
   recentCopy?: string
   recentTitle: string
-  relationshipState: string
+  relationshipState: ProfileRelationshipState
   revokeActionLabel: string
   shortProfileId: string
   sourceLabel: string
@@ -212,7 +216,7 @@ function createRequestProfileViewModel({
   shortenProfileId
 }: {
   formatDate: FormatDate
-  relationshipState: 'incoming_request' | 'outgoing_request'
+  relationshipState: Extract<ProfileRelationshipState, 'incoming_request' | 'outgoing_request'>
   request: MessageRequestContact
   shortenProfileId: ShortenProfileId
 }): DesktopTrustedContactViewModel {
@@ -226,14 +230,13 @@ function createRequestProfileViewModel({
 
   return {
     alias: profile.displayName,
-    acceptMessage:
-      relationshipState === 'incoming_request'
-        ? {
-            fromProfileId: request.profileId,
-            nick: request.alias || '',
-            type: 'kepos.message.request.v1'
-          }
-        : undefined,
+    acceptMessage: canRespondToFriendRequestForRelationshipState(relationshipState)
+      ? {
+          fromProfileId: request.profileId,
+          nick: request.alias || '',
+          type: 'kepos.message.request.v1'
+        }
+      : undefined,
     avatar: profile.avatar,
     canRemove: false,
     homeActionEnabled: profile.enterHomeEnabled,

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 import {
   createContactBook,
@@ -400,4 +401,14 @@ test('desktop people view model exposes profile details for request and blocked 
       }
     ]
   )
+})
+
+test('desktop people view model uses shared relationship helpers for request responses', async () => {
+  const source = await readFile(
+    new URL('../src/desktop-people-view-model.ts', import.meta.url),
+    'utf8'
+  )
+
+  assert.match(source, /canRespondToFriendRequestForRelationshipState\(relationshipState\)/)
+  assert.doesNotMatch(source, /relationshipState === 'incoming_request'/)
 })

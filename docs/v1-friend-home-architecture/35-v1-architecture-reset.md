@@ -216,6 +216,9 @@ Current source alignment:
   relationship-state helpers for incoming-request responses and
   removed/ignored recovery instead of branching on raw state strings in
   platform components.
+- Desktop Contacts profile-list view models now type `relationshipState` as
+  `ProfileRelationshipState` and use the shared incoming-request helper when
+  adding accept actions for request profiles.
 
 ## Implementation Order
 
