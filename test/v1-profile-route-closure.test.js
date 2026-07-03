@@ -189,3 +189,78 @@ test('V1 Profile detail recent posts do not require Home entry', async () => {
   assert.match(recentPostsViewModel, /cachedPostsByProfileId\[selectedProfileId \|\| ''\]/)
   assert.doesNotMatch(recentPostsViewModel, /homeReady|homeRoomKey|enterHome|Home entry/)
 })
+
+test('V1 visible social wording keeps protocol terms out of the normal path', async () => {
+  const desktopContext = await readText('../desktop/context-components.tsx')
+  const desktopPanes = await readText('../desktop/pane-components.tsx')
+  const desktopPeople = await readText('../desktop/people-components.tsx')
+  const mobileDirect = await readText('../mobile/direct-components.tsx')
+  const mobileLobby = await readText('../mobile/lobby-components.tsx')
+  const mobilePeople = await readText('../mobile/people-components.tsx')
+
+  const desktopChatPane = sliceBetween(
+    desktopPanes,
+    'export function DirectPane',
+    'function DirectThreadHeader'
+  )
+  const desktopContactsPane = sliceBetween(
+    desktopPeople,
+    'export function PeoplePane',
+    'function ContactProfileDetail'
+  )
+  const desktopAddFriend = sliceBetween(
+    desktopContext,
+    "<details className='contextGroup peopleActions'",
+    "<details className='contextGroup homeActions'"
+  )
+  const desktopDebugHomeQr = sliceBetween(
+    desktopContext,
+    "id='advancedHomeQrControls'",
+    '</details>\n      </details>'
+  )
+  const mobileChatPane = sliceBetween(
+    mobileDirect,
+    'export function DirectPane',
+    'function toThreadContact'
+  )
+  const mobileAddFriend = sliceBetween(
+    mobilePeople,
+    '<TaskHeader',
+    "testID='advanced-share-toggle'"
+  )
+  const mobileDebugHomeQr = sliceBetween(
+    mobilePeople,
+    "description='Debug home descriptor",
+    "placeholder='Profile QR details'"
+  )
+  const mobileManualHome = sliceBetween(
+    mobileLobby,
+    "description='Debug manual Home entry",
+    "testID='manual-home-join-button'"
+  )
+
+  for (const normalSurface of [
+    desktopChatPane,
+    desktopContactsPane,
+    desktopAddFriend,
+    mobileChatPane,
+    mobileAddFriend
+  ]) {
+    assert.doesNotMatch(
+      normalSurface,
+      /\bDM\b|Direct messages|direct messages|direct host:port|host:port|Home QR|home descriptor|raw host|raw room/
+    )
+  }
+
+  assert.match(desktopChatPane, /title='Chat'/)
+  assert.match(desktopAddFriend, /Paste a Profile QR, then write a request in Chat\./)
+  assert.match(mobileChatPane, /title='Chat'/)
+  assert.match(mobileAddFriend, /Scan a Profile QR, then write a request in Chat\./)
+
+  assert.match(desktopDebugHomeQr, /title='Debug Home QR'/)
+  assert.match(desktopDebugHomeQr, /it does not create friendship/)
+  assert.match(mobileDebugHomeQr, /title='Debug Home QR'/)
+  assert.match(mobileDebugHomeQr, /it does not create friendship/)
+  assert.match(mobileManualHome, /Debug manual Home entry; not for adding friends\./)
+  assert.match(mobileManualHome, /Diagnostic direct host:port/)
+})

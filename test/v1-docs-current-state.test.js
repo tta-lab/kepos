@@ -225,6 +225,8 @@ test('V1 active profile P2P delivery closure plan rejects Home and direct produc
     plan,
     /Profile detail\s+recent posts render from active or cached profile post state/
   )
+  assert.match(plan, /visible wording audit is now backed by the same closure gate/)
+  assert.doesNotMatch(plan, /finish the visible wording audit/)
   assert.match(plan, /source-level cleanup continues; release proof still open/)
   assert.doesNotMatch(plan, /Direct host:port is a production path/)
   assert.doesNotMatch(plan, /Home can bootstrap friend requests/)

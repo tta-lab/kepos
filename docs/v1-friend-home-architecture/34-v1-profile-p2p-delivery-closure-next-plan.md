@@ -188,11 +188,13 @@ Already implemented before this plan:
 - The same closure gate now also proves desktop and Android Profile detail
   recent posts render from active or cached profile post state without a
   Refresh-posts action, Home entry action, Home QR, or Home runtime dependency.
+- The visible wording audit is now backed by the same closure gate: normal
+  desktop and Android Chat/Contacts/add-friend surfaces use Chat/Profile/Friend
+  language, while Debug Home QR and diagnostic host:port remain explicitly
+  advanced/debug wording.
 
 Still open:
 
-- finish the visible wording audit for Direct/DM/Home/host-port leaks
-- patch any remaining real product leaks found by the route audit
 - confirm Android reachable states match desktop for Contacts, Chat, Profile
   detail, Treehole, and explicit Home entry
 - produce the final physical desktop/Android proof packet
